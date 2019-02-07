@@ -24,9 +24,9 @@ from twisted.internet.defer import inlineCallbacks, returnValue, Deferred, \
 from zope.interface import implementer
 
 from python.common.utils import asleep
-from python.common.utils.registry import IComponent
+from voltha.common.utils.registry import IComponent
 from kafka_proxy import KafkaProxy, get_kafka_proxy
-from python.protos.inter_container_pb2 import MessageType, Argument, \
+from voltha.protos.inter_container_pb2 import MessageType, Argument, \
     InterContainerRequestBody, InterContainerMessage, Header, \
     InterContainerResponseBody
 

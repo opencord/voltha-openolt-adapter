@@ -24,13 +24,39 @@ MAINTAINER Voltha Community <info@opennetworking.org>
 # Bundle app source
 RUN mkdir /voltha && touch /voltha/__init__.py
 ENV PYTHONPATH=/voltha
+COPY common /voltha/voltha/common/
+COPY common /voltha/common/
+COPY adapters/common /voltha/common/
+COPY adapters/common /voltha/voltha/adapters/common/
+COPY adapters/kafka /voltha/voltha/adapters/kafka
+COPY adapters/*.py /voltha/voltha/adapters/
+COPY adapters/openolt /voltha/voltha/adapters/openolt
+COPY adapters/extensions /voltha/voltha/extensions
+COPY core /voltha/voltha/core/
+COPY common/utils/registry.py /voltha/voltha/
+RUN touch /voltha/voltha/__init__.py
+RUN touch /voltha/voltha/adapters/__init__.py
+
+#two copies of the libraries for now to support various import
+#This can be simiplified once the common libraries are unified in one repo
 COPY common /voltha/python/common/
 COPY adapters/common /voltha/python/adapters/common/
 COPY adapters/kafka /voltha/python/adapters/kafka
 COPY adapters/*.py /voltha/python/adapters/
 COPY adapters/openolt /voltha/python/adapters/openolt
+COPY adapters/extensions /voltha/python/extensions
 RUN touch /voltha/python/__init__.py
 RUN touch /voltha/python/adapters/__init__.py
+
+# Copy in the generated GRPC proto code
+COPY --from=protos /protos/voltha /voltha/voltha/protos
+COPY --from=protos /protos/google/api /voltha/voltha/protos/third_party/google/api
+COPY --from=openolt_protos /protos/voltha /voltha/voltha/protos
+COPY protos/third_party/__init__.py /voltha/voltha/protos/third_party
+COPY --from=openolt_protos /protos/voltha /voltha/voltha/adapters/openolt/protos/
+RUN touch /voltha/voltha/protos/__init__.py
+RUN touch /voltha/voltha/protos/third_party/google/__init__.py
+RUN touch /voltha/voltha/adapters/openolt/protos/__init__.py
 
 # Copy in the generated GRPC proto code
 COPY --from=protos /protos/voltha /voltha/python/protos

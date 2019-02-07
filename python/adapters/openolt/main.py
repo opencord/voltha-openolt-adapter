@@ -29,22 +29,22 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.task import LoopingCall
 from zope.interface import implementer
 
-from python.common.structlog_setup import setup_logging, update_logging
-from python.common.utils.asleep import asleep
-from python.common.utils.deferred_utils import TimeOutError
-from python.common.utils.dockerhelpers import get_my_containers_name
-from python.common.utils.nethelpers import get_my_primary_local_ipv4, \
+from voltha.common.structlog_setup import setup_logging, update_logging
+from voltha.common.utils.asleep import asleep
+from voltha.common.utils.deferred_utils import TimeOutError
+from voltha.common.utils.dockerhelpers import get_my_containers_name
+from voltha.common.utils.nethelpers import get_my_primary_local_ipv4, \
     get_my_primary_interface
-from python.common.utils.registry import registry, IComponent
-from python.adapters.kafka.adapter_proxy import AdapterProxy
-from python.adapters.kafka.adapter_request_facade import AdapterRequestFacade
-from python.adapters.kafka.core_proxy import CoreProxy
-from python.adapters.kafka.kafka_inter_container_library import IKafkaMessagingProxy, \
+from voltha.common.utils.registry import registry, IComponent
+from voltha.adapters.kafka.adapter_proxy import AdapterProxy
+from voltha.adapters.kafka.adapter_request_facade import AdapterRequestFacade
+from voltha.adapters.kafka.core_proxy import CoreProxy
+from voltha.adapters.kafka.kafka_inter_container_library import IKafkaMessagingProxy, \
     get_messaging_proxy
-from python.adapters.kafka.kafka_proxy import KafkaProxy, get_kafka_proxy
+from voltha.adapters.kafka.kafka_proxy import KafkaProxy, get_kafka_proxy
 from openolt import OpenoltAdapter
-from python.protos import third_party
-from python.protos.adapter_pb2 import AdapterConfig
+from voltha.protos import third_party
+from voltha.protos.adapter_pb2 import AdapterConfig
 
 _ = third_party
 
@@ -241,6 +241,7 @@ def load_config(args):
         dir = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(dir, path)
     path = os.path.abspath(path)
+    
     with open(path) as fd:
         config = yaml.load(fd)
     return config
@@ -269,7 +270,7 @@ class Main(object):
     def __init__(self):
 
         self.args = args = parse_args()
-        self.config = load_config(args)
+	self.config = load_config(args)
 
         verbosity_adjust = (args.verbose or 0) - (args.quiet or 0)
         self.log = setup_logging(self.config.get('logging', {}),
@@ -277,7 +278,7 @@ class Main(object):
                                  verbosity_adjust=verbosity_adjust)
         self.log.info('container-number-extractor',
                       regex=args.container_name_regex)
-
+        
         self.openolt_adapter_version = self.get_version()
         self.log.info('Open-OLT-Adapter-Version', version=
         self.openolt_adapter_version)

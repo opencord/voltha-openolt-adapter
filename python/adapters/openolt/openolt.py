@@ -32,45 +32,51 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.task import LoopingCall
 
-from python.adapters.common.frameio.frameio import BpfProgramFilter, hexify
-from python.adapters.iadapter import OltAdapter
-from python.common.utils.asleep import asleep
-from python.common.utils.registry import registry
-from python.adapters.kafka.kafka_proxy import get_kafka_proxy
-from python.protos import openolt_pb2
-from python.protos import third_party
-from python.protos.common_pb2 import OperStatus, ConnectStatus
-from python.protos.common_pb2 import LogLevel
-from python.protos.common_pb2 import OperationResp
-from python.protos.inter_container_pb2 import SwitchCapability, PortCapability, \
+from voltha.adapters.common.frameio.frameio import BpfProgramFilter, hexify
+from voltha.adapters.iadapter import OltAdapter
+from voltha.common.utils.asleep import asleep
+from voltha.common.utils.registry import registry
+from voltha.adapters.kafka.kafka_proxy import get_kafka_proxy
+from voltha.protos import openolt_pb2
+from voltha.protos import third_party
+from voltha.protos.common_pb2 import OperStatus, ConnectStatus
+from voltha.protos.common_pb2 import LogLevel
+from voltha.protos.common_pb2 import OperationResp
+from voltha.protos.inter_container_pb2 import SwitchCapability, PortCapability, \
     InterAdapterMessageType, InterAdapterResponseBody
-from python.protos.device_pb2 import Port, PmConfig, PmConfigs, \
+from voltha.protos.device_pb2 import Port, PmConfig, PmConfigs, \
     DeviceType, DeviceTypes
-from python.protos.adapter_pb2 import Adapter
-from python.protos.adapter_pb2 import AdapterConfig
-
+from voltha.protos.adapter_pb2 import Adapter
+from voltha.protos.adapter_pb2 import AdapterConfig
+from voltha.adapters.openolt.openolt_flow_mgr import OpenOltFlowMgr
+from voltha.adapters.openolt.openolt_alarms import OpenOltAlarmMgr
+from voltha.adapters.openolt.openolt_statistics import OpenOltStatisticsMgr
+from voltha.adapters.openolt.openolt_bw import OpenOltBW
+from voltha.adapters.openolt.openolt_platform import OpenOltPlatform
+from voltha.adapters.openolt.openolt_resource_manager import OpenOltResourceMgr
+from voltha.adapters.openolt.openolt_device import OpenoltDevice
  
-from python.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
-from python.protos.logical_device_pb2 import LogicalPort
-from python.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
+from voltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
+from voltha.protos.logical_device_pb2 import LogicalPort
+from voltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_desc
-from python.protos.openflow_13_pb2 import ofp_port
-from python.protos.ponsim_pb2 import FlowTable, PonSimFrame, PonSimMetricsRequest, PonSimStub
+from voltha.protos.openflow_13_pb2 import ofp_port
+from voltha.protos.ponsim_pb2 import FlowTable, PonSimFrame, PonSimMetricsRequest, PonSimStub
 
 _ = third_party
 log = structlog.get_logger()
-#OpenOltDefaults = {
-#    'support_classes': {
-#        'platform': OpenOltPlatform,
-#        'resource_mgr': OpenOltResourceMgr,
-#        'flow_mgr': OpenOltFlowMgr,
-#        'alarm_mgr': OpenOltAlarmMgr,
-#        'stats_mgr': OpenOltStatisticsMgr,
-#        'bw_mgr': OpenOltBW
-#    }
-#}
+OpenOltDefaults = {
+    'support_classes': {
+        'platform': OpenOltPlatform,
+        'resource_mgr': OpenOltResourceMgr,
+        'flow_mgr': OpenOltFlowMgr,
+        'alarm_mgr': OpenOltAlarmMgr,
+        'stats_mgr': OpenOltStatisticsMgr,
+        'bw_mgr': OpenOltBW
+    }
+}
 
 class AdapterPmMetrics:
     def __init__(self, device):
@@ -416,6 +422,7 @@ class OpenoltHandler(object):
         self.pm_metrics = None
         self.alarms = None
         self.frames = None
+	self.num_devices = 0
 
     @inlineCallbacks
     def get_channel(self):
@@ -450,30 +457,32 @@ class OpenoltHandler(object):
         ports = yield self.core_proxy.get_ports(self.device_id,
                                                 Port.ETHERNET_NNI)
         returnValue(ports)
+    
+    def init_device(self, kwargs):
+	self.device = OpenoltDevice(**kwargs)
 
     @inlineCallbacks
     def activate(self, device):
         try:
             self.log.info('activating')
-	    print (dir(device))
             if not device.host_and_port:
                 device.oper_status = OperStatus.FAILED
                 device.reason = 'No host_and_port field provided'
                 self.core_proxy.device_update(device)
                 return
-	    """        
+	          
 	    kwargs = {
             	'support_classes': OpenOltDefaults['support_classes'],
-                'adapter_agent': self.adapter_proxy,
+                'adapter_agent': self.core_proxy,
                 'device': device,
                 'device_num': self.num_devices + 1
             }
             try:
-                self.devices[device.id] = OpenoltDevice(**kwargs)
+		yield self.init_device(kwargs)
             except Exception as e:
                 log.error('Failed to adopt OpenOLT device', error=e)
                 # TODO set status to ERROR so that is clear something went wrong
-                del self.devices[device.id]
+                #del self.devices[device.id]
                 raise
             else:
                 self.num_devices += 1
@@ -537,6 +546,7 @@ class OpenoltHandler(object):
 
             # Start collecting stats from the device after a brief pause
             self.start_kpi_collection(device.id)
+	    """
         except Exception as e:
             log.exception("Exception-activating", e=e)
 

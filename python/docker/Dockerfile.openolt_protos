@@ -23,8 +23,8 @@ MAINTAINER Voltha Community <info@opennetworking.org>
 
 COPY protos/third_party/google/api/*.proto /protos/google/api/
 COPY docker/config/Makefile.protos /protos/google/api/Makefile.protos
-COPY protos/*.proto /protos/voltha/
 COPY --from=protos /protos/voltha/ /protos/voltha/
+COPY protos/*.proto /protos/voltha/
 COPY docker/config/Makefile.protos /protos/voltha/Makefile.protos
 
 WORKDIR /protos
