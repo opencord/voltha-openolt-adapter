@@ -19,29 +19,28 @@ import grpc
 import socket
 import re
 import structlog
+import time
 from twisted.internet import reactor
 from scapy.layers.l2 import Ether, Dot1Q
 from transitions import Machine
 
-#from voltha.adapters.openolt.protos import openolt_pb2_grpc, openolt_pb2
-from python.protos.bbf_fiber_tcont_body_pb2 import TcontsConfigData
-from python.protos.bbf_fiber_gemport_body_pb2 import GemportsConfigData
+from voltha.protos import openolt_pb2_grpc, openolt_pb2
 
-from python.adapters.extensions.alarms.onu.onu_discovery_alarm import OnuDiscoveryAlarm
+from voltha.extensions.alarms.onu.onu_discovery_alarm import OnuDiscoveryAlarm
 
-from python.common.utils.nethelpers import mac_str_to_tuple
-from python.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
+from voltha.common.utils.nethelpers import mac_str_to_tuple
+from voltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPS_LINK_DOWN, OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_port, ofp_port_stats, ofp_desc
-from python.common.utils.registry import registry
-from python.protos import openolt_pb2
-from python.protos import third_party
-from python.protos.common_pb2 import AdminStatus, OperStatus, ConnectStatus
-from python.protos.common_pb2 import LogLevel
-from python.protos.device_pb2 import Port, Device
+from voltha.common.utils.registry import registry
+from voltha.protos import openolt_pb2
+from voltha.protos import third_party
+from voltha.protos.common_pb2 import AdminState, OperStatus, ConnectStatus
+from voltha.protos.common_pb2 import LogLevel
+from voltha.protos.device_pb2 import Port, Device
 
-from python.protos.logical_device_pb2 import LogicalDevice, LogicalPort
+from voltha.protos.logical_device_pb2 import LogicalDevice, LogicalPort
 
 class OpenoltDevice(object):
     """
@@ -96,14 +95,14 @@ class OpenoltDevice(object):
         self.alarm_mgr_class = kwargs['support_classes']['alarm_mgr']
         self.stats_mgr_class = kwargs['support_classes']['stats_mgr']
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
-
+	
         is_reconciliation = kwargs.get('reconciliation', False)
         self.device_id = device.id
         self.host_and_port = device.host_and_port
         self.extra_args = device.extra_args
         self.log = structlog.get_logger(id=self.device_id,
                                         ip=self.host_and_port)
-        self.proxy = registry('core').get_proxy('/')
+        #self.proxy = registry('core').get_proxy('/')
 
         self.log.info('openolt-device-init')
 
@@ -119,7 +118,7 @@ class OpenoltDevice(object):
             device.root = True
             device.connect_status = ConnectStatus.UNREACHABLE
             device.oper_status = OperStatus.ACTIVATING
-            self.adapter_agent.update_device(device)
+            self.adapter_agent.device_update(device)
 
         # If logical device does exist use it, else create one after connecting to device
         if device.parent_id:
@@ -185,7 +184,7 @@ class OpenoltDevice(object):
 
         device = self.adapter_agent.get_device(self.device_id)
         device.serial_number = serial_number
-        self.adapter_agent.update_device(device)
+        self.adapter_agent.device_update(device)
 
         self.dpid = dpid
         self.serial_number = serial_number
@@ -208,6 +207,7 @@ class OpenoltDevice(object):
 
     def do_state_init(self, event):
         # Initialize gRPC
+	print ("Host And Port", self.host_and_port)
         self.channel = grpc.insecure_channel(self.host_and_port)
         self.channel_ready_future = grpc.channel_ready_future(self.channel)
 
@@ -227,6 +227,7 @@ class OpenoltDevice(object):
             # property instead. The Jinkins error will happon on the reason of
             # Exception in thread Thread-1 (most likely raised # during
             # interpreter shutdown)
+	    self.log.debug('starting indications thread')
             self.indications_thread_handle.setDaemon(True)
             self.indications_thread_handle.start()
         except Exception as e:
@@ -239,13 +240,31 @@ class OpenoltDevice(object):
 
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
 
-        device_info = self.stub.GetDeviceInfo(openolt_pb2.Empty())
+        delay = 1
+        while True:
+            try:
+                device_info = self.stub.GetDeviceInfo(openolt_pb2.Empty())
+                break
+            except Exception as e:
+                reraise = True
+                if delay > 120:
+                    self.log.error("gRPC failure too many times")
+                else:
+                    self.log.warn("gRPC failure, retry in %ds: %s"
+                                  % (delay, repr(e)))
+                    time.sleep(delay)
+                    delay += delay
+                    reraise = False
+
+                if reraise:
+                    raise
+
         self.log.info('Device connected', device_info=device_info)
 
         self.create_logical_device(device_info)
 
         device.serial_number = self.serial_number
-
+	
         self.resource_mgr = self.resource_mgr_class(self.device_id,
                                                     self.host_and_port,
                                                     self.extra_args,
@@ -260,9 +279,9 @@ class OpenoltDevice(object):
                                               self.device_id,
                                               self.logical_device_id,
                                               self.platform)
-        self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
+	self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
         self.bw_mgr = self.bw_mgr_class(self.log, self.proxy)
-
+	
         device.vendor = device_info.vendor
         device.model = device_info.model
         device.hardware_version = device_info.hardware_version
@@ -271,7 +290,7 @@ class OpenoltDevice(object):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
-        self.adapter_agent.update_device(device)
+        self.adapter_agent.device_update(device)
 
     def do_state_up(self, event):
         self.log.debug("do_state_up")
@@ -281,7 +300,7 @@ class OpenoltDevice(object):
         # Update phys OF device
         device.parent_id = self.logical_device_id
         device.oper_status = OperStatus.ACTIVE
-        self.adapter_agent.update_device(device)
+        self.adapter_agent.device_update(device)
 
     def do_state_down(self, event):
         self.log.debug("do_state_down")
@@ -327,7 +346,7 @@ class OpenoltDevice(object):
         device.oper_status = oper_state
         device.connect_status = connect_state
 
-        reactor.callLater(2, self.adapter_agent.update_device, device)
+        reactor.callLater(2, self.adapter_agent.device_update, device)
 
     # def post_up(self, event):
     #     self.log.debug('post-up')
@@ -471,7 +490,7 @@ class OpenoltDevice(object):
         else:
             if onu_device.connect_status != ConnectStatus.REACHABLE:
                 onu_device.connect_status = ConnectStatus.REACHABLE
-                self.adapter_agent.update_device(onu_device)
+                self.adapter_agent.device_update(onu_device)
 
             onu_id = onu_device.proxy_address.onu_id
             if onu_device.oper_status == OperStatus.DISCOVERED \
@@ -491,7 +510,7 @@ class OpenoltDevice(object):
                               onu_id=onu_id, serial_number=serial_number_str)
 
                 onu_device.oper_status = OperStatus.DISCOVERED
-                self.adapter_agent.update_device(onu_device)
+                self.adapter_agent.device_update(onu_device)
                 try:
                     self.activate_onu(intf_id, onu_id, serial_number,
                                       serial_number_str)
@@ -576,14 +595,14 @@ class OpenoltDevice(object):
 
             if onu_device.connect_status != ConnectStatus.UNREACHABLE:
                 onu_device.connect_status = ConnectStatus.UNREACHABLE
-                self.adapter_agent.update_device(onu_device)
+                self.adapter_agent.device_update(onu_device)
 
             # Move to discovered state
             self.log.debug('onu-oper-state-is-down')
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
                 onu_device.oper_status = OperStatus.DISCOVERED
-                self.adapter_agent.update_device(onu_device)
+                self.adapter_agent.device_update(onu_device)
             # Set port oper state to Discovered
             self.onu_ports_down(onu_device, OperStatus.DISCOVERED)
 
@@ -594,7 +613,7 @@ class OpenoltDevice(object):
 
             if onu_device.connect_status != ConnectStatus.REACHABLE:
                 onu_device.connect_status = ConnectStatus.REACHABLE
-                self.adapter_agent.update_device(onu_device)
+                self.adapter_agent.device_update(onu_device)
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
                 self.log.debug("ignore onu indication",
@@ -994,8 +1013,6 @@ class OpenoltDevice(object):
         try:
             self.stub.ReenableOlt(openolt_pb2.Empty())
 
-            self.log.info('enabling-all-ports', device_id=self.device_id)
-            self.adapter_agent.enable_all_ports(self.device_id)
         except Exception as e:
             self.log.error('Failure to reenable openolt device', error=e)
         else:

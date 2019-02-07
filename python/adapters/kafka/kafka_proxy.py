@@ -24,7 +24,7 @@ from zope.interface import implementer
 
 from python.common.utils.consulhelpers import get_endpoint_from_consul
 from event_bus_publisher import EventBusPublisher
-from python.common.utils.registry import IComponent
+from voltha.common.utils.registry import IComponent
 from confluent_kafka import Consumer, KafkaError
 import threading
 
