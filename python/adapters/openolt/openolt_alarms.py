@@ -30,7 +30,7 @@ from voltha.extensions.alarms.onu.onu_signal_fail_alarm import OnuSignalFailAlar
 from voltha.extensions.alarms.onu.onu_window_drift_alarm import OnuWindowDriftAlarm
 from voltha.extensions.alarms.onu.onu_activation_fail_alarm import OnuActivationFailAlarm
 
-import protos.openolt_pb2 as openolt_pb2
+import voltha.protos.openolt_pb2 as openolt_pb2
 import voltha.protos.device_pb2 as device_pb2
 
 
