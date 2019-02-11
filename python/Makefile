@@ -59,7 +59,7 @@ VENVDIR := venv-$(shell uname -s | tr '[:upper:]' '[:lower:]')
 
 DOCKER_IMAGE_LIST = \
 	openolt-protos \
-	adapter-openolt \
+	openolt-adapter \
 
 # The following list was scavanged from the compose / stack files as well as
 # from the Dockerfiles. If nothing else it highlights that VOLTHA is not
@@ -129,12 +129,22 @@ $(DIRS_FLAKE8):
 	@echo "    FLAKE8 $(basename $@)"
 	-$(Q)$(MAKE) -C $(basename $@) flake8
 
-build: openolt_protos containers
+build: containers
 
-containers: adapter_openolt
+containers: base adapter_openolt
+
+base:
+ifdef LOCAL_PYVOLTHA
+	mkdir -p pyvoltha/dist
+	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
+	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base_local .
+else
+	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openonu-adapter-base:${TAG} -f docker/Dockerfile.base .
+endif
+
 
 adapter_openolt:
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-adapter-openolt:${TAG} -f docker/Dockerfile.adapter_openolt .
+	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter:${TAG} -f docker/Dockerfile.openolt_adapter .
 
 tag: $(patsubst  %,%.tag,$(DOCKER_IMAGE_LIST))
 
@@ -162,10 +172,8 @@ install-protoc:
 	make -C voltha/protos install-protoc
 
 clean:
+	rm -r pyvoltha
 	find . -name '*.pyc' | xargs rm -f
-	rm -f ./protos/*_pb2.py
-	rm -f ./protos/*_pb2_grpc.py
-	rm -f ./protos/*.desc
 
 distclean: clean
 	rm -rf ${VENVDIR}
@@ -198,6 +206,13 @@ ${VENVDIR}/.built:
 	    else \
 	        uname -s > ${VENVDIR}/.built; \
 	    fi
+
+ifdef LOCAL_PYVOLTHA
+	mkdir -p pyvoltha/dist
+	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
+	@ . ${VENVDIR}/bin/activate && \
+		pip install pyvoltha/dist/*.tar.gz
+endif
 
 
 flake8: $(DIRS_FLAKE8)

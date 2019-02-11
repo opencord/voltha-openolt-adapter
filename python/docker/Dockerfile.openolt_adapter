@@ -1,4 +1,4 @@
-# Copyright 2018 the original author or authors.
+# Copyright 2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,24 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+ARG TAG=latest
 ARG REGISTRY=
 ARG REPOSITORY=
-ARG TAG=latest
 
 FROM ${REGISTRY}${REPOSITORY}voltha-protos:${TAG} as protos
-FROM ${REGISTRY}${REPOSITORY}voltha-protoc:${TAG} as builder
+# FROM ${REGISTRY}${REPOSITORY}voltha-openolt-protos:${TAG} as openolt_protos
+FROM ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG}
 
 MAINTAINER Voltha Community <info@opennetworking.org>
 
-COPY --from=protos /protos/voltha/ /protos/voltha/
-COPY protos/*.proto /protos/voltha/
-COPY protos/third_party/google/ /protos/voltha/google/
-COPY docker/config/Makefile.protos /protos/voltha/Makefile.protos
+# Bundle app source
+RUN mkdir /voltha && touch /voltha/__init__.py
+ENV PYTHONPATH=/voltha
+COPY adapters/openolt /voltha/voltha/adapters/openolt
+RUN touch /voltha/voltha/__init__.py
+RUN touch /voltha/voltha/adapters/__init__.py
 
-WORKDIR /protos/voltha
-RUN make -f Makefile.protos build
+# COPY --from=openolt_protos /protos/voltha/openolt* /voltha/voltha/adapters/openolt/protos/
+# RUN touch /voltha/voltha/adapters/openolt/protos/__init__.py
 
-# Copy the files to a scrach based container to minimize its size
-FROM ${REGISTRY}scratch
-COPY --from=builder /protos/ /protos/
+# Exposing process and default entry point
+# CMD ["python", "/voltha/python/adapters/openolt/main.py"]

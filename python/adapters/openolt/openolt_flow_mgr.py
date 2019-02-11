@@ -20,15 +20,15 @@ from google.protobuf.json_format import MessageToDict
 import hashlib
 from simplejson import dumps
 
-from voltha.protos.openflow_13_pb2 import OFPXMC_OPENFLOW_BASIC, \
+from pyvoltha.protos.openflow_13_pb2 import OFPXMC_OPENFLOW_BASIC, \
     ofp_flow_stats, OFPMT_OXM, Flows, FlowGroups, OFPXMT_OFB_IN_PORT, \
     OFPXMT_OFB_VLAN_VID
-from voltha.protos.device_pb2 import Port
-import voltha.core.flow_decomposer as fd
-from voltha.adapters.openolt.protos import openolt_pb2
-from voltha.registry import registry
+from pyvoltha.protos.device_pb2 import Port
+import pyvoltha.common.openflow.utils as fd
+from pyvoltha.protos import openolt_pb2
+from pyvoltha.common.utils.registry import registry
 
-from common.tech_profile.tech_profile import DEFAULT_TECH_PROFILE_TABLE_ID
+from pyvoltha.common.tech_profile.tech_profile import DEFAULT_TECH_PROFILE_TABLE_ID
 
 # Flow categories
 HSIA_FLOW = "HSIA_FLOW"

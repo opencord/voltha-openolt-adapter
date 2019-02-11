@@ -32,22 +32,22 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.task import LoopingCall
 
-from voltha.adapters.common.frameio.frameio import BpfProgramFilter, hexify
-from voltha.adapters.iadapter import OltAdapter
-from voltha.common.utils.asleep import asleep
-from voltha.common.utils.registry import registry
-from voltha.adapters.kafka.kafka_proxy import get_kafka_proxy
-from voltha.protos import openolt_pb2
-from voltha.protos import third_party
-from voltha.protos.common_pb2 import OperStatus, ConnectStatus
-from voltha.protos.common_pb2 import LogLevel
-from voltha.protos.common_pb2 import OperationResp
-from voltha.protos.inter_container_pb2 import SwitchCapability, PortCapability, \
+from pyvoltha.adapters.common.frameio.frameio import BpfProgramFilter, hexify
+from pyvoltha.adapters.iadapter import OltAdapter
+from pyvoltha.common.utils.asleep import asleep
+from pyvoltha.common.utils.registry import registry
+from pyvoltha.adapters.kafka.kafka_proxy import get_kafka_proxy
+from pyvoltha.protos import openolt_pb2
+from pyvoltha.protos import third_party
+from pyvoltha.protos.common_pb2 import OperStatus, ConnectStatus
+from pyvoltha.protos.common_pb2 import LogLevel
+from pyvoltha.protos.common_pb2 import OperationResp
+from pyvoltha.protos.inter_container_pb2 import SwitchCapability, PortCapability, \
     InterAdapterMessageType, InterAdapterResponseBody
-from voltha.protos.device_pb2 import Port, PmConfig, PmConfigs, \
+from pyvoltha.protos.device_pb2 import Port, PmConfig, PmConfigs, \
     DeviceType, DeviceTypes
-from voltha.protos.adapter_pb2 import Adapter
-from voltha.protos.adapter_pb2 import AdapterConfig
+from pyvoltha.protos.adapter_pb2 import Adapter
+from pyvoltha.protos.adapter_pb2 import AdapterConfig
 from voltha.adapters.openolt.openolt_flow_mgr import OpenOltFlowMgr
 from voltha.adapters.openolt.openolt_alarms import OpenOltAlarmMgr
 from voltha.adapters.openolt.openolt_statistics import OpenOltStatisticsMgr
@@ -56,14 +56,13 @@ from voltha.adapters.openolt.openolt_platform import OpenOltPlatform
 from voltha.adapters.openolt.openolt_resource_manager import OpenOltResourceMgr
 from voltha.adapters.openolt.openolt_device import OpenoltDevice
  
-from voltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
-from voltha.protos.logical_device_pb2 import LogicalPort
-from voltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
+from pyvoltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
+from pyvoltha.protos.logical_device_pb2 import LogicalPort
+from pyvoltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_desc
-from voltha.protos.openflow_13_pb2 import ofp_port
-from voltha.protos.ponsim_pb2 import FlowTable, PonSimFrame, PonSimMetricsRequest, PonSimStub
+from pyvoltha.protos.openflow_13_pb2 import ofp_port
 
 _ = third_party
 log = structlog.get_logger()
