@@ -15,23 +15,23 @@
 #
 
 import arrow
-from voltha.extensions.alarms.adapter_alarms import AdapterAlarms
-from voltha.extensions.alarms.simulator.simulate_alarms import AdapterAlarmSimulator
-from voltha.extensions.alarms.olt.olt_los_alarm import OltLosAlarm
-from voltha.extensions.alarms.onu.onu_dying_gasp_alarm import OnuDyingGaspAlarm
-from voltha.extensions.alarms.onu.onu_los_alarm import OnuLosAlarm
-from voltha.extensions.alarms.onu.onu_lopc_miss_alarm import OnuLopcMissAlarm
-from voltha.extensions.alarms.onu.onu_lopc_mic_error_alarm import OnuLopcMicErrorAlarm
-from voltha.extensions.alarms.onu.onu_lob_alarm import OnuLobAlarm
+from pyvoltha.adapters.extensions.alarms.adapter_alarms import AdapterAlarms
+from pyvoltha.adapters.extensions.alarms.simulator.simulate_alarms import AdapterAlarmSimulator
+from pyvoltha.adapters.extensions.alarms.olt.olt_los_alarm import OltLosAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_dying_gasp_alarm import OnuDyingGaspAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_los_alarm import OnuLosAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_lopc_miss_alarm import OnuLopcMissAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_lopc_mic_error_alarm import OnuLopcMicErrorAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_lob_alarm import OnuLobAlarm
 
-from voltha.extensions.alarms.onu.onu_startup_alarm import OnuStartupAlarm
-from voltha.extensions.alarms.onu.onu_signal_degrade_alarm import OnuSignalDegradeAlarm
-from voltha.extensions.alarms.onu.onu_signal_fail_alarm import OnuSignalFailAlarm
-from voltha.extensions.alarms.onu.onu_window_drift_alarm import OnuWindowDriftAlarm
-from voltha.extensions.alarms.onu.onu_activation_fail_alarm import OnuActivationFailAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_startup_alarm import OnuStartupAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_signal_degrade_alarm import OnuSignalDegradeAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_signal_fail_alarm import OnuSignalFailAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_window_drift_alarm import OnuWindowDriftAlarm
+from pyvoltha.adapters.extensions.alarms.onu.onu_activation_fail_alarm import OnuActivationFailAlarm
 
-import voltha.protos.openolt_pb2 as openolt_pb2
-import voltha.protos.device_pb2 as device_pb2
+import pyvoltha.protos.openolt_pb2 as openolt_pb2
+import pyvoltha.protos.device_pb2 as device_pb2
 
 
 class OpenOltAlarmMgr(object):
