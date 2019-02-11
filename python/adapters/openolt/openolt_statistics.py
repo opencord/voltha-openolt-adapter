@@ -21,8 +21,8 @@
 # from voltha.protos.device_pb2 import Port
 
 from twisted.internet import reactor, defer
-from voltha.extensions.kpi.olt.olt_pm_metrics import OltPmMetrics
-from voltha.protos.device_pb2 import PmConfig, PmConfigs, PmGroupConfig, Port
+from pyvoltha.adapters.extensions.kpi.olt.olt_pm_metrics import OltPmMetrics
+from pyvoltha.protos.device_pb2 import PmConfig, PmConfigs, PmGroupConfig, Port
 
 
 class OpenOltStatisticsMgr(object):
