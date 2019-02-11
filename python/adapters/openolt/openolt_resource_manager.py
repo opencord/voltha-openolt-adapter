@@ -16,14 +16,14 @@
 
 import structlog
 
-from common.pon_resource_manager.resource_manager import PONResourceManager
-from voltha.registry import registry
-from voltha.core.config.config_backend import ConsulStore
-from voltha.core.config.config_backend import EtcdStore
-from voltha.adapters.openolt.openolt_flow_mgr import *
+from pyvoltha.adapters.common.pon_resource_manager.resource_manager import PONResourceManager
+from pyvoltha.common.utils.registry import registry
+from pyvoltha.common.config.config_backend import ConsulStore
+from pyvoltha.common.config.config_backend import EtcdStore
+from openolt_flow_mgr import *
 
-from voltha.adapters.openolt.protos import openolt_pb2
-from voltha.adapters.openolt.openolt_platform import OpenOltPlatform
+from pyvoltha.protos import openolt_pb2
+from openolt_platform import OpenOltPlatform
 
 
 class OpenOltResourceMgr(object):
