@@ -48,13 +48,13 @@ from pyvoltha.protos.device_pb2 import Port, PmConfig, PmConfigs, \
     DeviceType, DeviceTypes
 from pyvoltha.protos.adapter_pb2 import Adapter
 from pyvoltha.protos.adapter_pb2 import AdapterConfig
-from voltha.adapters.openolt.openolt_flow_mgr import OpenOltFlowMgr
-from voltha.adapters.openolt.openolt_alarms import OpenOltAlarmMgr
-from voltha.adapters.openolt.openolt_statistics import OpenOltStatisticsMgr
-from voltha.adapters.openolt.openolt_bw import OpenOltBW
-from voltha.adapters.openolt.openolt_platform import OpenOltPlatform
-from voltha.adapters.openolt.openolt_resource_manager import OpenOltResourceMgr
-from voltha.adapters.openolt.openolt_device import OpenoltDevice
+from openolt_flow_mgr import OpenOltFlowMgr
+from openolt_alarms import OpenOltAlarmMgr
+from openolt_statistics import OpenOltStatisticsMgr
+from openolt_bw import OpenOltBW
+from openolt_platform import OpenOltPlatform
+from openolt_resource_manager import OpenOltResourceMgr
+from openolt_device import OpenoltDevice
  
 from pyvoltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
 from pyvoltha.protos.logical_device_pb2 import LogicalPort
@@ -305,7 +305,6 @@ class OpenoltAdapter(OltAdapter):
         raise NotImplementedError()
 
     def self_test_device(self, device):
-        # from voltha.protos.voltha_pb2 import SelfTestResponse
         log.info('Not implemented yet')
         raise NotImplementedError()
 

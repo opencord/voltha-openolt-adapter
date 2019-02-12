@@ -13,12 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# from voltha.protos.events_pb2 import KpiEvent, MetricValuePairs
-# from voltha.protos.events_pb2 import KpiEventType
 
-# from voltha.adapters.openolt.nni_port import NniPort
-# from voltha.adapters.openolt.pon_port import PonPort
-# from voltha.protos.device_pb2 import Port
 
 from twisted.internet import reactor, defer
 from pyvoltha.adapters.extensions.kpi.olt.olt_pm_metrics import OltPmMetrics

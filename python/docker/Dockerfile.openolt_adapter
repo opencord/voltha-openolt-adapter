@@ -24,12 +24,8 @@ MAINTAINER Voltha Community <info@opennetworking.org>
 # Bundle app source
 RUN mkdir /voltha && touch /voltha/__init__.py
 ENV PYTHONPATH=/voltha
-COPY adapters/openolt /voltha/voltha/adapters/openolt
-RUN touch /voltha/voltha/__init__.py
-RUN touch /voltha/voltha/adapters/__init__.py
-
-# COPY --from=openolt_protos /protos/voltha/openolt* /voltha/voltha/adapters/openolt/protos/
-# RUN touch /voltha/voltha/adapters/openolt/protos/__init__.py
+COPY adapters/openolt /voltha/adapters/openolt
+RUN touch /voltha/adapters/__init__.py
 
 # Exposing process and default entry point
 # CMD ["python", "/voltha/python/adapters/openolt/main.py"]
