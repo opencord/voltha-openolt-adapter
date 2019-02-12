@@ -62,3 +62,6 @@ python/protos/*.proto
 # voltha cli history
 python/cli/.voltha_cli_history
 
+# Development versions of locally built libraries
+python/pyvoltha
+

@@ -172,7 +172,7 @@ install-protoc:
 	make -C voltha/protos install-protoc
 
 clean:
-	rm -r pyvoltha
+	rm -rf pyvoltha
 	find . -name '*.pyc' | xargs rm -f
 
 distclean: clean

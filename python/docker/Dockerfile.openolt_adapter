@@ -15,7 +15,7 @@ ARG TAG=latest
 ARG REGISTRY=
 ARG REPOSITORY=
 
-FROM ${REGISTRY}${REPOSITORY}voltha-protos:${TAG} as protos
+#FROM ${REGISTRY}${REPOSITORY}voltha-protos:${TAG} as protos
 # FROM ${REGISTRY}${REPOSITORY}voltha-openolt-protos:${TAG} as openolt_protos
 FROM ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG}
 
@@ -28,4 +28,4 @@ COPY adapters/openolt /voltha/adapters/openolt
 RUN touch /voltha/adapters/__init__.py
 
 # Exposing process and default entry point
-# CMD ["python", "/voltha/python/adapters/openolt/main.py"]
+CMD ["python", "/voltha/adapters/openolt/main.py"]
