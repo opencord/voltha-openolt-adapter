@@ -21,6 +21,7 @@ import re
 import structlog
 import time
 from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks
 from scapy.layers.l2 import Ether, Dot1Q
 from transitions import Machine
 
@@ -158,7 +159,7 @@ class OpenoltDevice(object):
         sw_desc = device_info.firmware_version
         hw_desc = device_info.model
         if device_info.hardware_version: hw_desc += '-' + device_info.hardware_version
-
+	"""
         # Create logical OF device
         ld = LogicalDevice(
             root_device_id=self.device_id,
@@ -177,8 +178,22 @@ class OpenoltDevice(object):
             )
         )
         ld_init = self.adapter_agent.create_logical_device(ld,
-                                                           dpid=dpid)
-
+	
+	nni_port = Port(
+                port_no=info.nni_port,
+                label='NNI facing Ethernet port',
+                type=Port.ETHERNET_NNI,
+                oper_status=OperStatus.ACTIVE
+            )
+            self.nni_port = nni_port
+            yield self.core_proxy.port_created(device.id, nni_port)
+            yield self.core_proxy.port_created(device.id, Port(
+                port_no=1,
+                label='PON port',
+                type=Port.PON_OLT,
+                oper_status=OperStatus.ACTIVE
+            ))                                                           dpid=dpid)
+	"""
         self.logical_device_id = ld_init.id
 
         device = self.adapter_agent.get_device(self.device_id)
@@ -260,8 +275,8 @@ class OpenoltDevice(object):
 
         self.log.info('Device connected', device_info=device_info)
 
-        self.create_logical_device(device_info)
-
+        #self.create_logical_device(device_info)
+	self.logical_device_id = 0
         device.serial_number = self.serial_number
 	
         self.resource_mgr = self.resource_mgr_class(self.device_id,
@@ -279,7 +294,7 @@ class OpenoltDevice(object):
                                               self.logical_device_id,
                                               self.platform)
 	self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
-        self.bw_mgr = self.bw_mgr_class(self.log, self.proxy)
+        self.bw_mgr = self.bw_mgr_class(self.log, self.adapter_agent)
 	
         device.vendor = device_info.vendor
         device.model = device_info.model
@@ -290,15 +305,17 @@ class OpenoltDevice(object):
 
         device.connect_status = ConnectStatus.REACHABLE
         self.adapter_agent.device_update(device)
-
+ 
+    @inlineCallbacks
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        device = self.adapter_agent.get_device(self.device_id)
-
+        device = yield self.adapter_agent.get_device(self.device_id)
+	self.log.debug("do_state_up set  device active", device=device)
         # Update phys OF device
-        device.parent_id = self.logical_device_id
+        #device.parent_id = self.logical_device_id
         device.oper_status = OperStatus.ACTIVE
+	self.log.debug("Updating to Active", device=device)
         self.adapter_agent.device_update(device)
 
     def do_state_down(self, event):

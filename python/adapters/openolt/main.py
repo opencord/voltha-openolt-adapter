@@ -362,7 +362,8 @@ class Main(object):
             self.core_proxy = CoreProxy(
                 kafka_proxy=None,
                 core_topic=self.core_topic,
-                my_listening_topic=self.listening_topic)
+                my_listening_topic=self.listening_topic,
+		adapter_name=self.args.name)
 
             self.adapter_proxy = AdapterProxy(
                 kafka_proxy=None,

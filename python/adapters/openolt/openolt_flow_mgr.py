@@ -79,11 +79,12 @@ class OpenOltFlowMgr(object):
         self.logical_device_id = logical_device_id
         self.nni_intf_id = None
         self.platform = platform
-        self.logical_flows_proxy = registry('core').get_proxy(
-            '/logical_devices/{}/flows'.format(self.logical_device_id))
-        self.flows_proxy = registry('core').get_proxy(
-            '/devices/{}/flows'.format(self.device_id))
-        self.root_proxy = registry('core').get_proxy('/')
+        #self.logical_flows_proxy = registry('core').get_proxy(
+        #    '/logical_devices/{}/flows'.format(self.logical_device_id))
+        self.logical_flows_proxy = adapter_agent
+	#self.flows_proxy = registry('core').get_proxy(
+        #    '/devices/{}/flows'.format(self.device_id))
+        #self.root_proxy = registry('core').get_proxy('/')
         self.resource_mgr = resource_mgr
         self.tech_profile = dict()
         self._populate_tech_profile_per_pon_port()
