@@ -21,7 +21,7 @@ import re
 import structlog
 import time
 from twisted.internet import reactor
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from scapy.layers.l2 import Ether, Dot1Q
 from transitions import Machine
 
@@ -303,19 +303,16 @@ class OpenoltDevice(object):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
+	device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
  
     @inlineCallbacks
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        device = yield self.adapter_agent.get_device(self.device_id)
-	self.log.debug("do_state_up set  device active", device=device)
-        # Update phys OF device
-        #device.parent_id = self.logical_device_id
-        device.oper_status = OperStatus.ACTIVE
-	self.log.debug("Updating to Active", device=device)
-        self.adapter_agent.device_update(device)
+	self.adapter_agent.device_state_update(self.device_id,
+                                                      connect_status=ConnectStatus.REACHABLE,
+                                                      oper_status=OperStatus.ACTIVE)
 
     def do_state_down(self, event):
         self.log.debug("do_state_down")
@@ -892,9 +889,10 @@ class OpenoltDevice(object):
         port = Port(port_no=port_no, label=label, type=port_type,
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
-        self.adapter_agent.add_port(self.device_id, port)
+	yield self.adapter_agent.port_created(self.device_id, port)
+        #self.adapter_agent.add_port(self.device_id, port)
 
-        return port_no, label
+        returnValue(port_no, label)
 
     def delete_logical_port(self, child_device):
         logical_ports = self.proxy.get('/logical_devices/{}/ports'.format(
