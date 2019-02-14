@@ -21,7 +21,7 @@ import re
 import structlog
 import time
 from twisted.internet import reactor
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from scapy.layers.l2 import Ether, Dot1Q
 from transitions import Machine
 
@@ -135,7 +135,7 @@ class OpenoltDevice(object):
                                send_event=True, initial='state_null')
         self.go_state_init()
 
-    def create_logical_device(self, device_info):
+def create_logical_device(self, device_info):
         dpid = device_info.device_id
         serial_number = device_info.device_serial_number
 
@@ -160,7 +160,7 @@ class OpenoltDevice(object):
         sw_desc = device_info.firmware_version
         hw_desc = device_info.model
         if device_info.hardware_version: hw_desc += '-' + device_info.hardware_version
-	"""
+
         # Create logical OF device
         ld = LogicalDevice(
             root_device_id=self.device_id,
@@ -179,27 +179,13 @@ class OpenoltDevice(object):
             )
         )
         ld_init = self.adapter_agent.create_logical_device(ld,
-	
-	nni_port = Port(
-                port_no=info.nni_port,
-                label='NNI facing Ethernet port',
-                type=Port.ETHERNET_NNI,
-                oper_status=OperStatus.ACTIVE
-            )
-            self.nni_port = nni_port
-            yield self.core_proxy.port_created(device.id, nni_port)
-            yield self.core_proxy.port_created(device.id, Port(
-                port_no=1,
-                label='PON port',
-                type=Port.PON_OLT,
-                oper_status=OperStatus.ACTIVE
-            ))                                                           dpid=dpid)
-	"""
+                                                           dpid=dpid)
+
         self.logical_device_id = ld_init.id
 
         device = self.adapter_agent.get_device(self.device_id)
         device.serial_number = serial_number
-        self.adapter_agent.device_update(device)
+        self.adapter_agent.update_device(device)
 
         self.dpid = dpid
         self.serial_number = serial_number
@@ -293,7 +279,7 @@ class OpenoltDevice(object):
                                               self.logical_device_id,
                                               self.platform)
         self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
-        self.bw_mgr = self.bw_mgr_class(self.log, self.proxy)
+        self.bw_mgr = self.bw_mgr_class(self.log, self.adapter_agent)
 
         device.vendor = device_info.vendor
         device.model = device_info.model
@@ -303,19 +289,15 @@ class OpenoltDevice(object):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
+	device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
  
-    @inlineCallbacks
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        device = yield self.adapter_agent.get_device(self.device_id)
-	self.log.debug("do_state_up set  device active", device=device)
-        # Update phys OF device
-        #device.parent_id = self.logical_device_id
-        device.oper_status = OperStatus.ACTIVE
-	self.log.debug("Updating to Active", device=device)
-        self.adapter_agent.device_update(device)
+	self.adapter_agent.device_state_update(self.device_id,
+                                                      connect_status=ConnectStatus.REACHABLE,
+                                                      oper_status=OperStatus.ACTIVE)
 
     def do_state_down(self, event):
         self.log.debug("do_state_down")
@@ -881,6 +863,7 @@ class OpenoltDevice(object):
             mac = ':%02x' % ((port_no >> (i * 8)) & 0xff) + mac
         return '00:00' + mac
 
+    @inlineCallbacks
     def add_port(self, intf_id, port_type, oper_status):
         port_no = self.platform.intf_id_to_port_no(intf_id, port_type)
 
@@ -892,9 +875,10 @@ class OpenoltDevice(object):
         port = Port(port_no=port_no, label=label, type=port_type,
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
-        self.adapter_agent.add_port(self.device_id, port)
+	yield self.adapter_agent.port_created(self.device_id, port)
+        #self.adapter_agent.add_port(self.device_id, port)
 
-        return port_no, label
+        returnValue(port_no, label)
 
     def delete_logical_port(self, child_device):
         logical_ports = self.proxy.get('/logical_devices/{}/ports'.format(
