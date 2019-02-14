@@ -84,6 +84,7 @@ class OpenoltDevice(object):
     def __init__(self, **kwargs):
         super(OpenoltDevice, self).__init__()
 
+        self.adapter_proxy = kwargs['adapter_proxy']
         self.adapter_agent = kwargs['adapter_agent']
         self.device_num = kwargs['device_num']
         device = kwargs['device']
@@ -94,7 +95,7 @@ class OpenoltDevice(object):
         self.alarm_mgr_class = kwargs['support_classes']['alarm_mgr']
         self.stats_mgr_class = kwargs['support_classes']['stats_mgr']
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
-	
+
         is_reconciliation = kwargs.get('reconciliation', False)
         self.device_id = device.id
         self.host_and_port = device.host_and_port
@@ -200,13 +201,11 @@ class OpenoltDevice(object):
         else:
             uri = uri + uri[0:6 - l]
 
-        print uri
-
         return ":".join([hex(ord(x))[-2:] for x in uri])
 
     def do_state_init(self, event):
         # Initialize gRPC
-	print ("Host And Port", self.host_and_port)
+        self.log.debug("grpc-host-port", self.host_and_port)
         self.channel = grpc.insecure_channel(self.host_and_port)
         self.channel_ready_future = grpc.channel_ready_future(self.channel)
 
@@ -226,7 +225,7 @@ class OpenoltDevice(object):
             # property instead. The Jinkins error will happon on the reason of
             # Exception in thread Thread-1 (most likely raised # during
             # interpreter shutdown)
-	    self.log.debug('starting indications thread')
+            self.log.debug('starting indications thread')
             self.indications_thread_handle.setDaemon(True)
             self.indications_thread_handle.start()
         except Exception as e:
@@ -260,10 +259,10 @@ class OpenoltDevice(object):
 
         self.log.info('Device connected', device_info=device_info)
 
-        self.create_logical_device(device_info)
+        # self.create_logical_device(device_info)
 
         device.serial_number = self.serial_number
-	
+
         self.resource_mgr = self.resource_mgr_class(self.device_id,
                                                     self.host_and_port,
                                                     self.extra_args,
@@ -278,9 +277,9 @@ class OpenoltDevice(object):
                                               self.device_id,
                                               self.logical_device_id,
                                               self.platform)
-	self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
+        self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
         self.bw_mgr = self.bw_mgr_class(self.log, self.proxy)
-	
+
         device.vendor = device_info.vendor
         device.model = device_info.model
         device.hardware_version = device_info.hardware_version
@@ -816,7 +815,8 @@ class OpenoltDevice(object):
             parent_device_id=self.device_id, parent_port_no=port_no,
             vendor_id=serial_number.vendor_id, proxy_address=proxy_address,
             root=True, serial_number=serial_number_str,
-            admin_state=AdminState.ENABLED#, **{'vlan':4091} # magic still maps to brcm_openomci_onu.pon_port.BRDCM_DEFAULT_VLAN
+            admin_state=AdminState.ENABLED
+            # , **{'vlan':4091} # magic still maps to brcm_openomci_onu.pon_port.BRDCM_DEFAULT_VLAN
         )
 
     def port_name(self, port_no, port_type, intf_id=None, serial_number=None):
@@ -1053,9 +1053,9 @@ class OpenoltDevice(object):
         # TODO FIXME - Flows are not deleted
         uni_id = 0  # FIXME
         self.flow_mgr.delete_tech_profile_instance(
-                    child_device.proxy_address.channel_id,
-                    child_device.proxy_address.onu_id,
-                    uni_id
+            child_device.proxy_address.channel_id,
+            child_device.proxy_address.onu_id,
+            uni_id
         )
         pon_intf_id_onu_id = (child_device.proxy_address.channel_id,
                               child_device.proxy_address.onu_id,
