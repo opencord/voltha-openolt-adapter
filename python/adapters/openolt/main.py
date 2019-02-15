@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-"""Ponsim OLT Adapter main entry point"""
+"""OpenOLT Adapter main entry point"""
 
 import argparse
 import os
@@ -241,12 +241,10 @@ def load_config(args):
         dir = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(dir, path)
     path = os.path.abspath(path)
-    
+
     with open(path) as fd:
         config = yaml.load(fd)
     return config
-
-
 
 
 def print_banner(log):
@@ -264,13 +262,14 @@ def print_banner(log):
     log.info('                   |_|                                ')
     log.info('(to stop: press Ctrl-C)')
 
+
 @implementer(IComponent)
 class Main(object):
 
     def __init__(self):
 
         self.args = args = parse_args()
-	self.config = load_config(args)
+        self.config = load_config(args)
 
         verbosity_adjust = (args.verbose or 0) - (args.quiet or 0)
         self.log = setup_logging(self.config.get('logging', {}),
@@ -278,10 +277,10 @@ class Main(object):
                                  verbosity_adjust=verbosity_adjust)
         self.log.info('container-number-extractor',
                       regex=args.container_name_regex)
-        
+
         self.openolt_adapter_version = self.get_version()
-        self.log.info('Open-OLT-Adapter-Version', version=
-        self.openolt_adapter_version)
+        self.log.info('Open-OLT-Adapter-Version',
+                      version=self.openolt_adapter_version)
 
         if not args.no_banner:
             print_banner(self.log)
@@ -362,8 +361,7 @@ class Main(object):
             self.core_proxy = CoreProxy(
                 kafka_proxy=None,
                 core_topic=self.core_topic,
-                my_listening_topic=self.listening_topic,
-		adapter_name=self.args.name)
+                my_listening_topic=self.listening_topic)
 
             self.adapter_proxy = AdapterProxy(
                 kafka_proxy=None,
@@ -371,8 +369,8 @@ class Main(object):
                 my_listening_topic=self.listening_topic)
 
             self.adapter = OpenoltAdapter(core_proxy=self.core_proxy,
-                                            adapter_proxy=self.adapter_proxy,
-                                            config=config)
+                                          adapter_proxy=self.adapter_proxy,
+                                          config=config)
 
             openolt_request_handler = AdapterRequestFacade(adapter=self.adapter)
 
@@ -383,7 +381,7 @@ class Main(object):
                     # TODO: Add KV Store object reference
                     kv_store=self.args.backend,
                     default_topic=self.args.name,
-		    group_id_prefix=self.args.instance_id,
+                    group_id_prefix=self.args.instance_id,
                     # Needs to assign a real class
                     target_cls=openolt_request_handler
 

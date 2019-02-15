@@ -57,7 +57,7 @@ from openolt_bw import OpenOltBW
 from openolt_platform import OpenOltPlatform
 from openolt_resource_manager import OpenOltResourceMgr
 from openolt_device import OpenoltDevice
- 
+
 from pyvoltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
 from pyvoltha.protos.logical_device_pb2 import LogicalPort
 from pyvoltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
@@ -241,8 +241,8 @@ class OpenoltAdapter(object):
 
     def update_flows_bulk(self, device, flows, groups):
         log.info('bulk-flow-update', device_id=device.id,
-                 number_of_flows=len(flows.items), number_of_groups=len(
-                     groups.items))
+                 number_of_flows=len(flows.items),
+                 number_of_groups=len(groups.items))
         log.debug('flows and grousp details', flows=flows, groups=groups)
         assert len(groups.items) == 0, "Cannot yet deal with groups"
         handler = self.devices[device.id]
@@ -430,7 +430,7 @@ class OpenoltAdapter(object):
             log.error("Device does not exist", device_id=device.id)
             return OperationResp(code=OperationResp.OPERATION_FAILURE,
                                  additional_info="Device %s does not exist"
-                                 % device.id)
+                                                 % device.id)
 
         handler = self.devices[device.id]
 

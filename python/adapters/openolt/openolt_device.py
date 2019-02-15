@@ -42,6 +42,7 @@ from pyvoltha.protos.device_pb2 import Port, Device
 
 from pyvoltha.protos.logical_device_pb2 import LogicalDevice, LogicalPort
 
+
 class OpenoltDevice(object):
     """
     OpenoltDevice state machine:
@@ -103,7 +104,7 @@ class OpenoltDevice(object):
         self.extra_args = device.extra_args
         self.log = structlog.get_logger(id=self.device_id,
                                         ip=self.host_and_port)
-        #self.proxy = registry('core').get_proxy('/')
+        # self.proxy = registry('core').get_proxy('/')
 
         self.log.info('openolt-device-init')
 
@@ -135,7 +136,7 @@ class OpenoltDevice(object):
                                send_event=True, initial='state_null')
         self.go_state_init()
 
-def create_logical_device(self, device_info):
+    def create_logical_device(self, device_info):
         dpid = device_info.device_id
         serial_number = device_info.device_serial_number
 
@@ -289,15 +290,15 @@ def create_logical_device(self, device_info):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
-	device.mac_address = "AA:BB:CC:DD:EE:FF"
+        device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
- 
+
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-	self.adapter_agent.device_state_update(self.device_id,
-                                                      connect_status=ConnectStatus.REACHABLE,
-                                                      oper_status=OperStatus.ACTIVE)
+        self.adapter_agent.device_state_update(self.device_id,
+                                               connect_status=ConnectStatus.REACHABLE,
+                                               oper_status=OperStatus.ACTIVE)
 
     def do_state_down(self, event):
         self.log.debug("do_state_down")
@@ -875,8 +876,8 @@ def create_logical_device(self, device_info):
         port = Port(port_no=port_no, label=label, type=port_type,
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
-	yield self.adapter_agent.port_created(self.device_id, port)
-        #self.adapter_agent.add_port(self.device_id, port)
+        yield self.adapter_agent.port_created(self.device_id, port)
+        # self.adapter_agent.add_port(self.device_id, port)
 
         returnValue(port_no, label)
 
