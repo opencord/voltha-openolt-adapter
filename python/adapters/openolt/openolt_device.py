@@ -135,7 +135,7 @@ class OpenoltDevice(object):
                                send_event=True, initial='state_null')
         self.go_state_init()
 
-def create_logical_device(self, device_info):
+    def create_logical_device(self, device_info):
         dpid = device_info.device_id
         serial_number = device_info.device_serial_number
 
@@ -289,15 +289,15 @@ def create_logical_device(self, device_info):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
-	device.mac_address = "AA:BB:CC:DD:EE:FF"
+        device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
  
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-	self.adapter_agent.device_state_update(self.device_id,
-                                                      connect_status=ConnectStatus.REACHABLE,
-                                                      oper_status=OperStatus.ACTIVE)
+        self.adapter_agent.device_state_update(self.device_id,
+                                               connect_status=ConnectStatus.REACHABLE,
+                                               oper_status=OperStatus.ACTIVE)
 
     def do_state_down(self, event):
         self.log.debug("do_state_down")
@@ -875,7 +875,7 @@ def create_logical_device(self, device_info):
         port = Port(port_no=port_no, label=label, type=port_type,
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
-	yield self.adapter_agent.port_created(self.device_id, port)
+        yield self.adapter_agent.port_created(self.device_id, port)
         #self.adapter_agent.add_port(self.device_id, port)
 
         returnValue(port_no, label)
