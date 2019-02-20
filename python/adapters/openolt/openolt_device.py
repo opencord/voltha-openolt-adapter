@@ -104,6 +104,8 @@ class OpenoltDevice(object):
         self.extra_args = device.extra_args
         self.log = structlog.get_logger(id=self.device_id,
                                         ip=self.host_and_port)
+
+        # TODO NEW CORE: this isnt implemented.  Need to use kafka api calls to get device info
         # self.proxy = registry('core').get_proxy('/')
 
         self.log.info('openolt-device-init')
@@ -293,10 +295,12 @@ class OpenoltDevice(object):
         device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
 
+
+    @inlineCallbacks
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        self.adapter_agent.device_state_update(self.device_id,
+        yield self.adapter_agent.device_state_update(self.device_id,
                                                connect_status=ConnectStatus.REACHABLE,
                                                oper_status=OperStatus.ACTIVE)
 
@@ -441,13 +445,16 @@ class OpenoltDevice(object):
             port_no, label = self.add_port(intf_oper_indication.intf_id,
                                            Port.ETHERNET_NNI, oper_state)
             self.log.debug("int_oper_indication", port_no=port_no, label=label)
-            self.add_logical_port(port_no, intf_oper_indication.intf_id,
-                                  oper_state)
+
+            # TODO NEW CORE:  Is this needed anymore, or does the new core synthesize this
+            #self.add_logical_port(port_no, intf_oper_indication.intf_id,
+            #                      oper_state)
 
         elif intf_oper_indication.type == "pon":
             # FIXME - handle PON oper state change
             pass
 
+    @inlineCallbacks
     def onu_discovery_indication(self, onu_disc_indication):
         intf_id = onu_disc_indication.intf_id
         serial_number = onu_disc_indication.serial_number
@@ -466,9 +473,11 @@ class OpenoltDevice(object):
                                errmsg=disc_alarm_error.message)
             # continue for now.
 
-        onu_device = self.adapter_agent.get_child_device(
-            self.device_id,
-            serial_number=serial_number_str)
+        # TODO NEW CORE: this isnt implemented... cheat for now
+        #onu_device = yield self.adapter_agent.get_child_device(
+        #   self.device_id,
+        #   channel_id=serial_number_str)
+        onu_device = None
 
         if onu_device is None:
             try:
@@ -798,6 +807,7 @@ class OpenoltDevice(object):
                                    onu_id=proxy_address.onu_id, pkt=str(msg))
         self.stub.OmciMsgOut(omci)
 
+    @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
         self.log.info("Adding ONU", port_no=port_no, onu_id=onu_id,
                       serial_number=serial_number)
@@ -811,12 +821,11 @@ class OpenoltDevice(object):
 
         serial_number_str = self.stringify_serial_number(serial_number)
 
-        self.adapter_agent.add_onu_device(
-            parent_device_id=self.device_id, parent_port_no=port_no,
-            vendor_id=serial_number.vendor_id, proxy_address=proxy_address,
-            root=True, serial_number=serial_number_str,
-            admin_state=AdminState.ENABLED
-            # , **{'vlan':4091} # magic still maps to brcm_openomci_onu.pon_port.BRDCM_DEFAULT_VLAN
+        yield self.adapter_agent.child_device_detected(
+            parent_device_id=self.device_id,
+            parent_port_no=port_no,
+            child_device_type='brcm_openomci_onu',
+            channel_id=onu_id,
         )
 
     def port_name(self, port_no, port_type, intf_id=None, serial_number=None):
