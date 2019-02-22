@@ -25,17 +25,7 @@ class OpenOltBW(object):
         self.proxy = proxy
 
     def pir(self, serial_number):
-        bw = 0
-        try:
-            bw = self.proxy.get(
-                '/traffic_descriptor_profiles/{}'.format(serial_number))
-        except KeyError:
-            self.log.debug('bandwidth not configured',
-                          serial_number=serial_number)
-            try:
-                bw = self.proxy.get('/traffic_descriptor_profiles/{}' \
-                                    .format(DEFAULT_ONU_BW_PROFILE))
-            except KeyError:
-                return DEFAULT_ONU_PIR
+        #TODO NEW CORE: the old xpon model traffic_descriptor_profiles is gone. Just return the default
+        # which was all that happened anyway
+        return DEFAULT_ONU_PIR
 
-        return bw.maximum_bandwidth
