@@ -98,7 +98,7 @@ class OpenoltDevice(object):
         self.stats_mgr_class = kwargs['support_classes']['stats_mgr']
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
 
-        self.stub = None
+        self.connected = False
         is_reconciliation = kwargs.get('reconciliation', False)
         self.device_id = device.id
         self.host_and_port = device.host_and_port
@@ -240,8 +240,9 @@ class OpenoltDevice(object):
     @inlineCallbacks
     def do_state_connected(self, event):
         self.log.debug("do_state_connected")
-
+        
         device = yield self.adapter_agent.get_device(self.device_id)
+
 
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
 
@@ -297,7 +298,7 @@ class OpenoltDevice(object):
         device.connect_status = ConnectStatus.REACHABLE
         device.mac_address = "AA:BB:CC:DD:EE:FF"
         self.adapter_agent.device_update(device)
-
+        self.connected = True
 
     @inlineCallbacks
     def do_state_up(self, event):
@@ -373,7 +374,8 @@ class OpenoltDevice(object):
         self.go_state_connected()
 
         # TODO: thread timing issue.  stub isnt ready yet from above go_state_connected (which doesnt block)
-        while (self.stub is None):
+        # Don't continue until connected is done
+        while (not self.connected):
             time.sleep(0.5)
 
         self.indications = self.stub.EnableIndication(openolt_pb2.Empty())
