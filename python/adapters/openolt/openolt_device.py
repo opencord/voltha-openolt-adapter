@@ -99,6 +99,7 @@ class OpenoltDevice(object):
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
 
         self.stub = None
+        self.connected = False
         is_reconciliation = kwargs.get('reconciliation', False)
         self.device_id = device.id
         self.host_and_port = device.host_and_port
@@ -188,9 +189,10 @@ class OpenoltDevice(object):
 
         self.logical_device_id = ld_init.id
 
-        device = yield self.adapter_agent.get_device(self.device_id)
-        device.serial_number = serial_number
-        yield self.adapter_agent.update_device(device)
+        ##Moved setting serial number outside of the logical_device function
+        #device = yield self.adapter_agent.get_device(self.device_id)
+        #device.serial_number = serial_number
+        #yield self.adapter_agent.update_device(device)
 
         self.dpid = dpid
         self.serial_number = serial_number
@@ -240,8 +242,9 @@ class OpenoltDevice(object):
     @inlineCallbacks
     def do_state_connected(self, event):
         self.log.debug("do_state_connected")
-
+        
         device = yield self.adapter_agent.get_device(self.device_id)
+
 
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
 
@@ -268,7 +271,25 @@ class OpenoltDevice(object):
 
         # self.create_logical_device(device_info)
         self.logical_device_id = 0
-        device.serial_number = self.serial_number
+
+        serial_number = device_info.device_serial_number
+        if serial_number is None: 
+            serial_number = self.serial_number
+        device.serial_number = serial_number
+        
+        self.serial_number = serial_number
+
+        device.vendor = device_info.vendor
+        device.model = device_info.model
+        device.hardware_version = device_info.hardware_version
+        device.firmware_version = device_info.firmware_version
+
+        # TODO: check for uptime and reboot if too long (VOL-1192)
+
+        device.connect_status = ConnectStatus.REACHABLE
+        device.mac_address = "AA:BB:CC:DD:EE:FF"
+        yield self.adapter_agent.device_update(device)
+        
 
         self.resource_mgr = self.resource_mgr_class(self.device_id,
                                                     self.host_and_port,
@@ -286,18 +307,8 @@ class OpenoltDevice(object):
                                               self.platform)
         self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
         self.bw_mgr = self.bw_mgr_class(self.log, self.adapter_agent)
-
-        device.vendor = device_info.vendor
-        device.model = device_info.model
-        device.hardware_version = device_info.hardware_version
-        device.firmware_version = device_info.firmware_version
-
-        # TODO: check for uptime and reboot if too long (VOL-1192)
-
-        device.connect_status = ConnectStatus.REACHABLE
-        device.mac_address = "AA:BB:CC:DD:EE:FF"
-        self.adapter_agent.device_update(device)
-
+        
+        self.connected = True
 
     @inlineCallbacks
     def do_state_up(self, event):
@@ -373,7 +384,8 @@ class OpenoltDevice(object):
         self.go_state_connected()
 
         # TODO: thread timing issue.  stub isnt ready yet from above go_state_connected (which doesnt block)
-        while (self.stub is None):
+        # Don't continue until connected is done
+        while (not self.connected):
             time.sleep(0.5)
 
         self.indications = self.stub.EnableIndication(openolt_pb2.Empty())
