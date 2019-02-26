@@ -22,6 +22,30 @@
       "revId": "05a7b61b1b8447cfdada0caf09fd57d0e67af32e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dac28ac3_53b4020b",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1000455
+      },
+      "writtenOn": "2019-02-26T14:57:55Z",
+      "side": 0,
+      "message": "Sure, I\u0027ll add it back.",
+      "parentUuid": "91eb02f3_86872416",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 17
+      },
+      "revId": "05a7b61b1b8447cfdada0caf09fd57d0e67af32e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
