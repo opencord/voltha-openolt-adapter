@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91eb02f3_86872416",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-02-26T14:49:57Z",
+      "side": 0,
+      "message": "can we keep this? Given its a member object its best for it to be initialized here.",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 17
+      },
+      "revId": "05a7b61b1b8447cfdada0caf09fd57d0e67af32e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
