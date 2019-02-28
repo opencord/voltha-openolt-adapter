@@ -277,6 +277,7 @@ class OpenoltDevice(object):
         
         self.serial_number = serial_number
 
+        device.root = True
         device.vendor = device_info.vendor
         device.model = device_info.model
         device.hardware_version = device_info.hardware_version
@@ -491,11 +492,9 @@ class OpenoltDevice(object):
                                errmsg=disc_alarm_error.message)
             # continue for now.
 
-        # TODO NEW CORE: this isnt implemented... cheat for now
-        #onu_device = yield self.adapter_agent.get_child_device(
-        #   self.device_id,
-        #   channel_id=serial_number_str)
-        onu_device = None
+        onu_device = yield self.adapter_agent.get_child_device(
+           self.device_id,
+           serial_number=serial_number_str)
 
         if onu_device is None:
             try:
@@ -831,15 +830,8 @@ class OpenoltDevice(object):
 
     @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
-        self.log.info("Adding ONU", port_no=port_no, onu_id=onu_id,
+        self.log.info("adding-onu", port_no=port_no, onu_id=onu_id,
                       serial_number=serial_number)
-
-        # NOTE - channel_id of onu is set to intf_id
-        proxy_address = Device.ProxyAddress(device_id=self.device_id,
-                                            channel_id=intf_id, onu_id=onu_id,
-                                            onu_session_id=onu_id)
-
-        self.log.debug("Adding ONU", proxy_address=proxy_address)
 
         serial_number_str = self.stringify_serial_number(serial_number)
 
@@ -847,8 +839,13 @@ class OpenoltDevice(object):
             parent_device_id=self.device_id,
             parent_port_no=port_no,
             child_device_type='brcm_openomci_onu',
-            channel_id=onu_id,
+            channel_id=intf_id,
+            vendor_id=serial_number.vendor_id,
+            serial_number=serial_number_str,
+            onu_id=onu_id
         )
+
+        self.log.debug("onu-added", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str)
 
     def port_name(self, port_no, port_type, intf_id=None, serial_number=None):
         if port_type is Port.ETHERNET_NNI:
