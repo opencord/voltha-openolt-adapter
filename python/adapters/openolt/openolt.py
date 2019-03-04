@@ -39,17 +39,17 @@ from pyvoltha.adapters.iadapter import IAdapterInterface
 from pyvoltha.common.utils.asleep import asleep
 from pyvoltha.common.utils.registry import registry
 from pyvoltha.adapters.kafka.kafka_proxy import get_kafka_proxy
-from pyvoltha.protos import openolt_pb2
-from pyvoltha.protos import third_party
-from pyvoltha.protos.common_pb2 import OperStatus, ConnectStatus
-from pyvoltha.protos.common_pb2 import LogLevel
-from pyvoltha.protos.common_pb2 import OperationResp
-from pyvoltha.protos.inter_container_pb2 import SwitchCapability, PortCapability, \
+from voltha_protos import openolt_pb2
+#from voltha_protos import third_party
+from voltha_protos.common_pb2 import OperStatus, ConnectStatus
+from voltha_protos.common_pb2 import LogLevel
+from voltha_protos.common_pb2 import OperationResp
+from voltha_protos.inter_container_pb2 import SwitchCapability, PortCapability, \
     InterAdapterMessageType, InterAdapterResponseBody
-from pyvoltha.protos.device_pb2 import Port, PmConfig, PmConfigs, \
+from voltha_protos.device_pb2 import Port, PmConfig, PmConfigs, \
     DeviceType, DeviceTypes
-from pyvoltha.protos.adapter_pb2 import Adapter
-from pyvoltha.protos.adapter_pb2 import AdapterConfig
+from voltha_protos.adapter_pb2 import Adapter
+from voltha_protos.adapter_pb2 import AdapterConfig
 from openolt_flow_mgr import OpenOltFlowMgr
 from openolt_alarms import OpenOltAlarmMgr
 from openolt_statistics import OpenOltStatisticsMgr
@@ -58,15 +58,15 @@ from openolt_platform import OpenOltPlatform
 from openolt_resource_manager import OpenOltResourceMgr
 from openolt_device import OpenoltDevice
 
-from pyvoltha.protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
-from pyvoltha.protos.logical_device_pb2 import LogicalPort
-from pyvoltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
+from voltha_protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
+from voltha_protos.logical_device_pb2 import LogicalPort
+from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_desc
-from pyvoltha.protos.openflow_13_pb2 import ofp_port
+from voltha_protos.openflow_13_pb2 import ofp_port
 
-_ = third_party
+#_ = third_party
 log = structlog.get_logger()
 OpenOltDefaults = {
     'support_classes': {

@@ -22,7 +22,7 @@ from pyvoltha.common.config.config_backend import ConsulStore
 from pyvoltha.common.config.config_backend import EtcdStore
 from openolt_flow_mgr import *
 
-from pyvoltha.protos import openolt_pb2
+from voltha_protos import openolt_pb2
 from openolt_platform import OpenOltPlatform
 
 

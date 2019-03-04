@@ -25,22 +25,22 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from scapy.layers.l2 import Ether, Dot1Q
 from transitions import Machine
 
-from pyvoltha.protos import openolt_pb2_grpc, openolt_pb2
+from voltha_protos import openolt_pb2_grpc, openolt_pb2
 
 from pyvoltha.adapters.extensions.alarms.onu.onu_discovery_alarm import OnuDiscoveryAlarm
 
 from pyvoltha.common.utils.nethelpers import mac_str_to_tuple
-from pyvoltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
+from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPS_LINK_DOWN, OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_port, ofp_port_stats, ofp_desc
 from pyvoltha.common.utils.registry import registry
-from pyvoltha.protos import third_party
-from pyvoltha.protos.common_pb2 import AdminState, OperStatus, ConnectStatus
-from pyvoltha.protos.common_pb2 import LogLevel
-from pyvoltha.protos.device_pb2 import Port, Device
+#from voltha_protos import third_party
+from voltha_protos.common_pb2 import AdminState, OperStatus, ConnectStatus
+from voltha_protos.common_pb2 import LogLevel
+from voltha_protos.device_pb2 import Port, Device
 
-from pyvoltha.protos.logical_device_pb2 import LogicalDevice, LogicalPort
+from voltha_protos.logical_device_pb2 import LogicalDevice, LogicalPort
 
 
 class OpenoltDevice(object):

@@ -20,12 +20,12 @@ from google.protobuf.json_format import MessageToDict
 import hashlib
 from simplejson import dumps
 
-from pyvoltha.protos.openflow_13_pb2 import OFPXMC_OPENFLOW_BASIC, \
+from voltha_protos.openflow_13_pb2 import OFPXMC_OPENFLOW_BASIC, \
     ofp_flow_stats, OFPMT_OXM, Flows, FlowGroups, OFPXMT_OFB_IN_PORT, \
     OFPXMT_OFB_VLAN_VID
-from pyvoltha.protos.device_pb2 import Port
+from voltha_protos.device_pb2 import Port
 import pyvoltha.common.openflow.utils as fd
-from pyvoltha.protos import openolt_pb2
+from voltha_protos import openolt_pb2
 from pyvoltha.common.utils.registry import registry
 
 from pyvoltha.common.tech_profile.tech_profile import DEFAULT_TECH_PROFILE_TABLE_ID

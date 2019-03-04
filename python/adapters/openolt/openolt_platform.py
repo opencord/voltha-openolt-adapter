@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-from pyvoltha.protos.device_pb2 import Port
-import pyvoltha.protos.device_pb2 as dev_pb2
+from voltha_protos.device_pb2 import Port
+import voltha_protos.device_pb2 as dev_pb2
 
 """
 Encoding of identifiers
