@@ -78,6 +78,8 @@ base:
 ifdef LOCAL_PYVOLTHA
 	mkdir -p pyvoltha/dist
 	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
+	mkdir -p voltha-protos/dist
+	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base_local .
 else
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base .
@@ -103,6 +105,7 @@ pull: $(patsubst  %,%.pull,$(DOCKER_IMAGE_LIST))
 
 clean:
 	rm -rf pyvoltha
+	rm -rf voltha-protos
 	find . -name '*.pyc' | xargs rm -f
 
 distclean: clean
@@ -130,8 +133,11 @@ ${VENVDIR}/.built:
 ifdef LOCAL_PYVOLTHA
 	mkdir -p pyvoltha/dist
 	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
+	mkdir -p voltha-protos/dist
+	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
 	@ . ${VENVDIR}/bin/activate && \
-	    pip install pyvoltha/dist/*.tar.gz
+	    pip install pyvoltha/dist/*.tar.gz \
+	    pip install voltha-protos/dist/*.tar.gz
 endif
 
 # end file

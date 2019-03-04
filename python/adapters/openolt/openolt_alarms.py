@@ -30,8 +30,8 @@ from pyvoltha.adapters.extensions.alarms.onu.onu_signal_fail_alarm import OnuSig
 from pyvoltha.adapters.extensions.alarms.onu.onu_window_drift_alarm import OnuWindowDriftAlarm
 from pyvoltha.adapters.extensions.alarms.onu.onu_activation_fail_alarm import OnuActivationFailAlarm
 
-import pyvoltha.protos.openolt_pb2 as openolt_pb2
-import pyvoltha.protos.device_pb2 as device_pb2
+import voltha_protos.openolt_pb2 as openolt_pb2
+import voltha_protos.device_pb2 as device_pb2
 
 
 class OpenOltAlarmMgr(object):
