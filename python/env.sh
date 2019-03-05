@@ -25,5 +25,5 @@ if [ ! -e "$VENVDIR/.built" ]; then
 fi
 . $VENVDIR/bin/activate
 
- #add top-level voltha dir to pythonpath
+#add top-level voltha dir to pythonpath
 export PYTHONPATH=$VOLTHA_BASE/$VENVDIR/lib/python2.7/site-packages:$PYTHONPATH:$VOLTHA_BASE:$VOLTHA_BASE/cli:$VOLTHA_BASE/protos/third_party
