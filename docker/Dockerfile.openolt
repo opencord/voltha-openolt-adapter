@@ -1,0 +1,64 @@
+# -------------
+# Build stage
+
+FROM golang:1.10.7-alpine AS build-env
+
+# Install required packages
+RUN apk add --no-cache wget git make build-base protobuf protobuf-dev
+
+# Install protobuf requirements
+RUN git clone https://github.com/googleapis/googleapis.git /usr/local/include/googleapis
+RUN go get google.golang.org/genproto/googleapis/api/annotations
+
+# Prepare directory structure
+RUN ["mkdir", "-p", "/src", "src/protos"]
+RUN ["mkdir", "-p", "$GOPATH/src", "$GOPATH/pkg", "$GOPATH/bin"]
+RUN ["mkdir", "-p", "$GOPATH/src/github.com/opencord"]
+#RUN ["mkdir", "-p", "$GOPATH/src/github.com/opencord/voltha-go"]
+
+WORKDIR $GOPATH/src/github.com/opencord
+
+RUN git clone https://gerrit.opencord.org/voltha-go.git
+
+WORKDIR $GOPATH/src/github.com/opencord/voltha-go
+
+#RUN cp python/protos/openolt.proto protos
+
+# Copy files
+ADD adapters/openolt ./adapters/openolt
+ADD openolt.proto ./protos
+#ADD temp/adapters-common ./adapters/common
+#ADD temp/*.go ./adapters/
+#ADD temp/voltha-common ./common
+#ADD temp/db ./db
+#ADD temp/kafka ./kafka
+#ADD temp/vendor ./vendor
+
+# Install the protoc-gen-go
+RUN go install ./vendor/github.com/golang/protobuf/protoc-gen-go
+
+# Copy required proto files
+# ... VOLTHA proos
+#ADD temp/protos/*.proto /src/protos/
+#ADD temp/protos/scripts/* /src/protos/
+
+# Compile protobuf files
+RUN sh protos/scripts/build_protos.sh protos
+
+RUN protoc --go_out=Mgoogle/protobuf/descriptor.proto=github.com/golang/protobuf/protoc-gen-go/descriptor,plugins=grpc:$GOPATH/src -I protos -I /usr/local/include/googleapis  protos/openolt.proto
+
+# Build openolt
+
+RUN cd adapters/openolt && go build -o /src/openolt
+
+# -------------
+# Image creation stage
+
+FROM alpine:3.8
+
+# Set the working directory
+WORKDIR /app
+
+# Copy required files
+COPY --from=build-env /src/openolt /app/
+
