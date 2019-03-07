@@ -352,6 +352,20 @@ class OpenoltAdapter(object):
         except Exception as e:
             log.error('packet-out:exception', e=e.message)
 
+    def process_inter_adapter_message(self, msg):
+        log.debug('process-inter-adapter-message', msg=msg)
+        # Unpack the header to know which device needs to handle this message
+        handler = None
+        if msg.header.proxy_device_id:
+            # typical request
+            handler = self.devices[msg.header.proxy_device_id]
+        elif msg.header.to_device_id and \
+                msg.header.to_device_id in self.devices_handlers:
+            # typical response
+            handler = self.devices[msg.header.to_device_id]
+        if handler:
+            reactor.callLater(0, handler.process_inter_adapter_message, msg)
+
     def receive_inter_adapter_message(self, msg):
         log.info('rx_inter_adapter_msg - Not implemented')
         raise NotImplementedError()
