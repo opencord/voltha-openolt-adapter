@@ -64,4 +64,5 @@ python/cli/.voltha_cli_history
 
 # Development versions of locally built libraries
 python/pyvoltha
+python/voltha-protos
 
