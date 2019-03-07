@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b67d1457_d5904c2e",
+        "filename": "python/adapters/openolt/openolt.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-03-07T12:27:09Z",
+      "side": 1,
+      "message": "This function was moved to pyvoltha/common/utils/nethelpers.py  given its repeated definition throughout the code.   Should be able to use that implementation.",
+      "range": {
+        "startLine": 82,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 20
+      },
+      "revId": "f3a0c9e1ec59f64313c8431978f61d89c150f1aa",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
