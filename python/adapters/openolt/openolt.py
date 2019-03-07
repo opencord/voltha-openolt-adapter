@@ -79,6 +79,8 @@ OpenOltDefaults = {
     }
 }
 
+def mac_str_to_tuple(mac):
+    return tuple(int(d, 16) for d in mac.split(':'))
 
 @implementer(IAdapterInterface)
 class OpenoltAdapter(object):
@@ -109,12 +111,59 @@ class OpenoltAdapter(object):
         self.interface = registry('main').get_args().interface
         self.logical_device_id_to_root_device_id = dict()
         self.num_devices = 0
+        self.ofp_port_no = None
 
     def start(self):
         log.info('started', interface=self.interface)
 
     def stop(self):
         log.info('stopped', interface=self.interface)
+
+    def get_ofp_device_info(self, device):
+        log.info('get_ofp_device_info', device_id=device.id)
+        return SwitchCapability(
+            desc=ofp_desc(
+                hw_desc='white box OLT',  # Hardware description
+                sw_desc='openolt',  # Software description
+                serial_num=device.serial_number,  # Serial number
+                dp_desc='n/a'  # Human readable description of datapath
+            ),
+            switch_features=ofp_switch_features(
+                n_buffers=256,  # Max packets buffered at once 		# TODO fake for now
+                n_tables=2,  # Number of tables supported by datapath 	# TODO fake for now
+                capabilities=( #Bitmap of support "ofp_capabilities" 	# TODO fake for now
+                        OFPC_FLOW_STATS
+                        | OFPC_TABLE_STATS
+                        | OFPC_PORT_STATS
+                        | OFPC_GROUP_STATS
+                )
+            )
+        )
+
+    def get_ofp_port_info(self, device, port_no):
+        # Since the adapter created the device port then it has the reference of the port to
+        # return the capability.   TODO:  Do a lookup on the NNI port number and return the
+        # appropriate attributes
+        log.info('get_ofp_port_info', port_no=port_no,
+                      info=self.ofp_port_no, device_id=device.id)
+        cap = OFPPF_1GB_FD | OFPPF_FIBER
+        return PortCapability(
+            port=LogicalPort(
+                ofp_port=ofp_port(
+                    hw_addr=mac_str_to_tuple(
+                        '00:00:00:00:00:%02x' % port_no),
+                    config=0,
+                    state=OFPPS_LIVE,
+                    curr=cap,
+                    advertised=cap,
+                    peer=cap,
+                    curr_speed=OFPPF_1GB_FD,
+                    max_speed=OFPPF_1GB_FD
+                ),
+                device_id=device.id,
+                device_port_no=port_no
+            )
+        )
 
     def adapter_descriptor(self):
         log.debug('get descriptor', interface=self.interface)
