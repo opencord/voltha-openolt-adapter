@@ -136,7 +136,7 @@ ifdef LOCAL_PYVOLTHA
 	mkdir -p voltha-protos/dist
 	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
 	@ . ${VENVDIR}/bin/activate && \
-	    pip install pyvoltha/dist/*.tar.gz \
+	    pip install pyvoltha/dist/*.tar.gz && \
 	    pip install voltha-protos/dist/*.tar.gz
 endif
 
