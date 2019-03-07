@@ -35,11 +35,9 @@ from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
     ofp_switch_features, ofp_port, ofp_port_stats, ofp_desc
 from pyvoltha.common.utils.registry import registry
-#from voltha_protos import third_party
 from voltha_protos.common_pb2 import AdminState, OperStatus, ConnectStatus
-from voltha_protos.common_pb2 import LogLevel
 from voltha_protos.device_pb2 import Port, Device
-
+from voltha_protos.inter_container_pb2 import InterAdapterMessageType, InterAdapterOmciMessage
 from voltha_protos.logical_device_pb2 import LogicalDevice, LogicalPort
 
 
@@ -98,6 +96,7 @@ class OpenoltDevice(object):
         self.stats_mgr_class = kwargs['support_classes']['stats_mgr']
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
 
+        self.seen_discovery_indications = []
         self.stub = None
         self.connected = False
         is_reconciliation = kwargs.get('reconciliation', False)
@@ -465,10 +464,6 @@ class OpenoltDevice(object):
             self.add_port(intf_oper_indication.intf_id,
                                     Port.ETHERNET_NNI, oper_state)
 
-            # TODO NEW CORE:  Is this needed anymore, or does the new core synthesize this
-            #self.add_logical_port(port_no, intf_oper_indication.intf_id,
-            #                      oper_state)
-
         elif intf_oper_indication.type == "pon":
             # FIXME - handle PON oper state change
             pass
@@ -482,6 +477,13 @@ class OpenoltDevice(object):
 
         self.log.debug("onu discovery indication", intf_id=intf_id,
                        serial_number=serial_number_str)
+
+        if serial_number_str in self.seen_discovery_indications:
+            self.log.debug("skipping-seen-onu-discovery-indication", intf_id=intf_id,
+                           serial_number=serial_number_str)
+            return
+        else:
+            self.seen_discovery_indications.append(serial_number_str)
 
         # Post ONU Discover alarm  20180809_0805
         try:
@@ -513,8 +515,7 @@ class OpenoltDevice(object):
 
         else:
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                onu_device.connect_status = ConnectStatus.REACHABLE
-                yield self.adapter_agent.device_update(onu_device)
+                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             onu_id = onu_device.proxy_address.onu_id
             if onu_device.oper_status == OperStatus.DISCOVERED \
@@ -533,8 +534,8 @@ class OpenoltDevice(object):
                               reboot probably, activate onu", intf_id=intf_id,
                               onu_id=onu_id, serial_number=serial_number_str)
 
-                onu_device.oper_status = OperStatus.DISCOVERED
-                yield self.adapter_agent.device_update(onu_device)
+                yield self.adapter_agent.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
+
                 try:
                     self.activate_onu(intf_id, onu_id, serial_number,
                                       serial_number_str)
@@ -608,37 +609,33 @@ class OpenoltDevice(object):
 
         self.log.debug('admin-state-dealt-with')
 
-        onu_adapter_agent = \
-            registry('adapter_loader').get_agent(onu_device.adapter)
-        if onu_adapter_agent is None:
-            self.log.error('onu_adapter_agent-could-not-be-retrieved',
-                           onu_device=onu_device)
-            return
-
         # Operating state
         if onu_indication.oper_state == 'down':
 
             if onu_device.connect_status != ConnectStatus.UNREACHABLE:
-                onu_device.connect_status = ConnectStatus.UNREACHABLE
-                yield self.adapter_agent.device_update(onu_device)
+                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.UNREACHABLE)
 
             # Move to discovered state
             self.log.debug('onu-oper-state-is-down')
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
-                onu_device.oper_status = OperStatus.DISCOVERED
-                yield self.adapter_agent.device_update(onu_device)
-            # Set port oper state to Discovered
-            self.onu_ports_down(onu_device, OperStatus.DISCOVERED)
+                yield self.adapter_agent.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
 
-            onu_adapter_agent.update_interface(onu_device,
-                                               {'oper_state': 'down'})
+            self.log.debug('inter-adapter-send-onu-ind', onu_indication=onu_indication)
+
+            # TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
+            yield self.adapter_proxy.send_inter_adapter_message(
+                msg=onu_indication,
+                type=InterAdapterMessageType.ONU_IND_REQUEST,
+                from_adapter="openolt",
+                to_adapter=onu_device.type,
+                to_device_id=onu_device.id
+            )
 
         elif onu_indication.oper_state == 'up':
 
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                onu_device.connect_status = ConnectStatus.REACHABLE
-                yield self.adapter_agent.device_update(onu_device)
+                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
                 self.log.debug("ignore onu indication",
@@ -648,11 +645,16 @@ class OpenoltDevice(object):
                                msg_oper_state=onu_indication.oper_state)
                 return
 
-            # Device was in Discovered state, setting it to active
+            self.log.debug('inter-adapter-send-onu-ind', onu_indication=onu_indication)
 
-            # Prepare onu configuration
-
-            onu_adapter_agent.create_interface(onu_device, onu_indication)
+            # TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
+            yield self.adapter_proxy.send_inter_adapter_message(
+                msg=onu_indication,
+                type=InterAdapterMessageType.ONU_IND_REQUEST,
+                from_adapter="openolt",
+                to_adapter=onu_device.type,
+                to_device_id=onu_device.id
+            )
 
         else:
             self.log.warn('Not-implemented-or-invalid-value-of-oper-state',
@@ -701,8 +703,18 @@ class OpenoltDevice(object):
             parent_port_no=self.platform.intf_id_to_port_no(
                 omci_indication.intf_id, Port.PON_OLT), )
 
-        yield self.adapter_agent.receive_proxied_message(onu_device.proxy_address,
-                                                   omci_indication.pkt)
+        omci_msg = InterAdapterOmciMessage(message=omci_indication.pkt)
+
+        self.log.debug('inter-adapter-send-omci', omci_msg=omci_msg)
+
+        # TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
+        yield self.adapter_proxy.send_inter_adapter_message(
+            msg=omci_msg,
+            type=InterAdapterMessageType.OMCI_REQUEST,
+            from_adapter="openolt",
+            to_adapter=onu_device.type,
+            to_device_id=onu_device.id
+        )
 
     @inlineCallbacks
     def packet_indication(self, pkt_indication):
@@ -812,21 +824,39 @@ class OpenoltDevice(object):
                           port_type=egress_port_type)
 
     @inlineCallbacks
-    def send_proxied_message(self, proxy_address, msg):
-        onu_device = yield self.adapter_agent.get_child_device(
-            self.device_id, onu_id=proxy_address.onu_id,
-            parent_port_no=self.platform.intf_id_to_port_no(
-                proxy_address.channel_id, Port.PON_OLT)
-        )
+    def process_inter_adapter_message(self, request):
+        self.log.debug('process-inter-adapter-message', msg=request)
+        try:
+            if request.header.type == InterAdapterMessageType.OMCI_REQUEST:
+                omci_msg = InterAdapterOmciMessage()
+                request.body.Unpack(omci_msg)
+                self.log.debug('inter-adapter-recv-omci', omci_msg=omci_msg)
+
+                onu_device_id = request.header.to_device_id
+                onu_device = yield self.adapter_agent.get_device(onu_device_id)
+                self.send_proxied_message(onu_device, omci_msg.message)
+
+            else:
+                self.log.error("inter-adapter-unhandled-type", request=request)
+
+        except Exception as e:
+            self.log.exception("error-processing-inter-adapter-message", e=e)
+
+    def send_proxied_message(self, onu_device, msg):
+
         if onu_device.connect_status != ConnectStatus.REACHABLE:
             self.log.debug('ONU is not reachable, cannot send OMCI',
                            serial_number=onu_device.serial_number,
                            intf_id=onu_device.proxy_address.channel_id,
                            onu_id=onu_device.proxy_address.onu_id)
             return
-        omci = openolt_pb2.OmciMsg(intf_id=proxy_address.channel_id,
-                                   onu_id=proxy_address.onu_id, pkt=str(msg))
+
+        omci = openolt_pb2.OmciMsg(intf_id=onu_device.proxy_address.channel_id,
+                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
         self.stub.OmciMsgOut(omci)
+
+        self.log.debug("omci-message-sent", intf_id=onu_device.proxy_address.channel_id,
+                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
 
     @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
@@ -835,6 +865,7 @@ class OpenoltDevice(object):
 
         serial_number_str = self.stringify_serial_number(serial_number)
 
+        # TODO NEW CORE dont hardcode child device type.  find some way of determining by vendor in serial number
         yield self.adapter_agent.child_device_detected(
             parent_device_id=self.device_id,
             parent_port_no=port_no,
