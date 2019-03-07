@@ -119,8 +119,10 @@ rebuild-venv: purge-venv venv
 venv: ${VENVDIR}/.built
 
 ${VENVDIR}/.built:
-	@ virtualenv ${VENVDIR}
-	@ . ${VENVDIR}/bin/activate && \
+	virtualenv -v ${VENVDIR}
+	# these are just symlinks to the other folders in the venv.  this makes it appear as if there are duplicate definitions in PYTHONPATH.  venv bug?
+	rm ${VENVDIR}/local/bin ${VENVDIR}/local/lib ${VENVDIR}/local/include
+	. ${VENVDIR}/bin/activate && \
 	    pip install --upgrade pip; \
 	    if ! pip install -r requirements.txt; \
 	    then \
@@ -135,7 +137,7 @@ ifdef LOCAL_PYVOLTHA
 	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
 	mkdir -p voltha-protos/dist
 	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
-	@ . ${VENVDIR}/bin/activate && \
+	. ${VENVDIR}/bin/activate && \
 	    pip install pyvoltha/dist/*.tar.gz && \
 	    pip install voltha-protos/dist/*.tar.gz
 endif

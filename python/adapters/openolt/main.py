@@ -372,6 +372,8 @@ class Main(object):
                                           adapter_proxy=self.adapter_proxy,
                                           config=config)
 
+            self.adapter.start()
+
             openolt_request_handler = AdapterRequestFacade(adapter=self.adapter,
                                                            core_proxy=self.core_proxy)
 
