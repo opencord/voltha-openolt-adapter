@@ -84,8 +84,8 @@ class OpenoltDevice(object):
     def __init__(self, **kwargs):
         super(OpenoltDevice, self).__init__()
 
+        self.core_proxy = kwargs['core_proxy']
         self.adapter_proxy = kwargs['adapter_proxy']
-        self.adapter_agent = kwargs['adapter_agent']
         self.device_num = kwargs['device_num']
         device = kwargs['device']
 
@@ -240,7 +240,7 @@ class OpenoltDevice(object):
     def do_state_connected(self, event):
         self.log.debug("do_state_connected")
         
-        device = yield self.adapter_agent.get_device(self.device_id)
+        device = yield self.core_proxy.get_device(self.device_id)
 
 
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
@@ -286,7 +286,7 @@ class OpenoltDevice(object):
 
         device.connect_status = ConnectStatus.REACHABLE
         device.mac_address = "AA:BB:CC:DD:EE:FF"
-        yield self.adapter_agent.device_update(device)
+        yield self.core_proxy.device_update(device)
         
 
         self.resource_mgr = self.resource_mgr_class(self.device_id,
@@ -294,17 +294,17 @@ class OpenoltDevice(object):
                                                     self.extra_args,
                                                     device_info)
         self.platform = self.platform_class(self.log, self.resource_mgr)
-        self.flow_mgr = self.flow_mgr_class(self.adapter_agent, self.log,
+        self.flow_mgr = self.flow_mgr_class(self.core_proxy, self.log,
                                             self.stub, self.device_id,
                                             self.logical_device_id,
                                             self.platform, self.resource_mgr)
 
-        self.alarm_mgr = self.alarm_mgr_class(self.log, self.adapter_agent,
+        self.alarm_mgr = self.alarm_mgr_class(self.log, self.core_proxy,
                                               self.device_id,
                                               self.logical_device_id,
                                               self.platform)
         self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
-        self.bw_mgr = self.bw_mgr_class(self.log, self.adapter_agent)
+        self.bw_mgr = self.bw_mgr_class(self.log, self.core_proxy)
         
         self.connected = True
 
@@ -312,7 +312,7 @@ class OpenoltDevice(object):
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        yield self.adapter_agent.device_state_update(self.device_id,
+        yield self.core_proxy.device_state_update(self.device_id,
                                                connect_status=ConnectStatus.REACHABLE,
                                                oper_status=OperStatus.ACTIVE)
         self.log.debug("done_state_up")
@@ -494,7 +494,7 @@ class OpenoltDevice(object):
                                errmsg=disc_alarm_error.message)
             # continue for now.
 
-        onu_device = yield self.adapter_agent.get_child_device(
+        onu_device = yield self.core_proxy.get_child_device(
            self.device_id,
            serial_number=serial_number_str)
 
@@ -515,7 +515,7 @@ class OpenoltDevice(object):
 
         else:
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
+                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             onu_id = onu_device.proxy_address.onu_id
             if onu_device.oper_status == OperStatus.DISCOVERED \
@@ -534,7 +534,7 @@ class OpenoltDevice(object):
                               reboot probably, activate onu", intf_id=intf_id,
                               onu_id=onu_id, serial_number=serial_number_str)
 
-                yield self.adapter_agent.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
+                yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
 
                 try:
                     self.activate_onu(intf_id, onu_id, serial_number,
@@ -560,11 +560,11 @@ class OpenoltDevice(object):
             serial_number_str = None
 
         if serial_number_str is not None:
-            onu_device = yield self.adapter_agent.get_child_device(
+            onu_device = yield self.core_proxy.get_child_device(
                 self.device_id,
                 serial_number=serial_number_str)
         else:
-            onu_device = yield self.adapter_agent.get_child_device(
+            onu_device = yield self.core_proxy.get_child_device(
                 self.device_id,
                 parent_port_no=self.platform.intf_id_to_port_no(
                     onu_indication.intf_id, Port.PON_OLT),
@@ -613,13 +613,13 @@ class OpenoltDevice(object):
         if onu_indication.oper_state == 'down':
 
             if onu_device.connect_status != ConnectStatus.UNREACHABLE:
-                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.UNREACHABLE)
+                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.UNREACHABLE)
 
             # Move to discovered state
             self.log.debug('onu-oper-state-is-down')
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
-                yield self.adapter_agent.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
+                yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
 
             self.log.debug('inter-adapter-send-onu-ind', onu_indication=onu_indication)
 
@@ -635,7 +635,7 @@ class OpenoltDevice(object):
         elif onu_indication.oper_state == 'up':
 
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                yield self.adapter_agent.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
+                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
                 self.log.debug("ignore onu indication",
@@ -698,7 +698,7 @@ class OpenoltDevice(object):
         self.log.debug("omci indication", intf_id=omci_indication.intf_id,
                        onu_id=omci_indication.onu_id)
 
-        onu_device = yield self.adapter_agent.get_child_device(
+        onu_device = yield self.core_proxy.get_child_device(
             self.device_id, onu_id=omci_indication.onu_id,
             parent_port_no=self.platform.intf_id_to_port_no(
                 omci_indication.intf_id, Port.PON_OLT), )
@@ -833,7 +833,7 @@ class OpenoltDevice(object):
                 self.log.debug('inter-adapter-recv-omci', omci_msg=omci_msg)
 
                 onu_device_id = request.header.to_device_id
-                onu_device = yield self.adapter_agent.get_device(onu_device_id)
+                onu_device = yield self.core_proxy.get_device(onu_device_id)
                 self.send_proxied_message(onu_device, omci_msg.message)
 
             else:
@@ -866,7 +866,7 @@ class OpenoltDevice(object):
         serial_number_str = self.stringify_serial_number(serial_number)
 
         # TODO NEW CORE dont hardcode child device type.  find some way of determining by vendor in serial number
-        yield self.adapter_agent.child_device_detected(
+        yield self.core_proxy.child_device_detected(
             parent_device_id=self.device_id,
             parent_port_no=port_no,
             child_device_type='brcm_openomci_onu',
@@ -935,7 +935,7 @@ class OpenoltDevice(object):
         port = Port(port_no=port_no, label=label, type=port_type,
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
-        yield self.adapter_agent.port_created(self.device_id, port)
+        yield self.core_proxy.port_created(self.device_id, port)
 
     def delete_logical_port(self, child_device):
         logical_ports = self.proxy.get('/logical_devices/{}/ports'.format(

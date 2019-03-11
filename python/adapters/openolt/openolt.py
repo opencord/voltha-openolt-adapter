@@ -96,8 +96,8 @@ class OpenoltAdapter(object):
 
     # System Init Methods #
     def __init__(self, core_proxy, adapter_proxy, config):
+        self.core_proxy = core_proxy
         self.adapter_proxy = adapter_proxy
-        self.adapter_agent = core_proxy
         self.config = config
         self.descriptor = Adapter(
             id=self.name,
@@ -105,7 +105,7 @@ class OpenoltAdapter(object):
             version='0.1',
             config=AdapterConfig(log_level=LogLevel.INFO)
         )
-        log.debug('openolt.__init__', adapter_agent=adapter_proxy)
+        log.debug('openolt.__init__', core_proxy=core_proxy, adapter_proxy=adapter_proxy)
         self.devices = dict()  # device_id -> OpenoltDevice()
         self.interface = registry('main').get_args().interface
         self.logical_device_id_to_root_device_id = dict()
@@ -187,8 +187,8 @@ class OpenoltAdapter(object):
 
         kwargs = {
             'support_classes': OpenOltDefaults['support_classes'],
+            'core_proxy': self.core_proxy,
             'adapter_proxy': self.adapter_proxy,
-            'adapter_agent': self.adapter_agent,
             'device': device,
             'device_num': self.num_devices + 1
         }
@@ -206,7 +206,8 @@ class OpenoltAdapter(object):
         log.info('reconcile-device', device=device)
         kwargs = {
             'support_classes': OpenOltDefaults['support_classes'],
-            'adapter_agent': self.adapter_agent,
+            'core_proxy': self.core_proxy,
+            'adapter_proxy': self.adapter_proxy,
             'device': device,
             'device_num': self.num_devices + 1,
             'reconciliation': True
