@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64e717e9_ee38835f",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-03-12T17:10:58Z",
+      "side": 0,
+      "message": "So this call has a bit of dubious history.  This is actually an inter adapter function call to tell the onu device to stop the omci state machine.  This is needed so that openomci state machines can be properly restarted later.  \n\nIn the 2.x setup i changed this (onu update_interface() call and onu create_interface() call) to be a proper interadapter message with a new type.   See line 619-633 below.  A similar call will be needed here.  We can add in a subsequent commit though.",
+      "range": {
+        "startLine": 333,
+        "startChar": 12,
+        "endLine": 333,
+        "endChar": 46
+      },
+      "revId": "bad3d9872aacb1eec9ab01576aa54cc628ffec47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a1b06fa9_ac14eb76",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-03-12T17:10:58Z",
+      "side": 0,
+      "message": "So does the 2.x core automatically update the child device state if the parent\u0027s state is updated?  If so removal of much of this is good like you have.",
+      "range": {
+        "startLine": 338,
+        "startChar": 33,
+        "endLine": 338,
+        "endChar": 59
+      },
+      "revId": "bad3d9872aacb1eec9ab01576aa54cc628ffec47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87367247_930cb040",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-03-12T17:10:58Z",
+      "side": 0,
+      "message": "same for this \"edit\" as above.  if the core automatically does set the ports state, then good for us and this can indeed go away.",
+      "range": {
+        "startLine": 350,
+        "startChar": 37,
+        "endLine": 350,
+        "endChar": 45
+      },
+      "revId": "bad3d9872aacb1eec9ab01576aa54cc628ffec47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
