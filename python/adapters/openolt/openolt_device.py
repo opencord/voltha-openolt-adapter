@@ -37,7 +37,8 @@ from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
 from pyvoltha.common.utils.registry import registry
 from voltha_protos.common_pb2 import AdminState, OperStatus, ConnectStatus
 from voltha_protos.device_pb2 import Port, Device
-from voltha_protos.inter_container_pb2 import InterAdapterMessageType, InterAdapterOmciMessage
+from voltha_protos.inter_container_pb2 import SwitchCapability, PortCapability, \
+    InterAdapterMessageType, InterAdapterOmciMessage
 from voltha_protos.logical_device_pb2 import LogicalDevice, LogicalPort
 
 
@@ -103,6 +104,7 @@ class OpenoltDevice(object):
         self.device_id = device.id
         self.host_and_port = device.host_and_port
         self.extra_args = device.extra_args
+        self.device_info = None
         self.log = structlog.get_logger(id=self.device_id,
                                         ip=self.host_and_port)
 
@@ -248,7 +250,7 @@ class OpenoltDevice(object):
         delay = 1
         while True:
             try:
-                device_info = self.stub.GetDeviceInfo(openolt_pb2.Empty())
+                self.device_info = self.stub.GetDeviceInfo(openolt_pb2.Empty())
                 break
             except Exception as e:
                 reraise = True
@@ -264,12 +266,12 @@ class OpenoltDevice(object):
                 if reraise:
                     raise
 
-        self.log.info('Device connected', device_info=device_info)
+        self.log.info('Device connected', device_info=self.device_info)
 
         # self.create_logical_device(device_info)
         self.logical_device_id = 0
 
-        serial_number = device_info.device_serial_number
+        serial_number = self.device_info.device_serial_number
         if serial_number is None: 
             serial_number = self.serial_number
         device.serial_number = serial_number
@@ -277,14 +279,15 @@ class OpenoltDevice(object):
         self.serial_number = serial_number
 
         device.root = True
-        device.vendor = device_info.vendor
-        device.model = device_info.model
-        device.hardware_version = device_info.hardware_version
-        device.firmware_version = device_info.firmware_version
+        device.vendor = self.device_info.vendor
+        device.model = self.device_info.model
+        device.hardware_version = self.device_info.hardware_version
+        device.firmware_version = self.device_info.firmware_version
 
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         device.connect_status = ConnectStatus.REACHABLE
+        # TODO NEW CORE: Gather this from DeviceInfo proto from openolt agent
         device.mac_address = "AA:BB:CC:DD:EE:FF"
         yield self.core_proxy.device_update(device)
         
@@ -292,7 +295,7 @@ class OpenoltDevice(object):
         self.resource_mgr = self.resource_mgr_class(self.device_id,
                                                     self.host_and_port,
                                                     self.extra_args,
-                                                    device_info)
+                                                    self.device_info)
         self.platform = self.platform_class(self.log, self.resource_mgr)
         self.flow_mgr = self.flow_mgr_class(self.core_proxy, self.log,
                                             self.stub, self.device_id,
@@ -877,6 +880,52 @@ class OpenoltDevice(object):
         )
 
         self.log.debug("onu-added", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str)
+
+    def get_ofp_device_info(self, device):
+        self.log.info('get_ofp_device_info', device_id=device.id)
+
+        mfr_desc = self.device_info.vendor
+        sw_desc = self.device_info.firmware_version
+        hw_desc = self.device_info.model
+        if self.device_info.hardware_version: hw_desc += '-' + self.device_info.hardware_version
+
+        return SwitchCapability(
+            desc=ofp_desc(
+                hw_desc=hw_desc,
+                sw_desc=sw_desc,
+                serial_num=device.serial_number
+            ),
+            switch_features=ofp_switch_features(
+                n_buffers=256,  # Max packets buffered at once          # TODO fake for now
+                n_tables=2,  # Number of tables supported by datapath   # TODO fake for now
+                capabilities=( #Bitmap of support "ofp_capabilities"    # TODO fake for now
+                        OFPC_FLOW_STATS
+                        | OFPC_TABLE_STATS
+                        | OFPC_PORT_STATS
+                        | OFPC_GROUP_STATS
+                )
+            )
+        )
+
+    def get_ofp_port_info(self, device, port_no):
+        self.log.info('get_ofp_port_info', port_no=port_no, device_id=device.id)
+        cap = OFPPF_1GB_FD | OFPPF_FIBER
+        return PortCapability(
+            port=LogicalPort(
+                ofp_port=ofp_port(
+                    hw_addr=mac_str_to_tuple(self._get_mac_form_port_no(port_no)),
+                    config=0,
+                    state=OFPPS_LIVE,
+                    curr=cap,
+                    advertised=cap,
+                    peer=cap,
+                    curr_speed=OFPPF_1GB_FD,
+                    max_speed=OFPPF_1GB_FD
+                ),
+                device_id=device.id,
+                device_port_no=port_no
+            )
+        )
 
     def port_name(self, port_no, port_type, intf_id=None, serial_number=None):
         if port_type is Port.ETHERNET_NNI:
