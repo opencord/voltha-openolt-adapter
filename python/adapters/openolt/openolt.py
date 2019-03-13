@@ -17,37 +17,15 @@
 """
 Openolt adapter.
 """
-import arrow
-import grpc
 import structlog
 
 from zope.interface import implementer
-from google.protobuf.empty_pb2 import Empty
-from google.protobuf.json_format import MessageToDict
-from scapy.layers.inet import Raw
-import json
-from google.protobuf.message import Message
-from grpc._channel import _Rendezvous
-from scapy.layers.l2 import Ether, Dot1Q
-from simplejson import dumps
 from twisted.internet import reactor
-from twisted.internet.defer import inlineCallbacks, returnValue
-from twisted.internet.task import LoopingCall
-
-from pyvoltha.adapters.common.frameio.frameio import BpfProgramFilter, hexify
 from pyvoltha.adapters.iadapter import IAdapterInterface
-from pyvoltha.common.utils.asleep import asleep
 from pyvoltha.common.utils.registry import registry
-from pyvoltha.adapters.kafka.kafka_proxy import get_kafka_proxy
-from voltha_protos import openolt_pb2
-#from voltha_protos import third_party
-from voltha_protos.common_pb2 import OperStatus, ConnectStatus
 from voltha_protos.common_pb2 import LogLevel
 from voltha_protos.common_pb2 import OperationResp
-from voltha_protos.inter_container_pb2 import SwitchCapability, PortCapability, \
-    InterAdapterMessageType, InterAdapterResponseBody
-from voltha_protos.device_pb2 import Port, PmConfig, PmConfigs, \
-    DeviceType, DeviceTypes
+from voltha_protos.device_pb2 import DeviceType, DeviceTypes
 from voltha_protos.adapter_pb2 import Adapter
 from voltha_protos.adapter_pb2 import AdapterConfig
 from openolt_flow_mgr import OpenOltFlowMgr
@@ -58,16 +36,6 @@ from openolt_platform import OpenOltPlatform
 from openolt_resource_manager import OpenOltResourceMgr
 from openolt_device import OpenoltDevice
 
-from voltha_protos.events_pb2 import KpiEvent, KpiEventType, MetricValuePairs
-from voltha_protos.logical_device_pb2 import LogicalPort
-from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
-    OFPPF_1GB_FD, \
-    OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
-    ofp_switch_features, ofp_desc
-from voltha_protos.openflow_13_pb2 import ofp_port
-from pyvoltha.common.utils.nethelpers import mac_str_to_tuple
-
-#_ = third_party
 log = structlog.get_logger()
 OpenOltDefaults = {
     'support_classes': {
@@ -110,7 +78,6 @@ class OpenoltAdapter(object):
         self.interface = registry('main').get_args().interface
         self.logical_device_id_to_root_device_id = dict()
         self.num_devices = 0
-        self.ofp_port_no = None
 
     def start(self):
         log.info('started', interface=self.interface)
@@ -119,50 +86,14 @@ class OpenoltAdapter(object):
         log.info('stopped', interface=self.interface)
 
     def get_ofp_device_info(self, device):
-        log.info('get_ofp_device_info', device_id=device.id)
-        return SwitchCapability(
-            desc=ofp_desc(
-                hw_desc='white box OLT',  # Hardware description
-                sw_desc='openolt',  # Software description
-                serial_num=device.serial_number,  # Serial number
-                dp_desc='n/a'  # Human readable description of datapath
-            ),
-            switch_features=ofp_switch_features(
-                n_buffers=256,  # Max packets buffered at once          # TODO fake for now
-                n_tables=2,  # Number of tables supported by datapath   # TODO fake for now
-                capabilities=( #Bitmap of support "ofp_capabilities"    # TODO fake for now
-                        OFPC_FLOW_STATS
-                        | OFPC_TABLE_STATS
-                        | OFPC_PORT_STATS
-                        | OFPC_GROUP_STATS
-                )
-            )
-        )
+        ofp_device_info = self.devices[device.id].get_ofp_device_info(device)
+        log.debug('get_ofp_device_info', ofp_device_info=ofp_device_info)
+        return ofp_device_info
 
     def get_ofp_port_info(self, device, port_no):
-        # Since the adapter created the device port then it has the reference of the port to
-        # return the capability.   TODO:  Do a lookup on the NNI port number and return the
-        # appropriate attributes
-        log.info('get_ofp_port_info', port_no=port_no,
-                      info=self.ofp_port_no, device_id=device.id)
-        cap = OFPPF_1GB_FD | OFPPF_FIBER
-        return PortCapability(
-            port=LogicalPort(
-                ofp_port=ofp_port(
-                    hw_addr=mac_str_to_tuple(
-                        '00:00:00:00:00:%02x' % port_no),
-                    config=0,
-                    state=OFPPS_LIVE,
-                    curr=cap,
-                    advertised=cap,
-                    peer=cap,
-                    curr_speed=OFPPF_1GB_FD,
-                    max_speed=OFPPF_1GB_FD
-                ),
-                device_id=device.id,
-                device_port_no=port_no
-            )
-        )
+        ofp_port_info = self.devices[device.id].get_ofp_port_info(device, port_no)
+        log.debug('get_ofp_port_info', device_id=device.id, ofp_port_no=ofp_port_info)
+        return ofp_port_info
 
     def adapter_descriptor(self):
         log.debug('get descriptor', interface=self.interface)
