@@ -53,7 +53,7 @@ class OpenOltStatisticsMgr(object):
                     'nni-ports': self.northbound_ports.values(),
                     'pon-ports': self.southbound_ports.values()
                 }
-                self.pm_metrics = OltPmMetrics(self.device.adapter_agent, self.device.device_id,
+                self.pm_metrics = OltPmMetrics(self.device.core_proxy, self.device.device_id,
                                                self.device.logical_device_id,
                                                grouped=True, freq_override=False,
                                                **kwargs)
@@ -71,7 +71,7 @@ class OpenOltStatisticsMgr(object):
                                                  for (m, t) in self.pm_metrics.pon_pm_names}
                 pm_config = self.pm_metrics.make_proto()
                 self.log.info("initial-pm-config", pm_config=pm_config)
-                self.device.adapter_agent.update_device_pm_config(pm_config, init=True)
+                self.device.core_proxy.device_pm_config_update(pm_config, init=True)
                 # Start collecting stats from the device after a brief pause
                 reactor.callLater(10, self.pm_metrics.start_collector)
             except Exception as e:
