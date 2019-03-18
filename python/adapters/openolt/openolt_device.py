@@ -88,7 +88,7 @@ class OpenoltDevice(object):
         self.core_proxy = kwargs['core_proxy']
         self.adapter_proxy = kwargs['adapter_proxy']
         self.device_num = kwargs['device_num']
-        device = kwargs['device']
+        self.device = kwargs['device']
 
         self.platform_class = kwargs['support_classes']['platform']
         self.resource_mgr_class = kwargs['support_classes']['resource_mgr']
@@ -101,9 +101,9 @@ class OpenoltDevice(object):
         self.stub = None
         self.connected = False
         is_reconciliation = kwargs.get('reconciliation', False)
-        self.device_id = device.id
-        self.host_and_port = device.host_and_port
-        self.extra_args = device.extra_args
+        self.device_id = self.device.id
+        self.host_and_port = self.device.host_and_port
+        self.extra_args = self.device.extra_args
         self.device_info = None
         self.log = structlog.get_logger(id=self.device_id,
                                         ip=self.host_and_port)
@@ -119,16 +119,14 @@ class OpenoltDevice(object):
             self.log.info('updating-device')
             # It is a new device
             # Update device
-            device.root = True
-            device.connect_status = ConnectStatus.UNREACHABLE
-            device.oper_status = OperStatus.ACTIVATING
-            # TODO NEW CORE. need to move this, cant have a constructor be a generator (yield)
-            #self.adapter_agent.device_update(device)
+            self.device.root = True
+            self.device.connect_status = ConnectStatus.UNREACHABLE
+            self.device.oper_status = OperStatus.ACTIVATING
 
         # If logical device does exist use it, else create one after connecting to device
-        if device.parent_id:
+        if self.device.parent_id:
             # logical device already exists
-            self.logical_device_id = device.parent_id
+            self.logical_device_id = self.device.parent_id
             if is_reconciliation:
                 self.adapter_agent.reconcile_logical_device(
                     self.logical_device_id)
@@ -242,9 +240,6 @@ class OpenoltDevice(object):
     def do_state_connected(self, event):
         self.log.debug("do_state_connected")
         
-        device = yield self.core_proxy.get_device(self.device_id)
-
-
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
 
         delay = 1
@@ -269,28 +264,26 @@ class OpenoltDevice(object):
         self.log.info('Device connected', device_info=self.device_info)
 
         # self.create_logical_device(device_info)
-        self.logical_device_id = 0
+        self.logical_device_id = '0'
 
         serial_number = self.device_info.device_serial_number
         if serial_number is None: 
             serial_number = self.serial_number
-        device.serial_number = serial_number
+        self.device.serial_number = serial_number
         
         self.serial_number = serial_number
-
-        device.root = True
-        device.vendor = self.device_info.vendor
-        device.model = self.device_info.model
-        device.hardware_version = self.device_info.hardware_version
-        device.firmware_version = self.device_info.firmware_version
+        
+        self.device.root = True
+        self.device.vendor = self.device_info.vendor
+        self.device.model = self.device_info.model
+        self.device.hardware_version = self.device_info.hardware_version
+        self.device.firmware_version = self.device_info.firmware_version
 
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
-        device.connect_status = ConnectStatus.REACHABLE
-        # TODO NEW CORE: Gather this from DeviceInfo proto from openolt agent
-        device.mac_address = "AA:BB:CC:DD:EE:FF"
-        yield self.core_proxy.device_update(device)
-        
+        self.device.connect_status = ConnectStatus.REACHABLE
+        self.device.mac_address = "AA:BB:CC:DD:EE:FF"
+        yield self.core_proxy.device_update(self.device)
 
         self.resource_mgr = self.resource_mgr_class(self.device_id,
                                                     self.host_and_port,
@@ -301,11 +294,12 @@ class OpenoltDevice(object):
                                             self.stub, self.device_id,
                                             self.logical_device_id,
                                             self.platform, self.resource_mgr)
-
+        
         self.alarm_mgr = self.alarm_mgr_class(self.log, self.core_proxy,
                                               self.device_id,
                                               self.logical_device_id,
-                                              self.platform)
+                                              self.platform,
+                                              self.serial_number)
         self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
         self.bw_mgr = self.bw_mgr_class(self.log, self.core_proxy)
         
