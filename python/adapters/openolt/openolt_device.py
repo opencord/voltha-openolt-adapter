@@ -290,7 +290,7 @@ class OpenoltDevice(object):
                                                     self.extra_args,
                                                     self.device_info)
         self.platform = self.platform_class(self.log, self.resource_mgr)
-        self.flow_mgr = self.flow_mgr_class(self.core_proxy, self.log,
+        self.flow_mgr = self.flow_mgr_class(self.core_proxy, self.adapter_proxy, self.log,
                                             self.stub, self.device_id,
                                             self.logical_device_id,
                                             self.platform, self.resource_mgr)
@@ -967,22 +967,18 @@ class OpenoltDevice(object):
                 yield self.adapter_agent.delete_port(self.device_id, port)
                 return
 
-    def update_flow_table(self, flows):
-        self.log.debug('No updates here now, all is done in logical flows '
-                       'update')
+    def update_flow_table(self, flow_changes):
 
-    def update_logical_flows(self, flows_to_add, flows_to_remove,
-                             device_rules_map):
+        self.log.debug("update_flow_table", flow_changes=flow_changes)
+
+        flows_to_add = flow_changes.to_add.items
+        flows_to_remove = flow_changes.to_remove.items
+
         if not self.is_state_up():
             self.log.info('The OLT is not up, we cannot update flows',
                           flows_to_add=[f.id for f in flows_to_add],
                           flows_to_remove=[f.id for f in flows_to_remove])
             return
-
-        try:
-            self.flow_mgr.update_children_flows(device_rules_map)
-        except Exception as e:
-            self.log.error('Error updating children flows', error=e)
 
         self.log.debug('logical flows update', flows_to_add=flows_to_add,
                        flows_to_remove=flows_to_remove)

@@ -57,7 +57,7 @@ class OpenoltAdapter(object):
         DeviceType(
             id=name,
             adapter=name,
-            accepts_bulk_flow_update=True,
+            accepts_bulk_flow_update=False,
             accepts_add_remove_flow_updates=True
         )
     ]
@@ -232,9 +232,8 @@ class OpenoltAdapter(object):
     def update_flows_incrementally(self, device, flow_changes, group_changes):
         log.debug('update_flows_incrementally', device=device,
                   flow_changes=flow_changes, group_changes=group_changes)
-        log.info('This device does not allow this, therefore it is Not '
-                 'implemented')
-        raise NotImplementedError()
+        handler = self.devices[device.id]
+        return handler.update_flow_table(flow_changes)
 
     def update_logical_flows(self, device_id, flows_to_add, flows_to_remove,
                              groups, device_rules_map):
