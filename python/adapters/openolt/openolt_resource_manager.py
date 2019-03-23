@@ -143,12 +143,15 @@ class OpenOltResourceMgr(object):
     def get_flow_id(self, pon_intf_id, onu_id, uni_id, flow_store_cookie,
                     flow_category=None):
         pon_intf_onu_id = (pon_intf_id, onu_id, uni_id)
+        self.log.debug("get-flow-id", pon_intf_onu_id=pon_intf_onu_id)
         try:
             flow_ids = self.resource_mgrs[pon_intf_id]. \
                 get_current_flow_ids_for_onu(pon_intf_onu_id)
+            self.log.debug("get-current-flow-ids-for-onu", flow_ids=flow_ids)
             if flow_ids is not None:
                 for flow_id in flow_ids:
                     flows = self.get_flow_id_info(pon_intf_id, onu_id, uni_id, flow_id)
+                    self.log.debug("get-flow-id-info", flows=flows)
                     assert (isinstance(flows, list))
                     for flow in flows:
 
@@ -168,6 +171,7 @@ class OpenOltResourceMgr(object):
                 pon_intf_onu_id, flow_id
             )
 
+        self.log.debug("return-flow-id", flow_id=flow_id)
         return flow_id
 
     def get_flow_id_info(self, pon_intf_id, onu_id, uni_id, flow_id):
