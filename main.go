@@ -26,8 +26,8 @@ import (
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/db/kvstore"
 	"github.com/opencord/voltha-go/kafka"
-	ic "github.com/opencord/voltha-go/protos/inter_container"
-	"github.com/opencord/voltha-go/protos/voltha"
+	ic "github.com/opencord/voltha-protos/go/inter_container"
+	"github.com/opencord/voltha-protos/go/voltha"
 	"os"
 	"os/signal"
 	"strconv"
@@ -90,7 +90,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
 
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.config.OnuNumber); err != nil {
+	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.config.OnuNumber, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
 
@@ -208,10 +208,10 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
 	return kip, nil
 }
 
-func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, ap *com.AdapterProxy, onuNumber int) (*ac.OpenOLT, error) {
+func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, ap *com.AdapterProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
 	log.Info("starting-open-olt")
 	var err error
-	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, onuNumber)
+	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, onuNumber, kvStoreHost, kvStorePort, KVStoreType)
 
 	if err = sOLT.Start(ctx); err != nil {
 		log.Fatalw("error-starting-messaging-proxy", log.Fields{"error": err})
@@ -236,8 +236,12 @@ func (a *adapter) setupRequestHandler(coreInstanceId string, iadapter adapters.I
 
 func (a *adapter) registerWithCore(retries int) error {
 	log.Info("registering-with-core")
-	adapterDescription := &voltha.Adapter{Id: "openolt", Vendor: "simulation Enterprise Inc"}
-	types := []*voltha.DeviceType{{Id: "openolt", Adapter: "openolt"}}
+    adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
+                                          Vendor: "simulation Enterprise Inc"}
+    types := []*voltha.DeviceType{{Id: "openolt",
+                                   Adapter: "openolt",//Name of the adapter that handles device type
+                                   AcceptsBulkFlowUpdate: false,  // Currently openolt adapter does not support bulk flow handling
+                                   AcceptsAddRemoveFlowUpdates: true}}
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {

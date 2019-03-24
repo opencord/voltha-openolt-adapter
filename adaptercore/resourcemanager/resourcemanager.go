@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package resourcemanager 
+package resourcemanager
 
 import (
     "encoding/json"
@@ -23,14 +23,14 @@ import (
     "strconv"
     "strings"
 
-    ponrmgr "github.com/opencord/voltha-go/adapters/common/ponresourcemanager"
+    ponrmgr "github.com/opencord/voltha-go/common/ponresourcemanager"
     "github.com/opencord/voltha-go/common/log"
     "github.com/opencord/voltha-go/db/kvstore"
     "github.com/opencord/voltha-go/db/model"
-    "github.com/opencord/voltha-go/protos/openolt"
+    "github.com/opencord/voltha-protos/go/openolt"
 )
 
-CONST KVSTORE_TIMEOUT = 5
+const KVSTORE_TIMEOUT = 5
 const BASE_PATH_KV_STORE = "service/voltha/openolt/{%s}" // service/voltha/openolt/<device_id>
 
 type OpenOltResourceMgr struct {
