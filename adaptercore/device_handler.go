@@ -22,6 +22,7 @@ import (
     "strconv"
     "strings"
     "sync"
+    "fmt"
 
     "github.com/gogo/protobuf/proto"
     com "github.com/opencord/voltha-go/adapters/common"
@@ -36,26 +37,28 @@ import (
 
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
-    deviceId      string
+    DeviceId      string
     deviceType    string
     device        *voltha.Device
-    coreProxy     *com.CoreProxy
+    CoreProxy     *com.CoreProxy
     openOLT       *OpenOLT
     nniPort       *voltha.Port
     ponPort       *voltha.Port
     exitChannel   chan int
     lockDevice    sync.RWMutex
-    client        oop.OpenoltClient
+    Client        oop.OpenoltClient
     transitionMap *TransitionMap
     clientCon     *grpc.ClientConn
+    flowMgr       *OpenOltFlowMgr
+    resourceMgr   *OpenOltResourceMgr
 }
 
 //NewDeviceHandler creates a new device handler
 func NewDeviceHandler(cp *com.CoreProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
     var dh DeviceHandler
-    dh.coreProxy = cp
+    dh.CoreProxy = cp
     cloned := (proto.Clone(device)).(*voltha.Device)
-    dh.deviceId = cloned.Id
+    dh.DeviceId = cloned.Id
     dh.deviceType = cloned.Type
     dh.device = cloned
     dh.openOLT = adapter
@@ -118,9 +121,7 @@ func (dh *DeviceHandler) addPort(intfId uint32, portType voltha.Port_PortType, s
         operStatus = voltha.OperStatus_DISCOVERED
     }
 
-    // TODO
-    //portNum := platform.intfIdToPortNo(intfId, portType)
-    portNum := intfId
+    portNum := IntfIdToPortNo(intfId,portType)
 
     label := portName(portNum, portType, intfId)
     //    Now create the PON Port
@@ -132,14 +133,14 @@ func (dh *DeviceHandler) addPort(intfId uint32, portType voltha.Port_PortType, s
     }
 
     // Synchronous call to update device - this method is run in its own go routine
-    if err := dh.coreProxy.PortCreated(nil, dh.device.Id, ponPort); err != nil {
+    if err := dh.CoreProxy.PortCreated(nil, dh.device.Id, ponPort); err != nil {
         log.Errorw("error-creating-nni-port", log.Fields{"deviceId": dh.device.Id, "error": err})
     }
 }
 
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications() {
-    indications, err := dh.client.EnableIndication(context.Background(), new(oop.Empty))
+    indications, err := dh.Client.EnableIndication(context.Background(), new(oop.Empty))
     if err != nil {
         log.Errorw("Failed to read indications", log.Fields{"err": err})
         return
@@ -182,10 +183,23 @@ func (dh *DeviceHandler) readIndications() {
         case *oop.Indication_OnuDiscInd:
             onuDiscInd := indication.GetOnuDiscInd()
             log.Infow("Received Onu discovery indication ", log.Fields{"OnuDiscInd": onuDiscInd})
-            // TODO Get onu ID from the resource manager
-            onuId := 0
-            go dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(onuDiscInd.GetIntfId()),
-                   "brcm_openomci_onu", int(onuDiscInd.GetIntfId()), string(onuDiscInd.SerialNumber.GetVendorId()), 
+            onuId,err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
+            if err != nil{
+                log.Errorw("onu-id-unavailable",log.Fields{"intfId":onuDiscInd.GetIntfId()})
+                return
+            }
+            /* NOTE: In core channel_id is used as uni port of onu,
+               parentPortNo used as pon port, supported one UNI per ONU now ,
+            */
+            channelId := MkUniPortNum(onuDiscInd.GetIntfId(), onuId, uint32(0))
+            parentPortNo := IntfIdToPortNo(onuDiscInd.GetIntfId(),voltha.Port_PON_OLT)
+            log.Debugw("Sending detected child device to core",
+                       log.Fields{"onuId":onuId,
+                                  "parentPortNo":parentPortNo,
+                                  "channelId":channelId,
+                                  "serialNumber":string(onuDiscInd.SerialNumber.GetVendorSpecific())})
+            go dh.CoreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo),
+                   "simulated_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()),
                    string(onuDiscInd.SerialNumber.GetVendorSpecific()), int64(onuId))
         case *oop.Indication_OnuInd:
             onuInd := indication.GetOnuInd()
@@ -212,10 +226,10 @@ func (dh *DeviceHandler) readIndications() {
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp() error {
     // Synchronous call to update device state - this method is run in its own go routine
-    if err := dh.coreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, voltha.ConnectStatus_REACHABLE,
+	if err := dh.CoreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, voltha.ConnectStatus_REACHABLE,
         voltha.OperStatus_ACTIVE); err != nil {
-        log.Errorw("Failed to update device with OLT UP indication", log.Fields{"deviceId": dh.device.Id, "error": err})
-        return err
+            log.Errorw("Failed to update device with OLT UP indication", log.Fields{"deviceId": dh.device.Id, "error": err})
+            return err
     }
     return nil
 }
@@ -231,7 +245,7 @@ func (dh *DeviceHandler) doStateInit() error {
     var err error
     dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure())
     if err != nil {
-        log.Errorw("Failed to dial device", log.Fields{"DeviceId": dh.deviceId, "HostAndPort": dh.device.GetHostAndPort(), "err": err})
+        log.Errorw("Failed to dial device", log.Fields{"deviceId": dh.DeviceId, "HostAndPort": dh.device.GetHostAndPort(), "err": err})
         return err
     }
     return nil
@@ -239,14 +253,15 @@ func (dh *DeviceHandler) doStateInit() error {
 
 // postInit create olt client instance to invoke RPC on the olt device
 func (dh *DeviceHandler) postInit() error {
-    dh.client = oop.NewOpenoltClient(dh.clientCon)
+    dh.Client = oop.NewOpenoltClient(dh.clientCon)
     dh.transitionMap.Handle(GrpcConnected)
     return nil
 }
 
 // doStateConnected get the device info and update to voltha core
 func (dh *DeviceHandler) doStateConnected() error {
-    deviceInfo, err := dh.client.GetDeviceInfo(context.Background(), new(oop.Empty))
+    log.Debug("OLT device has been connected")
+    deviceInfo, err := dh.Client.GetDeviceInfo(context.Background(), new(oop.Empty))
     if err != nil {
         log.Errorw("Failed to fetch device info", log.Fields{"err": err})
         return err
@@ -255,7 +270,6 @@ func (dh *DeviceHandler) doStateConnected() error {
         log.Errorw("Device info is nil", log.Fields{})
         return errors.New("Failed to get device info from OLT")
     }
-
     dh.device.Root = true
     dh.device.Vendor = deviceInfo.Vendor
     dh.device.Model = deviceInfo.Model
@@ -267,19 +281,32 @@ func (dh *DeviceHandler) doStateConnected() error {
     dh.device.MacAddress = "0a:0b:0c:0d:0e:0f"
 
     // Synchronous call to update device - this method is run in its own go routine
-    if err := dh.coreProxy.DeviceUpdate(nil, dh.device); err != nil {
-        log.Errorw("error-updating-device", log.Fields{"deviceId": dh.device.Id, "error": err})
+    if err := dh.CoreProxy.DeviceUpdate(nil, dh.device); err != nil {
+         log.Errorw("error-updating-device", log.Fields{"DeviceId": dh.device.Id, "error": err})
     }
+    KVStoreHostPort := fmt.Sprintf("%s:%d",dh.openOLT.KVStoreHost,dh.openOLT.KVStorePort)
+    // Instantiate resource manager
+    if dh.resourceMgr = NewResourceMgr(dh.DeviceId, KVStoreHostPort, dh.openOLT.KVStoreType,  dh.deviceType, deviceInfo); dh.resourceMgr == nil{
+        log.Error("Error while instantiating resource manager")
+        return errors.New("Instantiating resource manager failed")
+    }
+    // Instantiate flow manager
+    if dh.flowMgr = NewFlowManager(dh, dh.resourceMgr); dh.flowMgr == nil{
+        log.Error("Error while instantiating flow manager")
+        return errors.New("Instantiating flow manager failed")
+    }
+    /* TODO: Instantiate Alarm , stats , BW managers */
 
     // Start reading indications
     go dh.readIndications()
     return nil
 }
 
+
 // AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(device *voltha.Device) {
     dh.transitionMap = NewTransitionMap(dh)
-    log.Infow("AdoptDevice", log.Fields{"deviceId": device.Id, "Address": device.GetHostAndPort()})
+    log.Infow("AdoptDevice", log.Fields{"DeviceId": device.Id, "Address": device.GetHostAndPort(),"extra_args":device.ExtraArgs})
     dh.transitionMap.Handle(DeviceInit)
 }
 
@@ -330,3 +357,24 @@ func (dh *DeviceHandler) Process_inter_adapter_message(msg *ic.InterAdapterMessa
     return nil
 }
 
+func (dh *DeviceHandler) GetChildDevice(parentPort uint32, onuId uint32)*voltha.Device{
+    log.Debugw("GetChildDevice",log.Fields{"pon port": parentPort,"onuId": onuId})
+    /* NOTE: Serial number is passed as none , onuId and pon port should be good enough as of now */
+    return dh.CoreProxy.GetChildDevice(nil,dh.DeviceId, parentPort, onuId, "")
+}
+
+func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges) error {
+    log.Debugw("In UpdateFlowsIncrementally",log.Fields{"deviceId":device.Id,"flows":flows,"groups":groups})
+    if flows != nil{
+    for _,flow := range flows.ToAdd.Items{
+        dh.flowMgr.AddFlow(flow)
+        }
+    }
+    if groups != nil{
+        for _,flow := range flows.ToRemove.Items{
+            log.Debug("Removing flow",log.Fields{"deviceId":device.Id,"flowToRemove":flow})
+          //  dh.flowMgr.RemoveFlow(flow)
+        }
+    }
+    return nil
+}

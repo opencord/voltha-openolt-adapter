@@ -34,17 +34,23 @@ type OpenOLT struct {
     coreProxy             *com.CoreProxy
     kafkaICProxy          *kafka.InterContainerProxy
     numOnus               int
+    KVStoreHost           string
+    KVStorePort           int
+    KVStoreType           string
     exitChannel           chan int
     lockDeviceHandlersMap sync.RWMutex
 }
 
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, onuNumber int) *OpenOLT {
+func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
     var openOLT OpenOLT
     openOLT.exitChannel = make(chan int, 1)
     openOLT.deviceHandlers = make(map[string]*DeviceHandler)
     openOLT.kafkaICProxy = kafkaICProxy
     openOLT.numOnus = onuNumber
     openOLT.coreProxy = coreProxy
+    openOLT.KVStoreHost = kvStoreHost
+    openOLT.KVStorePort = kvStorePort
+    openOLT.KVStoreType = KVStoreType
     openOLT.lockDeviceHandlersMap = sync.RWMutex{}
     return &openOLT
 }
@@ -77,15 +83,15 @@ func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) 
 func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
     oo.lockDeviceHandlersMap.Lock()
     defer oo.lockDeviceHandlersMap.Unlock()
-    if _, exist := oo.deviceHandlers[agent.deviceId]; !exist {
-        oo.deviceHandlers[agent.deviceId] = agent
+	if _, exist := oo.deviceHandlers[agent.DeviceId]; !exist {
+		oo.deviceHandlers[agent.DeviceId] = agent
     }
 }
 
 func (oo *OpenOLT) deleteDeviceHandlerToMap(agent *DeviceHandler) {
     oo.lockDeviceHandlersMap.Lock()
     defer oo.lockDeviceHandlersMap.Unlock()
-    delete(oo.deviceHandlers, agent.deviceId)
+	delete(oo.deviceHandlers, agent.DeviceId)
 }
 
 func (oo *OpenOLT) getDeviceHandler(deviceId string) *DeviceHandler {
@@ -156,6 +162,7 @@ func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) er
     return errors.New(fmt.Sprintf("handler-not-found-%s", targetDevice))
 }
 
+
 func (oo *OpenOLT) Adapter_descriptor() error {
     return errors.New("UnImplemented")
 }
@@ -205,7 +212,12 @@ func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows,
 }
 
 func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges) error {
-    return errors.New("UnImplemented")
+    log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id,"flows":flows})
+    if handler := oo.getDeviceHandler(device.Id); handler != nil {
+        return handler.UpdateFlowsIncrementally(device, flows, groups)
+    }
+    log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
+    return errors.New("device-handler-not-set")
 }
 
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pm_configs *voltha.PmConfigs) error {

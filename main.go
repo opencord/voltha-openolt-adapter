@@ -86,7 +86,7 @@ func (a *adapter) start(ctx context.Context) {
     a.coreProxy = com.NewCoreProxy(a.kip, a.config.Topic, a.config.CoreTopic)
 
     // Create the open OLT adapter
-    if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.config.OnuNumber); err != nil {
+    if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.config.OnuNumber, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
         log.Fatal("error-starting-inter-container-proxy")
     }
 
@@ -204,10 +204,10 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
     return kip, nil
 }
 
-func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, onuNumber int) (*ac.OpenOLT, error) {
+func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
     log.Info("starting-open-olt")
     var err error
-    sOLT := ac.NewOpenOLT(ctx, a.kip, cp, onuNumber)
+    sOLT := ac.NewOpenOLT(ctx, a.kip, cp, onuNumber, kvStoreHost, kvStorePort, KVStoreType)
 
     if err = sOLT.Start(ctx); err != nil {
         log.Fatalw("error-starting-messaging-proxy", log.Fields{"error": err})
@@ -232,8 +232,12 @@ func (a *adapter) setupRequestHandler(coreInstanceId string, iadapter adapters.I
 
 func (a *adapter) registerWithCore(retries int) error {
     log.Info("registering-with-core")
-    adapterDescription := &voltha.Adapter{Id: "openolt", Vendor: "simulation Enterprise Inc"}
-    types := []*voltha.DeviceType{{Id: "openolt", Adapter: "openolt"}}
+    adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
+                                          Vendor: "simulation Enterprise Inc"}
+    types := []*voltha.DeviceType{{Id: "openolt",
+                                   Adapter: "openolt",//Name of the adapter that handles device type
+                                   AcceptsBulkFlowUpdate: false,  // Currently openolt adapter does not support bulk flow handling
+                                   AcceptsAddRemoveFlowUpdates: true}}
     deviceTypes := &voltha.DeviceTypes{Items: types}
     count := 0
     for {
