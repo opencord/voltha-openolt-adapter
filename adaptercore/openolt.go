@@ -24,9 +24,9 @@ import (
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/kafka"
-	ic "github.com/opencord/voltha-go/protos/inter_container"
-	"github.com/opencord/voltha-go/protos/openflow_13"
-	"github.com/opencord/voltha-go/protos/voltha"
+	ic "github.com/opencord/voltha-protos/go/inter_container"
+	"github.com/opencord/voltha-protos/go/openflow_13"
+	"github.com/opencord/voltha-protos/go/voltha"
 )
 
 type OpenOLT struct {
@@ -35,11 +35,14 @@ type OpenOLT struct {
 	adapterProxy          *com.AdapterProxy
 	kafkaICProxy          *kafka.InterContainerProxy
 	numOnus               int
+	KVStoreHost           string
+        KVStorePort           int
+	KVStoreType           string
 	exitChannel           chan int
 	lockDeviceHandlersMap sync.RWMutex
 }
 
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, onuNumber int) *OpenOLT {
+func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
@@ -47,6 +50,9 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, co
 	openOLT.numOnus = onuNumber
 	openOLT.coreProxy = coreProxy
 	openOLT.adapterProxy = adapterProxy
+	openOLT.KVStoreHost = kvStoreHost
+	openOLT.KVStorePort = kvStorePort
+	openOLT.KVStoreType = KVStoreType
 	openOLT.lockDeviceHandlersMap = sync.RWMutex{}
 	return &openOLT
 }
@@ -207,7 +213,12 @@ func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows,
 }
 
 func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges) error {
-    return errors.New("UnImplemented")
+    log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id,"flows":flows})
+    if handler := oo.getDeviceHandler(device.Id); handler != nil {
+        return handler.UpdateFlowsIncrementally(device, flows, groups)
+    }
+    log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
+    return errors.New("device-handler-not-set")
 }
 
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pm_configs *voltha.PmConfigs) error {
