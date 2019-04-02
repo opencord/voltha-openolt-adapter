@@ -54,7 +54,7 @@ class OpenOltStatisticsMgr(object):
                     'pon-ports': self.southbound_ports.values()
                 }
                 self.pm_metrics = OltPmMetrics(self.device.core_proxy, self.device.device_id,
-                                               self.device.logical_device_id,
+                                               self.device.logical_device_id, self.device.serial_number,
                                                grouped=True, freq_override=False,
                                                **kwargs)
                 """
