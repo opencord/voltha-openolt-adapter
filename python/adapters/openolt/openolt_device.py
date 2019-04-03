@@ -1061,8 +1061,6 @@ class OpenoltDevice(object):
             # Rebooting to reset the state
             self.reboot()
             # Removing logical device
-            ld = self.adapter_agent.get_logical_device(self.logical_device_id)
-            self.adapter_agent.delete_logical_device(ld)
         except Exception as e:
             self.log.error('Failure to delete openolt device', error=e)
             raise e

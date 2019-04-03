@@ -212,7 +212,8 @@ class OpenoltAdapter(object):
         handler = self.devices[device.id]
         handler.delete()
         del self.devices[device.id]
-        del self.logical_device_id_to_root_device_id[device.parent_id]
+        if device.parent_id in self.logical_device_id_to_root_device_id.keys():
+            del self.logical_device_id_to_root_device_id[device.parent_id]
         return device
 
     def get_device_details(self, device):
