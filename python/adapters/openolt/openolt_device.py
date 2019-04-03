@@ -317,49 +317,10 @@ class OpenoltDevice(object):
     @inlineCallbacks
     def do_state_down(self, event):
         self.log.debug("do_state_down")
-        oper_state = OperStatus.UNKNOWN
-        connect_state = ConnectStatus.UNREACHABLE
-
-        # Propagating to the children
-
-        # Children ports
-        child_devices = yield self.adapter_agent.get_child_devices(self.device_id)
-        for onu_device in child_devices:
-            onu_adapter_agent = \
-                registry('adapter_loader').get_agent(onu_device.adapter)
-            onu_adapter_agent.update_interface(onu_device,
-                                               {'oper_state': 'down'})
-            self.onu_ports_down(onu_device, oper_state)
-
-        # Children devices
-        yield self.adapter_agent.update_child_devices_state(
-            self.device_id, oper_status=oper_state,
-            connect_status=connect_state)
-        # Device Ports
-        device_ports = yield self.adapter_agent.get_ports(self.device_id,
-                                                    Port.ETHERNET_NNI)
-        logical_ports_ids = [port.label for port in device_ports]
-        device_ports += yield self.adapter_agent.get_ports(self.device_id,
-                                                     Port.PON_OLT)
-
-        for port in device_ports:
-            port.oper_status = oper_state
-            yield self.adapter_agent.add_port(self.device_id, port)
-
-        # Device logical port
-        for logical_port_id in logical_ports_ids:
-            logical_port = self.adapter_agent.get_logical_port(
-                self.logical_device_id, logical_port_id)
-            logical_port.ofp_port.state = OFPPS_LINK_DOWN
-            self.adapter_agent.update_logical_port(self.logical_device_id,
-                                                   logical_port)
-
-        # Device
-        device = yield self.adapter_agent.get_device(self.device_id)
-        device.oper_status = oper_state
-        device.connect_status = connect_state
-
-        reactor.callLater(2, self.adapter_agent.device_update, device)
+        yield self.core_proxy.device_state_update(self.device_id,
+                                               connect_status=ConnectStatus.UNREACHABLE,
+                                               oper_status=OperStatus.UNKNOWN)
+        self.log.debug("done_state_down")
 
     # def post_up(self, event):
     #     self.log.debug('post-up')
