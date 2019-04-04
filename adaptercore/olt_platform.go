@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package adaptercore
-import (voltha "github.com/opencord/voltha-go/protos/voltha");
+import (voltha "github.com/opencord/voltha-protos/go/voltha");
 
 /*=====================================================================
 

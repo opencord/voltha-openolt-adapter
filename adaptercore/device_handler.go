@@ -29,11 +29,11 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
-	"github.com/opencord/voltha-go/protos/common"
-	ic "github.com/opencord/voltha-go/protos/inter_container"
-	of "github.com/opencord/voltha-go/protos/openflow_13"
-	oop "github.com/opencord/voltha-go/protos/openolt"
-	"github.com/opencord/voltha-go/protos/voltha"
+	"github.com/opencord/voltha-protos/go/common"
+	ic "github.com/opencord/voltha-protos/go/inter_container"
+	of "github.com/opencord/voltha-protos/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/go/openolt"
+	"github.com/opencord/voltha-protos/go/voltha"
 	"google.golang.org/grpc"
 )
 
