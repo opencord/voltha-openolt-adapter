@@ -82,6 +82,15 @@ build: containers
 containers: adapter_openolt_go
 
 adapter_openolt_go:
+ifdef LOCAL_PROTOS
+	mkdir -p vendor/github.com/opencord/voltha-protos/go
+	cp -rf ${GOPATH}/src/github.com/opencord/voltha-protos/go/ vendor/github.com/opencord/voltha-protos
+endif
+ifdef LOCAL_VOLTHAGO
+	mkdir -p vendor/github.com/opencord/voltha-go/
+	cp -rf ${GOPATH}/src/github.com/opencord/voltha-go/ vendor/github.com/opencord/
+	rm -rf vendor/github.com/opencord/voltha-go/vendor
+endif
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-go:${TAG} -f docker/Dockerfile.openolt .
 
 # end file
