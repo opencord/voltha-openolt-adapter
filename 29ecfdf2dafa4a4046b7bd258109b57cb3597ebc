@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad54eb84_3a0e50c4",
+        "filename": "python/adapters/openolt/openolt.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-04-04T13:36:33Z",
+      "side": 1,
+      "message": "Im curious what this could be doing given we dont have logical anything to work with anymore.  Maybe rename the dict or remove entirely?",
+      "range": {
+        "startLine": 216,
+        "startChar": 21,
+        "endLine": 216,
+        "endChar": 56
+      },
+      "revId": "29ecfdf2dafa4a4046b7bd258109b57cb3597ebc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
