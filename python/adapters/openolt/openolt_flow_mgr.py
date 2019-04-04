@@ -197,6 +197,11 @@ class OpenOltFlowMgr(object):
         (port_no, intf_id, onu_id, uni_id) = self.platform.extract_access_from_flow(
             classifier_info[IN_PORT], action_info[OUTPUT])
 
+        port_no = classifier_info[IN_PORT]
+        intf_id = 0
+        onu_id = 1
+        uni_id = 0
+
         self.divide_and_add_flow(intf_id, onu_id, uni_id, port_no, classifier_info,
                                  action_info, flow)
 
