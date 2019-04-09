@@ -191,8 +191,33 @@ class OpenOltFlowMgr(object):
                     classifier_info[METADATA] = field.vlan_vid & 0xfff
 
         self.log.debug('flow-ports', classifier_inport=classifier_info[IN_PORT], action_output=action_info[OUTPUT])
-        (port_no, intf_id, onu_id, uni_id) = self.platform.extract_access_from_flow(
-            classifier_info[IN_PORT], action_info[OUTPUT])
+
+        intf_id = None
+        port_no = None
+
+        if self.platform.intf_id_to_port_type_name(classifier_info[IN_PORT]) == Port.PON_OLT:
+            # flow for pon olt port, which is really for on the olt side of the onu/uni.
+            # extract onu/uni port info from VLAN_VID... decomposer encodes it here.
+            # from this we can derive the rest given the offsets in platform.
+            self.log.debug("pon-olt-port-flow")
+            intf_id = self.platform.intf_id_from_pon_port_num(classifier_info[IN_PORT])
+            port_no = classifier_info[VLAN_VID]
+        elif self.platform.intf_id_to_port_type_name(classifier_info[IN_PORT]) == Port.ETHERNET_NNI:
+            # flow for NNI port, but still need onu/uni id...
+            self.log.debug("nni-olt-port-flow")
+            intf_id = self.platform.intf_id_from_nni_port_num(classifier_info[IN_PORT])
+            # TODO NEW CORE: not sure what to do here given the NNI port number (65536) throws things off
+            # for dhcp trap flow. usually port_no is passed along ultimately for BAL to assign gem/tcont/schedulers,
+            # but for nni flows this makes no sense
+            # hardcode for now till we can refactor dhcp trap flows
+            port_no = 16
+        else:
+            self.log.error("cannot-parse-flow", flow=flow, classifier_info=classifier_info)
+            return
+
+        onu_id = self.platform.onu_id_from_port_num(port_no)
+        uni_id = self.platform.uni_id_from_port_num(port_no)
+
         self.log.debug('extracted-flow-ports', port_no=port_no, intf_id=intf_id, onu_id=onu_id, uni_id=uni_id)
 
         self.divide_and_add_flow(intf_id, onu_id, uni_id, port_no, classifier_info,

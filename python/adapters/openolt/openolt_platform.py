@@ -131,6 +131,11 @@ class OpenOltPlatform(object):
         else:
             return Port.ETHERNET_UNI
 
+
+    def intf_id_from_pon_port_num(self, port_num):
+        return (2 << 28 ^ port_num)
+
+
     def port_type_name_by_port_index(self, port_index):
         try:
             return dev_pb2._PORT_PORTTYPE.values_by_number[port_index].name
