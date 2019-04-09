@@ -23,8 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-
-	rsrcMgr "github.com/opencord/voltha-go/adapters/openolt/adaptercore/resourcemanager"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-go/common/log"
 	tp "github.com/opencord/voltha-go/common/techprofile"
 	fd "github.com/opencord/voltha-go/rw_core/flow_decomposition"
