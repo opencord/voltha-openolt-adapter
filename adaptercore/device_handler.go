@@ -33,7 +33,7 @@ import (
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	of "github.com/opencord/voltha-protos/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/go/openolt"
-        rsrcMgr "github.com/opencord/voltha-go/adapters/openolt/adaptercore/resourcemanager"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-protos/go/voltha"
 	"google.golang.org/grpc"
 )
