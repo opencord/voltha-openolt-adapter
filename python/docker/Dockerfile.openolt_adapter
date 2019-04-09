@@ -15,8 +15,6 @@ ARG TAG=latest
 ARG REGISTRY=
 ARG REPOSITORY=
 
-#FROM ${REGISTRY}${REPOSITORY}voltha-protos:${TAG} as protos
-# FROM ${REGISTRY}${REPOSITORY}voltha-openolt-protos:${TAG} as openolt_protos
 FROM ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG}
 
 MAINTAINER Voltha Community <info@opennetworking.org>

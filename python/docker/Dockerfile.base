@@ -16,6 +16,9 @@ FROM ubuntu:xenial
 
 MAINTAINER Voltha Community <info@opennetworking.org>
 
+ARG LOCAL_PYVOLTHA
+ARG LOCAL_PROTOS
+
 # Update to have latest images
 RUN apt-get update && \
     apt-get install -y python openssl iproute2 libpcap-dev wget build-essential git binutils python-dev libffi-dev libssl-dev 
@@ -27,4 +30,17 @@ RUN python /tmp/get-pip.py
 # Install adapter requirements. 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
+
+#COPY POTENTIAL LOCAL IMPORTS
+COPY local_imports/ /local_imports/
+
+RUN if [ -n "$LOCAL_PYVOLTHA" ] ; then \
+    pip install /local_imports/pyvoltha/dist/*.tar.gz ; \
+fi
+
+RUN if [ -n "$LOCAL_PROTOS" ] ; then \
+    pip install /local_imports/voltha-protos/dist/*.tar.gz ; \
+fi
+
+
 

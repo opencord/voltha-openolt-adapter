@@ -43,6 +43,10 @@ DOCKER_BUILD_ARGS = \
 	 --rm --force-rm \
 	$(DOCKER_BUILD_EXTRA_ARGS)
 
+DOCKER_BUILD_EXTRA_ARGS = \
+	--build-arg LOCAL_PYVOLTHA=$(LOCAL_PYVOLTHA) \
+	--build-arg LOCAL_PROTOS=$(LOCAL_PROTOS)
+
 DOCKER_IMAGE_LIST = \
 	voltha-openolt-adapter-base \
 	voltha-openolt-adapter
@@ -75,15 +79,17 @@ build: containers
 containers: base openolt_adapter
 
 base:
+	mkdir -p local_imports/
 ifdef LOCAL_PYVOLTHA
-	mkdir -p pyvoltha/dist
-	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
-	mkdir -p voltha-protos/dist
-	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base_local .
-else
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base .
+	mkdir -p local_imports/pyvoltha/dist
+	cp ../../pyvoltha/dist/*.tar.gz local_imports/pyvoltha/dist/
 endif
+ifdef LOCAL_PROTOS
+	mkdir -p local_imports/voltha-protos/dist
+	cp ../../voltha-protos/dist/*.tar.gz local_imports/voltha-protos/dist/
+endif
+	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base .
+
 
 openolt_adapter: base
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter:${TAG} -f docker/Dockerfile.openolt_adapter .
@@ -104,8 +110,7 @@ pull: $(patsubst  %,%.pull,$(DOCKER_IMAGE_LIST))
 	docker pull ${REGISTRY}${REPOSITORY}voltha-$(subst .pull,,$@):${TAG}
 
 clean:
-	rm -rf pyvoltha
-	rm -rf voltha-protos
+	rm -rf local_imports
 	find . -name '*.pyc' | xargs rm -f
 
 distclean: clean
@@ -133,13 +138,16 @@ ${VENVDIR}/.built:
 	    fi
 
 ifdef LOCAL_PYVOLTHA
-	mkdir -p pyvoltha/dist
-	cp ../../pyvoltha/dist/*.tar.gz pyvoltha/dist/
-	mkdir -p voltha-protos/dist
-	cp ../../voltha-protos/dist/*.tar.gz voltha-protos/dist/
+	mkdir -p local_imports/pyvoltha/dist
+	cp ../../pyvoltha/dist/*.tar.gz local_imports/pyvoltha/dist/
 	. ${VENVDIR}/bin/activate && \
-	    pip install pyvoltha/dist/*.tar.gz && \
-	    pip install voltha-protos/dist/*.tar.gz
+	    pip install local_imports/pyvoltha/dist/*.tar.gz
+endif
+ifdef LOCAL_PROTOS
+	mkdir -p local_imports/voltha-protos/dist
+	cp ../../voltha-protos/dist/*.tar.gz local_imports/voltha-protos/dist/
+	. ${VENVDIR}/bin/activate && \
+	    pip install local_imports/voltha-protos/dist/*.tar.gz
 endif
 
 # end file
