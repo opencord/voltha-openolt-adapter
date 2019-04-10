@@ -26,12 +26,28 @@
   revision = "f0300d1749da6fa982027e449ec0c7a145510c3c"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0b0303f763128c8e8092843b9d85fdf03bb5bfa4145f1ebe77c12e835a871dc2"
+  name = "github.com/boljen/go-bitmap"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23cd2fb0ce7db94d088d840df05fa0d274bbb2ec"
+
+[[projects]]
   digest = "1:526d64d0a3ac6c24875724a9355895be56a21f89a5d3ab5ba88d91244269a7d8"
   name = "github.com/bsm/sarama-cluster"
   packages = ["."]
   pruneopts = "UT"
   revision = "c618e605e15c0d7535f6c96ff8efbb0dba4fd66c"
   version = "v2.1.15"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9d61b5ca59d3db0b1f1c1e9f5930b4f7c7fd954f54b70c1d83802b8805db918f"
+  name = "github.com/cevaris/ordered_map"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3adeae072e730f1919a936e13b4923706d3f60fe"
 
 [[projects]]
   digest = "1:bcf36df8d43860bfde913d008301aef27c6e9a303582118a837c4a34c0d18167"
@@ -94,9 +110,10 @@
   version = "v1.2.1"
 
 [[projects]]
-  digest = "1:f2bc519aefa5511928d70d067ae2828cfa60fd3947cc8d166f070a0ce705f782"
+  digest = "1:74eb045b14d34d761b5cde0282b05e4f2bb70a5bac17612bc30aa4f0f8e7372e"
   name = "github.com/golang/protobuf"
   packages = [
+    "descriptor",
     "proto",
     "protoc-gen-go/descriptor",
     "ptypes",
@@ -124,6 +141,14 @@
   pruneopts = "UT"
   revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:816a9a3902cc9d973a62475b829ab044cd46bbd7f064d317372ff868724cce89"
+  name = "github.com/gyuho/goraph"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d460590d53a91b1f29347ca9b01d1e8c158cbeb2"
+  version = "v2.0"
 
 [[projects]]
   digest = "1:9537873f2fc92467f451178506405fae087efc624d8d92644042209a03a2bfa0"
@@ -191,17 +216,24 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:724ce67c43f6b392e3e57a05f566ebe339354a9b3245cba64515769d8506e22f"
+  digest = "1:d2c1e6c77d74f59631dc3d14172386e602617d54d9bd87a97876049cf80090bb"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
     "adapters/common",
     "common/log",
+    "common/ponresourcemanager",
+    "common/techprofile",
     "db/kvstore",
+    "db/model",
     "kafka",
+    "rw_core/coreIf",
+    "rw_core/flow_decomposition",
+    "rw_core/graph",
+    "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "c91266ef204b7747a2cbe9bb53005d92d88ea497"
+  revision = "49eab50c094999199ebb539f30dd7a11fb8a0cbe"
 
 [[projects]]
   branch = "master"
@@ -407,8 +439,12 @@
     "github.com/opencord/voltha-go/adapters",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",
+    "github.com/opencord/voltha-go/common/ponresourcemanager",
+    "github.com/opencord/voltha-go/common/techprofile",
     "github.com/opencord/voltha-go/db/kvstore",
+    "github.com/opencord/voltha-go/db/model",
     "github.com/opencord/voltha-go/kafka",
+    "github.com/opencord/voltha-go/rw_core/flow_decomposition",
     "github.com/opencord/voltha-protos/go/common",
     "github.com/opencord/voltha-protos/go/inter_container",
     "github.com/opencord/voltha-protos/go/openflow_13",

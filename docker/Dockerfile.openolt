@@ -1,7 +1,7 @@
 # -------------
 # Build stage
 
-FROM golang:1.10.7-alpine AS build-env
+FROM golang:1.10-alpine3.9 AS build-env
 
 # Install required packages
 RUN apk add --no-cache wget git make build-base protobuf protobuf-dev
@@ -26,7 +26,7 @@ RUN go build -o /src/openolt
 # -------------
 # Image creation stage
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 # Set the working directory
 WORKDIR /app
