@@ -28,7 +28,7 @@ from voltha_protos.device_pb2 import Port
 import pyvoltha.common.openflow.utils as fd
 from voltha_protos import openolt_pb2
 from voltha_protos.inter_container_pb2 import SwitchCapability, PortCapability, \
-    InterAdapterMessageType, InterAdapterOmciMessage
+    InterAdapterMessageType, InterAdapterOmciMessage, InterAdapterTechProfileDownloadMessage
 
 from pyvoltha.common.tech_profile.tech_profile import DEFAULT_TECH_PROFILE_TABLE_ID
 
@@ -365,31 +365,33 @@ class OpenOltFlowMgr(object):
                     self.log.debug('eapol flow add')
                     self.add_eapol_flow(intf_id, onu_id, uni_id, port_no, flow, alloc_id,
                                         gemport_id)
-                    vlan_id = self.get_subscriber_vlan(fd.get_in_port(flow))
-                    if vlan_id is not None:
-                        self.add_eapol_flow(
-                            intf_id, onu_id, uni_id, port_no, flow, alloc_id, gemport_id,
-                            vlan_id=vlan_id)
-                    parent_port_no = self.platform.intf_id_to_port_no(port_no, Port.PON_OLT)
+
+                    # TODO NEW CORE: Skip trying to add subsequent eap capture for subscriber vlan
+                    #  (later attempts at re-eap)
+                    #vlan_id = self.get_subscriber_vlan(fd.get_in_port(flow))
+                    #if vlan_id is not None:
+                    #    self.add_eapol_flow(
+                    #        intf_id, onu_id, uni_id, port_no, flow, alloc_id, gemport_id,
+                    #        vlan_id=vlan_id)
+                    parent_port_no = self.platform.intf_id_to_port_no(intf_id, Port.PON_OLT)
                     onu_device = yield self.core_proxy.get_child_device(self.device_id,
                                                                      onu_id=onu_id,
                                                                      parent_port_no=parent_port_no)
                     tp_path = self.get_tp_path(intf_id, uni)
 
-                    self.log.debug('Load-tech-profile-request-to-brcm-handler',
-                                   tp_path=tp_path)
-                    msg = {'proxy_address': onu_device.proxy_address, 'uni_id': uni_id,
-                           'event': 'download_tech_profile', 'event_data': tp_path}
+                    tech_msg = InterAdapterTechProfileDownloadMessage(uni_id=uni_id, path=tp_path)
 
-                    # TODO NEW CORE: Create a new interadapter message type for tech profile startup for the onu
+                    self.log.debug('Load-tech-profile-request-to-brcm-handler',
+                                   onu_device=onu_device, tp_path=tp_path, tech_msg=tech_msg)
+
                     # Send the tech profile event to the onu adapter
-                    #yield self.adapter_proxy.send_inter_adapter_message(
-                    #    msg=msg,
-                    #    type=InterAdapterMessageType.TECH_IND_REQUEST,
-                    #    from_adapter="openolt",
-                    #    to_adapter=onu_device.type,
-                    #    to_device_id=onu_device.id
-                    #)
+                    yield self.adapter_proxy.send_inter_adapter_message(
+                        msg=tech_msg,
+                        type=InterAdapterMessageType.TECH_PROFILE_DOWNLOAD_REQUEST,
+                        from_adapter="openolt",
+                        to_adapter=onu_device.type,
+                        to_device_id=onu_device.id
+                    )
 
                 if classifier[ETH_TYPE] == LLDP_ETH_TYPE:
                     self.log.debug('lldp flow add')
