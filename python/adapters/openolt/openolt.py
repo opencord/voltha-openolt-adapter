@@ -269,22 +269,12 @@ class OpenoltAdapter(object):
                   proxied_msg=msg)
         raise NotImplementedError()
 
-    def receive_packet_out(self, logical_device_id, egress_port_no, msg):
-        log.debug('packet-out', logical_device_id=logical_device_id,
-                  egress_port_no=egress_port_no, msg_len=len(msg))
-
-        def ldi_to_di(ldi):
-            di = self.logical_device_id_to_root_device_id.get(ldi)
-            if di is None:
-                logical_device = self.adapter_agent.get_logical_device(ldi)
-                di = logical_device.root_device_id
-                self.logical_device_id_to_root_device_id[ldi] = di
-            return di
-
+    def receive_packet_out(self, device_id, port_no, packet):
+        log.debug('packet-out', device_id=device_id,
+                  port_no=port_no, msg_len=len(packet.data))
         try:
-            device_id = ldi_to_di(logical_device_id)
             handler = self.devices[device_id]
-            handler.packet_out(egress_port_no, msg)
+            handler.packet_out(port_no, packet.data)
         except Exception as e:
             log.error('packet-out:exception', e=e.message)
 
