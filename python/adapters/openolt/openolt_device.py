@@ -687,7 +687,7 @@ class OpenoltDevice(object):
 
         if pkt_indication.intf_type == "pon":
             if pkt_indication.port_no:
-                logical_port_num = pkt_indication.port_no
+                port_num = pkt_indication.port_no
             else:  # TODO Remove this else block after openolt device has been fully rolled out with cookie protobuf change
                 try:
                     onu_id_uni_id = self.resource_mgr.get_onu_uni_from_ponport_gemport(pkt_indication.intf_id,
@@ -699,7 +699,7 @@ class OpenoltDevice(object):
                         raise Exception("onu-id-none")
                     if uni_id is None:
                         raise Exception("uni-id-none")
-                    logical_port_num = self.platform.mk_uni_port_num(pkt_indication.intf_id, onu_id, uni_id)
+                    port_num = self.platform.mk_uni_port_num(pkt_indication.intf_id, onu_id, uni_id)
                 except Exception as e:
                     self.log.error("no-onu-reference-for-gem",
                                    gemport_id=pkt_indication.gemport_id, e=e)
@@ -707,19 +707,19 @@ class OpenoltDevice(object):
 
 
         elif pkt_indication.intf_type == "nni":
-            logical_port_num = self.platform.intf_id_to_port_no(
+            port_num = self.platform.intf_id_to_port_no(
                 pkt_indication.intf_id,
                 Port.ETHERNET_NNI)
 
         pkt = Ether(pkt_indication.pkt)
 
         self.log.debug("packet indication",
-                       logical_device_id=self.logical_device_id,
-                       logical_port_no=logical_port_num)
+                       device_id=self.device_id,
+                       port_num=port_num)
 
-        yield self.adapter_agent.send_packet_in(
-            logical_device_id=self.logical_device_id,
-            logical_port_no=logical_port_num,
+        yield self.core_proxy.send_packet_in(
+            device_id=self.device_id,
+            port=port_num,
             packet=str(pkt))
 
     def packet_out(self, egress_port, msg):
