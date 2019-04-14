@@ -63,6 +63,7 @@ UDP_SRC = 'udp_src'
 IPV4_DST = 'ipv4_dst'
 IPV4_SRC = 'ipv4_src'
 METADATA = 'metadata'
+TUNNEL_ID = 'tunnel_id'
 OUTPUT = 'output'
 # Action
 POP_VLAN = 'pop_vlan'
@@ -133,6 +134,10 @@ class OpenOltFlowMgr(object):
                 classifier_info[METADATA] = field.table_metadata
                 self.log.debug('field-type-metadata',
                                metadata=classifier_info[METADATA])
+            elif field.type == fd.TUNNEL_ID:
+                classifier_info[TUNNEL_ID] = field.tunnel_id
+                self.log.debug('field-type-tunnel-id',
+                               tunnel_id=classifier_info[TUNNEL_ID])
             else:
                 raise NotImplementedError('field.type={}'.format(
                     field.type))
@@ -144,9 +149,6 @@ class OpenOltFlowMgr(object):
                                output=action_info[OUTPUT],
                                in_port=classifier_info[IN_PORT])
             elif action.type == fd.POP_VLAN:
-                if fd.get_goto_table_id(flow) is None:
-                    self.log.debug('being taken care of by ONU', flow=flow)
-                    return
                 action_info[POP_VLAN] = True
                 self.log.debug('action-type-pop-vlan',
                                in_port=classifier_info[IN_PORT])
@@ -176,25 +178,54 @@ class OpenOltFlowMgr(object):
                 self.log.error('unsupported-action-type',
                                action_type=action.type, in_port=classifier_info[IN_PORT])
 
-        if fd.get_goto_table_id(flow) is not None and POP_VLAN not in action_info:
-            self.log.debug('being taken care of by ONU', flow=flow)
-            return
-
-        if OUTPUT not in action_info and METADATA in classifier_info:
-            # find flow in the next table
-            next_flow = self.find_next_flow(flow)
-            if next_flow is None:
+        # controller bound trap flows.
+        if self.platform.is_controller(action_info[OUTPUT]):
+            # trap from pon port.  figure out uni port from tunnel id and set as in port
+            if self.platform.intf_id_to_port_type_name(classifier_info[IN_PORT]) == Port.PON_OLT:
+                if fd.get_child_port_from_tunnelid(flow) is not None:
+                    classifier_info[IN_PORT] = fd.get_child_port_from_tunnelid(flow)
+                    self.log.debug('pon-to-controller-flow-port-in-tunnelid', new_in_port=classifier_info[IN_PORT])
+                else:
+                    self.log.debug('pon-to-controller-flow-NO-PORT-in-tunnelid', in_port=classifier_info[IN_PORT],
+                                   out_port=action_info[OUTPUT])
+            # TODO NEW CORE: trap from nni port.
+            else:
+                self.log.warn('nni-to-controller-trap-unsupported', flow=flow)
+        else:
+            # do not operate on the private decomposer vlan. neither onu nor agg switch adds it.
+            # cannot do anything with this flow
+            if VLAN_VID in classifier_info and classifier_info[VLAN_VID] == 4000:
+                self.log.debug('skipping-private-vlan', in_port=classifier_info[IN_PORT],
+                               out_port=action_info[OUTPUT])
                 return
-            action_info[OUTPUT] = fd.get_out_port(next_flow)
-            for field in fd.get_ofb_fields(next_flow):
-                if field.type == fd.VLAN_VID:
-                    classifier_info[METADATA] = field.vlan_vid & 0xfff
+
+            # downstream nni port to pon port.  figure out uni port from tunnel id and set as out port
+            if self.platform.intf_id_to_port_type_name(action_info[OUTPUT]) == Port.PON_OLT:
+                if fd.get_child_port_from_tunnelid(flow) is not None:
+                    action_info[OUTPUT] = fd.get_child_port_from_tunnelid(flow)
+                    self.log.debug('downstream-pon-port-flow-port-in-tunnelid', new_out_port=action_info[OUTPUT])
+                else:
+                    self.log.debug('downstream-pon-port-flow-NO-PORT-in-tunnelid', in_port=classifier_info[IN_PORT],
+                                   out_port=action_info[OUTPUT])
+                    return
+
+            # upstream pon port to nni port.  figure out uni port from tunnel id and set as in port
+            if self.platform.intf_id_to_port_type_name(classifier_info[IN_PORT]) == Port.PON_OLT:
+                if fd.get_child_port_from_tunnelid(flow) is not None:
+                    classifier_info[IN_PORT] = fd.get_child_port_from_tunnelid(flow)
+                    self.log.debug('upstream-pon-port-flow-port-in-tunnelid', new_in_port=classifier_info[IN_PORT])
+                else:
+                    self.log.debug('upstream-pon-port-flow-NO-PORT-in-tunnelid', in_port=classifier_info[IN_PORT],
+                                   out_port=action_info[OUTPUT])
+                    return
 
         self.log.debug('flow-ports', classifier_inport=classifier_info[IN_PORT], action_output=action_info[OUTPUT])
         (port_no, intf_id, onu_id, uni_id) = self.platform.extract_access_from_flow(
             classifier_info[IN_PORT], action_info[OUTPUT])
+
         self.log.debug('extracted-flow-ports', port_no=port_no, intf_id=intf_id, onu_id=onu_id, uni_id=uni_id)
 
+        # TODO NEW CORE: this needs to be broken into onu type flows that need these ID, and NNI flows that do not
         self.divide_and_add_flow(intf_id, onu_id, uni_id, port_no, classifier_info,
                                  action_info, flow)
 
@@ -336,16 +367,21 @@ class OpenOltFlowMgr(object):
 
         uni = self.get_uni_port_path(intf_id, onu_id, uni_id)
 
-        alloc_id, gem_ports = self.create_tcont_gemport(intf_id, onu_id, uni_id,
-                                                        uni, port_no, flow.table_id)
-        if alloc_id is None or gem_ports is None:
-            self.log.error("alloc-id-gem-ports-unavailable", alloc_id=alloc_id,
-                           gem_ports=gem_ports)
-            return
+        # TODO: if there is no onu_id then the flows pushed are NNI based and belows flow pushes need to be refactored
+        if (onu_id > 0):
+            alloc_id, gem_ports = self.create_tcont_gemport(intf_id, onu_id, uni_id,
+                                                            uni, port_no, flow.table_id)
+            if alloc_id is None or gem_ports is None:
+                self.log.error("alloc-id-gem-ports-unavailable", alloc_id=alloc_id, gem_ports=gem_ports)
+                return
 
-        self.log.debug('Generated required alloc and gemport ids',
-                       alloc_id=alloc_id, gemports=gem_ports)
+            self.log.debug('Generated required alloc and gemport ids', alloc_id=alloc_id, gemports=gem_ports)
+        else:
+            alloc_id = -1
+            gem_ports = []
+            self.log.error('cannot-generate-alloc-gem-id-for-flow', intf_id=intf_id, onu_id=onu_id, uni_id=uni_id)
 
+        # TODO: if there are no usable onu, uni, alloc, or gem id, then the below flows are erroneous. this needs a refactor
         # Flows can't be added specific to gemport unless p-bits are received.
         # Hence adding flows for all gemports
         for gemport_id in gem_ports:
