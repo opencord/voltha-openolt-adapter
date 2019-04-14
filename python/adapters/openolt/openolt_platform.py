@@ -151,7 +151,7 @@ class OpenOltPlatform(object):
 
     def is_upstream(self, out_port):
 
-        if out_port in [0xfffd, 0xfffffffd]:
+        if out_port in [0xfffd, 0x7ffffffd, 0xfffffffd]:
             # To Controller
             return True
         if (out_port & (0x1 << 16)) == (0x1 << 16):
@@ -159,6 +159,13 @@ class OpenOltPlatform(object):
             return True
 
         return False
+
+    def is_controller(self, out_port):
+        if out_port in [0xfffd, 0x7ffffffd, 0xfffffffd]:
+            return True
+        else:
+            return False
+
     #
     #def max_onus_per_pon(self):
     #    return OpenOltPlatform.MAX_ONUS_PER_PON
