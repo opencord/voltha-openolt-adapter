@@ -271,6 +271,69 @@ func (f *OpenOltFlowMgr) addUpstreamDataFlow(intfid uint32, onuid uint32, uniid 
 }
 
 func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfId uint32, onuId uint32, uniId uint32, portNo uint32, classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32) {
+
+	var dhcpFlow openolt_pb2.Flow
+	var actionProto *openolt_pb2.Action
+	var classifierProto *openolt_pb2.Classifier
+
+	// Clear the action map
+	for k := range action {
+		delete(action, k)
+	}
+
+	action[TRAP_TO_HOST] = true
+	classifier[UDP_SRC] = 68
+	classifier[UDP_DST] = 67
+	classifier[PACKET_TAG_TYPE] = SINGLE_TAG
+	delete(classifier, VLAN_VID)
+
+	flowStoreCookie := getFlowStoreCookie(classifier, gemPortId)
+
+	flowID, err := f.resourceMgr.GetFlowID(intfId, onuId, uniId, flowStoreCookie, "")
+
+	if err != nil {
+		log.Errorw("flowId unavailable for UL EAPOL", log.Fields{"intfId": intfId, "onuId": onuId, "flowStoreCookie": flowStoreCookie})
+		return
+	}
+
+	log.Debugw("Creating UL DHCP flow", log.Fields{"ul_classifier": classifier, "ul_action": action, "uplinkFlowId": flowID})
+
+	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
+		log.Error("Error in making classifier protobuf for ul flow")
+		return
+	}
+	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
+	if actionProto = makeOpenOltActionField(action); actionProto == nil {
+		log.Error("Error in making action protobuf for ul flow")
+		return
+	}
+
+	dhcpFlow = openolt_pb2.Flow{AccessIntfId: int32(intfId),
+		OnuId:         int32(onuId),
+		UniId:         int32(uniId),
+		FlowId:        flowID,
+		FlowType:      UPSTREAM,
+		AllocId:       int32(allocId),
+		NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID, // one NNI port is supported now
+		GemportId:     int32(gemPortId),
+		Classifier:    classifierProto,
+		Action:        actionProto,
+		Priority:      int32(logicalFlow.Priority),
+		Cookie:        logicalFlow.Cookie,
+		PortNo:        portNo}
+
+	if ok := f.addFlowToDevice(&dhcpFlow); ok {
+		log.Debug("DHCP UL flow added to device successfully")
+		flowsToKVStore := f.getUpdatedFlowInfo(&dhcpFlow, flowStoreCookie, "DHCP")
+		if err := f.updateFlowInfoToKVStore(dhcpFlow.AccessIntfId,
+			dhcpFlow.OnuId,
+			dhcpFlow.UniId,
+			dhcpFlow.FlowId, flowsToKVStore); err != nil {
+			log.Errorw("Error uploading DHCP UL flow into KV store", log.Fields{"flow": dhcpFlow, "error": err})
+			return
+		}
+	}
+
 	return
 }
 
@@ -744,5 +807,4 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfId uint32, onuId uint32, u
 	            self.adapter_agent.publish_inter_adapter_message(onu_device.id,msg)
 	*/
 	return true
-
 }
