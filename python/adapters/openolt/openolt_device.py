@@ -137,65 +137,6 @@ class OpenoltDevice(object):
                                send_event=True, initial='state_null')
         self.go_state_init()
 
-    @inlineCallbacks
-    def create_logical_device(self, device_info):
-        dpid = device_info.device_id
-        serial_number = device_info.device_serial_number
-
-        if dpid is None: dpid = self.dpid
-        if serial_number is None: serial_number = self.serial_number
-
-        if dpid == None or dpid == '':
-            uri = self.host_and_port.split(":")[0]
-            try:
-                socket.inet_pton(socket.AF_INET, uri)
-                dpid = '00:00:' + self.ip_hex(uri)
-            except socket.error:
-                # this is not an IP
-                dpid = self.stringToMacAddr(uri)
-
-        if serial_number == None or serial_number == '':
-            serial_number = self.host_and_port
-
-        self.log.info('creating-openolt-logical-device', dp_id=dpid, serial_number=serial_number)
-
-        mfr_desc = device_info.vendor
-        sw_desc = device_info.firmware_version
-        hw_desc = device_info.model
-        if device_info.hardware_version: hw_desc += '-' + device_info.hardware_version
-
-        # Create logical OF device
-        ld = LogicalDevice(
-            root_device_id=self.device_id,
-            switch_features=ofp_switch_features(
-                n_buffers=256,  # TODO fake for now
-                n_tables=2,  # TODO ditto
-                capabilities=(  # TODO and ditto
-                        OFPC_FLOW_STATS
-                        | OFPC_TABLE_STATS
-                        | OFPC_PORT_STATS
-                        | OFPC_GROUP_STATS
-                )
-            ),
-            desc=ofp_desc(
-                serial_num=serial_number
-            )
-        )
-        ld_init = self.adapter_agent.create_logical_device(ld,
-                                                           dpid=dpid)
-
-        self.logical_device_id = ld_init.id
-
-        ##Moved setting serial number outside of the logical_device function
-        #device = yield self.adapter_agent.get_device(self.device_id)
-        #device.serial_number = serial_number
-        #yield self.adapter_agent.update_device(device)
-
-        self.dpid = dpid
-        self.serial_number = serial_number
-
-        self.log.info('created-openolt-logical-device', logical_device_id=ld_init.id)
-
     def stringToMacAddr(self, uri):
         regex = re.compile('[^a-zA-Z]')
         uri = regex.sub('', uri)
@@ -263,17 +204,30 @@ class OpenoltDevice(object):
 
         self.log.info('Device connected', device_info=self.device_info)
 
-        # self.create_logical_device(device_info)
-        self.logical_device_id = '0'
-
+        # TODO NEW CORE: logical device id is no longer available. use real device id for now
+        self.logical_device_id = self.device_id
+        dpid = self.device_info.device_id
         serial_number = self.device_info.device_serial_number
-        if serial_number is None: 
-            serial_number = self.serial_number
-        self.device.serial_number = serial_number
-        
-        self.serial_number = serial_number
-        
+
+        if dpid is None: dpid = self.dpid
+        if serial_number is None: serial_number = self.serial_number
+
+        if dpid == None or dpid == '':
+            uri = self.host_and_port.split(":")[0]
+            try:
+                socket.inet_pton(socket.AF_INET, uri)
+                dpid = '00:00:' + self.ip_hex(uri)
+            except socket.error:
+                # this is not an IP
+                dpid = self.stringToMacAddr(uri)
+
+        if serial_number == None or serial_number == '':
+            serial_number = self.host_and_port
+
+        self.log.info('creating-openolt-device', dp_id=dpid, serial_number=serial_number)
+
         self.device.root = True
+        self.device.serial_number = serial_number
         self.device.vendor = self.device_info.vendor
         self.device.model = self.device_info.model
         self.device.hardware_version = self.device_info.hardware_version
@@ -282,7 +236,7 @@ class OpenoltDevice(object):
         # TODO: check for uptime and reboot if too long (VOL-1192)
 
         self.device.connect_status = ConnectStatus.REACHABLE
-        self.device.mac_address = "AA:BB:CC:DD:EE:FF"
+        self.device.mac_address = dpid
         yield self.core_proxy.device_update(self.device)
 
         self.resource_mgr = self.resource_mgr_class(self.device_id,
@@ -726,7 +680,6 @@ class OpenoltDevice(object):
         pkt = Ether(msg)
         self.log.debug('packet out', egress_port=egress_port,
                        device_id=self.device_id,
-                       logical_device_id=self.logical_device_id,
                        packet=str(pkt).encode("HEX"))
 
         # Find port type
@@ -890,37 +843,6 @@ class OpenoltDevice(object):
         elif port_type is Port.ETHERNET_UNI:
             assert False, 'local UNI management not supported'
 
-    def add_logical_port(self, port_no, intf_id, oper_state):
-        self.log.info('adding-logical-port', port_no=port_no)
-
-        label = self.port_name(port_no, Port.ETHERNET_NNI)
-
-        cap = OFPPF_1GB_FD | OFPPF_FIBER
-        curr_speed = OFPPF_1GB_FD
-        max_speed = OFPPF_1GB_FD
-
-        if oper_state == OperStatus.ACTIVE:
-            of_oper_state = OFPPS_LIVE
-        else:
-            of_oper_state = OFPPS_LINK_DOWN
-
-        ofp = ofp_port(
-            port_no=port_no,
-            hw_addr=mac_str_to_tuple(self._get_mac_form_port_no(port_no)),
-            name=label, config=0, state=of_oper_state, curr=cap,
-            advertised=cap, peer=cap, curr_speed=curr_speed,
-            max_speed=max_speed)
-
-        ofp_stats = ofp_port_stats(port_no=port_no)
-
-        logical_port = LogicalPort(
-            id=label, ofp_port=ofp, device_id=self.device_id,
-            device_port_no=port_no, root_port=True,
-            ofp_port_stats=ofp_stats)
-
-        self.adapter_agent.add_logical_port(self.logical_device_id,
-                                            logical_port)
-
     def _get_mac_form_port_no(self, port_no):
         mac = ''
         for i in range(4):
@@ -940,20 +862,6 @@ class OpenoltDevice(object):
                     admin_state=AdminState.ENABLED, oper_status=oper_status)
 
         yield self.core_proxy.port_created(self.device_id, port)
-
-    def delete_logical_port(self, child_device):
-        logical_ports = self.proxy.get('/logical_devices/{}/ports'.format(
-            self.logical_device_id))
-        for logical_port in logical_ports:
-            if logical_port.device_id == child_device.id:
-                self.log.debug('delete-logical-port',
-                               onu_device_id=child_device.id,
-                               logical_port=logical_port)
-                self.flow_mgr.clear_flows_and_scheduler_for_logical_port(
-                    child_device, logical_port)
-                self.adapter_agent.delete_logical_port(
-                    self.logical_device_id, logical_port)
-                return
 
     @inlineCallbacks
     def delete_port(self, child_serial_number):
@@ -980,7 +888,7 @@ class OpenoltDevice(object):
                           flows_to_remove=[f.id for f in flows_to_remove])
             return
 
-        self.log.debug('logical flows update', flows_to_add=flows_to_add,
+        self.log.debug('flows update', flows_to_add=flows_to_add,
                        flows_to_remove=flows_to_remove)
 
         for flow in flows_to_add:
@@ -1047,8 +955,7 @@ class OpenoltDevice(object):
             self.log.error('Failure to disable openolt device', error=e)
 
     def delete(self):
-        self.log.info('deleting-olt', device_id=self.device_id,
-                      logical_device_id=self.logical_device_id)
+        self.log.info('deleting-olt', device_id=self.device_id)
 
         # Clears up the data from the resource manager KV store
         # for the device

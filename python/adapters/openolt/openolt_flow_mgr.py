@@ -374,9 +374,13 @@ class OpenOltFlowMgr(object):
                     #        intf_id, onu_id, uni_id, port_no, flow, alloc_id, gemport_id,
                     #        vlan_id=vlan_id)
                     parent_port_no = self.platform.intf_id_to_port_no(intf_id, Port.PON_OLT)
+
+                    self.log.debug('get-child-device', intf_id=intf_id, onu_id=onu_id,
+                                   parent_port_no=parent_port_no, device_id=self.device_id)
+
                     onu_device = yield self.core_proxy.get_child_device(self.device_id,
-                                                                     onu_id=onu_id,
-                                                                     parent_port_no=parent_port_no)
+                                                                     onu_id=int(onu_id),
+                                                                     parent_port_no=int(parent_port_no))
                     tp_path = self.get_tp_path(intf_id, uni)
 
                     tech_msg = InterAdapterTechProfileDownloadMessage(uni_id=uni_id, path=tp_path)
@@ -689,7 +693,8 @@ class OpenOltFlowMgr(object):
             # uni_id defaults to 0, so add 1 to it.
             special_vlan_downstream_flow = 4090 - intf_id * onu_id * (uni_id+1)
             # Assert that we do not generate invalid vlans under no condition
-            assert (special_vlan_downstream_flow >= 2, 'invalid-vlan-generated')
+            assert (special_vlan_downstream_flow >= 2), 'invalid-vlan-generated'
+            self.log.warn('generating-special-downstream-vlan-for-bal', special_vlan_downstream_flow=special_vlan_downstream_flow)
 
             downlink_classifier = dict()
             downlink_classifier[PACKET_TAG_TYPE] = SINGLE_TAG
@@ -724,19 +729,23 @@ class OpenOltFlowMgr(object):
 
             self.log.debug('openolt-agent-flow', downstream_flow=downstream_flow)
 
-            downstream_logical_flow = ofp_flow_stats(
-                id=logical_flow.id, cookie=logical_flow.cookie,
-                table_id=logical_flow.table_id, priority=logical_flow.priority,
-                flags=logical_flow.flags)
+            try:
+                downstream_logical_flow = ofp_flow_stats(
+                    id=logical_flow.id, cookie=logical_flow.cookie,
+                    table_id=logical_flow.table_id, priority=logical_flow.priority,
+                    flags=logical_flow.flags)
 
-            downstream_logical_flow.match.oxm_fields.extend(fd.mk_oxm_fields([
-                fd.in_port(fd.get_out_port(logical_flow)),
-                fd.vlan_vid(special_vlan_downstream_flow | 0x1000)]))
-            downstream_logical_flow.match.type = OFPMT_OXM
+                downstream_logical_flow.match.oxm_fields.extend(fd.mk_oxm_fields([
+                    fd.in_port(fd.get_out_port(logical_flow)),
+                    fd.vlan_vid(special_vlan_downstream_flow | 0x1000)]))
+                downstream_logical_flow.match.type = OFPMT_OXM
 
-            downstream_logical_flow.instructions.extend(
-                fd.mk_instructions_from_actions([fd.output(
-                    self.platform.mk_uni_port_num(intf_id, onu_id, uni_id))]))
+                downstream_logical_flow.instructions.extend(
+                    fd.mk_instructions_from_actions([fd.output(
+                        self.platform.mk_uni_port_num(intf_id, onu_id, uni_id))]))
+            except Exception as e:
+                self.log.exception("unexpected-error-building-downstream-logical-flow", intf_id=intf_id, onu_id=onu_id,
+                                   uni_id=uni_id, e=e, downstream_flow=downstream_flow)
 
             if self.add_flow_to_device(downstream_flow, downstream_logical_flow):
                 self.log.debug('added-eapol-openolt-agent-flow', downstream_flow=downstream_flow,
@@ -930,6 +939,8 @@ class OpenOltFlowMgr(object):
                                logical_flow=logical_flow, flow=flow,
                                grpc_error=grpc_e)
             return False
+        except Exception as f:
+            self.log.exception("unexpected-openolt-agent-error", flow=flow, logical_flow=logical_flow, f=f)
         else:
             # TODO NEW CORE: Should not need. Core keeps track of logical flows. no need to keep track.  verify, especially olt reboot!
             # self.register_flow(logical_flow, flow)
