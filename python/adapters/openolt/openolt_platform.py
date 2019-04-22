@@ -114,7 +114,7 @@ class OpenOltPlatform(object):
         if intf_type is Port.ETHERNET_NNI:
             return (0x1 << 16) | intf_id
         elif intf_type is Port.PON_OLT:
-            return 0x2 << 28 | intf_id
+            return (0x2 << 28) | intf_id
         else:
             raise Exception('Invalid port type')
 
