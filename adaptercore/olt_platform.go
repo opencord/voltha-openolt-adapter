@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 package adaptercore
-import (voltha "github.com/opencord/voltha-protos/go/voltha");
+
+import (
+	voltha "github.com/opencord/voltha-protos/go/voltha"
+)
 
 /*=====================================================================
 
@@ -72,13 +75,13 @@ PON OLT (OF) port number
     +--------+------------------------~~~------+
 */
 
-var MAX_ONUS_PER_PON = 32;
-var MIN_UPSTREAM_PORT_ID = 0xfffd;
-var MAX_UPSTREAM_PORT_ID = 0xfffffffd;
+var MAX_ONUS_PER_PON = 32
+var MIN_UPSTREAM_PORT_ID = 0xfffd
+var MAX_UPSTREAM_PORT_ID = 0xfffffffd
 
 func MkUniPortNum(intfId uint32, onuId uint32, uniId uint32) uint32 {
-/* TODO: Add checks */
-        return ((intfId << 11) | (onuId << 4) | uniId)
+	/* TODO: Add checks */
+	return ((intfId << 11) | (onuId << 4) | uniId)
 }
 
 func MkFlowId(intfId uint32, onuId uint32, idx uint32) uint32 {
@@ -94,20 +97,18 @@ func IntfIdFromUniPortNum(portNum uint32) uint32 {
 }
 
 func UniIdFromPortNum(portNum uint32) uint32 {
-        return ((portNum) & 0xF)
+	return ((portNum) & 0xF)
 }
-
-
 
 func IntfIdFromPonPortNo(portNo uint32) uint32 {
 	return (portNo & 15)
 }
 
 func IntfIdToPortNo(intfId uint32, intfType voltha.Port_PortType) uint32 {
-	if (( intfType ) == voltha.Port_ETHERNET_NNI) {
+	if (intfType) == voltha.Port_ETHERNET_NNI {
 		return ((1 << 16) | intfId)
 	} else {
-		if (( intfType ) == voltha.Port_PON_OLT) {
+		if (intfType) == voltha.Port_PON_OLT {
 			return ((2 << 28) | intfId)
 		} else {
 			return 0
@@ -120,10 +121,10 @@ func IntfIdFromNniPortNum(portNum uint32) uint32 {
 }
 
 func IntfIdToPortTypeName(intfId uint32) voltha.Port_PortType {
-	if (( ((2 << 28) ^ intfId) ) < 16) {
+	if ((2 << 28) ^ intfId) < 16 {
 		return voltha.Port_PON_OLT
 	} else {
-		if ( (intfId & (1 << 16)) ) == ( (1 << 16) ) {
+		if (intfId & (1 << 16)) == (1 << 16) {
 			return voltha.Port_ETHERNET_NNI
 		} else {
 			return voltha.Port_UNKNOWN
@@ -136,18 +137,18 @@ func PortTypeNameByPortIndex(portIndex int32) string {
 }
 
 func ExtractAccessFromFlow(inPort uint32, outPort uint32) (uint32, uint32, uint32, uint32) {
-	if (IsUpstream(outPort)) {
-                return inPort, IntfIdFromUniPortNum(inPort), OnuIdFromPortNum(inPort), UniIdFromPortNum(inPort)
+	if IsUpstream(outPort) {
+		return inPort, IntfIdFromUniPortNum(inPort), OnuIdFromPortNum(inPort), UniIdFromPortNum(inPort)
 	} else {
-                return outPort, IntfIdFromUniPortNum(outPort), OnuIdFromPortNum(outPort), UniIdFromPortNum(outPort)
+		return outPort, IntfIdFromUniPortNum(outPort), OnuIdFromPortNum(outPort), UniIdFromPortNum(outPort)
 	}
 }
 
 func IsUpstream(outPort uint32) bool {
-	if ((outPort >= uint32(MIN_UPSTREAM_PORT_ID)) && (outPort <= uint32(MAX_UPSTREAM_PORT_ID))) {
+	if (outPort >= uint32(MIN_UPSTREAM_PORT_ID)) && (outPort <= uint32(MAX_UPSTREAM_PORT_ID)) {
 		return true
 	}
-	if ( (outPort & (1 << 16)) ) == ( (1 << 16) ) {
+	if (outPort & (1 << 16)) == (1 << 16) {
 		return true
 	}
 	return false

@@ -877,24 +877,24 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfId uint32, onuId uint32, u
 	log.Debugw("Got child device from OLT device handler", log.Fields{"device": *onuDevice})
 	/* TODO: uncomment once voltha-proto is ready with changes */
 	/*
-	        tpPath := f.getTPpath(intfId, uni)
-	        tpDownloadMsg := &ic.TechProfileDownload{UniId: uniId, Path: tpPath}
-	        var tpDownloadMsg interface{}
-	        log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg": *tpDownloadMsg})
-	        sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
-	                                                           tpDownloadMsg,
-	                                                           //ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-	                                                           ic.InterAdapterMessageType_OMCI_REQUEST,
-	                                                           f.deviceHandler.deviceType,
-	                                                           onuDevice.Type,
-			                                           onuDevice.Id,
-	                                                           onuDevice.ProxyAddress.DeviceId, "")
-	        if sendErr != nil {
-	            log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-	                                          "toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-	                                          "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
-	            return sendErr
-	       }
-	       log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg":tpDownloadMsg})*/
+		        tpPath := f.getTPpath(intfId, uni)
+		        tpDownloadMsg := &ic.TechProfileDownload{UniId: uniId, Path: tpPath}
+		        var tpDownloadMsg interface{}
+		        log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg": *tpDownloadMsg})
+		        sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+		                                                           tpDownloadMsg,
+		                                                           //ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
+		                                                           ic.InterAdapterMessageType_OMCI_REQUEST,
+		                                                           f.deviceHandler.deviceType,
+		                                                           onuDevice.Type,
+				                                           onuDevice.Id,
+		                                                           onuDevice.ProxyAddress.DeviceId, "")
+		        if sendErr != nil {
+		            log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+		                                          "toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
+		                                          "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
+		            return sendErr
+		       }
+		       log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg":tpDownloadMsg})*/
 	return nil
 }

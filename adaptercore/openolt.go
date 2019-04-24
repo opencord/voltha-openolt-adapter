@@ -36,7 +36,7 @@ type OpenOLT struct {
 	kafkaICProxy          *kafka.InterContainerProxy
 	numOnus               int
 	KVStoreHost           string
-        KVStorePort           int
+	KVStorePort           int
 	KVStoreType           string
 	exitChannel           chan int
 	lockDeviceHandlersMap sync.RWMutex
@@ -83,16 +83,16 @@ func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) 
 }
 
 func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
-    oo.lockDeviceHandlersMap.Lock()
-    defer oo.lockDeviceHandlersMap.Unlock()
+	oo.lockDeviceHandlersMap.Lock()
+	defer oo.lockDeviceHandlersMap.Unlock()
 	if _, exist := oo.deviceHandlers[agent.deviceId]; !exist {
 		oo.deviceHandlers[agent.deviceId] = agent
-    }
+	}
 }
 
 func (oo *OpenOLT) deleteDeviceHandlerToMap(agent *DeviceHandler) {
-    oo.lockDeviceHandlersMap.Lock()
-    defer oo.lockDeviceHandlersMap.Unlock()
+	oo.lockDeviceHandlersMap.Lock()
+	defer oo.lockDeviceHandlersMap.Unlock()
 	delete(oo.deviceHandlers, agent.deviceId)
 }
 
@@ -117,20 +117,20 @@ func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 }
 
 func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
-    if device == nil {
-        log.Warn("device-is-nil")
-        return errors.New("nil-device")
-    }
-    log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
-    var handler *DeviceHandler
-    if handler = oo.getDeviceHandler(device.Id); handler == nil {
+	if device == nil {
+		log.Warn("device-is-nil")
+		return errors.New("nil-device")
+	}
+	log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
+	var handler *DeviceHandler
+	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, device, oo)
-        oo.addDeviceHandlerToMap(handler)
-        go handler.AdoptDevice(device)
-        // Launch the creation of the device topic
+		oo.addDeviceHandlerToMap(handler)
+		go handler.AdoptDevice(device)
+		// Launch the creation of the device topic
 		// go oo.createDeviceTopic(device)
-    }
-    return nil
+	}
+	return nil
 }
 
 func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapability, error) {
@@ -165,94 +165,94 @@ func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) er
 }
 
 func (oo *OpenOLT) Adapter_descriptor() error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Device_types() (*voltha.DeviceTypes, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Gelete_device(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Get_device_details(device *voltha.Device) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges) error {
-    log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id,"flows":flows})
-    if handler := oo.getDeviceHandler(device.Id); handler != nil {
-        return handler.UpdateFlowsIncrementally(device, flows, groups)
-    }
-    log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
-    return errors.New("device-handler-not-set")
+	log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows})
+	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+		return handler.UpdateFlowsIncrementally(device, flows, groups)
+	}
+	log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
+	return errors.New("device-handler-not-set")
 }
 
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pm_configs *voltha.PmConfigs) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Receive_packet_out(device *voltha.Device, egress_port_no int, msg openflow_13.PacketOut) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Suppress_alarm(filter *voltha.AlarmFilter) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Unsuppress_alarm(filter *voltha.AlarmFilter) error {
-    return errors.New("UnImplemented")
+	return errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Download_image(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Get_image_download_status(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Cancel_image_download(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }
 
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-    return nil, errors.New("UnImplemented")
+	return nil, errors.New("UnImplemented")
 }

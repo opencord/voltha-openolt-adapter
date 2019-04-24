@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"github.com/opencord/voltha-go/adapters"
 	com "github.com/opencord/voltha-go/adapters/common"
-	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
-	"github.com/opencord/voltha-openolt-adapter/config"
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/db/kvstore"
 	"github.com/opencord/voltha-go/kafka"
+	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
+	"github.com/opencord/voltha-openolt-adapter/config"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	"github.com/opencord/voltha-protos/go/voltha"
 	"os"
@@ -236,12 +236,12 @@ func (a *adapter) setupRequestHandler(coreInstanceId string, iadapter adapters.I
 
 func (a *adapter) registerWithCore(retries int) error {
 	log.Info("registering-with-core")
-    adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
-                                          Vendor: "simulation Enterprise Inc"}
-    types := []*voltha.DeviceType{{Id: "openolt",
-                                   Adapter: "openolt",//Name of the adapter that handles device type
-                                   AcceptsBulkFlowUpdate: false,  // Currently openolt adapter does not support bulk flow handling
-                                   AcceptsAddRemoveFlowUpdates: true}}
+	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
+		Vendor: "simulation Enterprise Inc"}
+	types := []*voltha.DeviceType{{Id: "openolt",
+		Adapter:                     "openolt", //Name of the adapter that handles device type
+		AcceptsBulkFlowUpdate:       false,     // Currently openolt adapter does not support bulk flow handling
+		AcceptsAddRemoveFlowUpdates: true}}
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {
