@@ -42,6 +42,7 @@ import (
 type DeviceHandler struct {
 	deviceId      string
 	deviceType    string
+	adminState    string
 	device        *voltha.Device
 	coreProxy     *com.CoreProxy
 	AdapterProxy  *com.AdapterProxy
@@ -65,6 +66,7 @@ func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.De
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.deviceId = cloned.Id
 	dh.deviceType = cloned.Type
+	dh.adminState = "up"
 	dh.device = cloned
 	dh.openOLT = adapter
 	dh.exitChannel = make(chan int, 1)
@@ -158,6 +160,21 @@ func (dh *DeviceHandler) readIndications() {
 		log.Errorw("Indications is nil", log.Fields{})
 		return
 	}
+	/* get device state */
+	device, err := dh.coreProxy.GetDevice(nil, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+	        log.Errorw("Failed to fetch device info", log.Fields{"err": err})
+
+	}
+	// When the device is in DISABLED and Adapter container restarts, we need to
+	// rebuild the locally maintained admin state.
+	if device.AdminState == voltha.AdminState_DISABLED {
+		dh.lockDevice.Lock()
+		dh.adminState = "down"
+		dh.lockDevice.Unlock()
+	}
+
 	for {
 		indication, err := indications.Recv()
 		if err == io.EOF {
@@ -166,6 +183,19 @@ func (dh *DeviceHandler) readIndications() {
 		if err != nil {
 			log.Infow("Failed to read from indications", log.Fields{"err": err})
 			continue
+		}
+		// When OLT is admin down, allow only NNI operation status change indications.
+		if dh.adminState == "down" {
+			_, isIntfOperInd := indication.Data.(*oop.Indication_IntfOperInd)
+			if isIntfOperInd {
+				intfOperInd := indication.GetIntfOperInd()
+				if intfOperInd.GetType() == "nni" {
+					log.Infow("olt is admin down, allow nni ind", log.Fields{})
+				}
+			} else {
+				log.Infow("olt is admin down, ignore indication", log.Fields{})
+				continue
+			}
 		}
 		switch indication.Data.(type) {
 		case *oop.Indication_OltInd:
@@ -587,5 +617,65 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 			//  dh.flowMgr.RemoveFlow(flow)
 		}
 	}
+	return nil
+}
+
+func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
+	if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed to disable olt ", log.Fields{"err": err})
+	        return err
+	}
+	dh.lockDevice.Lock()
+	dh.adminState = "down"
+	dh.lockDevice.Unlock()
+	log.Debug("olt-disabled")
+
+        cloned := proto.Clone(device).(*voltha.Device)
+        // Update the all ports state on that device to disable
+        if err := dh.coreProxy.PortsStateUpdate(nil, cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
+                log.Errorw("updating-ports-failed", log.Fields{"deviceId": device.Id, "error": err})
+                return err
+        }
+
+        //Update the device oper state
+        cloned.OperStatus = voltha.OperStatus_UNKNOWN
+        dh.device = cloned
+
+        if err := dh.coreProxy.DeviceStateUpdate(nil, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+                log.Errorw("error-updating-device-state", log.Fields{"deviceId": device.Id, "error": err})
+                return err
+        }
+        log.Debugw("DisableDevice-end", log.Fields{"deviceId": device.Id})
+	return nil
+}
+
+func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
+	if _, err := dh.Client.ReenableOlt(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed to reenable olt ", log.Fields{"err": err})
+	        return err
+	}
+
+	dh.lockDevice.Lock()
+	dh.adminState = "up"
+	dh.lockDevice.Unlock()
+	log.Debug("olt-reenabled")
+
+        cloned := proto.Clone(device).(*voltha.Device)
+        // Update the all ports state on that device to enable
+        if err := dh.coreProxy.PortsStateUpdate(nil, cloned.Id, voltha.OperStatus_ACTIVE); err != nil {
+                log.Errorw("updating-ports-failed", log.Fields{"deviceId": device.Id, "error": err})
+                return err
+        }
+
+        //Update the device oper status as ACTIVE
+        cloned.OperStatus = voltha.OperStatus_ACTIVE
+        dh.device = cloned
+
+        if err := dh.coreProxy.DeviceStateUpdate(nil, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+                log.Errorw("error-updating-device-state", log.Fields{"deviceId": device.Id, "error": err})
+                return err
+        }
+        log.Debugw("ReEnableDevice-end", log.Fields{"deviceId": device.Id})
+
 	return nil
 }
