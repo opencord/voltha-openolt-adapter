@@ -615,7 +615,12 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 	log.Debugw("In UpdateFlowsIncrementally", log.Fields{"deviceId": device.Id, "flows": flows, "groups": groups})
 	if flows != nil {
 		for _, flow := range flows.ToAdd.Items {
+			log.Debug("Adding flow",log.Fields{"deviceId":device.Id,"flowToAdd":flow})
 			dh.flowMgr.AddFlow(flow)
+		}
+		for _,flow := range flows.ToRemove.Items{
+			log.Debug("Removing flow",log.Fields{"deviceId":device.Id,"flowToRemove":flow})
+			dh.flowMgr.RemoveFlow(flow)
 		}
 	}
 	if groups != nil {
