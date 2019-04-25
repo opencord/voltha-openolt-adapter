@@ -185,11 +185,21 @@ func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
 }
 
 func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
-	return errors.New("UnImplemented")
+	log.Infow("disable-device", log.Fields{"deviceId": device.Id})
+	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+		return handler.DisableDevice(device)
+	}
+	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
+	return errors.New("device-handler-not-found")
 }
 
 func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
-	return errors.New("UnImplemented")
+	log.Infow("reenable-device", log.Fields{"deviceId": device.Id})
+	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+		return handler.ReenableDevice(device)
+	}
+	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
+	return errors.New("device-handler-not-found")
 }
 
 func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
