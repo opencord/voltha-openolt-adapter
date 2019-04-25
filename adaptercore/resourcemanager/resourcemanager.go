@@ -33,6 +33,12 @@ import (
 const KVSTORE_TIMEOUT = 5
 const BASE_PATH_KV_STORE = "service/voltha/openolt/{%s}" // service/voltha/openolt/<device_id>
 
+type FlowInfo struct {
+    Flow *openolt.Flow
+    FlowStoreCookie uint64
+    FlowCategory    string
+}
+    
 type OpenOltResourceMgr struct {
 	DeviceID    string         //OLT device id
 	HostAndPort string         // Host and port of the kv store to connect to
@@ -344,6 +350,45 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(PONIntfID uint32) (uint32, error) {
 	return ONUID[0], err
 }
 
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDInfo (PONIntfID uint32, ONUID uint32, UNIID uint32, FlowID uint32) *[]FlowInfo {
+        /*
+          Note: For flows which trap from the NNI and not really associated with any particular
+          ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
+        */
+        var flows []FlowInfo
+
+        FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
+        if err := RsrcMgr.ResourceMgrs[PONIntfID].GetFlowIDInfo(FlowPath, FlowID, &flows);err != nil{
+            log.Errorw("Error while getting flows from KV store",log.Fields{"flowId":FlowID})
+            return nil
+        }
+        if len(flows) == 0{
+            log.Debugw("No flowInfo found in KV store",log.Fields{"flowPath":FlowPath})
+            return  nil
+        }
+        return &flows //Fixme: We are passing pointer to slice whose memroy is allocated in stack
+}
+
+func (RsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(PONIntfID uint32, ONUID uint32, UNIID uint32) []uint32{
+        /*
+         Note: For flows which trap from the NNI and not really associated with any particular
+         ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
+        */
+        FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
+        return RsrcMgr.ResourceMgrs[PONIntfID].GetCurrentFlowIDsForOnu(FlowPath)
+}
+
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo (PONIntfID int32, ONUID int32, UNIID int32,
+                                                     FlowID uint32, FlowData *[]FlowInfo) error {
+
+        /*
+         Note: For flows which trap from the NNI and not really associated with any particular
+         ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
+        */
+        FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
+        return RsrcMgr.ResourceMgrs[uint32(PONIntfID)].UpdateFlowIDInfoForOnu (FlowPath, FlowID, *FlowData)
+}
+
 func (RsrcMgr *OpenOltResourceMgr) GetFlowID(PONIntfID uint32, ONUID uint32, UNIID uint32,
 	FlowStoreCookie interface{},
 	FlowCategory interface{}) (uint32, error) {
@@ -561,7 +606,20 @@ func (RsrcMgr *OpenOltResourceMgr) FreeONUID(IntfID uint32, ONUID []uint32) {
 	return
 }
 
+
 func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(IntfID uint32, ONUID uint32,
+    UNIID uint32, FlowId uint32) {
+    var IntfONUID string
+    var err error
+    IntfONUID = fmt.Sprintf("%d,%d,%d", IntfID, ONUID, UNIID)
+    err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(IntfONUID, FlowId, false)
+    if err != nil {
+        log.Error("Failed to Update flow id infor for %s", IntfONUID)
+    }
+    RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(IntfONUID, FlowId)
+}
+
+func (RsrcMgr *OpenOltResourceMgr) FreeFlowIDs(IntfID uint32, ONUID uint32,
 	UNIID uint32, FlowID []uint32) {
 
 	/* Free flow id for a given interface, onu id and uni id.*/
