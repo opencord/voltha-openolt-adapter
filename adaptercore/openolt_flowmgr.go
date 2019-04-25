@@ -28,7 +28,7 @@ import (
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"math/big"
-	//	ic "github.com/opencord/voltha-protos/go/inter_container"
+	ic "github.com/opencord/voltha-protos/go/inter_container"
 	openolt_pb2 "github.com/opencord/voltha-protos/go/openolt"
 	voltha "github.com/opencord/voltha-protos/go/voltha"
 )
@@ -209,7 +209,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfId uint32, onuId uint32, uniId 
 			UniId:  uniId,
 			PortNo: uniPort,
 			Tconts: tconts}); err != nil {
-		log.Error("Error while creating TCONT in device")
+		log.Errorw("Error while creating TCONT in device",log.Fields{"error":err})
 		return nil, nil
 	}
 	allocID = append(allocID, tech_profile_instance.UsScheduler.AllocID)
@@ -300,8 +300,9 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfId uint32, onuId uint32, uniId uint32, 
 	log.Debugw("Adding HSIA flow", log.Fields{"intfId": intfId, "onuId": onuId, "uniId": uniId, "classifier": classifier,
 		"action": action, "direction": direction, "allocId": allocId, "gemPortId": gemPortId,
 		"logicalFlow": *logicalFlow})
+	flowCategory := "HSIA"
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortId)
-	flowId, err := f.resourceMgr.GetFlowID(intfId, onuId, uniId, flowStoreCookie, "HSIA")
+	flowId, err := f.resourceMgr.GetFlowID(intfId, onuId, uniId, flowStoreCookie, flowCategory)
 	if err != nil {
 		log.Errorw("Flow id unavailable for HSIA flow", log.Fields{"direction": direction})
 		return
@@ -331,13 +332,13 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfId uint32, onuId uint32, uniId uint32, 
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(&flow); ok {
+	if ok := f.sendFlowToDevice(&flow); ok {
 		log.Debug("HSIA flow added to device successfully", log.Fields{"direction": direction})
 		flowsToKVStore := f.getUpdatedFlowInfo(&flow, flowStoreCookie, "HSIA")
 		if err := f.updateFlowInfoToKVStore(flow.AccessIntfId,
 			flow.OnuId,
 			flow.UniId,
-			flow.FlowId, flowsToKVStore); err != nil {
+			flow.FlowId, /*flowCategory,*/ flowsToKVStore); err != nil {
 			log.Errorw("Error uploading HSIA  flow into KV store", log.Fields{"flow": flow, "direction": direction, "error": err})
 			return
 		}
@@ -395,7 +396,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfId uint32, onuId uint32, uniId uint
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 
-	if ok := f.addFlowToDevice(&dhcpFlow); ok {
+	if ok := f.sendFlowToDevice(&dhcpFlow); ok {
 		log.Debug("DHCP UL flow added to device successfully")
 		flowsToKVStore := f.getUpdatedFlowInfo(&dhcpFlow, flowStoreCookie, "DHCP")
 		if err := f.updateFlowInfoToKVStore(dhcpFlow.AccessIntfId,
@@ -461,13 +462,16 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfId uint32, onuId uint32, uniId uint32,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(&upstreamFlow); ok {
+	if ok := f.sendFlowToDevice(&upstreamFlow); ok {
 		log.Debug("EAPOL UL flow added to device successfully")
-		flowsToKVStore := f.getUpdatedFlowInfo(&upstreamFlow, flowStoreCookie, "EAPOL")
+		flowCategory := "EAPOL"
+		flowsToKVStore := f.getUpdatedFlowInfo(&upstreamFlow, flowStoreCookie, flowCategory)
 		if err := f.updateFlowInfoToKVStore(upstreamFlow.AccessIntfId,
 			upstreamFlow.OnuId,
 			upstreamFlow.UniId,
-			upstreamFlow.FlowId, flowsToKVStore); err != nil {
+			upstreamFlow.FlowId,
+			/* lowCategory, */
+			flowsToKVStore); err != nil {
 			log.Errorw("Error uploading EAPOL UL flow into KV store", log.Fields{"flow": upstreamFlow, "error": err})
 			return
 		}
@@ -528,13 +532,16 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfId uint32, onuId uint32, uniId uint32,
 			Priority:      int32(logicalFlow.Priority),
 			Cookie:        logicalFlow.Cookie,
 			PortNo:        portNo}
-		if ok := f.addFlowToDevice(&downstreamFlow); ok {
+		if ok := f.sendFlowToDevice(&downstreamFlow); ok {
 			log.Debug("EAPOL DL flow added to device successfully")
-			flowsToKVStore := f.getUpdatedFlowInfo(&downstreamFlow, flowStoreCookie, "")
+			flowCategory := ""
+			flowsToKVStore := f.getUpdatedFlowInfo(&downstreamFlow, flowStoreCookie, flowCategory)
 			if err := f.updateFlowInfoToKVStore(downstreamFlow.AccessIntfId,
 				downstreamFlow.OnuId,
 				downstreamFlow.UniId,
-				downstreamFlow.FlowId, flowsToKVStore); err != nil {
+				downstreamFlow.FlowId,
+				/* flowCategory, */
+				flowsToKVStore); err != nil {
 				log.Errorw("Error uploading EAPOL DL flow into KV store", log.Fields{"flow": upstreamFlow, "error": err})
 				return
 			}
@@ -643,40 +650,44 @@ func getFlowStoreCookie(classifier map[string]interface{}, gemPortId uint32) uin
 	return hash.Uint64()
 }
 
-func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]openolt_pb2.Flow {
-	var flows []openolt_pb2.Flow
-	/* FIXME: To be removed and identify way to get same flow ID for HSIA DL and UL flows
-	   To get existing flow matching flow catogery or cookie
-	*/
-	/*flow.Category = flowCategory
-	  flow.FlowStoreCookie = flowStoreCookie*/
-	flows = append(flows, *flow)
-	// Get existing flow for flowid  from KV store
-	//existingFlows := f.resourceMgr.GetFlowIDInfo(uint32(flow.AccessIntfId),uint32(flow.OnuId),uint32(flow.UniId),flow.FlowId)
-	/*existingFlows := nil
-	  if existingFlows != nil{
-	      log.Debugw("Flow exists for given flowID, appending it",log.Fields{"flowID":flow.FlowId})
-	      for _,f := range *existingFlows{
-	          flows = append(flows,f)
-	      }
-	  }*/
-	log.Debugw("Updated flows for given flowID", log.Fields{"updatedflow": flows, "flowid": flow.FlowId})
+func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]rsrcMgr.FlowInfo {
+        var flows []rsrcMgr.FlowInfo = []rsrcMgr.FlowInfo{rsrcMgr.FlowInfo{ Flow: flow, FlowCategory: flowCategory, FlowStoreCookie: flowStoreCookie}}
+        /*flowInfo.Flow = flow
+        flowInfo.FlowCategory = flowCategory
+        flowInfo.FlowStoreCookie = flowStoreCookie
+        flows = append(flows, flowInfo)*/
+	// Get existing flow for flowid for given subscriber from KV store
+	existingFlows := f.resourceMgr.GetFlowIDInfo(uint32(flow.AccessIntfId),uint32(flow.OnuId),uint32(flow.UniId),flow.FlowId)
+	if existingFlows != nil{
+	    log.Debugw("Flow exists for given flowID, appending it to current flow",log.Fields{"flowID":flow.FlowId})
+	    for _,f := range *existingFlows{
+	        flows = append(flows,f)
+	    }
+	}
+	log.Debugw("Updated flows for given flowID and onuid", log.Fields{"updatedflow": flows, "flowid": flow.FlowId,"onu":flow.OnuId})
 	return &flows
 }
 
-func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfId int32, onuId int32, uniId int32, flowId uint32, flows *[]openolt_pb2.Flow) error {
-	log.Debugw("Storing flow into KV store", log.Fields{"flows": *flows})
-	/* FIXME: To implement API in resource mgr and invoke */
-	/*if err := f.resourceMgr.UpdateFlowIDInfo(intfId,onuId,uniId,flowId,flows); err != nil{
-	      log.Debug("Error while Storing flow into KV store")
-	      return err
-	  }
-	  log.Info("Stored flow into KV store successfully!")
-	*/
+func (f *OpenOltFlowMgr) removeFlowInfoFromKVStore(intfId int32, onuId int32, uniId int32, flowId uint32,
+	flowCategory string, flows *[]openolt_pb2.Flow) error {
+
+	/*TODO */
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addFlowToDevice(deviceFlow *openolt_pb2.Flow) bool {
+func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfId int32, onuId int32, uniId int32, flowId uint32,
+	/*flowCategory string,*/ flowInfo *[]rsrcMgr.FlowInfo) error {
+	log.Debugw("Storing flow into KV store", log.Fields{"flowsInfo": *flowInfo})
+	if err := f.resourceMgr.UpdateFlowIDInfo(intfId,onuId,uniId,flowId, flowInfo); err != nil{
+		log.Debug("Error while Storing flow into KV store")
+		return err
+	}
+	log.Info("Stored flow(s) into KV store successfully!")
+
+	return nil
+}
+
+func (f *OpenOltFlowMgr) sendFlowToDevice(deviceFlow *openolt_pb2.Flow) bool {
 	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
 	_, err := f.deviceHandler.Client.FlowAdd(context.Background(), deviceFlow)
 	if err != nil {
@@ -684,6 +695,17 @@ func (f *OpenOltFlowMgr) addFlowToDevice(deviceFlow *openolt_pb2.Flow) bool {
 		return false
 	}
 	log.Debugw("Flow added to device successfuly ", log.Fields{"flow": *deviceFlow})
+	return true
+}
+
+func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openolt_pb2.Flow) bool {
+	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
+	_, err := f.deviceHandler.Client.FlowRemove(context.Background(), deviceFlow)
+	if err != nil {
+		log.Errorw("Failed to Remove flow from device", log.Fields{"err": err, "deviceFlow": deviceFlow})
+		return false
+	}
+	log.Debugw("Flow removed from device successfuly ", log.Fields{"flow": *deviceFlow})
 	return true
 }
 
@@ -740,6 +762,60 @@ func getSubscriberVlan(inPort uint32) uint32 {
 
 func (f *OpenOltFlowMgr) clear_flows_and_scheduler_for_logical_port(childDevice *voltha.Device, logicalPort *voltha.LogicalPort) {
 	log.Info("Unimplemented")
+}
+
+func (f *OpenOltFlowMgr) decodeStoredId(id uint64) (uint64, string) {
+	if (id >> 15 == 0x1) {
+		return id & 0x7fff, UPSTREAM
+	}
+	return id, DOWNSTREAM
+}
+
+func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, flowId uint32, flowDirection string) {
+	ponIntf, onuId, uniId, err := FlowExtractInfo(flow, flowDirection)
+	if err != nil {
+		log.Error(err)
+	}
+
+	var flowsInfo *[]rsrcMgr.FlowInfo = nil
+	flowsInfo = f.resourceMgr.GetFlowIDInfo(ponIntf, onuId, uniId, flowId)  //FIXME: Revisit when Abhilash's Changes are in place
+
+	var flowsInfoDecomposed = *flowsInfo
+	for i, storedFlow := range flowsInfoDecomposed {
+		if flowDirection == storedFlow.Flow.FlowType {
+			//Remove the Flow from FlowInfo
+			flowsInfoDecomposed = append(flowsInfoDecomposed[:i], flowsInfoDecomposed[i+1:]...)
+			break
+		}
+	}
+
+	if len(flowsInfoDecomposed) > 0 {
+		// There are still flows referencing the same flow_id.
+		// So the flow should not be freed yet.
+		// For ex: Case of HSIA where same flow is shared
+		// between DS and US.
+		f.updateFlowInfoToKVStore(int32(ponIntf), int32(onuId), int32(uniId), flowId, flowsInfo)
+		return
+	}
+
+	f.resourceMgr.FreeFlowID(ponIntf, onuId, uniId, flowId)
+	flowIds := f.resourceMgr.GetCurrentFlowIDsForOnu(ponIntf, onuId, uniId)
+	if len(flowIds) == 0 {
+		/* TODO: Remove Upstream and Downstream Schedulers */
+	}
+}
+
+
+func (f *OpenOltFlowMgr) RemoveFlow(flow *ofp.OfpFlowStats) {
+	log.Debug("Removing Flow", log.Fields{"flow": flow})
+	id, direction := f.decodeStoredId(flow.GetId())
+	removeFlowMessage := openolt_pb2.Flow{FlowId: uint32(id), FlowType: direction}
+
+	if ok := f.removeFlowFromDevice(&removeFlowMessage); ok {
+		log.Debug("Flow removed from device successfully")
+		f.clearFlowFromResourceManager(flow, uint32(id), direction) //Take care of the limitations
+	}
+	return
 }
 
 func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats) {
@@ -875,26 +951,23 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfId uint32, onuId uint32, u
 		return err
 	}
 	log.Debugw("Got child device from OLT device handler", log.Fields{"device": *onuDevice})
-	/* TODO: uncomment once voltha-proto is ready with changes */
-	/*
-		        tpPath := f.getTPpath(intfId, uni)
-		        tpDownloadMsg := &ic.TechProfileDownload{UniId: uniId, Path: tpPath}
-		        var tpDownloadMsg interface{}
-		        log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg": *tpDownloadMsg})
-		        sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
-		                                                           tpDownloadMsg,
-		                                                           //ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-		                                                           ic.InterAdapterMessageType_OMCI_REQUEST,
-		                                                           f.deviceHandler.deviceType,
-		                                                           onuDevice.Type,
-				                                           onuDevice.Id,
-		                                                           onuDevice.ProxyAddress.DeviceId, "")
-		        if sendErr != nil {
-		            log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-		                                          "toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-		                                          "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
-		            return sendErr
-		       }
-		       log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg":tpDownloadMsg})*/
+
+	        tpPath := f.getTPpath(intfId, uni)
+	tpDownloadMsg := &ic.InterAdapterTechProfileDownloadMessage{UniId: uniId, Path: tpPath}
+	        log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg": *tpDownloadMsg})
+	        sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+	                                                           tpDownloadMsg,
+				ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
+	                                                           f.deviceHandler.deviceType,
+	                                                           onuDevice.Type,
+			                                           onuDevice.Id,
+	                                                           onuDevice.ProxyAddress.DeviceId, "")
+	        if sendErr != nil {
+	            log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+	                                          "toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
+	                                          "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
+	            return sendErr
+	       }
+	log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg":tpDownloadMsg})
 	return nil
 }
