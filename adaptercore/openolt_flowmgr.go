@@ -160,7 +160,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfId uint32, onuId uint32, uniId 
 	var allocID []uint32
 	var gemPortIDs []uint32
 	//If we already have allocated earlier for this onu, render them
-	if tcontId := f.resourceMgr.GetCurrentAllocIDForOnu(intfId, onuId); tcontId != 0 {
+	if tcontId := f.resourceMgr.GetCurrentAllocIDForOnu(intfId, onuId, uniId); tcontId != 0 {
 		allocID = append(allocID, tcontId)
 	}
 	gemPortIDs = f.resourceMgr.GetCurrentGEMPortIDsForOnu(intfId, onuId, uniId)

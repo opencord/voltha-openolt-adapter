@@ -294,7 +294,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 	}
 	KVStoreHostPort := fmt.Sprintf("%s:%d", dh.openOLT.KVStoreHost, dh.openOLT.KVStorePort)
 	// Instantiate resource manager
-	if dh.resourceMgr = rsrcMgr.NewResourceMgr(dh.deviceId, KVStoreHostPort, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
+	if dh.resourceMgr = rsrcMgr.NewResourceMgr(dh.deviceId, KVStoreHostPort,  dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
 		log.Error("Error while instantiating resource manager")
 		return errors.New("Instantiating resource manager failed")
 	}
