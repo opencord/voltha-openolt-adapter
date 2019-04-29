@@ -416,7 +416,7 @@ class OpenoltDevice(object):
                 if onu_id is None:
                     raise Exception("onu-id-unavailable")
 
-                self.add_onu_device(
+                yield self.add_onu_device(
                     intf_id,
                     self.platform.intf_id_to_port_no(intf_id, Port.PON_OLT),
                     onu_id, serial_number)
