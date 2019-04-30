@@ -17,6 +17,7 @@ package adaptercore
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -210,7 +211,7 @@ func (dh *DeviceHandler) readIndications() {
 			go dh.onuIndication(onuInd)
 		case *oop.Indication_OmciInd:
 			omciInd := indication.GetOmciInd()
-			log.Infow("Received Omci indication ", log.Fields{"OmciInd": omciInd})
+			log.Infow("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId, "pkt": hex.EncodeToString(omciInd.Pkt)})
 			if err := dh.omciIndication(omciInd); err != nil {
 				log.Errorw("send-omci-indication-errr", log.Fields{"error": err, "omciInd": omciInd})
 			}
@@ -423,7 +424,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 	omciMessage := &oop.OmciMsg{IntfId: onuDevice.ProxyAddress.GetChannelId(), OnuId: onuDevice.ProxyAddress.GetOnuId(), Pkt: omciMsg.Message}
 
 	dh.Client.OmciMsgOut(context.Background(), omciMessage)
-	log.Debugw("omci-message-sent", log.Fields{"serialNumber": onuDevice.SerialNumber, "intfId": onuDevice.ProxyAddress.GetChannelId(), "omciMsg": string(omciMsg.Message)})
+	log.Debugw("omci-message-sent", log.Fields{"serialNumber": onuDevice.SerialNumber, "intfId": onuDevice.ProxyAddress.GetChannelId(), "omciMsg": hex.EncodeToString(omciMsg.Message)})
 }
 
 func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.SerialNumber, serialNumber string) {
