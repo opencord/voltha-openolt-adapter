@@ -355,7 +355,7 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 		go dh.onuIndication(onuInd)
 	case *oop.Indication_OmciInd:
 		omciInd := indication.GetOmciInd()
-		log.Infow("Received Omci indication ", log.Fields{"OmciInd": omciInd})
+		log.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId, "pkt": hex.EncodeToString(omciInd.Pkt)})
 		go dh.omciIndication(omciInd)
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
@@ -770,14 +770,29 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 		return
 	}
 
-	omciMessage := &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: omciMsg.Message}
+	// TODO: Once we are sure openonu/openomci is sending only binary in omciMsg.Message, we can remove this check
+	isHexString := false
+	_, decodeerr := hex.DecodeString(string(omciMsg.Message))
+	if decodeerr == nil {
+		isHexString = true
+	}
+
+	// TODO: OpenOLT Agent expects a hex string for OMCI packets rather than binary.  Fix this in the agent and then we can pass binary Pkt: omciMsg.Message.
+	var omciMessage *oop.OmciMsg
+	if isHexString {
+		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: omciMsg.Message}
+	} else {
+		hexPkt := make([]byte, hex.EncodedLen(len(omciMsg.Message)))
+		hex.Encode(hexPkt, omciMsg.Message)
+		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: hexPkt}
+	}
 
 	_, err := dh.Client.OmciMsgOut(context.Background(), omciMessage)
 	if err != nil {
 		log.Errorw("unable to send omci-msg-out", log.Fields{"IntfID": intfID, "OnuID": onuID, "Msg": omciMessage})
 		return
 	}
-	log.Debugw("omci-message-sent", log.Fields{"intfID": intfID, "onuID": onuID, "omciMsg": string(omciMsg.GetMessage())})
+	log.Debugw("Sent Omci message", log.Fields{"intfID": intfID, "onuID": onuID, "omciMsg": hex.EncodeToString(omciMsg.Message)})
 }
 
 func (dh *DeviceHandler) activateONU(intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) {
