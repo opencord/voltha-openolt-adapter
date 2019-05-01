@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c7b0cd5_80442c9d",
+        "filename": "python/adapters/openolt/openolt_flow_mgr.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-05-01T18:14:52Z",
+      "side": 0,
+      "message": "lets leave this function in for now.",
+      "range": {
+        "startLine": 213,
+        "startChar": 4,
+        "endLine": 213,
+        "endChar": 31
+      },
+      "revId": "8ee9071b6068c4021df2586b32481fadd53c7e44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d4a0707_7856cc49",
+        "filename": "python/adapters/openolt/openolt_flow_mgr.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-05-01T18:14:52Z",
+      "side": 0,
+      "message": "lets leave this function but delete this block",
+      "range": {
+        "startLine": 297,
+        "startChar": 8,
+        "endLine": 312,
+        "endChar": 62
+      },
+      "revId": "8ee9071b6068c4021df2586b32481fadd53c7e44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
