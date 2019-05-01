@@ -196,19 +196,7 @@ class OpenOltFlowMgr(object):
         self.log.debug('extracted-flow-ports', port_no=port_no, intf_id=intf_id, onu_id=onu_id, uni_id=uni_id)
 
         self.divide_and_add_flow(intf_id, onu_id, uni_id, port_no, classifier_info,
-                                 action_info, flow)
-
-    def _is_uni_port(self, port_no):
-        try:
-            port = self.adapter_agent.get_logical_port(self.logical_device_id,
-                                                       'uni-{}'.format(port_no))
-            if port is not None:
-                return (not port.root_port), port.device_id
-            else:
-                return False, None
-        except Exception as e:
-            self.log.error("error-retrieving-port", e=e)
-            return False, None
+                                            action_info, flow)
 
     def _clear_flow_id_from_rm(self, flow, flow_id, flow_direction):
         uni_port_no = None
@@ -293,23 +281,6 @@ class OpenOltFlowMgr(object):
             self._clear_flow_id_from_rm(f, id, direction)
             self.log.debug('flow removed from device', flow=f,
                            flow_key=flow_to_remove)
-
-        if len(device_flows_to_remove) > 0:
-            new_flows = []
-            flows_ids_to_remove = [f.id for f in device_flows_to_remove]
-            for f in device_flows:
-                if f.id not in flows_ids_to_remove:
-                    new_flows.append(f)
-
-            self.flows_proxy.update('/', Flows(items=new_flows))
-            self.log.debug('flows removed from the data store',
-                           flow_ids_removed=flows_ids_to_remove,
-                           number_of_flows_removed=(len(device_flows) - len(
-                               new_flows)), expected_flows_removed=len(
-                    device_flows_to_remove))
-        else:
-            self.log.debug('no device flow to remove for this flow (normal '
-                           'for multi table flows)', flow=flow)
 
     def get_tp_path(self, intf_id, uni):
         # FIXME Should get Table id form the flow, as of now hardcoded to

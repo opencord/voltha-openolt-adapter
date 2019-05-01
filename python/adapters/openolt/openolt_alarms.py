@@ -15,6 +15,8 @@
 #
 
 import arrow
+
+from twisted.internet.defer import inlineCallbacks, returnValue
 from pyvoltha.adapters.extensions.alarms.adapter_alarms import AdapterAlarms
 from pyvoltha.adapters.extensions.alarms.simulator.simulate_alarms import AdapterAlarmSimulator
 from pyvoltha.adapters.extensions.alarms.olt.olt_los_alarm import OltLosAlarm
@@ -35,17 +37,17 @@ import voltha_protos.device_pb2 as device_pb2
 
 
 class OpenOltAlarmMgr(object):
-    def __init__(self, log, adapter_agent, device_id, logical_device_id,
+    def __init__(self, log, core_proxy, device_id, logical_device_id,
                  platform, serial_number):
         """
-        20180711 -  Addition of adapter_agent and device_id
+        20180711 -  Addition of core_proxy and device_id
             to facilitate alarm processing and kafka posting
         :param log:
-        :param adapter_agent:
+        :param core_proxy:
         :param device_id:
         """
         self.log = log
-        self.adapter_agent = adapter_agent
+        self.core_proxy = core_proxy
         self.device_id = device_id
         self.logical_device_id = logical_device_id
         self.platform = platform
@@ -59,7 +61,7 @@ class OpenOltAlarmMgr(object):
         self.enable_alarm_suppress = True
         self.alarm_suppress = {"olt_los_clear": 0, "onu_disc_raised": []}  # Keep count of alarms to limit.
         try:
-            self.alarms = AdapterAlarms(self.adapter_agent, self.device_id, self.logical_device_id, self.serial_number)
+            self.alarms = AdapterAlarms(self.core_proxy, self.device_id, self.logical_device_id, self.serial_number)
             self.simulator = AdapterAlarmSimulator(self.alarms)
         except Exception as initerr:
             self.log.exception("alarmhandler-init-error", errmsg=initerr.message)
@@ -462,6 +464,7 @@ class OpenOltAlarmMgr(object):
             raise Exception(err)
         return onu_device_id, onu_serial_number
 
+    @inlineCallbacks
     def resolve_onu_id(self, onu_id, port_intf_id):
         """
         Resolve the onu_device from the intf_id value and port. Uses the adapter agent to
@@ -475,7 +478,7 @@ class OpenOltAlarmMgr(object):
 
         try:
             onu_device = None
-            onu_device = self.adapter_agent.get_child_device(
+            onu_device = yield self.core_proxy.get_child_device(
                 self.device_id,
                 parent_port_no=self.platform.intf_id_to_port_no(
                     port_intf_id, device_pb2.Port.PON_OLT),
@@ -483,5 +486,5 @@ class OpenOltAlarmMgr(object):
         except Exception as inner:
             self.log.exception('resolve-onu-id', errmsg=inner.message)
 
-        return onu_device
+        returnValue(onu_device)
 
