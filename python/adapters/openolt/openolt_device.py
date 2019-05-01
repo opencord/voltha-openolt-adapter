@@ -123,14 +123,6 @@ class OpenoltDevice(object):
             self.device.connect_status = ConnectStatus.UNREACHABLE
             self.device.oper_status = OperStatus.ACTIVATING
 
-        # If logical device does exist use it, else create one after connecting to device
-        if self.device.parent_id:
-            # logical device already exists
-            self.logical_device_id = self.device.parent_id
-            if is_reconciliation:
-                self.adapter_agent.reconcile_logical_device(
-                    self.logical_device_id)
-
         # Initialize the OLT state machine
         self.machine = Machine(model=self, states=OpenoltDevice.states,
                                transitions=OpenoltDevice.transitions,
@@ -571,11 +563,12 @@ class OpenoltDevice(object):
         else:
             self.log.warn('Not-implemented-or-invalid-value-of-oper-state',
                           oper_state=onu_indication.oper_state)
-
+    @inlineCallbacks
     def onu_ports_down(self, onu_device, oper_state):
+        pass
         # Set port oper state to Discovered
         # add port will update port if it exists
-        # self.adapter_agent.add_port(
+        # yield self.core_proxy.add_port(
         #    self.device_id,
         #    Port(
         #        port_no=uni_no,
@@ -584,25 +577,6 @@ class OpenoltDevice(object):
         #        admin_state=onu_device.admin_state,
         #        oper_status=oper_state))
         # TODO this should be downning ports in onu adatper
-
-        # Disable logical port
-        onu_ports = self.proxy.get('devices/{}/ports'.format(onu_device.id))
-        for onu_port in onu_ports:
-            self.log.debug('onu-ports-down', onu_port=onu_port)
-            onu_port_id = onu_port.label
-            try:
-                onu_logical_port = self.adapter_agent.get_logical_port(
-                    logical_device_id=self.logical_device_id, port_id=onu_port_id)
-                onu_logical_port.ofp_port.state = OFPPS_LINK_DOWN
-                self.adapter_agent.update_logical_port(
-                    logical_device_id=self.logical_device_id,
-                    port=onu_logical_port)
-                self.log.debug('cascading-oper-state-to-port-and-logical-port')
-            except KeyError as e:
-                self.log.error('matching-onu-port-label-invalid',
-                               onu_id=onu_device.id, olt_id=self.device_id,
-                               onu_ports=onu_ports, onu_port_id=onu_port_id,
-                               error=e)
 
     @inlineCallbacks
     def omci_indication(self, omci_indication):
@@ -872,9 +846,9 @@ class OpenoltDevice(object):
                 self.log.debug('delete-port',
                                onu_serial_number=child_serial_number,
                                port=port)
-                yield self.adapter_agent.delete_port(self.device_id, port)
+                yield self.core_proxy.port_removed(self.device_id, port)
                 return
-
+    
     def update_flow_table(self, flow_changes):
 
         self.log.debug("update_flow_table", flow_changes=flow_changes)
@@ -907,7 +881,7 @@ class OpenoltDevice(object):
 
         # TODO NEW CORE: Core keeps track of logical flows. no need to keep track.  verify, especially olt reboot!
         #self.flow_mgr.repush_all_different_flows()
-
+ 
     # There has to be a better way to do this
     def ip_hex(self, ip):
         octets = ip.split(".")
@@ -1000,11 +974,11 @@ class OpenoltDevice(object):
                        onu_device=child_device,
                        onu_serial_number=child_device.serial_number)
         try:
-            yield self.adapter_agent.delete_child_device(self.device_id,
+            yield self.core_proxy.child_device_removed(self.device_id,
                                                    child_device.id,
                                                    child_device)
         except Exception as e:
-            self.log.error('adapter_agent error', error=e)
+            self.log.error('core_proxy error', error=e)
         try:
             self.delete_logical_port(child_device)
         except Exception as e:

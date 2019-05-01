@@ -90,7 +90,7 @@ class OpenOltStatisticsMgr(object):
         #     # ONOS update
         #     self.update_logical_port_stats(port_stats)
         # # update port object stats
-        # port = self.device.adapter_agent.get_port(self.device.device_id,
+        # port = self.device.core_proxy.get_port(self.device.device_id,
         #     port_no=port_stats.intf_id)
         #
         # if port is None:
@@ -105,14 +105,14 @@ class OpenOltStatisticsMgr(object):
         # port.tx_errors = port_stats.tx_error_packets
         #
         # # Add port does an update if port exists
-        # self.device.adapter_agent.add_port(self.device.device_id, port)
+        # self.device.core_proxy.add_port(self.device.device_id, port)
 
     def flow_statistics_indication(self, flow_stats):
         self.log.info('flow-stats-collected', stats=flow_stats)
         # TODO: send to kafka ?
         # FIXME: etcd problem, do not update objects for now
         # # UNTESTED : the openolt driver does not yet provide flow stats
-        # self.device.adapter_agent.update_flow_stats(
+        # self.device.core_proxy.update_flow_stats(
         #       self.device.logical_device_id,
         #       flow_id=flow_stats.flow_id, packet_count=flow_stats.tx_packets,
         #       byte_count=flow_stats.tx_bytes)
@@ -179,35 +179,6 @@ class OpenOltStatisticsMgr(object):
                         port_object=self.southbound_ports[port_stats.intf_id],datadict=pm_data)
         except Exception as err:
             self.log.exception("Error publishing kpi statistics. ", errmessage=err)
-
-    def update_logical_port_stats(self, port_stats):
-        try:
-            label = 'nni-{}'.format(port_stats.intf_id)
-            logical_port = self.device.adapter_agent.get_logical_port(
-                self.device.logical_device_id, label)
-        except KeyError as e:
-            self.log.warn('logical port was not found, it may not have been '
-                          'created yet', exception=e)
-            return
-
-        if logical_port is None:
-            self.log.error('logical-port-is-None',
-                logical_device_id=self.device.logical_device_id, label=label,
-                port_stats=port_stats)
-            return
-
-        logical_port.ofp_port_stats.rx_packets = port_stats.rx_packets
-        logical_port.ofp_port_stats.rx_bytes = port_stats.rx_bytes
-        logical_port.ofp_port_stats.tx_packets = port_stats.tx_packets
-        logical_port.ofp_port_stats.tx_bytes = port_stats.tx_bytes
-        logical_port.ofp_port_stats.rx_errors = port_stats.rx_error_packets
-        logical_port.ofp_port_stats.tx_errors = port_stats.tx_error_packets
-        logical_port.ofp_port_stats.rx_crc_err = port_stats.rx_crc_errors
-
-        self.log.debug('after-stats-update', port=logical_port)
-
-        self.device.adapter_agent.update_logical_port(
-            self.device.logical_device_id, logical_port)
 
     """
     The following 4 methods customer naming, the generation of the port objects, building of those

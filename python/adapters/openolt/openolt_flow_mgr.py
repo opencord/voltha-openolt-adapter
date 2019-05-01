@@ -197,120 +197,12 @@ class OpenOltFlowMgr(object):
 
         self.divide_and_add_flow(intf_id, onu_id, uni_id, port_no, classifier_info,
                                  action_info, flow)
-
-    def _is_uni_port(self, port_no):
-        try:
-            port = self.adapter_agent.get_logical_port(self.logical_device_id,
-                                                       'uni-{}'.format(port_no))
-            if port is not None:
-                return (not port.root_port), port.device_id
-            else:
-                return False, None
-        except Exception as e:
-            self.log.error("error-retrieving-port", e=e)
-            return False, None
-
-    def _clear_flow_id_from_rm(self, flow, flow_id, flow_direction):
-        uni_port_no = None
-        child_device_id = None
-        if flow_direction == UPSTREAM:
-            for field in fd.get_ofb_fields(flow):
-                if field.type == fd.IN_PORT:
-                    is_uni, child_device_id = self._is_uni_port(field.port)
-                    if is_uni:
-                        uni_port_no = field.port
-        elif flow_direction == DOWNSTREAM:
-            for field in fd.get_ofb_fields(flow):
-                if field.type == fd.METADATA:
-                    uni_port = field.table_metadata & 0xFFFFFFFF
-                    is_uni, child_device_id = self._is_uni_port(uni_port)
-                    if is_uni:
-                        uni_port_no = field.port
-
-            if uni_port_no is None:
-                for action in fd.get_actions(flow):
-                    if action.type == fd.OUTPUT:
-                        is_uni, child_device_id = \
-                            self._is_uni_port(action.output.port)
-                        if is_uni:
-                            uni_port_no = action.output.port
-
-        if child_device_id:
-            child_device = self.adapter_agent.get_device(child_device_id)
-            pon_intf = child_device.proxy_address.channel_id
-            onu_id = child_device.proxy_address.onu_id
-            uni_id = self.platform.uni_id_from_port_num(uni_port_no) if uni_port_no is not None else None
-            flows = self.resource_mgr.get_flow_id_info(pon_intf, onu_id, uni_id, flow_id)
-            assert (isinstance(flows, list))
-            self.log.debug("retrieved-flows", flows=flows)
-            for idx in range(len(flows)):
-                if flow_direction == flows[idx]['flow_type']:
-                    flows.pop(idx)
-                    self.update_flow_info_to_kv_store(pon_intf, onu_id, uni_id, flow_id, flows)
-                    if len(flows) > 0:
-                        # There are still flows referencing the same flow_id.
-                        # So the flow should not be freed yet.
-                        # For ex: Case of HSIA where same flow is shared
-                        # between DS and US.
-                        return
-
-            self.resource_mgr.free_flow_id_for_uni(pon_intf, onu_id, uni_id, flow_id)
-        else:
-            self.log.error("invalid-info", uni_port_no=uni_port_no,
-                           child_device_id=child_device_id)
-
     def retry_add_flow(self, flow):
         self.log.debug("retry-add-flow")
         if flow.id in self.retry_add_flow_list:
             self.retry_add_flow_list.remove(flow.id)
         self.add_flow(flow)
-
-    def remove_flow(self, flow):
-        self.log.debug('trying to remove flows from logical flow :',
-                       logical_flow=flow)
-        device_flows_to_remove = []
-        device_flows = self.flows_proxy.get('/').items
-        for f in device_flows:
-            if f.cookie == flow.id:
-                device_flows_to_remove.append(f)
-
-        for f in device_flows_to_remove:
-            (id, direction) = self.decode_stored_id(f.id)
-            flow_to_remove = openolt_pb2.Flow(flow_id=id, flow_type=direction)
-            try:
-                self.stub.FlowRemove(flow_to_remove)
-            except grpc.RpcError as grpc_e:
-                if grpc_e.code() == grpc.StatusCode.NOT_FOUND:
-                    self.log.debug('This flow does not exist on the switch, '
-                                   'normal after an OLT reboot',
-                                   flow=flow_to_remove)
-                else:
-                    raise grpc_e
-
-            # once we have successfully deleted the flow on the device
-            # release the flow_id on resource pool and also clear any
-            # data associated with the flow_id on KV store.
-            self._clear_flow_id_from_rm(f, id, direction)
-            self.log.debug('flow removed from device', flow=f,
-                           flow_key=flow_to_remove)
-
-        if len(device_flows_to_remove) > 0:
-            new_flows = []
-            flows_ids_to_remove = [f.id for f in device_flows_to_remove]
-            for f in device_flows:
-                if f.id not in flows_ids_to_remove:
-                    new_flows.append(f)
-
-            self.flows_proxy.update('/', Flows(items=new_flows))
-            self.log.debug('flows removed from the data store',
-                           flow_ids_removed=flows_ids_to_remove,
-                           number_of_flows_removed=(len(device_flows) - len(
-                               new_flows)), expected_flows_removed=len(
-                    device_flows_to_remove))
-        else:
-            self.log.debug('no device flow to remove for this flow (normal '
-                           'for multi table flows)', flow=flow)
-
+ 
     def get_tp_path(self, intf_id, uni):
         # FIXME Should get Table id form the flow, as of now hardcoded to
         # DEFAULT_TECH_PROFILE_TABLE_ID (64)

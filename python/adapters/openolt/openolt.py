@@ -21,6 +21,7 @@ import structlog
 
 from zope.interface import implementer
 from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks, returnValue
 from pyvoltha.adapters.iadapter import IAdapterInterface
 from pyvoltha.common.utils.registry import registry
 from voltha_protos.common_pb2 import LogLevel
@@ -133,6 +134,9 @@ class OpenoltAdapter(object):
         else:
             self.num_devices += 1
 
+    # TODO This is currently not used in VOLTHA 2.0 
+    # Reconcile needs to be rethought given the new architecture
+    @inlineCallbacks
     def reconcile_device(self, device):
         log.info('reconcile-device', device=device)
         kwargs = {
@@ -157,8 +161,8 @@ class OpenoltAdapter(object):
             self.num_devices += 1
             # Invoke the children reconciliation which would setup the
             # basic children data structures
-            self.adapter_agent.reconcile_child_devices(device.id)
-            return device
+            yield self.core_proxy.reconcile_child_devices(device.id)
+            returnValue(device)
 
     def abandon_device(self, device):
         log.info('abandon-device', device=device)
