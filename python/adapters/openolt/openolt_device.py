@@ -30,6 +30,7 @@ from voltha_protos import openolt_pb2_grpc, openolt_pb2
 from pyvoltha.adapters.extensions.alarms.onu.onu_discovery_alarm import OnuDiscoveryAlarm
 
 from pyvoltha.common.utils.nethelpers import mac_str_to_tuple
+from pyvoltha.adapters.common.frameio.frameio import hexify
 from voltha_protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPPS_LINK_DOWN, OFPPF_1GB_FD, \
     OFPC_GROUP_STATS, OFPC_PORT_STATS, OFPC_TABLE_STATS, OFPC_FLOW_STATS, \
@@ -737,11 +738,11 @@ class OpenoltDevice(object):
             return
 
         omci = openolt_pb2.OmciMsg(intf_id=onu_device.proxy_address.channel_id,
-                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
+                                   onu_id=onu_device.proxy_address.onu_id, pkt=hexify(str(msg)))
         self.stub.OmciMsgOut(omci)
 
         self.log.debug("omci-message-sent", intf_id=onu_device.proxy_address.channel_id,
-                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
+                                   onu_id=onu_device.proxy_address.onu_id, pkt=hexify(str(msg)))
 
     @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
