@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "22407360_53479699",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-05-03T13:34:11Z",
+      "side": 1,
+      "message": "Given openolt agent currently expects a hex string this will have to be hexified now as the omci msg from pyvoltha will be raw binary.  See the pyvoltha push request.",
+      "range": {
+        "startLine": 424,
+        "startChar": 123,
+        "endLine": 424,
+        "endChar": 138
+      },
+      "revId": "d62c34fbed18d7591e5823581f2f02641c833636",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
