@@ -79,6 +79,8 @@ var MAX_ONUS_PER_PON = 32
 var MIN_UPSTREAM_PORT_ID = 0xfffd
 var MAX_UPSTREAM_PORT_ID = 0xfffffffd
 
+var controllerPorts []uint32 = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
+
 func MkUniPortNum(intfId uint32, onuId uint32, uniId uint32) uint32 {
 	/* TODO: Add checks */
 	return ((intfId << 11) | (onuId << 4) | uniId)
@@ -145,11 +147,22 @@ func ExtractAccessFromFlow(inPort uint32, outPort uint32) (uint32, uint32, uint3
 }
 
 func IsUpstream(outPort uint32) bool {
-	if (outPort >= uint32(MIN_UPSTREAM_PORT_ID)) && (outPort <= uint32(MAX_UPSTREAM_PORT_ID)) {
-		return true
+	for _, port := range controllerPorts {
+		if port == outPort {
+			return true
+		}
 	}
 	if (outPort & (1 << 16)) == (1 << 16) {
 		return true
+	}
+	return false
+}
+
+func IsControllerBoundFlow(outPort uint32) bool {
+	for _, port := range controllerPorts {
+		if port == outPort {
+			return true
+		}
 	}
 	return false
 }
