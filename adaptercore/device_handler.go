@@ -47,6 +47,7 @@ type DeviceHandler struct {
 	device        *voltha.Device
 	coreProxy     *com.CoreProxy
 	AdapterProxy  *com.AdapterProxy
+	alarmProxy    *com.AlarmProxy
 	openOLT       *OpenOLT
 	nniPort       *voltha.Port
 	ponPort       *voltha.Port
@@ -60,10 +61,11 @@ type DeviceHandler struct {
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
+func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, alp *com.AlarmProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
 	var dh DeviceHandler
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
+	dh.alarmProxy = alp
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.deviceId = cloned.Id
 	dh.deviceType = cloned.Type
@@ -233,7 +235,10 @@ func (dh *DeviceHandler) readIndications() {
 
 			sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 			//FIXME: Duplicate child devices being create in go routine
-			dh.onuDiscIndication(onuDiscInd, onuId, sn)
+			go dh.alarmProxy.OnuDiscoveryIndication(onuDiscInd, dh.deviceId)
+			if err := dh.onuDiscIndication(onuDiscInd, onuId, sn); err != nil {
+				log.Errorw("Failed to process Onu discovery indication", log.Fields{"OnuDiscInd": onuDiscInd})
+			}
 		case *oop.Indication_OnuInd:
 			onuInd := indication.GetOnuInd()
 			log.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd})
@@ -257,6 +262,9 @@ func (dh *DeviceHandler) readIndications() {
 		case *oop.Indication_AlarmInd:
 			alarmInd := indication.GetAlarmInd()
 			log.Infow("Received alarm indication ", log.Fields{"AlarmInd": alarmInd})
+			if err := dh.alarmProxy.ProcessAlarms(alarmInd, dh.deviceId); err != nil {
+				log.Errorw("Received invalid alarm indication ", log.Fields{"AlarmInd": alarmInd})
+			}
 		}
 	}
 }

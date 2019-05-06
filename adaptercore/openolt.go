@@ -33,6 +33,7 @@ type OpenOLT struct {
 	deviceHandlers        map[string]*DeviceHandler
 	coreProxy             *com.CoreProxy
 	adapterProxy          *com.AdapterProxy
+	alarmProxy            *com.AlarmProxy
 	kafkaICProxy          *kafka.InterContainerProxy
 	numOnus               int
 	KVStoreHost           string
@@ -42,7 +43,7 @@ type OpenOLT struct {
 	lockDeviceHandlersMap sync.RWMutex
 }
 
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
+func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, alarmProxy *com.AlarmProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
@@ -50,6 +51,7 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, co
 	openOLT.numOnus = onuNumber
 	openOLT.coreProxy = coreProxy
 	openOLT.adapterProxy = adapterProxy
+	openOLT.alarmProxy = alarmProxy
 	openOLT.KVStoreHost = kvStoreHost
 	openOLT.KVStorePort = kvStorePort
 	openOLT.KVStoreType = KVStoreType
@@ -124,7 +126,7 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, device, oo)
+		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.alarmProxy, device, oo)
 		oo.addDeviceHandlerToMap(handler)
 		go handler.AdoptDevice(device)
 		// Launch the creation of the device topic
