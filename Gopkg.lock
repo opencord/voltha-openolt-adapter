@@ -216,7 +216,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d2c1e6c77d74f59631dc3d14172386e602617d54d9bd87a97876049cf80090bb"
+  digest = "1:89203eb51605633cffa2a11f70f3547c2ac040fcf1b8e45e6a16124312caf7b4"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -233,7 +233,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "142516e3824069a87b34b9255df09f4569213953"
+  revision = "3ab34888e669e50c0ff7e412eba61adaefff48ed"
 
 [[projects]]
   branch = "master"

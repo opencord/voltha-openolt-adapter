@@ -93,4 +93,50 @@ ifdef LOCAL_VOLTHAGO
 endif
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-go:${TAG} -f docker/Dockerfile.openolt .
 
+lint-style:
+ifeq (,$(shell which gofmt))
+	go get -u github.com/golang/go/src/cmd/gofmt
+endif
+	@echo "Running style check..."
+	@gofmt_out="$$(gofmt -l $$(find . -name '*.go' -not -path './vendor/*'))" ;\
+	if [ ! -z "$$gofmt_out" ]; then \
+	  echo "$$gofmt_out" ;\
+	  echo "Style check failed on one or more files ^, run 'go fmt' to fix." ;\
+	  exit 1 ;\
+	fi
+	@echo "Style check OK"
+
+lint-sanity:
+	@echo "Running sanity check..."
+	@go vet ./...
+	@echo "Sanity check OK"
+
+lint-dep:
+	@echo "Running dependency check..."
+	@dep check
+	@echo "Dependency check OK"
+
+lint: lint-style lint-sanity lint-dep
+
+GO_JUNIT_REPORT:=$(shell which go-junit-report)
+GOCOVER_COBERTURA:=$(shell which gocover-cobertura)
+test:
+ifeq (,$(GO_JUNIT_REPORT))
+	go get -u github.com/jstemmer/go-junit-report
+	@GO_JUNIT_REPORT=$(GOPATH)/bin/go-junit-report
+endif
+
+ifeq (,$(GOCOVER_COBERTURA))
+	go get -u github.com/t-yuki/gocover-cobertura
+	@GOCOVER_COBERTURA=$(GOPATH)/bin/gocover-cobertura
+endif
+
+	@mkdir -p ./tests/results
+
+	@go test -v -coverprofile ./tests/results/go-test-coverage.out -covermode count ./... 2>&1 | tee ./tests/results/go-test-results.out ;\
+	RETURN=$$? ;\
+	$(GO_JUNIT_REPORT) < ./tests/results/go-test-results.out > ./tests/results/go-test-results.xml ;\
+	$(GOCOVER_COBERTURA) < ./tests/results/go-test-coverage.out > ./tests/results/go-test-coverage.xml ;\
+	exit $$RETURN
+
 # end file

@@ -119,11 +119,11 @@ func (r *root) ExecuteCallbacks() {
 		r.Callbacks = r.Callbacks[1:]
 		go callback.Execute(nil)
 	}
-	for len(r.NotificationCallbacks) > 0 {
-		callback := r.NotificationCallbacks[0]
-		r.NotificationCallbacks = r.NotificationCallbacks[1:]
-		go callback.Execute(nil)
-	}
+	//for len(r.NotificationCallbacks) > 0 {
+	//	callback := r.NotificationCallbacks[0]
+	//	r.NotificationCallbacks = r.NotificationCallbacks[1:]
+	//	go callback.Execute(nil)
+	//}
 }
 
 func (r *root) hasCallbacks() bool {
@@ -180,7 +180,6 @@ func (r *root) syncParent(childRev Revision, txid string) {
 	r.Proxy.ParentNode.Latest().SetConfig(NewDataRevision(r.Proxy.ParentNode.Root, data))
 	r.Proxy.ParentNode.Latest(txid).Finalize(false)
 }
-
 
 // Update modifies the content of an object at a given path with the provided data
 func (r *root) Update(path string, data interface{}, strict bool, txid string, makeBranch MakeBranchFunction) Revision {
@@ -310,6 +309,6 @@ func (r *root) makeLatest(branch *Branch, revision Revision, changeAnnouncement 
 }
 
 type rootData struct {
-	Latest string            `json:latest`
-	Tags   map[string]string `json:tags`
+	Latest string            `json:"latest"`
+	Tags   map[string]string `json:"tags"`
 }

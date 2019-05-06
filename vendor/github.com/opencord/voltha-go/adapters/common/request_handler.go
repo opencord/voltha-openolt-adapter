@@ -23,8 +23,8 @@ import (
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/kafka"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
+	"github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
-        "github.com/opencord/voltha-protos/go/openflow_13"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +33,7 @@ type RequestHandlerProxy struct {
 	TestMode       bool
 	coreInstanceId string
 	adapter        adapters.IAdapter
-	coreProxy *CoreProxy
+	coreProxy      *CoreProxy
 }
 
 func NewRequestHandlerProxy(coreInstanceId string, iadapter adapters.IAdapter, cProxy *CoreProxy) *RequestHandlerProxy {
@@ -107,10 +107,78 @@ func (rhp *RequestHandlerProxy) Abandon_device(args []*ic.Argument) (*empty.Empt
 }
 
 func (rhp *RequestHandlerProxy) Disable_device(args []*ic.Argument) (*empty.Empty, error) {
+	if len(args) < 3 {
+		log.Warn("invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return nil, err
+	}
+
+	device := &voltha.Device{}
+	transactionID := &ic.StrType{}
+	fromTopic := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "device":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.FromTopic:
+			if err := ptypes.UnmarshalAny(arg.Value, fromTopic); err != nil {
+				log.Warnw("cannot-unmarshal-from-topic", log.Fields{"error": err})
+				return nil, err
+			}
+		}
+	}
+	//Update the core reference for that device
+	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
+	//Invoke the Disable_device API on the adapter
+	if err := rhp.adapter.Disable_device(device); err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
+	}
 	return new(empty.Empty), nil
 }
 
 func (rhp *RequestHandlerProxy) Reenable_device(args []*ic.Argument) (*empty.Empty, error) {
+	if len(args) < 3 {
+		log.Warn("invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return nil, err
+	}
+
+	device := &voltha.Device{}
+	transactionID := &ic.StrType{}
+	fromTopic := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "device":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.FromTopic:
+			if err := ptypes.UnmarshalAny(arg.Value, fromTopic); err != nil {
+				log.Warnw("cannot-unmarshal-from-topic", log.Fields{"error": err})
+				return nil, err
+			}
+		}
+	}
+	//Update the core reference for that device
+	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
+	//Invoke the Reenable_device API on the adapter
+	if err := rhp.adapter.Reenable_device(device); err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
+	}
 	return new(empty.Empty), nil
 }
 
@@ -135,7 +203,7 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 }
 
 func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) (*empty.Empty, error) {
-        log.Debug("Update_flows_incrementally")
+	log.Debug("Update_flows_incrementally")
 	if len(args) < 3 {
 		log.Warn("Update_flows_incrementally-invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
@@ -143,8 +211,8 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 	}
 	device := &voltha.Device{}
 	transactionID := &ic.StrType{}
-        flows := &openflow_13.FlowChanges{}
-        groups := &openflow_13.FlowGroupChanges{}
+	flows := &openflow_13.FlowChanges{}
+	groups := &openflow_13.FlowGroupChanges{}
 	for _, arg := range args {
 		switch arg.Key {
 		case "device":
@@ -169,11 +237,11 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 			}
 		}
 	}
-        log.Debugw("Update_flows_incrementally",log.Fields{"flows":flows,"groups":groups})
-        //Invoke the adopt device on the adapter
-        if err := rhp.adapter.Update_flows_incrementally(device,flows,groups); err != nil {
-                return nil, status.Errorf(codes.NotFound, "%s", err.Error())
-        }
+	log.Debugw("Update_flows_incrementally", log.Fields{"flows": flows, "groups": groups})
+	//Invoke the adopt device on the adapter
+	if err := rhp.adapter.Update_flows_incrementally(device, flows, groups); err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
+	}
 	return new(empty.Empty), nil
 }
 
