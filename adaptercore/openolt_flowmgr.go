@@ -26,11 +26,11 @@ import (
 	tp "github.com/opencord/voltha-go/common/techprofile"
 	fd "github.com/opencord/voltha-go/rw_core/flow_decomposition"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
+	ic "github.com/opencord/voltha-protos/go/inter_container"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	"math/big"
-	//	ic "github.com/opencord/voltha-protos/go/inter_container"
 	openolt_pb2 "github.com/opencord/voltha-protos/go/openolt"
 	voltha "github.com/opencord/voltha-protos/go/voltha"
+	"math/big"
 )
 
 const (
@@ -61,18 +61,19 @@ const (
 	DOUBLE_TAG      = "double_tag"
 
 	// classifierInfo
-	ETH_TYPE = "eth_type"
-	TPID     = "tpid"
-	IP_PROTO = "ip_proto"
-	IN_PORT  = "in_port"
-	VLAN_VID = "vlan_vid"
-	VLAN_PCP = "vlan_pcp"
-	UDP_DST  = "udp_dst"
-	UDP_SRC  = "udp_src"
-	IPV4_DST = "ipv4_dst"
-	IPV4_SRC = "ipv4_src"
-	METADATA = "metadata"
-	OUTPUT   = "output"
+	ETH_TYPE  = "eth_type"
+	TPID      = "tpid"
+	IP_PROTO  = "ip_proto"
+	IN_PORT   = "in_port"
+	VLAN_VID  = "vlan_vid"
+	VLAN_PCP  = "vlan_pcp"
+	UDP_DST   = "udp_dst"
+	UDP_SRC   = "udp_src"
+	IPV4_DST  = "ipv4_dst"
+	IPV4_SRC  = "ipv4_src"
+	METADATA  = "metadata"
+	TUNNEL_ID = "tunnel_id"
+	OUTPUT    = "output"
 	// Action
 	POP_VLAN     = "pop_vlan"
 	PUSH_VLAN    = "push_vlan"
@@ -209,7 +210,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfId uint32, onuId uint32, uniId 
 			UniId:  uniId,
 			PortNo: uniPort,
 			Tconts: tconts}); err != nil {
-		log.Error("Error while creating TCONT in device")
+		log.Errorw("Error while creating TCONT in device", log.Fields{"error": err})
 		return nil, nil
 	}
 	allocID = append(allocID, tech_profile_instance.UsScheduler.AllocID)
@@ -274,6 +275,7 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfId uint32, onuId uint32, uniI
 	downlinkClassifier[PACKET_TAG_TYPE] = DOUBLE_TAG
 	log.Debugw("Adding downstream data flow", log.Fields{"downlinkClassifier": downlinkClassifier,
 		"downlinkAction": downlinkAction})
+	// Ignore private VLAN flow given by decomposer, cannot do anything with this flow
 	if uint32(downlinkClassifier[METADATA].(uint64)) == MkUniPortNum(intfId, onuId, uniId) &&
 		downlinkClassifier[VLAN_VID] == (uint32(ofp.OfpVlanId_OFPVID_PRESENT)|4000) {
 		log.Infow("EAPOL DL flow , Already added ,ignoring it", log.Fields{"downlinkClassifier": downlinkClassifier,
@@ -643,36 +645,27 @@ func getFlowStoreCookie(classifier map[string]interface{}, gemPortId uint32) uin
 	return hash.Uint64()
 }
 
-func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]openolt_pb2.Flow {
-	var flows []openolt_pb2.Flow
-	/* FIXME: To be removed and identify way to get same flow ID for HSIA DL and UL flows
-	   To get existing flow matching flow catogery or cookie
-	*/
-	/*flow.Category = flowCategory
-	  flow.FlowStoreCookie = flowStoreCookie*/
-	flows = append(flows, *flow)
-	// Get existing flow for flowid  from KV store
-	//existingFlows := f.resourceMgr.GetFlowIDInfo(uint32(flow.AccessIntfId),uint32(flow.OnuId),uint32(flow.UniId),flow.FlowId)
-	/*existingFlows := nil
-	  if existingFlows != nil{
-	      log.Debugw("Flow exists for given flowID, appending it",log.Fields{"flowID":flow.FlowId})
-	      for _,f := range *existingFlows{
-	          flows = append(flows,f)
-	      }
-	  }*/
-	log.Debugw("Updated flows for given flowID", log.Fields{"updatedflow": flows, "flowid": flow.FlowId})
+func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]rsrcMgr.FlowInfo {
+	var flows []rsrcMgr.FlowInfo = []rsrcMgr.FlowInfo{rsrcMgr.FlowInfo{Flow: flow, FlowCategory: flowCategory, FlowStoreCookie: flowStoreCookie}}
+	// Get existing flow for flowid for given subscriber from KV store
+	existingFlows := f.resourceMgr.GetFlowIDInfo(uint32(flow.AccessIntfId), uint32(flow.OnuId), uint32(flow.UniId), flow.FlowId)
+	if existingFlows != nil {
+		log.Debugw("Flow exists for given flowID, appending it to current flow", log.Fields{"flowID": flow.FlowId})
+		for _, f := range *existingFlows {
+			flows = append(flows, f)
+		}
+	}
+	log.Debugw("Updated flows for given flowID and onuid", log.Fields{"updatedflow": flows, "flowid": flow.FlowId, "onu": flow.OnuId})
 	return &flows
 }
 
-func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfId int32, onuId int32, uniId int32, flowId uint32, flows *[]openolt_pb2.Flow) error {
-	log.Debugw("Storing flow into KV store", log.Fields{"flows": *flows})
-	/* FIXME: To implement API in resource mgr and invoke */
-	/*if err := f.resourceMgr.UpdateFlowIDInfo(intfId,onuId,uniId,flowId,flows); err != nil{
-	      log.Debug("Error while Storing flow into KV store")
-	      return err
-	  }
-	  log.Info("Stored flow into KV store successfully!")
-	*/
+func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfId int32, onuId int32, uniId int32, flowId uint32, flows *[]rsrcMgr.FlowInfo) error {
+	log.Debugw("Storing flow(s) into KV store", log.Fields{"flows": *flows})
+	if err := f.resourceMgr.UpdateFlowIDInfo(intfId, onuId, uniId, flowId, flows); err != nil {
+		log.Debug("Error while Storing flow into KV store")
+		return err
+	}
+	log.Info("Stored flow(s) into KV store successfully!")
 	return nil
 }
 
@@ -777,6 +770,9 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats) {
 		} else if field.Type == fd.METADATA {
 			classifierInfo[METADATA] = field.GetTableMetadata()
 			log.Debug("field-type-metadata", log.Fields{"classifierInfo[METADATA]": classifierInfo[METADATA].(uint64)})
+		} else if field.Type == fd.TUNNEL_ID {
+			classifierInfo[TUNNEL_ID] = field.GetTunnelId()
+			log.Debug("field-type-tunnelId", log.Fields{"classifierInfo[TUNNEL_ID]": classifierInfo[TUNNEL_ID].(uint64)})
 		} else {
 			log.Errorw("Un supported field type", log.Fields{"type": field.Type})
 			return
@@ -792,11 +788,6 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats) {
 				return
 			}
 		} else if action.Type == fd.POP_VLAN {
-			/*if gotoTable := fd.GetGotoTableId(flow); gotoTable == 0 {
-				log.Infow("action-type-pop-vlan, being taken care of by ONU", log.Fields{"flow": flow})
-				actionInfo[POP_VLAN] = false
-				return
-			}*/
 			actionInfo[POP_VLAN] = true
 			log.Debugw("action-type-pop-vlan", log.Fields{"in_port": classifierInfo[IN_PORT].(uint32)})
 		} else if action.Type == fd.PUSH_VLAN {
@@ -837,31 +828,43 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats) {
 			return
 		}
 	}
-	/*if gotoTable := fd.GetGotoTableId(flow); gotoTable != 0 {
-		if actionInfo[POP_VLAN] == nil {
-			log.Infow("Go to table - action-type-pop-vlan, being taken care of by ONU", log.Fields{"flow": flow})
-			return
-		}
-	}*/
-	/* NOTE: This condition will be false when core decompose and provides flows to respective devices separately */
-	/*	if _,ok := actionInfo[OUTPUT]; ok == false{
-		log.Debug("action-go-to-table, get next flow for outport details")
-		if _, ok := classifierInfo[METADATA]; ok {
-			if next_flow := findNextFlow(flow); next_flow == nil {
-				log.Debugw("No next flow found ", log.Fields{"classifier": classifierInfo, "flow": flow})
-				return
+	/* Controller bound trap flows */
+	if isControllerFlow := IsControllerBoundFlow(actionInfo[OUTPUT].(uint32)); isControllerFlow {
+		log.Debug("Controller bound trap flows, getting inport from tunnelid")
+		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
+		if portType := IntfIdToPortTypeName(classifierInfo[IN_PORT].(uint32)); portType == voltha.Port_PON_OLT {
+			if uniPort := fd.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				classifierInfo[IN_PORT] = uniPort
+				log.Debugw("upstream pon-to-controller-flow,inport-in-tunnelid", log.Fields{"newInPort": classifierInfo[IN_PORT].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
 			} else {
-				actionInfo[OUTPUT] = fd.GetOutPort(next_flow)
-				log.Debugw("action-next-flow-outport", log.Fields{"actionInfo[OUTPUT]": actionInfo[OUTPUT].(uint32)})
-				for _, field := range fd.GetOfbFields(next_flow) {
-					if field.Type == fd.VLAN_VID {
-						classifierInfo[METADATA] = field.GetVlanVid() & 0xfff
-						log.Debugw("next-flow-classifier-metadata", log.Fields{"classifierInfo[METADATA]": classifierInfo[METADATA].(uint64)})
-					}
-				}
+				log.Error("upstream pon-to-controller-flow, NO-inport-in-tunnelid")
+				return
 			}
 		}
-	}*/
+	} else {
+		log.Debug("Non-Controller flows, getting uniport from tunnelid")
+		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
+		if portType := IntfIdToPortTypeName(actionInfo[OUTPUT].(uint32)); portType == voltha.Port_PON_OLT {
+			if uniPort := fd.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				actionInfo[OUTPUT] = uniPort
+				log.Debugw("downstream-nni-to-pon-port-flow, outport-in-tunnelid", log.Fields{"newOutPort": actionInfo[OUTPUT].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
+			} else {
+				log.Debug("downstream-nni-to-pon-port-flow, no-outport-in-tunnelid", log.Fields{"InPort": classifierInfo[IN_PORT].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
+				return
+			}
+			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
+		} else if portType := IntfIdToPortTypeName(classifierInfo[IN_PORT].(uint32)); portType == voltha.Port_PON_OLT {
+			if uniPort := fd.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				classifierInfo[IN_PORT] = uniPort
+				log.Debugw("upstream-pon-to-nni-port-flow, inport-in-tunnelid", log.Fields{"newInPort": actionInfo[OUTPUT].(uint32),
+					"outport": actionInfo[OUTPUT].(uint32)})
+			} else {
+				log.Debug("upstream-pon-to-nni-port-flow, no-inport-in-tunnelid", log.Fields{"InPort": classifierInfo[IN_PORT].(uint32),
+					"outPort": actionInfo[OUTPUT].(uint32)})
+				return
+			}
+		}
+	}
 	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[IN_PORT], "action_output": actionInfo[OUTPUT]})
 	portNo, intfId, onuId, uniId := ExtractAccessFromFlow(classifierInfo[IN_PORT].(uint32), actionInfo[OUTPUT].(uint32))
 	f.divideAndAddFlow(intfId, onuId, uniId, portNo, classifierInfo, actionInfo, flow)
@@ -875,26 +878,23 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfId uint32, onuId uint32, u
 		return err
 	}
 	log.Debugw("Got child device from OLT device handler", log.Fields{"device": *onuDevice})
-	/* TODO: uncomment once voltha-proto is ready with changes */
-	/*
-		        tpPath := f.getTPpath(intfId, uni)
-		        tpDownloadMsg := &ic.TechProfileDownload{UniId: uniId, Path: tpPath}
-		        var tpDownloadMsg interface{}
-		        log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg": *tpDownloadMsg})
-		        sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
-		                                                           tpDownloadMsg,
-		                                                           //ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-		                                                           ic.InterAdapterMessageType_OMCI_REQUEST,
-		                                                           f.deviceHandler.deviceType,
-		                                                           onuDevice.Type,
-				                                           onuDevice.Id,
-		                                                           onuDevice.ProxyAddress.DeviceId, "")
-		        if sendErr != nil {
-		            log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-		                                          "toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-		                                          "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
-		            return sendErr
-		       }
-		       log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter",log.Fields{"msg":tpDownloadMsg})*/
+
+	tpPath := f.getTPpath(intfId, uni)
+	tpDownloadMsg := &ic.InterAdapterTechProfileDownloadMessage{UniId: uniId, Path: tpPath}
+	log.Infow("Sending Load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"msg": *tpDownloadMsg})
+	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+		tpDownloadMsg,
+		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
+		f.deviceHandler.deviceType,
+		onuDevice.Type,
+		onuDevice.Id,
+		onuDevice.ProxyAddress.DeviceId, "")
+	if sendErr != nil {
+		log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
+			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
+		return sendErr
+	}
+	log.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"msg": tpDownloadMsg})
 	return nil
 }

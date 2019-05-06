@@ -130,6 +130,10 @@ func (dh *DeviceHandler) addPort(intfId uint32, portType voltha.Port_PortType, s
 	}
 	// portNum := IntfIdToPortNo(intfId,portType)
 	portNum := intfId
+	if portType == voltha.Port_ETHERNET_NNI {
+		portNum = IntfIdToPortNo(intfId, portType)
+	}
+	// portNum := IntfIdToPortNo(intfId,portType)
 	label := GetportLabel(portNum, portType)
 	if len(label) == 0 {
 		log.Errorw("Invalid-port-label", log.Fields{"portNum": portNum, "portType": portType})
