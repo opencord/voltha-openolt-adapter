@@ -129,7 +129,7 @@ func IntfIdToPortTypeName(intfId uint32) voltha.Port_PortType {
 		if (intfId & (1 << 16)) == (1 << 16) {
 			return voltha.Port_ETHERNET_NNI
 		} else {
-			return voltha.Port_UNKNOWN
+			return voltha.Port_ETHERNET_UNI
 		}
 	}
 }
