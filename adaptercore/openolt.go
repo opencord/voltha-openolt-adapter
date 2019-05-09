@@ -235,8 +235,13 @@ func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pm_configs *voltha.Pm
 	return errors.New("UnImplemented")
 }
 
-func (oo *OpenOLT) Receive_packet_out(device *voltha.Device, egress_port_no int, msg openflow_13.PacketOut) error {
-	return errors.New("UnImplemented")
+func (oo *OpenOLT) Receive_packet_out(deviceId string, egress_port_no int, packet *openflow_13.OfpPacketOut) error {
+	log.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceId, "egress_port_no": egress_port_no, "pkt": packet})
+	if handler := oo.getDeviceHandler(deviceId); handler != nil {
+		return handler.PacketOut(egress_port_no, packet)
+	}
+	log.Errorw("Receive_packet_out failed-device-handler-not-set", log.Fields{"deviceId": deviceId, "egressport": egress_port_no, "packet": packet})
+	return errors.New("device-handler-not-set")
 }
 
 func (oo *OpenOLT) Suppress_alarm(filter *voltha.AlarmFilter) error {
