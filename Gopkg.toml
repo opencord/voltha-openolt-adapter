@@ -45,6 +45,10 @@
   name = "google.golang.org/grpc"
   version = "1.19.1"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/mdlayher/ethernet"
+
 [[override]]
   branch = "master"
   name = "go.etcd.io/etcd"

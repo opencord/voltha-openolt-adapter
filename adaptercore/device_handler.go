@@ -27,6 +27,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/mdlayher/ethernet"
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
@@ -128,12 +129,7 @@ func (dh *DeviceHandler) addPort(intfId uint32, portType voltha.Port_PortType, s
 	} else {
 		operStatus = voltha.OperStatus_DISCOVERED
 	}
-	// portNum := IntfIdToPortNo(intfId,portType)
-	portNum := intfId
-	if portType == voltha.Port_ETHERNET_NNI {
-		portNum = IntfIdToPortNo(intfId, portType)
-	}
-	// portNum := IntfIdToPortNo(intfId,portType)
+	portNum := IntfIdToPortNo(intfId, portType)
 	label := GetportLabel(portNum, portType)
 	if len(label) == 0 {
 		log.Errorw("Invalid-port-label", log.Fields{"portNum": portNum, "portType": portType})
@@ -251,6 +247,7 @@ func (dh *DeviceHandler) readIndications() {
 		case *oop.Indication_PktInd:
 			pktInd := indication.GetPktInd()
 			log.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
+			go dh.handlePacketIndication(pktInd)
 		case *oop.Indication_PortStats:
 			portStats := indication.GetPortStats()
 			log.Infow("Received port stats indication", log.Fields{"PortStats": portStats})
@@ -311,7 +308,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 		log.Errorw("Device info is nil", log.Fields{})
 		return errors.New("Failed to get device info from OLT")
 	}
-
+	log.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
 	dh.device.Root = true
 	dh.device.Vendor = deviceInfo.Vendor
 	dh.device.Model = deviceInfo.Model
@@ -319,7 +316,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 	dh.device.SerialNumber = deviceInfo.DeviceSerialNumber
 	dh.device.HardwareVersion = deviceInfo.HardwareVersion
 	dh.device.FirmwareVersion = deviceInfo.FirmwareVersion
-	// TODO : Check whether this MAC address is learnt from SDPON or need to send from device
+	// FIXME: Remove Hardcodings
 	dh.device.MacAddress = "0a:0b:0c:0d:0e:0f"
 
 	// Synchronous call to update device - this method is run in its own go routine
@@ -394,10 +391,10 @@ func (dh *DeviceHandler) GetOfpPortInfo(device *voltha.Device, portNo int64) (*i
 func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	log.Debugw("omci indication", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
 
-	//        ponPort := IntfIdToPortNo(omciInd.GetIntfId(),voltha.Port_PON_OLT)
+	ponPort := IntfIdToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 	kwargs := make(map[string]interface{})
 	kwargs["onu_id"] = omciInd.OnuId
-	kwargs["parent_port_no"] = omciInd.GetIntfId()
+	kwargs["parent_port_no"] = ponPort
 
 	if onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); err != nil {
 		log.Errorw("onu not found", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
@@ -416,7 +413,6 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 
 // Process_inter_adapter_message process inter adater message
 func (dh *DeviceHandler) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
-	// TODO
 	log.Debugw("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
 	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
 		msgId := msg.Header.Id
@@ -462,6 +458,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 
 func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.SerialNumber, serialNumber string) {
 	log.Debugw("activate-onu", log.Fields{"intfId": intfId, "onuId": onuId, "serialNum": serialNum, "serialNumber": serialNumber})
+	dh.flowMgr.UpdateOnuInfo(intfId, uint32(onuId), serialNumber)
 	// TODO: need resource manager
 	var pir uint32 = 1000000
 	Onu := oop.Onu{IntfId: intfId, OnuId: uint32(onuId), SerialNumber: serialNum, Pir: pir}
@@ -473,10 +470,8 @@ func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.
 }
 
 func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, onuId uint32, sn string) error {
-	//channelId := MkUniPortNum(onuDiscInd.GetIntfId(), onuId, uint32(0))
-	//parentPortNo := IntfIdToPortNo(onuDiscInd.GetIntfId(),voltha.Port_PON_OLT)
 	channelId := onuDiscInd.GetIntfId()
-	parentPortNo := onuDiscInd.GetIntfId()
+	parentPortNo := IntfIdToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 	if err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId)); err != nil {
 		log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
 		return err
@@ -484,7 +479,7 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, on
 
 	kwargs := make(map[string]interface{})
 	kwargs["onu_id"] = onuId
-	kwargs["parent_port_no"] = onuDiscInd.GetIntfId()
+	kwargs["parent_port_no"] = parentPortNo
 
 	for i := 0; i < 10; i++ {
 		if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {
@@ -503,19 +498,18 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 	serialNumber := dh.stringifySerialNumber(onuInd.SerialNumber)
 
 	kwargs := make(map[string]interface{})
-	//        ponPort := IntfIdToPortNo(onuInd.GetIntfId(),voltha.Port_PON_OLT)
+	ponPort := IntfIdToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	if serialNumber != "" {
 		kwargs["serial_number"] = serialNumber
 	} else {
 		kwargs["onu_id"] = onuInd.OnuId
-		kwargs["parent_port_no"] = onuInd.GetIntfId()
+		kwargs["parent_port_no"] = ponPort
 	}
 	if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {
-		//if intfIdFromPortNo(onuDevice.ParentPortNo) != onuInd.GetIntfId() {
-		if onuDevice.ParentPortNo != onuInd.GetIntfId() {
+		if onuDevice.ParentPortNo != ponPort {
 			//log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": intfIdFromPortNo(onuDevice.ParentPortNo), "currentIntfId": onuInd.GetIntfId()})
-			log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": onuDevice.ParentPortNo, "currentIntfId": onuInd.GetIntfId()})
+			log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": onuDevice.ParentPortNo, "currentIntfId": ponPort})
 		}
 
 		if onuDevice.ProxyAddress.OnuId != onuInd.OnuId {
@@ -608,6 +602,15 @@ func (dh *DeviceHandler) GetChildDevice(parentPort uint32, onuId uint32) *voltha
 	return onuDevice
 }
 
+func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []byte) {
+	log.Debugw("SendPacketInToCore", log.Fields{"port": logicalPort, "packetPayload": packetPayload})
+	if err := dh.coreProxy.SendPacketIn(nil, dh.device.Id, logicalPort, packetPayload); err != nil {
+		log.Errorw("Error sending packetin to core", log.Fields{"error": err})
+		return
+	}
+	log.Debug("Sent packet-in to core successfully")
+}
+
 func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges) error {
 	log.Debugw("In UpdateFlowsIncrementally", log.Fields{"deviceId": device.Id, "flows": flows, "groups": groups})
 	if flows != nil {
@@ -681,5 +684,75 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	}
 	log.Debugw("ReEnableDevice-end", log.Fields{"deviceId": device.Id})
 
+	return nil
+}
+
+func (dh *DeviceHandler) handlePacketIndication(packetIn *oop.PacketIndication) {
+	log.Debugw("Received packet-in", log.Fields{"packet-indication": *packetIn})
+	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(packetIn)
+	if err != nil {
+		log.Errorw("Error getting logical port from packet-in", log.Fields{"error": err})
+		return
+	}
+	log.Debugw("sending packet-in to core", log.Fields{"logicalPortNum": logicalPortNum, "packet": *packetIn})
+	if err := dh.coreProxy.SendPacketIn(nil, dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
+		log.Errorw("Error sending packet-in to core", log.Fields{"error": err})
+		return
+	}
+	log.Debug("Success sending packet-in to core!")
+}
+
+func (dh *DeviceHandler) PacketOut(egress_port_no int, packet *of.OfpPacketOut) error {
+	log.Debugw("PacketOut", log.Fields{"deviceId": dh.deviceId, "egress_port_no": egress_port_no, "pkt-length": len(packet.Data)})
+	var etherFrame ethernet.Frame
+	err := (&etherFrame).UnmarshalBinary(packet.Data)
+	if err != nil {
+		log.Errorw("Failed to unmarshal into ethernet frame", log.Fields{"err": err, "pkt-length": len(packet.Data)})
+		return err
+	}
+	log.Debugw("Ethernet Frame", log.Fields{"Frame": etherFrame})
+	egressPortType := IntfIdToPortTypeName(uint32(egress_port_no))
+	if egressPortType == voltha.Port_ETHERNET_UNI {
+		if etherFrame.VLAN != nil { // If double tag, remove the outer tag
+			nextEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
+			if nextEthType == 0x8100 {
+				etherFrame.VLAN = nil
+				packet.Data, err = etherFrame.MarshalBinary()
+				if err != nil {
+					log.Fatalf("failed to marshal frame: %v", err)
+					return err
+				}
+				if err := (&etherFrame).UnmarshalBinary(packet.Data); err != nil {
+					log.Fatalf("failed to unmarshal frame: %v", err)
+					return err
+				}
+				log.Debug("Double tagged packet , removed outer vlan", log.Fields{"New frame": etherFrame})
+			}
+		}
+		intfId := IntfIdFromUniPortNum(uint32(egress_port_no))
+		onuId := OnuIdFromPortNum(uint32(egress_port_no))
+		uniId := UniIdFromPortNum(uint32(egress_port_no))
+		/*gemPortId, err := dh.flowMgr.GetPacketOutGemPortId(intfId, onuId, uint32(egress_port_no))
+		  if err != nil{
+		      log.Errorw("Error while getting gemport to packet-out",log.Fields{"error": err})
+		      return err
+		  }*/
+		onuPkt := oop.OnuPacket{IntfId: intfId, OnuId: onuId, PortNo: uint32(egress_port_no), Pkt: packet.Data}
+		log.Debug("sending-packet-to-ONU", log.Fields{"egress_port_no": egress_port_no, "IntfId": intfId, "onuId": onuId,
+			"uniId": uniId, "packet": packet.Data})
+		if _, err := dh.Client.OnuPacketOut(context.Background(), &onuPkt); err != nil {
+			log.Errorw("Error while sending packet-out to ONU", log.Fields{"error": err})
+			return err
+		}
+	} else if egressPortType == voltha.Port_ETHERNET_NNI {
+		uplinkPkt := oop.UplinkPacket{IntfId: IntfIdFromNniPortNum(uint32(egress_port_no)), Pkt: packet.Data}
+		log.Debug("sending-packet-to-uplink", log.Fields{"uplink_pkt": uplinkPkt})
+		if _, err := dh.Client.UplinkPacketOut(context.Background(), &uplinkPkt); err != nil {
+			log.Errorw("Error while sending packet-out to uplink", log.Fields{"error": err})
+			return err
+		}
+	} else {
+		log.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{"egress_port_no": egress_port_no, "egressPortType": egressPortType})
+	}
 	return nil
 }

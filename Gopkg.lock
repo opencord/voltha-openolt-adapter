@@ -199,6 +199,14 @@
   version = "v0.8.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:399231b1d0c4fc8204517cfe50e3f959b2404a9a8640983634dd258d7bf2821f"
+  name = "github.com/mdlayher/ethernet"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5b5fc417d966b71d3781b0d5860413e9fae947c1"
+
+[[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -216,7 +224,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89203eb51605633cffa2a11f70f3547c2ac040fcf1b8e45e6a16124312caf7b4"
+  digest = "1:b442c37d803107ffcd43329b8e6792c360cd3f05fb228a5439cdbffd510caef2"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -233,7 +241,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "3ab34888e669e50c0ff7e412eba61adaefff48ed"
+  revision = "f6516ddf375c4e1b3b46b07d9da8af15b4c3deba"
 
 [[projects]]
   branch = "master"
@@ -436,6 +444,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
+    "github.com/mdlayher/ethernet",
     "github.com/opencord/voltha-go/adapters",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",

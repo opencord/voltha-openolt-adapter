@@ -170,7 +170,7 @@ func NewResourceMgr(DeviceID string, KVStoreHostPort string, KVStoreType string,
 		if GlobalPONRsrcMgr == nil {
 			GlobalPONRsrcMgr = RsrcMgrsByTech[technology]
 		}
-		for IntfId := range TechRange.IntfIds {
+		for _, IntfId := range TechRange.IntfIds {
 			ResourceMgr.ResourceMgrs[uint32(IntfId)] = RsrcMgrsByTech[technology]
 		}
 		//self.initialize_device_resource_range_and_pool(resource_mgr, global_resource_mgr, arange)
@@ -222,17 +222,24 @@ func InitializeDeviceResourceRangeAndPool(PONRMgr *ponrmgr.PONResourceManager, G
 	FlowIDShared := openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH // TODO EdgeCore/BAL limitation
 	FlowIDSharedPoolID := uint32(0)
 
-	var GlobalPoolID uint32
 	var FirstIntfPoolID uint32
 	var SharedPoolID uint32
 
+	/*
+	 * As a zero check is made against SharedPoolID to check whether the resources are shared across all intfs
+	 * if resources are shared accross interfaces then SharedPoolID is given a positive number.
+	 */
 	for _, FirstIntfPoolID = range TechRange.IntfIds {
+		// skip the intf id 0
+		if FirstIntfPoolID == 0 {
+			continue
+		}
 		break
 	}
 
 	for _, RangePool := range TechRange.Pools {
 		if RangePool.Sharing == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH {
-			SharedPoolID = GlobalPoolID
+			SharedPoolID = FirstIntfPoolID
 		} else if RangePool.Sharing == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_SAME_TECH {
 			SharedPoolID = FirstIntfPoolID
 		} else {
@@ -406,7 +413,6 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(PONIntfID uint32, ONUID uint32, UNI
 		for _, flowId := range FlowIDs {
 			FlowInfo := RsrcMgr.GetFlowIDInfo(PONIntfID, ONUID, UNIID, uint32(flowId))
 			if FlowInfo != nil {
-				log.Debugw("Found flows", log.Fields{"flows": *FlowInfo, "flowId": flowId})
 				for _, Info := range *FlowInfo {
 					if FlowCategory != "" && Info.FlowCategory == FlowCategory {
 						log.Debug("Found flow matching with flow catagory", log.Fields{"flowId": flowId, "FlowCategory": FlowCategory})
@@ -426,7 +432,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(PONIntfID uint32, ONUID uint32, UNI
 	if err != nil {
 		log.Errorf("Failed to get resource for interface %d for type %s",
 			PONIntfID, ponrmgr.FLOW_ID)
-		return FlowIDs[0], err
+		return uint32(0), err
 	}
 	if FlowIDs != nil {
 		RsrcMgr.ResourceMgrs[PONIntfID].UpdateFlowIDForOnu(FlowPath, FlowIDs[0], true)
@@ -672,25 +678,25 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(IntfID uint32, ONUID u
 	}
 }
 
-/* TODO once the flow id info structure is known
-def is_flow_cookie_on_kv_store(self, intf_id, onu_id, uni_id, flow_store_cookie):
-  '''
-  Note: For flows which trap from the NNI and not really associated with any particular
-  ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-  '''
-  intf_onu_id = (intf_id, onu_id, uni_id)
-  try:
-      flow_ids = self.resource_mgrs[intf_id]. \
-          get_current_flow_ids_for_onu(intf_onu_id)
-      if flow_ids is not None:
-          for flow_id in flow_ids:
-              flows = self.get_flow_id_info(intf_id, onu_id, uni_id, flow_id)
-              assert (isinstance(flows, list))
-              for flow in flows:
-                  if flow['flow_store_cookie'] == flow_store_cookie:
-                      return True
-  except Exception as e:
-      self.log.error("error-retrieving-flow-info", e=e)
+func (RsrcMgr *OpenOltResourceMgr) IsFlowCookieOnKVStore(PONIntfID uint32, ONUID uint32, UNIID uint32,
+	FlowStoreCookie uint64) bool {
 
-  return False
-*/
+	FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
+	FlowIDs := RsrcMgr.ResourceMgrs[PONIntfID].GetCurrentFlowIDsForOnu(FlowPath)
+	if FlowIDs != nil {
+		log.Debugw("Found flowId(s) for this ONU", log.Fields{"pon": PONIntfID, "ONUID": ONUID, "UNIID": UNIID, "KVpath": FlowPath})
+		for _, flowId := range FlowIDs {
+			FlowInfo := RsrcMgr.GetFlowIDInfo(PONIntfID, ONUID, UNIID, uint32(flowId))
+			if FlowInfo != nil {
+				log.Debugw("Found flows", log.Fields{"flows": *FlowInfo, "flowId": flowId})
+				for _, Info := range *FlowInfo {
+					if Info.FlowStoreCookie == FlowStoreCookie {
+						log.Debug("Found flow matching with flowStore cookie", log.Fields{"flowId": flowId, "FlowStoreCookie": FlowStoreCookie})
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
