@@ -182,7 +182,9 @@ func (dh *DeviceHandler) readIndications() {
 		}
 		if err != nil {
 			log.Infow("Failed to read from indications", log.Fields{"err": err})
-			continue
+			dh.transitionMap.Handle(DeviceDownInd)
+			dh.transitionMap.Handle(DeviceInit)
+			break
 		}
 		// When OLT is admin down, allow only NNI operation status change indications.
 		if dh.adminState == "down" {
@@ -274,14 +276,38 @@ func (dh *DeviceHandler) doStateUp() error {
 
 // doStateDown handle the olt down indication
 func (dh *DeviceHandler) doStateDown() error {
-	//TODO Handle oper state down
+	log.Debug("do-state-down-start")
+
+	device, err := dh.coreProxy.GetDevice(nil, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		log.Errorw("Failed to fetch device device", log.Fields{"err": err})
+	}
+
+	cloned := proto.Clone(device).(*voltha.Device)
+	// Update the all ports state on that device to disable
+	if err := dh.coreProxy.PortsStateUpdate(nil, cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
+		log.Errorw("updating-ports-failed", log.Fields{"deviceId": device.Id, "error": err})
+		return err
+	}
+
+	//Update the device oper state and connection status
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	cloned.ConnectStatus = common.ConnectStatus_UNREACHABLE
+	dh.device = cloned
+
+	if err := dh.coreProxy.DeviceStateUpdate(nil, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		log.Errorw("error-updating-device-state", log.Fields{"deviceId": device.Id, "error": err})
+		return err
+	}
+	log.Debugw("do-state-down-end", log.Fields{"deviceId": device.Id})
 	return nil
 }
 
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit() error {
 	var err error
-	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure())
+	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Errorw("Failed to dial device", log.Fields{"DeviceId": dh.deviceId, "HostAndPort": dh.device.GetHostAndPort(), "err": err})
 		return err
@@ -323,6 +349,20 @@ func (dh *DeviceHandler) doStateConnected() error {
 	if err := dh.coreProxy.DeviceUpdate(nil, dh.device); err != nil {
 		log.Errorw("error-updating-device", log.Fields{"deviceId": dh.device.Id, "error": err})
 	}
+
+	device, err := dh.coreProxy.GetDevice(nil, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		log.Errorw("Failed to fetch device device", log.Fields{"err": err})
+	}
+	cloned := proto.Clone(device).(*voltha.Device)
+	// Update the all ports (if available) on that device to ACTIVE.
+	// The ports do not normally exist, unless the device is coming back from a reboot
+	if err := dh.coreProxy.PortsStateUpdate(nil, cloned.Id, voltha.OperStatus_ACTIVE); err != nil {
+		log.Errorw("updating-ports-failed", log.Fields{"deviceId": device.Id, "error": err})
+		return err
+	}
+
 	KVStoreHostPort := fmt.Sprintf("%s:%d", dh.openOLT.KVStoreHost, dh.openOLT.KVStorePort)
 	// Instantiate resource manager
 	if dh.resourceMgr = rsrcMgr.NewResourceMgr(dh.deviceId, KVStoreHostPort, dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
