@@ -256,7 +256,7 @@
     "go/voltha",
   ]
   pruneopts = "UT"
-  revision = "12fc0af25cd0e34555535be9949af64556569fcb"
+  revision = "aa26066f768886fc79374fd2c56e89191844779d"
 
 [[projects]]
   digest = "1:d886a3c32c8c1a770d07e36340f061d3afc948d065ffc3c9a19b01b34d4f0b65"
