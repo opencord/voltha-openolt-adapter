@@ -14,84 +14,72 @@
 # limitations under the License.
 #
 
-ifeq ($(TAG),)
-TAG := latest
-endif
+# set default shell
+SHELL = bash -e -o pipefail
 
-ifeq ($(TARGET_TAG),)
-TARGET_TAG := latest
-endif
+# Variables
+VERSION                  ?= $(shell cat ./VERSION)
 
-# If no DOCKER_HOST_IP is specified grab a v4 IP address associated with
-# the default gateway
-ifeq ($(DOCKER_HOST_IP),)
-DOCKER_HOST_IP := $(shell ifconfig $$(netstat -rn | grep -E '^(default|0.0.0.0)' | head -1 | awk '{print $$NF}') | grep inet | awk '{print $$2}' | sed -e 's/addr://g')
-endif
+## Docker related
+DOCKER_REGISTRY          ?=
+DOCKER_REPOSITORY        ?=
+DOCKER_BUILD_ARGS        ?=
+DOCKER_TAG               ?= ${VERSION}
+ADAPTER_IMAGENAME        := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter-go:${DOCKER_TAG}
 
+## Docker labels. Only set ref and commit date if committed
+DOCKER_LABEL_VCS_URL     ?= $(shell git remote get-url $(shell git remote))
+DOCKER_LABEL_VCS_REF     ?= $(shell git diff-index --quiet HEAD -- && git rev-parse HEAD || echo "unknown")
+DOCKER_LABEL_COMMIT_DATE ?= $(shell git diff-index --quiet HEAD -- && git show -s --format=%cd --date=iso-strict HEAD || echo "unknown" )
+DOCKER_LABEL_BUILD_DATE  ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-ifneq ($(http_proxy)$(https_proxy),)
-# Include proxies from the environment
-DOCKER_PROXY_ARGS = \
-       --build-arg http_proxy=$(http_proxy) \
-       --build-arg https_proxy=$(https_proxy) \
-       --build-arg ftp_proxy=$(ftp_proxy) \
-       --build-arg no_proxy=$(no_proxy) \
-       --build-arg HTTP_PROXY=$(HTTP_PROXY) \
-       --build-arg HTTPS_PROXY=$(HTTPS_PROXY) \
-       --build-arg FTP_PROXY=$(FTP_PROXY) \
-       --build-arg NO_PROXY=$(NO_PROXY)
-endif
-
-DOCKER_BUILD_ARGS = \
-	--build-arg TAG=$(TAG) \
-	--build-arg REGISTRY=$(REGISTRY) \
-	--build-arg REPOSITORY=$(REPOSITORY) \
-	$(DOCKER_PROXY_ARGS) $(DOCKER_CACHE_ARG) \
-	 --rm --force-rm \
-	$(DOCKER_BUILD_EXTRA_ARGS)
-
-DOCKER_IMAGE_LIST = \
-	openolt-adapter-go
-
-
-.PHONY: $(DIRS) $(DIRS_CLEAN) $(DIRS_FLAKE8) adapters 
+.PHONY: docker-build local-protos local-volthago
 
 # This should to be the first and default target in this Makefile
 help:
 	@echo "Usage: make [<target>]"
 	@echo "where available targets are:"
 	@echo
-	@echo "build        : Build the docker images.\n\
-               If this is the first time you are building, choose \"make build\" option."
+	@echo "build             : Build the openolt adapter docker image"
+	@echo "help              : Print this help"
+	@echo "docker-push       : Push the docker images to an external repository"
+	@echo "lint              : Run lint verification, depenancy, gofmt and reference check"
+	@echo "test              : Run unit tests, if any"
 	@echo
 
 
-# Parallel Build
-$(DIRS):
-	@echo "    MK $@"
-	$(Q)$(MAKE) -C $@
+## Docker targets
 
-# Parallel Clean
-DIRS_CLEAN = $(addsuffix .clean,$(DIRS))
-$(DIRS_CLEAN):
-	@echo "    CLEAN $(basename $@)"
-	$(Q)$(MAKE) -C $(basename $@) clean
+build: docker-build
 
-build: containers
-
-containers: adapter_openolt_go
-
-adapter_openolt_go:
+local-protos:
 ifdef LOCAL_PROTOS
 	mkdir -p vendor/github.com/opencord/voltha-protos/go
 	cp -rf ${GOPATH}/src/github.com/opencord/voltha-protos/go/ vendor/github.com/opencord/voltha-protos
 endif
+
+local-volthago:
 ifdef LOCAL_VOLTHAGO
 	mkdir -p vendor/github.com/opencord/voltha-go/
 	cp -rf ${GOPATH}/src/github.com/opencord/voltha-go/ vendor/github.com/opencord/
 	rm -rf vendor/github.com/opencord/voltha-go/vendor
 endif
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-go:${TAG} -f docker/Dockerfile.openolt .
+
+docker-build: local-protos local-volthago
+	docker build $(DOCKER_BUILD_ARGS) \
+    -t ${ADAPTER_IMAGENAME} \
+    --build-arg org_label_schema_version="${VERSION}" \
+    --build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
+    --build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
+    --build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
+    --build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
+    -f docker/Dockerfile.openolt .
+
+docker-push:
+	docker push ${ADAPTER_IMAGENAME}
+
+
+## lint and unit tests
 
 lint-style:
 ifeq (,$(shell which gofmt))
