@@ -14,100 +14,95 @@
 # limitations under the License.
 #
 
-ifeq ($(TAG),)
-TAG := latest
-endif
+# set default shell
+SHELL = bash -e -o pipefail
 
-ifeq ($(TARGET_TAG),)
-TARGET_TAG := latest
-endif
+# Variables
+VERSION                  ?= $(shell cat ../VERSION)
+ADAPTER_NAME             ?= voltha-openolt-adapter
 
-ifneq ($(http_proxy)$(https_proxy),)
-# Include proxies from the environment
-DOCKER_PROXY_ARGS = \
-       --build-arg http_proxy=$(http_proxy) \
-       --build-arg https_proxy=$(https_proxy) \
-       --build-arg ftp_proxy=$(ftp_proxy) \
-       --build-arg no_proxy=$(no_proxy) \
-       --build-arg HTTP_PROXY=$(HTTP_PROXY) \
-       --build-arg HTTPS_PROXY=$(HTTPS_PROXY) \
-       --build-arg FTP_PROXY=$(FTP_PROXY) \
-       --build-arg NO_PROXY=$(NO_PROXY)
-endif
+## Docker related
+DOCKER_REGISTRY          ?=
+DOCKER_REPOSITORY        ?=
+DOCKER_BUILD_ARGS        ?=
+DOCKER_TAG               ?= ${VERSION}
+ADAPTER_IMAGENAME        := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}${ADAPTER_NAME}:${DOCKER_TAG}
 
-DOCKER_BUILD_ARGS = \
-	--build-arg TAG=$(TAG) \
-	--build-arg REGISTRY=$(REGISTRY) \
-	--build-arg REPOSITORY=$(REPOSITORY) \
-	$(DOCKER_PROXY_ARGS) $(DOCKER_CACHE_ARG) \
-	 --rm --force-rm \
-	$(DOCKER_BUILD_EXTRA_ARGS)
+## Docker labels. Only set ref and commit date if committed
+DOCKER_LABEL_VCS_URL     ?= $(shell git remote get-url $(shell git remote))
+DOCKER_LABEL_VCS_REF     ?= $(shell git diff-index --quiet HEAD -- && git rev-parse HEAD || echo "unknown")
+DOCKER_LABEL_COMMIT_DATE ?= $(shell git diff-index --quiet HEAD -- && git show -s --format=%cd --date=iso-strict HEAD || echo "unknown" )
+DOCKER_LABEL_BUILD_DATE  ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-DOCKER_BUILD_EXTRA_ARGS = \
-	--build-arg LOCAL_PYVOLTHA=$(LOCAL_PYVOLTHA) \
-	--build-arg LOCAL_PROTOS=$(LOCAL_PROTOS)
-
-DOCKER_IMAGE_LIST = \
-	voltha-openolt-adapter-base \
-	voltha-openolt-adapter
-
-VENVDIR := venv-$(shell uname -s | tr '[:upper:]' '[:lower:]')
-
-.PHONY: $(DIRS) $(DIRS_CLEAN) base openolt_adapter
+.PHONY: venv docker-build local-protos local-pyvoltha
 
 # This should to be the first and default target in this Makefile
 help:
 	@echo "Usage: make [<target>]"
 	@echo "where available targets are:"
 	@echo
-	@echo "build             : Build the adapter."
+	@echo "build             : Build the openolt adapter docker image"
+	@echo "help              : Print this help"
+	@echo "docker-push       : Push the docker images to an external repository"
+	@echo "venv              : Build local Python virtualenv"
 	@echo "clean             : Remove files created by the build and tests"
 	@echo "distclean         : Remove venv directory"
-	@echo "help              : Print this help"
-	@echo "rebuild-venv      : Rebuild local Python virtualenv from scratch"
-	@echo "venv              : Build local Python virtualenv if did not exist yet"
-	@echo "containers        : Build all the docker containers"
-	@echo "base              : Build a base docker image with a modern version of pip and requirements.txt installed"
-	@echo "openolt_adapter   : Build the openolt adapter docker container"
-	@echo "tag               : Tag a set of images"
-	@echo "push              : Push the docker images to an external repository"
-	@echo "pull              : Pull the docker images from a repository"
 	@echo
 
-build: containers
 
-containers: base openolt_adapter
+## Docker targets
 
-base:
-	mkdir -p local_imports/
-ifdef LOCAL_PYVOLTHA
-	mkdir -p local_imports/pyvoltha/dist
-	cp ../../pyvoltha/dist/*.tar.gz local_imports/pyvoltha/dist/
-endif
+build: docker-build
+
+local-protos: 
+	mkdir -p local_imports
 ifdef LOCAL_PROTOS
 	mkdir -p local_imports/voltha-protos/dist
 	cp ../../voltha-protos/dist/*.tar.gz local_imports/voltha-protos/dist/
 endif
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter-base:${TAG} -f docker/Dockerfile.base .
+
+local-pyvoltha:
+	mkdir -p local_imports
+ifdef LOCAL_PYVOLTHA
+	mkdir -p local_imports/pyvoltha/dist
+	cp ../../pyvoltha/dist/*.tar.gz local_imports/pyvoltha/dist/
+endif
+
+docker-build: local-protos local-pyvoltha
+	docker build $(DOCKER_BUILD_ARGS) \
+    -t ${ADAPTER_IMAGENAME} \
+    --build-arg LOCAL_PYVOLTHA=$(LOCAL_PYVOLTHA) \
+    --build-arg LOCAL_PROTOS=$(LOCAL_PROTOS) \
+    --build-arg org_label_schema_name="${ADAPTER_NAME}" \
+    --build-arg org_label_schema_version="${VERSION}" \
+    --build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
+    --build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
+    --build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
+    --build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
+    -f docker/Dockerfile.openolt_adapter .
+
+docker-push:
+	docker push ${ADAPTER_IMAGENAME}
 
 
-openolt_adapter: base
-	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-openolt-adapter:${TAG} -f docker/Dockerfile.openolt_adapter .
+## Python venv dev environment
 
-tag: $(patsubst  %,%.tag,$(DOCKER_IMAGE_LIST))
+VENVDIR := venv-openolt
 
-push: tag $(patsubst  %,%.push,$(DOCKER_IMAGE_LIST))
+venv: distclean local-protos local-pyvoltha
+	virtualenv ${VENVDIR};\
+        source ./${VENVDIR}/bin/activate ; set -u ;\
+	rm ${VENVDIR}/local/bin ${VENVDIR}/local/lib ${VENVDIR}/local/include ;\
+        pip install -r requirements.txt
 
-pull: $(patsubst  %,%.pull,$(DOCKER_IMAGE_LIST))
-
-%.tag:
-	docker tag ${REGISTRY}${REPOSITORY}voltha-$(subst .tag,,$@):${TAG} ${TARGET_REGISTRY}${TARGET_REPOSITORY}voltha-$(subst .tag,,$@):${TARGET_TAG}
-
-%.push:
-	docker push ${TARGET_REGISTRY}${TARGET_REPOSITORY}voltha-$(subst .push,,$@):${TARGET_TAG}
-
-%.pull:
-	docker pull ${REGISTRY}${REPOSITORY}voltha-$(subst .pull,,$@):${TAG}
+ifdef LOCAL_PYVOLTHA
+	source ./${VENVDIR}/bin/activate ; set -u ;\
+	pip install local_imports/pyvoltha/dist/*.tar.gz
+endif
+ifdef LOCAL_PROTOS
+	source ./${VENVDIR}/bin/activate ; set -u ;\
+	pip install local_imports/voltha-protos/dist/*.tar.gz
+endif
 
 clean:
 	rm -rf local_imports
@@ -115,39 +110,5 @@ clean:
 
 distclean: clean
 	rm -rf ${VENVDIR}
-
-purge-venv:
-	rm -fr ${VENVDIR}
-
-rebuild-venv: purge-venv venv
-
-venv: ${VENVDIR}/.built
-
-${VENVDIR}/.built:
-	virtualenv -v ${VENVDIR}
-	# these are just symlinks to the other folders in the venv.  this makes it appear as if there are duplicate definitions in PYTHONPATH.  venv bug?
-	rm ${VENVDIR}/local/bin ${VENVDIR}/local/lib ${VENVDIR}/local/include
-	. ${VENVDIR}/bin/activate && \
-	    pip install --upgrade pip; \
-	    if ! pip install -r requirements.txt; \
-	    then \
-	        echo "On MAC OS X, if the installation failed with an error \n'<openssl/opensslv.h>': file not found,"; \
-	        echo "see the BUILD.md file for a workaround"; \
-	    else \
-	        uname -s > ${VENVDIR}/.built; \
-	    fi
-
-ifdef LOCAL_PYVOLTHA
-	mkdir -p local_imports/pyvoltha/dist
-	cp ../../pyvoltha/dist/*.tar.gz local_imports/pyvoltha/dist/
-	. ${VENVDIR}/bin/activate && \
-	    pip install local_imports/pyvoltha/dist/*.tar.gz
-endif
-ifdef LOCAL_PROTOS
-	mkdir -p local_imports/voltha-protos/dist
-	cp ../../voltha-protos/dist/*.tar.gz local_imports/voltha-protos/dist/
-	. ${VENVDIR}/bin/activate && \
-	    pip install local_imports/voltha-protos/dist/*.tar.gz
-endif
 
 # end file
