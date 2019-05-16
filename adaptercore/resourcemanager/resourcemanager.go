@@ -623,6 +623,18 @@ func (RsrcMgr *OpenOltResourceMgr) FreeONUID(IntfID uint32, ONUID []uint32) {
 }
 
 func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(IntfID uint32, ONUID uint32,
+	UNIID uint32, FlowId uint32) {
+	var IntfONUID string
+	var err error
+	IntfONUID = fmt.Sprintf("%d,%d,%d", IntfID, ONUID, UNIID)
+	err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(IntfONUID, FlowId, false)
+	if err != nil {
+		log.Error("Failed to Update flow id infor for %s", IntfONUID)
+	}
+	RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(IntfONUID, FlowId)
+}
+
+func (RsrcMgr *OpenOltResourceMgr) FreeFlowIDs(IntfID uint32, ONUID uint32,
 	UNIID uint32, FlowID []uint32) {
 
 	/* Free flow id for a given interface, onu id and uni id.*/
