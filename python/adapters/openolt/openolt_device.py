@@ -89,7 +89,7 @@ class OpenoltDevice(object):
         self.adapter_proxy = kwargs['adapter_proxy']
         self.device_num = kwargs['device_num']
         self.device = kwargs['device']
-
+	self.onus = dict()  # int_id.onu_id -> OnuDevice()
         self.platform_class = kwargs['support_classes']['platform']
         self.resource_mgr_class = kwargs['support_classes']['resource_mgr']
         self.flow_mgr_class = kwargs['support_classes']['flow_mgr']
@@ -478,7 +478,8 @@ class OpenoltDevice(object):
             self.log.error('onu not found', intf_id=onu_indication.intf_id,
                            onu_id=onu_indication.onu_id)
             return
-
+        onu_key = self.form_onu_key(onu_indication.intf_id, onu_indication.onu_id)
+        self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type, serial_number_str, onu_indication.onu_id, onu_indication.intf_id)
         if self.platform.intf_id_from_pon_port_no(onu_device.parent_port_no) \
                 != onu_indication.intf_id:
             self.log.warn('ONU-is-on-a-different-intf-id-now',
@@ -583,11 +584,27 @@ class OpenoltDevice(object):
 
         self.log.debug("omci indication", intf_id=omci_indication.intf_id,
                        onu_id=omci_indication.onu_id)
-
-        onu_device = yield self.core_proxy.get_child_device(
-            self.device_id, onu_id=omci_indication.onu_id,
-            parent_port_no=self.platform.intf_id_to_port_no(
-                omci_indication.intf_id, Port.PON_OLT), )
+        onu_in_cache = self.onus[self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id)]
+        if onu_in_cache is None:
+            self.log.debug('omci indication for a device not in cache.', intf_id=omci_indication.intf_id,
+                       onu_id=omci_indication.onu_id)
+            onu_device = yield self.core_proxy.get_child_device(
+                self.device_id, onu_id=omci_indication.onu_id,
+                parent_port_no=self.platform.intf_id_to_port_no(
+                    omci_indication.intf_id, Port.PON_OLT), )
+            onu_device_type = onu_device.type
+            onu_device_id = onu_device.id
+            
+            try:
+                serial_number_str = self.stringify_serial_number(omci_indication.serial_number)
+            except Exception as e:
+                serial_number_str = None
+	    #if not exist in cache, then add to cache.                 
+            onu_key = self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id)
+            self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type, serial_number_str, omci_indication.onu_id, omci_indication.intf_id)
+        else:
+            onu_device_type = onu_in_cache.device_type
+            onu_device_id = onu_in_cache.device_id
 
         omci_msg = InterAdapterOmciMessage(message=omci_indication.pkt)
 
@@ -598,8 +615,8 @@ class OpenoltDevice(object):
             msg=omci_msg,
             type=InterAdapterMessageType.OMCI_REQUEST,
             from_adapter="openolt",
-            to_adapter=onu_device.type,
-            to_device_id=onu_device.id
+            to_adapter=onu_device_type,
+            to_device_id=onu_device_id
         )
 
     @inlineCallbacks
@@ -708,7 +725,6 @@ class OpenoltDevice(object):
                           egress_port=egress_port,
                           port_type=egress_port_type)
 
-    @inlineCallbacks
     def process_inter_adapter_message(self, request):
         self.log.debug('process-inter-adapter-message', msg=request)
         try:
@@ -717,9 +733,9 @@ class OpenoltDevice(object):
                 request.body.Unpack(omci_msg)
                 self.log.debug('inter-adapter-recv-omci', omci_msg=omci_msg)
 
-                onu_device_id = request.header.to_device_id
-                onu_device = yield self.core_proxy.get_device(onu_device_id)
-                self.send_proxied_message(onu_device, omci_msg.message)
+                #onu_device_id = request.header.to_device_id
+                #onu_device = yield self.core_proxy.get_device(onu_device_id)
+                self.send_proxied_message( omci_msg)
 
             else:
                 self.log.error("inter-adapter-unhandled-type", request=request)
@@ -727,21 +743,20 @@ class OpenoltDevice(object):
         except Exception as e:
             self.log.exception("error-processing-inter-adapter-message", e=e)
 
-    def send_proxied_message(self, onu_device, msg):
+    def send_proxied_message(self, omci_msg):
 
-        if onu_device.connect_status != ConnectStatus.REACHABLE:
+        if omci_msg.connect_status != ConnectStatus.REACHABLE:
             self.log.debug('ONU is not reachable, cannot send OMCI',
-                           serial_number=onu_device.serial_number,
-                           intf_id=onu_device.proxy_address.channel_id,
-                           onu_id=onu_device.proxy_address.onu_id)
+                           intf_id=omci_msg.proxy_address.channel_id,
+                           onu_id=omci_msg.proxy_address.onu_id)
             return
 
-        omci = openolt_pb2.OmciMsg(intf_id=onu_device.proxy_address.channel_id,
-                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
+        omci = openolt_pb2.OmciMsg(intf_id=omci_msg.proxy_address.channel_id,
+                                   onu_id=omci_msg.proxy_address.onu_id, pkt=str(omci_msg.message))
         self.stub.OmciMsgOut(omci)
 
-        self.log.debug("omci-message-sent", intf_id=onu_device.proxy_address.channel_id,
-                                   onu_id=onu_device.proxy_address.onu_id, pkt=str(msg))
+        self.log.debug("omci-message-sent", intf_id=omci_msg.proxy_address.channel_id,
+                                   onu_id=omci_msg.proxy_address.onu_id, pkt=str(omci_msg.message))
 
     @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
@@ -1028,3 +1043,14 @@ class OpenoltDevice(object):
 
     def simulate_alarm(self, alarm):
         self.alarm_mgr.simulate_alarm(alarm)
+
+    def form_onu_key(self, intf_id, onu_id):
+        return str(intf_id) + "." + str(onu_id)
+        
+class OnuDevice(object):
+    def __init__(self, device_id, device_type, serialnumber, onu_id, intf_id):
+        self.device_id = device_id
+        self.device_type = device_type
+        self.serialnumber = serialnumber
+        self.onu_id = onu_id
+        self.intf_id = intf_id
