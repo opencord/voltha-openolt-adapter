@@ -16,6 +16,9 @@
 package adaptercore
 
 import (
+	"errors"
+	"github.com/opencord/voltha-go/rw_core/utils"
+	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	voltha "github.com/opencord/voltha-protos/go/voltha"
 )
 
@@ -165,4 +168,47 @@ func IsControllerBoundFlow(outPort uint32) bool {
 		}
 	}
 	return false
+}
+
+func OnuIdFromUniPortNum(portNum uint32) uint32 {
+	return (portNum >> 4) & 0x7F
+}
+
+func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, error) {
+	var uniPortNo uint32 = 0
+	var ponIntf uint32 = 0
+	var onuId uint32 = 0
+	var uniId uint32 = 0
+
+	if flowDirection == "upstream" {
+		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
+			for _, field := range utils.GetOfbFields(flow) {
+				if field.GetType() == utils.IN_PORT {
+					uniPortNo = field.GetPort()
+					break
+				}
+			}
+		}
+	} else if flowDirection == "downstream" {
+		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
+			for _, action := range utils.GetActions(flow) {
+				if action.Type == utils.OUTPUT {
+					if out := action.GetOutput(); out != nil {
+						uniPortNo = out.GetPort()
+					}
+					break
+				}
+			}
+		}
+	}
+
+	if uniPortNo == 0 {
+		return 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
+	}
+
+	ponIntf = IntfIdFromUniPortNum(uniPortNo)
+	onuId = OnuIdFromUniPortNum(uniPortNo)
+	uniId = UniIdFromPortNum(uniPortNo)
+
+	return ponIntf, onuId, uniId, nil
 }
