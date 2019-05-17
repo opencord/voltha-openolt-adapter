@@ -143,14 +143,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:816a9a3902cc9d973a62475b829ab044cd46bbd7f064d317372ff868724cce89"
-  name = "github.com/gyuho/goraph"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "d460590d53a91b1f29347ca9b01d1e8c158cbeb2"
-  version = "v2.0"
-
-[[projects]]
   digest = "1:9537873f2fc92467f451178506405fae087efc624d8d92644042209a03a2bfa0"
   name = "github.com/hashicorp/consul"
   packages = ["api"]
@@ -224,7 +216,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b442c37d803107ffcd43329b8e6792c360cd3f05fb228a5439cdbffd510caef2"
+  digest = "1:1722471726bccf3da5fe247624549eb517aaeb73ac1cb40ad3a839d052c3e98f"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -235,13 +227,10 @@
     "db/kvstore",
     "db/model",
     "kafka",
-    "rw_core/coreIf",
-    "rw_core/flow_decomposition",
-    "rw_core/graph",
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "f6516ddf375c4e1b3b46b07d9da8af15b4c3deba"
+  revision = "2e3051a929df21300a8f41d2d16244cd621293f6"
 
 [[projects]]
   branch = "master"
@@ -256,7 +245,7 @@
     "go/voltha",
   ]
   pruneopts = "UT"
-  revision = "12fc0af25cd0e34555535be9949af64556569fcb"
+  revision = "aa26066f768886fc79374fd2c56e89191844779d"
 
 [[projects]]
   digest = "1:d886a3c32c8c1a770d07e36340f061d3afc948d065ffc3c9a19b01b34d4f0b65"
@@ -453,7 +442,7 @@
     "github.com/opencord/voltha-go/db/kvstore",
     "github.com/opencord/voltha-go/db/model",
     "github.com/opencord/voltha-go/kafka",
-    "github.com/opencord/voltha-go/rw_core/flow_decomposition",
+    "github.com/opencord/voltha-go/rw_core/utils",
     "github.com/opencord/voltha-protos/go/common",
     "github.com/opencord/voltha-protos/go/inter_container",
     "github.com/opencord/voltha-protos/go/openflow_13",
