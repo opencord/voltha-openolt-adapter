@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d89e5e09_52a76753",
+        "filename": "python/docker/Dockerfile.openolt_adapter",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000011
+      },
+      "writtenOn": "2019-05-17T15:12:04Z",
+      "side": 1,
+      "message": "generally it\u0027s better to use pip to update pip, but this is somewhat broken in 16.04. OK for now.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 26
+      },
+      "revId": "8b823f61207fbe597c11f598599b58c8ad6d19af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
