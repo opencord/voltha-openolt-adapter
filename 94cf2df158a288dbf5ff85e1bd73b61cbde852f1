@@ -22,6 +22,30 @@
       "revId": "94cf2df158a288dbf5ff85e1bd73b61cbde852f1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ddad4669_1acae463",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-05-18T22:05:48Z",
+      "side": 1,
+      "message": "Yes the golang one will become the one to use.  \n\nHow about below.  I figure the image that gets the DOCKER_TAG without the extra bit of info can be the current preferred one.  And when that changes swap it.  Maybe something like:\n\nGOADAPTER_IMAGENAME      :\u003d ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-go\nPYTHONADAPTER_IMAGENAME  :\u003d ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}\n\nAnd when the golang one is the better one, it becomes:\n\nGOADAPTER_IMAGENAME      :\u003d ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}\nPYTHONADAPTER_IMAGENAME  :\u003d ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-py\n\n\nThat way :latest, :master, :2.0.0-dev, or :2.0.0 works basically as expected.   Its just at some point the golang one will take over the \"base\" tag.  But you can get the -go or -py suffixed one if you want it.\n\nWe also have to see how Zack\u0027s build system deals with it given it wants a certain SemVer syntax.",
+      "parentUuid": "04b0eb0b_9c755ce8",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 23
+      },
+      "revId": "94cf2df158a288dbf5ff85e1bd73b61cbde852f1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
