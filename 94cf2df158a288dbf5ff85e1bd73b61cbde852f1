@@ -46,6 +46,30 @@
       "revId": "94cf2df158a288dbf5ff85e1bd73b61cbde852f1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d0c47f5_0ab945e1",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-05-18T23:05:40Z",
+      "side": 1,
+      "message": "how about push three images ${DOCKER_TAG}-go, ${DOCKER_TAG}-py, and ${DOCKER_TAG}, where ${DOCKER_TAG} is just an alternate tag for -go or -py. That way if you want a specific one the pattern remains the same (i.e. you don\u0027t have to guess the mapping from plain ${DOCKER_TAG}?",
+      "parentUuid": "ddad4669_1acae463",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 23
+      },
+      "revId": "94cf2df158a288dbf5ff85e1bd73b61cbde852f1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
