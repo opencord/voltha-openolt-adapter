@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04b0eb0b_9c755ce8",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-05-18T21:50:54Z",
+      "side": 1,
+      "message": "Just a thought, why not a single image \"voltha-openolt-adapter\" and then use the tag for language/version:\n\nvoltha-openolt-adapter:2.0.0-go\nvoltha-openolt-adapter:20.0-py\n\nI am assuming that at some point one of these goes away",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 23
+      },
+      "revId": "94cf2df158a288dbf5ff85e1bd73b61cbde852f1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
