@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/mdlayher/ethernet"
@@ -37,6 +39,7 @@ import (
 	oop "github.com/opencord/voltha-protos/go/openolt"
 	"github.com/opencord/voltha-protos/go/voltha"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 //DeviceHandler will interact with the OLT device.
@@ -57,6 +60,7 @@ type DeviceHandler struct {
 	clientCon     *grpc.ClientConn
 	flowMgr       *OpenOltFlowMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
+	discOnus      map[string]bool
 }
 
 //NewDeviceHandler creates a new device handler
@@ -71,6 +75,7 @@ func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.De
 	dh.device = cloned
 	dh.openOLT = adapter
 	dh.exitChannel = make(chan int, 1)
+	dh.discOnus = make(map[string]bool)
 	dh.lockDevice = sync.RWMutex{}
 
 	//TODO initialize the support classes.
@@ -234,8 +239,7 @@ func (dh *DeviceHandler) readIndications() {
 			}*/
 
 			sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
-			//FIXME: Duplicate child devices being create in go routine
-			dh.onuDiscIndication(onuDiscInd, onuId, sn)
+			go dh.onuDiscIndication(onuDiscInd, onuId, sn)
 		case *oop.Indication_OnuInd:
 			onuInd := indication.GetOnuInd()
 			log.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd})
@@ -299,6 +303,21 @@ func (dh *DeviceHandler) doStateDown() error {
 	if err := dh.coreProxy.DeviceStateUpdate(nil, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceId": device.Id, "error": err})
 		return err
+	}
+
+	//get the child device for the parent device
+	onuDevices, err := dh.coreProxy.GetChildDevices(nil, dh.device.Id)
+	if err != nil {
+		log.Errorw("failed to get child devices information", log.Fields{"deviceId": dh.device.Id, "error": err})
+		return err
+	}
+	for _, onuDevice := range onuDevices.Items {
+
+		// Update onu state as down in onu adapter
+		onuInd := oop.OnuIndication{}
+		onuInd.OperState = "down"
+		dh.AdapterProxy.SendInterAdapterMessage(nil, &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST, "openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+
 	}
 	log.Debugw("do-state-down-end", log.Fields{"deviceId": device.Id})
 	return nil
@@ -503,7 +522,12 @@ func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.
 	var pir uint32 = 1000000
 	Onu := oop.Onu{IntfId: intfId, OnuId: uint32(onuId), SerialNumber: serialNum, Pir: pir}
 	if _, err := dh.Client.ActivateOnu(context.Background(), &Onu); err != nil {
-		log.Errorw("activate-onu-failed", log.Fields{"Onu": Onu})
+		st, _ := status.FromError(err)
+		if st.Code() == codes.AlreadyExists {
+			log.Debug("ONU activation is in progress", log.Fields{"SerialNumber": serialNumber})
+		} else {
+			log.Errorw("activate-onu-failed", log.Fields{"Onu": Onu, "err ": err})
+		}
 	} else {
 		log.Infow("activated-onu", log.Fields{"SerialNumber": serialNumber})
 	}
@@ -512,14 +536,39 @@ func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.
 func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, onuId uint32, sn string) error {
 	channelId := onuDiscInd.GetIntfId()
 	parentPortNo := IntfIdToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
-	if err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId)); err != nil {
-		log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
-		return err
+	if _, ok := dh.discOnus[sn]; ok {
+		log.Debugw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
+		return nil
 	}
 
+	dh.lockDevice.Lock()
+	dh.discOnus[sn] = true
+	dh.lockDevice.Unlock()
+	// evict the onu serial number from local cache
+	defer func() {
+		delete(dh.discOnus, sn)
+	}()
+
 	kwargs := make(map[string]interface{})
+	if sn != "" {
+		kwargs["serial_number"] = sn
+	}
 	kwargs["onu_id"] = onuId
 	kwargs["parent_port_no"] = parentPortNo
+	onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
+	if onuDevice == nil {
+		if err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId)); err != nil {
+			log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
+			return err
+		}
+	}
+	onuDevice, err = dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
+	if err != nil {
+		log.Errorw("failed to get ONU device information", log.Fields{"err": err})
+		return err
+	}
+	dh.coreProxy.DeviceStateUpdate(nil, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
+	log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id})
 
 	for i := 0; i < 10; i++ {
 		if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {

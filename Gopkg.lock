@@ -216,7 +216,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1722471726bccf3da5fe247624549eb517aaeb73ac1cb40ad3a839d052c3e98f"
+  digest = "1:d43c4cb219b7c047c50c055d29d0289a7b045ba4da6bc97cd03a3174f9946b0f"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -230,7 +230,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "1678e19a6243b0d8b049ec03df0c11e96e1d8b8f"
+  revision = "89176ab6a90c6657d6fc2600edf5832355230c39"
 
 [[projects]]
   branch = "master"
@@ -449,6 +449,8 @@
     "github.com/opencord/voltha-protos/go/openolt",
     "github.com/opencord/voltha-protos/go/voltha",
     "google.golang.org/grpc",
+    "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/status",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
