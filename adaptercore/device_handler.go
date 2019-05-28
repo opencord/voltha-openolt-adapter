@@ -344,6 +344,35 @@ func (dh *DeviceHandler) postInit() error {
 // doStateConnected get the device info and update to voltha core
 func (dh *DeviceHandler) doStateConnected() error {
 	log.Debug("OLT device has been connected")
+
+	// Case where OLT is disabled and then rebooted.
+	if dh.adminState == "down" {
+		log.Debugln("do-state-connected--device-admin-state-down")
+		device, err := dh.coreProxy.GetDevice(nil, dh.device.Id, dh.device.Id)
+		if err != nil || device == nil {
+			/*TODO: needs to handle error scenarios */
+			log.Errorw("Failed to fetch device device", log.Fields{"err": err})
+		}
+
+		cloned := proto.Clone(device).(*voltha.Device)
+		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
+		cloned.OperStatus = voltha.OperStatus_UNKNOWN
+		dh.device = cloned
+		if err := dh.coreProxy.DeviceStateUpdate(nil, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+			log.Errorw("error-updating-device-state", log.Fields{"deviceId": dh.device.Id, "error": err})
+		}
+
+		// Since the device was disabled before the OLT was rebooted, enfore the OLT to be Disabled after re-connection.
+		_, err = dh.Client.DisableOlt(context.Background(), new(oop.Empty))
+		if err != nil {
+			log.Errorw("Failed to disable olt ", log.Fields{"err": err})
+		}
+
+		// Start reading indications
+		go dh.readIndications()
+		return nil
+	}
+
 	deviceInfo, err := dh.Client.GetDeviceInfo(context.Background(), new(oop.Empty))
 	if err != nil {
 		log.Errorw("Failed to fetch device info", log.Fields{"err": err})
@@ -357,7 +386,6 @@ func (dh *DeviceHandler) doStateConnected() error {
 	dh.device.Root = true
 	dh.device.Vendor = deviceInfo.Vendor
 	dh.device.Model = deviceInfo.Model
-	dh.device.ConnectStatus = voltha.ConnectStatus_REACHABLE
 	dh.device.SerialNumber = deviceInfo.DeviceSerialNumber
 	dh.device.HardwareVersion = deviceInfo.HardwareVersion
 	dh.device.FirmwareVersion = deviceInfo.FirmwareVersion
@@ -772,6 +800,17 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 		return err
 	}
 	log.Debugw("ReEnableDevice-end", log.Fields{"deviceId": device.Id})
+
+	return nil
+}
+
+func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
+	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed to reboot olt ", log.Fields{"err": err})
+		return err
+	}
+
+	log.Debugw("rebooted-device-successfully", log.Fields{"deviceId": device.Id})
 
 	return nil
 }
