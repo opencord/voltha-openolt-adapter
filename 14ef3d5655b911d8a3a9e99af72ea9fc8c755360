@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "585e13b5_9d515c41",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-04T07:52:51Z",
+      "side": 1,
+      "message": "Doesn\u0027t this result in a KeyError when you directly try to access the key when it doesn\u0027t exist?\n\nI think you should rather use the \u0027get\u0027 method on the dictionary to get the default output as \u0027None\u0027 when the key doesn\u0027t exist, like shown below.\n\nonu_in_cache \u003d self.onus.get(self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id), default\u003dNone)\n\nWhen the key doesn\u0027t exist, it returns None.",
+      "revId": "14ef3d5655b911d8a3a9e99af72ea9fc8c755360",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "53c696c5_62c9c75f",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-04T07:52:51Z",
+      "side": 1,
+      "message": "can you please remove these redundant spaces",
+      "revId": "14ef3d5655b911d8a3a9e99af72ea9fc8c755360",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "32ad238a_1962d864",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-04T07:52:51Z",
+      "side": 1,
+      "message": "can you please remove these additional spaces.",
+      "revId": "14ef3d5655b911d8a3a9e99af72ea9fc8c755360",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7ad8f1b_86cf019c",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1049,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-04T07:52:51Z",
+      "side": 1,
+      "message": "Remove this additional space.\nAlso, I think pylint recommends two lines of gap between class definitions.",
+      "revId": "14ef3d5655b911d8a3a9e99af72ea9fc8c755360",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
