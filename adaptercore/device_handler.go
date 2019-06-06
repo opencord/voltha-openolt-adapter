@@ -61,6 +61,28 @@ type DeviceHandler struct {
 	flowMgr       *OpenOltFlowMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
 	discOnus      map[string]bool
+	onus          map[string]*OnuDevice
+}
+
+type OnuDevice struct {
+	deviceId      string
+	deviceType    string
+	serialNumber  string
+	onuId         uint32
+	intfId        uint32
+	proxyDeviceId string
+}
+
+//NewOnuDevice creates a new Onu Device
+func NewOnuDevice(devId string, deviceTp string, serialNum string, onuId uint32, intfId uint32, proxyDevId string) *OnuDevice {
+	var device OnuDevice
+	device.deviceId = devId
+	device.deviceType = deviceTp
+	device.serialNumber = serialNum
+	device.onuId = onuId
+	device.intfId = intfId
+	device.proxyDeviceId = proxyDevId
+	return &device
 }
 
 //NewDeviceHandler creates a new device handler
@@ -77,6 +99,7 @@ func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.De
 	dh.exitChannel = make(chan int, 1)
 	dh.discOnus = make(map[string]bool)
 	dh.lockDevice = sync.RWMutex{}
+	dh.onus = make(map[string]*OnuDevice)
 
 	//TODO initialize the support classes.
 	return &dh
@@ -477,25 +500,44 @@ func (dh *DeviceHandler) GetOfpPortInfo(device *voltha.Device, portNo int64) (*i
 
 func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	log.Debugw("omci indication", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
+	var deviceType string
+	var deviceId string
+	var proxyDeviceId string
 
-	ponPort := IntfIdToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
-	kwargs := make(map[string]interface{})
-	kwargs["onu_id"] = omciInd.OnuId
-	kwargs["parent_port_no"] = ponPort
+	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
+	if onuInCache, ok := dh.onus[onuKey]; !ok {
+		log.Debugw("omci indication for a device not in cache.", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
+		ponPort := IntfIdToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
+		kwargs := make(map[string]interface{})
+		kwargs["onu_id"] = omciInd.OnuId
+		kwargs["parent_port_no"] = ponPort
 
-	if onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); err != nil {
-		log.Errorw("onu not found", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
-		return err
-	} else {
-		omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
-		if sendErr := dh.AdapterProxy.SendInterAdapterMessage(context.Background(), omciMsg,
-			ic.InterAdapterMessageType_OMCI_REQUEST, dh.deviceType, onuDevice.Type,
-			onuDevice.Id, onuDevice.ProxyAddress.DeviceId, ""); sendErr != nil {
-			log.Errorw("send omci request error", log.Fields{"fromAdapter": dh.deviceType, "toAdapter": onuDevice.Type, "onuId": onuDevice.Id, "proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
-			return sendErr
+		if onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); err != nil {
+			log.Errorw("onu not found", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
+			return err
+		} else {
+			deviceType = onuDevice.Type
+			deviceId = onuDevice.Id
+			proxyDeviceId = onuDevice.ProxyAddress.DeviceId
+			//if not exist in cache, then add to cache.
+			dh.onus[onuKey] = NewOnuDevice(deviceId, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceId)
 		}
-		return nil
+	} else {
+		//found in cache
+		log.Debugw("omci indication for a device in cache.", log.Fields{"intfId": omciInd.IntfId, "onuId": omciInd.OnuId})
+		deviceType = onuInCache.deviceType
+		deviceId = onuInCache.deviceId
+		proxyDeviceId = onuInCache.proxyDeviceId
 	}
+
+	omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
+	if sendErr := dh.AdapterProxy.SendInterAdapterMessage(context.Background(), omciMsg,
+		ic.InterAdapterMessageType_OMCI_REQUEST, dh.deviceType, deviceType,
+		deviceId, proxyDeviceId, ""); sendErr != nil {
+		log.Errorw("send omci request error", log.Fields{"fromAdapter": dh.deviceType, "toAdapter": deviceType, "onuId": deviceId, "proxyDeviceId": proxyDeviceId})
+		return sendErr
+	}
+	return nil
 }
 
 // Process_inter_adapter_message process inter adater message
@@ -518,11 +560,17 @@ func (dh *DeviceHandler) Process_inter_adapter_message(msg *ic.InterAdapterMessa
 			return err
 		}
 
-		if onuDevice, err := dh.coreProxy.GetDevice(nil, dh.device.Id, toDeviceId); err != nil {
-			log.Errorw("onu not found", log.Fields{"onuDeviceId": toDeviceId, "error": err})
-			return err
+		if omciMsg.GetProxyAddress() == nil {
+			if onuDevice, err := dh.coreProxy.GetDevice(nil, dh.device.Id, toDeviceId); err != nil {
+				log.Errorw("onu not found", log.Fields{"onuDeviceId": toDeviceId, "error": err})
+				return err
+			} else {
+				log.Debugw("device retrieved from core", log.Fields{"msgId": msgId, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceId": toDeviceId, "proxyDeviceId": proxyDeviceId})
+				dh.sendProxiedMessage(onuDevice, omciMsg)
+			}
 		} else {
-			dh.sendProxiedMessage(onuDevice, omciMsg)
+			log.Debugw("Proxy Address found in omci message", log.Fields{"msgId": msgId, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceId": toDeviceId, "proxyDeviceId": proxyDeviceId})
+			dh.sendProxiedMessage(nil, omciMsg)
 		}
 
 	} else {
@@ -532,15 +580,27 @@ func (dh *DeviceHandler) Process_inter_adapter_message(msg *ic.InterAdapterMessa
 }
 
 func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *ic.InterAdapterOmciMessage) {
-	if onuDevice.ConnectStatus != voltha.ConnectStatus_REACHABLE {
-		log.Debugw("ONU is not reachable, cannot send OMCI", log.Fields{"serialNumber": onuDevice.SerialNumber, "intfId": onuDevice.ProxyAddress.GetChannelId(), "onuId": onuDevice.ProxyAddress.GetOnuId()})
+	var intfId uint32
+	var onuId uint32
+	var status common.ConnectStatus_ConnectStatus
+	if onuDevice != nil {
+		intfId = onuDevice.ProxyAddress.GetChannelId()
+		onuId = onuDevice.ProxyAddress.GetOnuId()
+		status = onuDevice.ConnectStatus
+	} else {
+		intfId = omciMsg.GetProxyAddress().GetChannelId()
+		onuId = omciMsg.GetProxyAddress().GetOnuId()
+		status = omciMsg.GetConnectStatus()
+	}
+	if status != voltha.ConnectStatus_REACHABLE {
+		log.Debugw("ONU is not reachable, cannot send OMCI", log.Fields{"intfId": intfId, "onuId": onuId})
 		return
 	}
 
-	omciMessage := &oop.OmciMsg{IntfId: onuDevice.ProxyAddress.GetChannelId(), OnuId: onuDevice.ProxyAddress.GetOnuId(), Pkt: omciMsg.Message}
+	omciMessage := &oop.OmciMsg{IntfId: intfId, OnuId: onuId, Pkt: omciMsg.Message}
 
 	dh.Client.OmciMsgOut(context.Background(), omciMessage)
-	log.Debugw("omci-message-sent", log.Fields{"serialNumber": onuDevice.SerialNumber, "intfId": onuDevice.ProxyAddress.GetChannelId(), "omciMsg": string(omciMsg.Message)})
+	log.Debugw("omci-message-sent", log.Fields{"intfId": intfId, "onuId": onuId, "omciMsg": string(omciMsg.GetMessage())})
 }
 
 func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.SerialNumber, serialNumber string) {
@@ -883,4 +943,9 @@ func (dh *DeviceHandler) PacketOut(egress_port_no int, packet *of.OfpPacketOut) 
 		log.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{"egress_port_no": egress_port_no, "egressPortType": egressPortType})
 	}
 	return nil
+}
+
+func (dh *DeviceHandler) formOnuKey(intfId uint32, onuId uint32) string {
+	return ("" + strconv.Itoa(int(intfId)) + "." + strconv.Itoa(int(onuId)))
+
 }
