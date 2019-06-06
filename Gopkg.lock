@@ -234,7 +234,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0639592e6d2690fed05e09294b11ac25d7364653b1638882bd412f89fbb791b8"
+  digest = "1:430a17be21236a9945a3234035783cbd1ac8bfe66afafe6fc87551c7f3340ee9"
   name = "github.com/opencord/voltha-protos"
   packages = [
     "go/common",
@@ -245,7 +245,7 @@
     "go/voltha",
   ]
   pruneopts = "UT"
-  revision = "aa26066f768886fc79374fd2c56e89191844779d"
+  revision = "4b0dab2699ecc30ef043b4113e6a754e5c4342e7"
 
 [[projects]]
   digest = "1:d886a3c32c8c1a770d07e36340f061d3afc948d065ffc3c9a19b01b34d4f0b65"
