@@ -89,7 +89,7 @@ class OpenoltDevice(object):
         self.adapter_proxy = kwargs['adapter_proxy']
         self.device_num = kwargs['device_num']
         self.device = kwargs['device']
-	self.onus = dict()  # int_id.onu_id -> OnuDevice()
+        self.onus = dict()  # int_id.onu_id -> OnuDevice()
         self.platform_class = kwargs['support_classes']['platform']
         self.resource_mgr_class = kwargs['support_classes']['resource_mgr']
         self.flow_mgr_class = kwargs['support_classes']['flow_mgr']
@@ -584,7 +584,7 @@ class OpenoltDevice(object):
 
         self.log.debug("omci indication", intf_id=omci_indication.intf_id,
                        onu_id=omci_indication.onu_id)
-        onu_in_cache = self.onus.get(self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id), default=None)
+        onu_in_cache = self.onus.get(self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id), None)
         if onu_in_cache is None:
             self.log.debug('omci indication for a device not in cache.', intf_id=omci_indication.intf_id,
                        onu_id=omci_indication.onu_id)
