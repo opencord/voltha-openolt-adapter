@@ -643,21 +643,13 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, on
 	}
 	kwargs["onu_id"] = onuId
 	kwargs["parent_port_no"] = parentPortNo
-	onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
+	onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
 	if onuDevice == nil {
 		if err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId)); err != nil {
 			log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
 			return err
 		}
 	}
-	onuDevice, err = dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
-	if err != nil {
-		log.Errorw("failed to get ONU device information", log.Fields{"err": err})
-		return err
-	}
-	dh.coreProxy.DeviceStateUpdate(nil, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
-	log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id})
-
 	for i := 0; i < 10; i++ {
 		if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {
 			dh.activateONU(onuDiscInd.IntfId, int64(onuId), onuDiscInd.SerialNumber, sn)
