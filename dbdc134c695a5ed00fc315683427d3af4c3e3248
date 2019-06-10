@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34e6f184_f34897a2",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-06-10T09:23:35Z",
+      "side": 0,
+      "message": "In principle I agree to the fix as it is removing things which the ONU adapter is doing.\n\nBut if you look into the code just below, we are again getting the childDevice and operating on it and potentially that also could fail and looks like that is why it is being tried multiple times with sleeps, which according to me is not an elegant solution.\n\nIt would be good to understand as to why the core behaves in this way. Normally the expectation would be that once a create (ChildDeviceDetected in this case) we should be able to get and modify it (DeviceStateUpdate in this case).\n\nAdding Khen to the review for his comments.",
+      "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
