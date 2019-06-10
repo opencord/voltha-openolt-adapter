@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25fac9ac_4848288d",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-10T15:00:36Z",
+      "side": 1,
+      "message": "can be removed if not needed",
+      "range": {
+        "startLine": 152,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 19
+      },
+      "revId": "ffe7b1703c3a222c30c7ad514d9fa65e1d1a4ad9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2e203226_5ee2b646",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-10T15:00:36Z",
+      "side": 1,
+      "message": "these braces also should be removed.",
+      "revId": "ffe7b1703c3a222c30c7ad514d9fa65e1d1a4ad9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "494ec373_48860dc2",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 907,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-10T15:00:36Z",
+      "side": 1,
+      "message": "can you please document more about this function. It is clear to me, but will be helpful for others.\nAlso either all the utility function needs to move into its own go file, or towards one section of this file.",
+      "revId": "ffe7b1703c3a222c30c7ad514d9fa65e1d1a4ad9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
