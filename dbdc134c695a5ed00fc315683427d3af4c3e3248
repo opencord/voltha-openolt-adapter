@@ -34,6 +34,24 @@
       "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6d2e86fa_8a8f453e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-06-10T16:03:38Z",
+      "side": 0,
+      "message": "Amit as you said, the code below also fails for the first query. And I also agree that this is not an elegant solution. VOL-1586 was a task pointing this problem, but in fact the solution in this task is not also an elegant solution. We have to define a message between core and olt-adapter which will be sent from core to adapter when core ensures all thinks done by childDevicedetected, thus onu-adapter informed and the child device inserted to KV store. Olt-adapter can send activatONU to device after this message is received. But still the DeviceStatusUpdate here is unnecessary.",
+      "parentUuid": "02249ecb_8b4fb3e0",
+      "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
