@@ -50,8 +50,6 @@ const (
 	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
 	DEFAULT_MGMT_VLAN = 4091
 
-	DEFAULT_NETWORK_INTERFACE_ID = 0
-
 	// Openolt Flow
 	UPSTREAM        = "upstream"
 	DOWNSTREAM      = "downstream"
@@ -353,13 +351,18 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfId uint32, onuId uint32, uniId uint32, 
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
+	networkIntfId, err := f.getNniIntfID()
+	if err != nil {
+		log.Error("Error in getting NNI interface ID, Failed to add HSIA flow")
+		return
+	}
 	flow := openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
 		UniId:         int32(uniId),
 		FlowId:        flowId,
 		FlowType:      direction,
 		AllocId:       int32(allocId),
-		NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID, // one NNI port is supported now
+		NetworkIntfId: int32(networkIntfId),
 		GemportId:     int32(gemPortId),
 		Classifier:    classifierProto,
 		Action:        actionProto,
@@ -415,6 +418,11 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfId uint32, onuId uint32, uniId uint
 		log.Error("Error in making action protobuf for ul flow")
 		return
 	}
+	networkIntfId, err := f.getNniIntfID()
+	if err != nil {
+		log.Error("Error in getting NNI interface ID, Failed to add DHCP Trap Flow")
+		return
+	}
 
 	dhcpFlow = openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
@@ -422,7 +430,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfId uint32, onuId uint32, uniId uint
 		FlowId:        flowID,
 		FlowType:      UPSTREAM,
 		AllocId:       int32(allocId),
-		NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID, // one NNI port is supported now
+		NetworkIntfId: int32(networkIntfId),
 		GemportId:     int32(gemPortId),
 		Classifier:    classifierProto,
 		Action:        actionProto,
@@ -483,13 +491,18 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfId uint32, onuId uint32, uniId uint32,
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
+	networkIntfId, err := f.getNniIntfID()
+	if err != nil {
+		log.Error("Error in getting NNI interface ID, Failed to add EAPOL Flow")
+		return
+	}
 	upstreamFlow = openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
 		UniId:         int32(uniId),
 		FlowId:        uplinkFlowId,
 		FlowType:      UPSTREAM,
 		AllocId:       int32(allocId),
-		NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID, // one NNI port is supported now
+		NetworkIntfId: int32(networkIntfId),
 		GemportId:     int32(gemPortId),
 		Classifier:    classifierProto,
 		Action:        actionProto,
@@ -556,7 +569,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfId uint32, onuId uint32, uniId uint32,
 			FlowId:        downlinkFlowId,
 			FlowType:      DOWNSTREAM,
 			AllocId:       int32(allocId),
-			NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID,
+			NetworkIntfId: int32(networkIntfId),
 			GemportId:     int32(gemPortId),
 			Classifier:    classifierProto,
 			Action:        actionProto,
@@ -1052,7 +1065,11 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 	uniId := -1
 	gemPortId := -1
 	allocId := -1
-	networkInterfaceId := DEFAULT_NETWORK_INTERFACE_ID
+	networkInterfaceId, err := f.getNniIntfID()
+	if err != nil {
+		log.Error("Error in getting NNI interface ID, Failed to add DHCP Trap flow on NNI")
+		return
+	}
 	flowStoreCookie := getFlowStoreCookie(classifier, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceId), uint32(onuId), uint32(uniId), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
@@ -1080,9 +1097,9 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		UniId:         int32(uniId), // UniId not used
 		FlowId:        flowId,
 		FlowType:      DOWNSTREAM,
-		AllocId:       int32(allocId),               // AllocId not used
-		NetworkIntfId: DEFAULT_NETWORK_INTERFACE_ID, // one NNI port is supported now
-		GemportId:     int32(gemPortId),             // GemportId not used
+		AllocId:       int32(allocId), // AllocId not used
+		NetworkIntfId: int32(networkInterfaceId),
+		GemportId:     int32(gemPortId), // GemportId not used
 		Classifier:    classifierProto,
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
@@ -1099,4 +1116,23 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		}
 	}
 	return
+}
+
+func (f *OpenOltFlowMgr) getNniIntfID() (int32, error) {
+	device, err := f.deviceHandler.coreProxy.GetDevice(nil, f.deviceHandler.deviceId, f.deviceHandler.deviceId)
+	if err != nil {
+		log.Errorw("Failed to get device", log.Fields{"device-id": f.deviceHandler.deviceId})
+		return -1, err
+	}
+	var portNum uint32
+	for _, port := range device.Ports {
+		if port.Type == voltha.Port_ETHERNET_NNI {
+			portNum = port.PortNo
+			break
+		}
+	}
+
+	nniIntfId := IntfIdFromNniPortNum(portNum)
+	log.Debugw("NNI interface Id", log.Fields{"intf-id": nniIntfId})
+	return int32(nniIntfId), nil
 }
