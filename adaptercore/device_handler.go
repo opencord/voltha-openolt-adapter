@@ -462,6 +462,7 @@ func (dh *DeviceHandler) AdoptDevice(device *voltha.Device) {
 func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapability, error) {
 	return &ic.SwitchCapability{
 		Desc: &of.OfpDesc{
+			MfrDesc:   "VOLTHA Project",
 			HwDesc:    "open_pon",
 			SwDesc:    "open_pon",
 			SerialNum: dh.device.SerialNumber,
