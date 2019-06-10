@@ -16,6 +16,24 @@
       "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02249ecb_8b4fb3e0",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2019-06-10T13:47:29Z",
+      "side": 0,
+      "message": "Please take a look at the logs in the Core.   This behavior is unexpected. Seems like a bug to me.",
+      "parentUuid": "34e6f184_f34897a2",
+      "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
