@@ -70,6 +70,24 @@
       "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dabd4c67_0a17f181",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2019-06-11T13:49:10Z",
+      "side": 0,
+      "message": "I read the Jira and the comments here but I still don\u0027t fully get a picture on what\u0027s going on.  The moment a childdevicedetected message is received in the core that child device is created in the core.     If there was a sequence diagram that would show the interactions (using the actual API names) between the core/onu adapter and olt adapter then it would be clearer on what issue we are trying to resolve.  Is it possible to create one?\n\nAlso, the python openolt adapter did not seem to have encountered this issue.  Is there something else missing?\n\nIf you send me the log in the core for the above use case I can get a better understanding as well.\n\nThanks\nKhen",
+      "parentUuid": "e7cac553_37cc70f7",
+      "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
