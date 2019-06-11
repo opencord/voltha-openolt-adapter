@@ -52,6 +52,24 @@
       "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7cac553_37cc70f7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 600,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-06-11T12:44:32Z",
+      "side": 0,
+      "message": "So basically the problem is that activation indication can come into the olt adapter before the child device adapter is actually created.\n\n@Khen: Would you agree if we create an API on the adapters (it could be called childDeviceCreated) which the Core would call after it knows that the child device adapter is created?",
+      "parentUuid": "6d2e86fa_8a8f453e",
+      "revId": "dbdc134c695a5ed00fc315683427d3af4c3e3248",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
