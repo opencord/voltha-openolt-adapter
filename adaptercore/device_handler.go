@@ -51,8 +51,6 @@ type DeviceHandler struct {
 	coreProxy     *com.CoreProxy
 	AdapterProxy  *com.AdapterProxy
 	openOLT       *OpenOLT
-	nniPort       *voltha.Port
-	ponPort       *voltha.Port
 	exitChannel   chan int
 	lockDevice    sync.RWMutex
 	Client        oop.OpenoltClient
@@ -62,6 +60,7 @@ type DeviceHandler struct {
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
 	discOnus      map[string]bool
 	onus          map[string]*OnuDevice
+	nniIntfId     int
 }
 
 type OnuDevice struct {
@@ -100,6 +99,10 @@ func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.De
 	dh.discOnus = make(map[string]bool)
 	dh.lockDevice = sync.RWMutex{}
 	dh.onus = make(map[string]*OnuDevice)
+	// The nniIntfId is initialized to -1 (invalid) and set to right value
+	// when the first IntfOperInd with status as "up" is received for
+	// any one of the available NNI port on the OLT device.
+	dh.nniIntfId = -1
 
 	//TODO initialize the support classes.
 	return &dh
@@ -173,7 +176,13 @@ func (dh *DeviceHandler) addPort(intfId uint32, portType voltha.Port_PortType, s
 	log.Debugw("Sending port update to core", log.Fields{"port": port})
 	// Synchronous call to update device - this method is run in its own go routine
 	if err := dh.coreProxy.PortCreated(nil, dh.device.Id, port); err != nil {
-		log.Errorw("error-creating-nni-port", log.Fields{"deviceId": dh.device.Id, "error": err})
+		log.Errorw("error-creating-port", log.Fields{"deviceId": dh.device.Id, "portType": portType, "error": err})
+		return
+	}
+	// Once we have successfully added the NNI port to the core, if the
+	// locally cached nniIntfId is set to invalid (-1), set it to the right value.
+	if portType == voltha.Port_ETHERNET_NNI && dh.nniIntfId == -1 {
+		dh.nniIntfId = int(intfId)
 	}
 }
 

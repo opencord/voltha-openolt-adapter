@@ -380,11 +380,7 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfId uint32, onuId uint32, uniId uint32, 
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
-	networkIntfId, err := f.getNniIntfID()
-	if err != nil {
-		log.Error("Error in getting NNI interface ID, Failed to add HSIA flow")
-		return
-	}
+	networkIntfId := f.deviceHandler.nniIntfId
 	flow := openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
 		UniId:         int32(uniId),
@@ -447,11 +443,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfId uint32, onuId uint32, uniId uint
 		log.Error("Error in making action protobuf for ul flow")
 		return
 	}
-	networkIntfId, err := f.getNniIntfID()
-	if err != nil {
-		log.Error("Error in getting NNI interface ID, Failed to add DHCP Trap Flow")
-		return
-	}
+	networkIntfId := f.deviceHandler.nniIntfId
 
 	dhcpFlow = openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
@@ -520,11 +512,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfId uint32, onuId uint32, uniId uint32,
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
-	networkIntfId, err := f.getNniIntfID()
-	if err != nil {
-		log.Error("Error in getting NNI interface ID, Failed to add EAPOL Flow")
-		return
-	}
+	networkIntfId := f.deviceHandler.nniIntfId
 	upstreamFlow = openolt_pb2.Flow{AccessIntfId: int32(intfId),
 		OnuId:         int32(onuId),
 		UniId:         int32(uniId),
@@ -1224,11 +1212,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 	uniId := -1
 	gemPortId := -1
 	allocId := -1
-	networkInterfaceId, err := f.getNniIntfID()
-	if err != nil {
-		log.Error("Error in getting NNI interface ID, Failed to add DHCP Trap flow on NNI")
-		return
-	}
+	networkInterfaceId := f.deviceHandler.nniIntfId
 	flowStoreCookie := getFlowStoreCookie(classifier, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceId), uint32(onuId), uint32(uniId), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
@@ -1275,23 +1259,4 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		}
 	}
 	return
-}
-
-func (f *OpenOltFlowMgr) getNniIntfID() (int32, error) {
-	device, err := f.deviceHandler.coreProxy.GetDevice(nil, f.deviceHandler.deviceId, f.deviceHandler.deviceId)
-	if err != nil {
-		log.Errorw("Failed to get device", log.Fields{"device-id": f.deviceHandler.deviceId})
-		return -1, err
-	}
-	var portNum uint32
-	for _, port := range device.Ports {
-		if port.Type == voltha.Port_ETHERNET_NNI {
-			portNum = port.PortNo
-			break
-		}
-	}
-
-	nniIntfId := IntfIdFromNniPortNum(portNum)
-	log.Debugw("NNI interface Id", log.Fields{"intf-id": nniIntfId})
-	return int32(nniIntfId), nil
 }
