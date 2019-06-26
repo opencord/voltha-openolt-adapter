@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "323200d4_d1f43b49",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-06-26T05:37:04Z",
+      "side": 1,
+      "message": "With the latest changes from Khen, the childDeviceDetected has become a sync call. So, we do not need this hack of checking repeatedly to see if the childDevice was indeed created. We just need the dh.activateONU call.\nWill you be doing this change, verify and submitting the patch?",
+      "range": {
+        "startLine": 653,
+        "startChar": 0,
+        "endLine": 661,
+        "endChar": 2
+      },
+      "revId": "348d1454b0ea55f91a7aaba72f5d3d110d706c0c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
