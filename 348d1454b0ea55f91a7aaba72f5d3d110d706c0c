@@ -22,6 +22,30 @@
       "revId": "348d1454b0ea55f91a7aaba72f5d3d110d706c0c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f39886cd_91842c65",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 661,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-06-26T13:06:19Z",
+      "side": 1,
+      "message": "According to my tests we still have problems here. ChildDeviceDetected is not waiting until the adopt_device responded by onu_adapter and PortCreate message received to assign the Peer of the Port at Core. So GetChildDevice still fails. I\u0027m working on a patch to return the Device at the response of the ChildDeviceDetected in order not to need the GetChildDevice call. This will also minimize the queries towards Core.\nI will also put the removed DeviceStateUpdate lines back, according to the Girish\u0027s explanation.\nNonetheless I have to indicate that we now have a race condition between the DeviceStateUpdate here and the device state check in onuIndication function. Writing to KV is not fast enough, so when we receive onuIndication and check the operStatus of the device, we see that it is not updated to DISCOVERED yet. So I will put a small sleep here in my patch in order not to make the solution to complex and resolve it in another task.",
+      "parentUuid": "323200d4_d1f43b49",
+      "range": {
+        "startLine": 653,
+        "startChar": 0,
+        "endLine": 661,
+        "endChar": 2
+      },
+      "revId": "348d1454b0ea55f91a7aaba72f5d3d110d706c0c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
