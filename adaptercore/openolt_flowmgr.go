@@ -222,7 +222,7 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 			if ipProto.(uint32) == IPProtoDhcp {
 				log.Info("Adding DHCP flow")
 				f.addDHCPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID[0], gemPort)
-			} else if ipProto == IPProtoIgmp {
+			} else if ipProto.(uint32) == IPProtoIgmp {
 				log.Info("igmp flow add ignored, not implemented yet")
 			} else {
 				log.Errorw("Invalid-Classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
