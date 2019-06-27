@@ -19,13 +19,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/codes"
 	"io"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"google.golang.org/grpc/codes"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -262,13 +261,12 @@ func (dh *DeviceHandler) readIndications() {
 			onuDiscInd := indication.GetOnuDiscInd()
 			log.Infow("Received Onu discovery indication ", log.Fields{"OnuDiscInd": onuDiscInd})
 			//onuId,err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
-			//onuId,err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
+			onuId, err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
 			// TODO Get onu ID from the resource manager
-			var onuId uint32 = 1
-			/*if err != nil{
-			    log.Errorw("onu-id-unavailable",log.Fields{"intfId":onuDiscInd.GetIntfId()})
-			    return
-			}*/
+			if err != nil {
+				log.Errorw("onu-id-unavailable", log.Fields{"intfId": onuDiscInd.GetIntfId()})
+				return
+			}
 
 			sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 			go dh.onuDiscIndication(onuDiscInd, onuId, sn)
@@ -633,6 +631,7 @@ func (dh *DeviceHandler) activateONU(intfId uint32, onuId int64, serialNum *oop.
 
 func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, onuId uint32, sn string) error {
 	channelId := onuDiscInd.GetIntfId()
+	log.Debugw("onuDiscIndication ", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn})
 	parentPortNo := IntfIdToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 	if _, ok := dh.discOnus[sn]; ok {
 		log.Debugw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
@@ -646,39 +645,24 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, on
 	defer func() {
 		delete(dh.discOnus, sn)
 	}()
-
-	kwargs := make(map[string]interface{})
-	if sn != "" {
-		kwargs["serial_number"] = sn
-	}
-	kwargs["onu_id"] = onuId
-	kwargs["parent_port_no"] = parentPortNo
-	onuDevice, err := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
+	//If this is the very first onuDiscovery, then ChildDevice detected returns the created Device.
+	//If this is a subsequent onuDiscovery and device already exists in cache, then it returns Device in cache.
+	onuDevice, err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId))
 	if onuDevice == nil {
-		if err := dh.coreProxy.ChildDeviceDetected(nil, dh.device.Id, int(parentPortNo), "brcm_openomci_onu", int(channelId), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuId)); err != nil {
-			log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
-			return err
-		}
-	}
-	onuDevice, err = dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
-	if err != nil {
-		log.Errorw("failed to get ONU device information", log.Fields{"err": err})
+		log.Errorw("Create onu error", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn, "error": err})
 		return err
 	}
+	onuKey := dh.formOnuKey(onuDiscInd.GetIntfId(), onuId)
+	dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuId, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
+
 	dh.coreProxy.DeviceStateUpdate(nil, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
 	log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id})
-
-	for i := 0; i < 10; i++ {
-		if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {
-			dh.activateONU(onuDiscInd.IntfId, int64(onuId), onuDiscInd.SerialNumber, sn)
-			return nil
-		} else {
-			time.Sleep(1 * time.Second)
-			log.Debugln("Sleep 1 seconds to active onu, retry times ", i+1)
-		}
-	}
-	log.Errorw("Cannot query onu, dont activate it.", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuId": onuId, "sn": sn})
-	return errors.New("Failed to activate onu")
+	//TODO: We put this sleep here to prevent the race between state update and onuIndication
+	//In onuIndication the operStatus of device is checked. If it is still not updated in KV store
+	//then the initialisation fails.
+	time.Sleep(1 * time.Second)
+	dh.activateONU(onuDiscInd.IntfId, int64(onuId), onuDiscInd.SerialNumber, sn)
+	return nil
 }
 
 func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
@@ -686,14 +670,22 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 
 	kwargs := make(map[string]interface{})
 	ponPort := IntfIdToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
-
-	if serialNumber != "" {
-		kwargs["serial_number"] = serialNumber
+	var onuDevice *voltha.Device
+	foundInCache := false
+	onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.OnuId)
+	if onuInCache, ok := dh.onus[onuKey]; ok {
+		foundInCache = true
+		onuDevice, _ = dh.coreProxy.GetDevice(nil, dh.device.Id, onuInCache.deviceId)
 	} else {
-		kwargs["onu_id"] = onuInd.OnuId
-		kwargs["parent_port_no"] = ponPort
+		if serialNumber != "" {
+			kwargs["serial_number"] = serialNumber
+		} else {
+			kwargs["onu_id"] = onuInd.OnuId
+			kwargs["parent_port_no"] = ponPort
+		}
+		onuDevice, _ = dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs)
 	}
-	if onuDevice, _ := dh.coreProxy.GetChildDevice(nil, dh.device.Id, kwargs); onuDevice != nil {
+	if onuDevice != nil {
 		if onuDevice.ParentPortNo != ponPort {
 			//log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": intfIdFromPortNo(onuDevice.ParentPortNo), "currentIntfId": onuInd.GetIntfId()})
 			log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": onuDevice.ParentPortNo, "currentIntfId": ponPort})
@@ -702,9 +694,10 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 		if onuDevice.ProxyAddress.OnuId != onuInd.OnuId {
 			log.Warnw("ONU-id-mismatch, can happen if both voltha and the olt rebooted", log.Fields{"expected_onu_id": onuDevice.ProxyAddress.OnuId, "received_onu_id": onuInd.OnuId})
 		}
-		onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.GetOnuId())
-		dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
-
+		if !foundInCache {
+			onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.GetOnuId())
+			dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
+		}
 		// adminState
 		if onuInd.AdminState == "down" {
 			if onuInd.OperState != "down" {
