@@ -53,3 +53,4 @@ DOCKER_HOST_IP=<HOST-IP> docker-compose -f compose/adapters-openolt-go.yml up -d
 The functionality of OLT activation can be verified through BBSIM
 Follow the below steps to start BBSIM and provision it through VOLTHA-CLI
 https://github.com/opencord/voltha-bbsim/blob/master/README.md
+
