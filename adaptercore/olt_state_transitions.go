@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package adaptercore
 
 import (
@@ -141,7 +143,7 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 }
 
 // Handle moves the state machine to next state based on the trigger and invokes the before and
-//         after handlers
+// after handlers if the transition is a valid transition
 func (tMap *TransitionMap) Handle(trigger Trigger) {
 
 	// Check whether the transtion is valid from current state
@@ -152,16 +154,16 @@ func (tMap *TransitionMap) Handle(trigger Trigger) {
 
 	// Invoke the before handlers
 	beforeHandlers := tMap.transitions[trigger].before
-	if beforeHandlers != nil {
-		for _, handler := range beforeHandlers {
-			log.Debugw("running-before-handler", log.Fields{"handler": funcName(handler)})
-			if err := handler(); err != nil {
-				// TODO handle error
-				return
-			}
-		}
-	} else {
+	if beforeHandlers == nil {
 		log.Debugw("No handlers for before", log.Fields{"trigger": trigger})
+	}
+	for _, handler := range beforeHandlers {
+		log.Debugw("running-before-handler", log.Fields{"handler": funcName(handler)})
+		if err := handler(); err != nil {
+			// TODO handle error
+			log.Error(err)
+			return
+		}
 	}
 
 	// Update the state
@@ -170,15 +172,15 @@ func (tMap *TransitionMap) Handle(trigger Trigger) {
 
 	// Invoke the after handlers
 	afterHandlers := tMap.transitions[trigger].after
-	if afterHandlers != nil {
-		for _, handler := range afterHandlers {
-			log.Debugw("running-after-handler", log.Fields{"handler": funcName(handler)})
-			if err := handler(); err != nil {
-				// TODO handle error
-				return
-			}
-		}
-	} else {
+	if afterHandlers == nil {
 		log.Debugw("No handlers for after", log.Fields{"trigger": trigger})
+	}
+	for _, handler := range afterHandlers {
+		log.Debugw("running-after-handler", log.Fields{"handler": funcName(handler)})
+		if err := handler(); err != nil {
+			// TODO handle error
+			log.Error(err)
+			return
+		}
 	}
 }
