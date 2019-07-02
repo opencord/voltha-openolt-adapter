@@ -233,6 +233,18 @@
   revision = "89176ab6a90c6657d6fc2600edf5832355230c39"
 
 [[projects]]
+  digest = "1:23f8bf2738d1f91a310e02d464483e3edf3808c836a1885a4fc6b76e58de184f"
+  name = "github.com/opencord/voltha-openolt-adapter"
+  packages = [
+    "adaptercore",
+    "adaptercore/resourcemanager",
+    "config",
+  ]
+  pruneopts = "UT"
+  revision = "53afa4f8998d7f1ccc80370440a2ce92e3342f4e"
+  version = "2.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:430a17be21236a9945a3234035783cbd1ac8bfe66afafe6fc87551c7f3340ee9"
   name = "github.com/opencord/voltha-protos"
@@ -443,6 +455,9 @@
     "github.com/opencord/voltha-go/db/model",
     "github.com/opencord/voltha-go/kafka",
     "github.com/opencord/voltha-go/rw_core/utils",
+    "github.com/opencord/voltha-openolt-adapter/adaptercore",
+    "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager",
+    "github.com/opencord/voltha-openolt-adapter/config",
     "github.com/opencord/voltha-protos/go/common",
     "github.com/opencord/voltha-protos/go/inter_container",
     "github.com/opencord/voltha-protos/go/openflow_13",
