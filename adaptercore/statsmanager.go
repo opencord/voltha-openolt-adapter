@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package adaptercore
 
 import (
@@ -20,10 +22,11 @@ import (
 	"fmt"
 
 	"github.com/opencord/voltha-go/common/log"
-	openolt "github.com/opencord/voltha-protos/go/openolt"
+	"github.com/opencord/voltha-protos/go/openolt"
 	"github.com/opencord/voltha-protos/go/voltha"
 )
 
+// PonPort representation
 type PonPort struct {
 	/*
 	   This is a highly reduced version taken from the adtran pon_port.
@@ -61,6 +64,7 @@ type PonPort struct {
 	TxErrorPackets uint64
 }
 
+// NewPONPort returns a new instance of PonPort initialized with given PONID, DeviceID, IntfID and PortNum
 func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *PonPort {
 
 	var PON PonPort
@@ -109,6 +113,7 @@ func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *P
 	return &PON
 }
 
+// NniPort representation
 type NniPort struct {
 	/*
 	   Northbound network port, often Ethernet-based
@@ -134,6 +139,7 @@ type NniPort struct {
 	TxErrorPackets uint64
 }
 
+// NewNniPort returns a new instance of NniPort initialized with the given PortNum and IntfID
 func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 
 	var NNI NniPort
@@ -157,6 +163,7 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 	return &NNI
 }
 
+// OpenOltStatisticsMgr structure
 type OpenOltStatisticsMgr struct {
 	Device         *DeviceHandler
 	NorthBoundPort map[uint32]NniPort
@@ -164,6 +171,7 @@ type OpenOltStatisticsMgr struct {
 	// TODO  PMMetrics Metrics
 }
 
+// NewOpenOltStatsMgr returns a new instance of the OpenOltStatisticsMgr
 func NewOpenOltStatsMgr(Dev *DeviceHandler) *OpenOltStatisticsMgr {
 
 	var StatMgr OpenOltStatisticsMgr
@@ -173,14 +181,15 @@ func NewOpenOltStatsMgr(Dev *DeviceHandler) *OpenOltStatisticsMgr {
 	// Northbound and Southbound ports
 	// added to initialize the pm_metrics
 	var Ports interface{}
-	Ports, _ = InitPorts("nni", Dev.deviceId)
+	Ports, _ = InitPorts("nni", Dev.deviceID)
 	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]NniPort)
-	Ports, _ = InitPorts("pon", Dev.deviceId)
+	Ports, _ = InitPorts("pon", Dev.deviceID)
 	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]PonPort)
 
 	return &StatMgr
 }
 
+// InitPorts collects the port objects:  nni and pon that are updated with the current data from the OLT
 func InitPorts(Intftype string, DeviceID string) (interface{}, error) {
 	/*
 	     This method collects the port objects:  nni and pon that are updated with the
@@ -210,13 +219,14 @@ func InitPorts(Intftype string, DeviceID string) (interface{}, error) {
 		return PONPorts, nil
 	} else {
 		log.Errorf("Invalid type of interface %s", Intftype)
-		return nil, errors.New("Invalid type of interface ")
+		return nil, errors.New("invalid type of interface ")
 	}
 }
 
+// BuildPortObject allows for updating north and southbound ports, newly discovered ports, and devices
 func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface{} {
 	/*
-	   Seperate method to allow for updating north and southbound ports
+	   Separate method to allow for updating north and southbound ports
 	   newly discovered ports and devices
 
 	   :param port_num:
@@ -227,12 +237,12 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	//This builds a port object which is added to the
 	//appropriate northbound or southbound values
 	if IntfType == "nni" {
-		IntfID := IntfIdToPortNo(PortNum, voltha.Port_ETHERNET_UNI)
+		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_UNI)
 		return NewNniPort(PortNum, IntfID)
 	} else if IntfType == "pon" {
 		// PON ports require a different configuration
 		//  intf_id and pon_id are currently equal.
-		IntfID := IntfIdToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
+		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
 		PONID := IntfID
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
 	} else {
@@ -241,17 +251,20 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	}
 }
 
+// PortStatisticsIndication handles the port statistics indication
 func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics) {
 	log.Debugf("port-stats-collected %v", PortStats)
 	StatMgr.PortsStatisticsKpis(PortStats)
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 
+// FlowStatisticsIndication to be implemented
 func FlowStatisticsIndication(self, FlowStats *openolt.FlowStatistics) {
 	log.Debugf("flow-stats-collected %v", FlowStats)
 	//TODO send to kafka ?
 }
 
+// PortsStatisticsKpis map the port stats values into a dictionary, creates the kpiEvent and then publish to Kafka
 func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.PortStatistics) {
 
 	/*map the port stats values into a dictionary
@@ -263,55 +276,54 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 	//var err error
 	IntfID := PortStats.IntfId
 
-	if (IntfIdToPortNo(0, voltha.Port_ETHERNET_NNI) < IntfID) &&
-		(IntfID < IntfIdToPortNo(4, voltha.Port_ETHERNET_NNI)) {
+	if (IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) < IntfID) &&
+		(IntfID < IntfIDToPortNo(4, voltha.Port_ETHERNET_NNI)) {
 		/*
 		   for this release we are only interested in the first NNI for
 		   Northbound.
 		   we are not using the other 3
 		*/
 		return
-	} else {
-
-		PMData := make(map[string]uint64)
-		PMData["rx_bytes"] = PortStats.RxBytes
-		PMData["rx_packets"] = PortStats.RxPackets
-		PMData["rx_ucast_packets"] = PortStats.RxUcastPackets
-		PMData["rx_mcast_packets"] = PortStats.RxMcastPackets
-		PMData["rx_bcast_packets"] = PortStats.RxBcastPackets
-		PMData["rx_error_packets"] = PortStats.RxErrorPackets
-		PMData["tx_bytes"] = PortStats.TxBytes
-		PMData["tx_packets"] = PortStats.TxPackets
-		PMData["tx_ucast_packets"] = PortStats.TxUcastPackets
-		PMData["tx_mcast_packets"] = PortStats.TxMcastPackets
-		PMData["tx_bcast_packets"] = PortStats.TxBcastPackets
-		PMData["tx_error_packets"] = PortStats.TxErrorPackets
-		PMData["rx_crc_errors"] = PortStats.RxCrcErrors
-		PMData["bip_errors"] = PortStats.BipErrors
-
-		PMData["intf_id"] = uint64(PortStats.IntfId)
-
-		/*
-		   Based upon the intf_id map to an nni port or a pon port
-		   the intf_id is the key to the north or south bound collections
-
-		   Based upon the intf_id the port object (nni_port or pon_port) will
-		   have its data attr. updated by the current dataset collected.
-
-		   For prefixing the rule is currently to use the port number and not the intf_id
-		*/
-		//FIXME : Just use first NNI for now
-		/* TODO should the data be marshalled before sending it ?
-		   if IntfID == IntfIdToPortNo(0, voltha.Port_ETHERNET_NNI) {
-		       //NNI port (just the first one)
-		       err = UpdatePortObjectKpiData(StatMgr.NorthBoundPorts[PortStats.IntfID], PMData)
-		   } else {
-		       //PON ports
-		       err = UpdatePortObjectKpiData(SouthboundPorts[PortStats.IntfID], PMData)
-		   }
-		   if (err != nil) {
-		       log.Error("Error publishing statistics data")
-		   }
-		*/
 	}
+	PMData := make(map[string]uint64)
+	PMData["rx_bytes"] = PortStats.RxBytes
+	PMData["rx_packets"] = PortStats.RxPackets
+	PMData["rx_ucast_packets"] = PortStats.RxUcastPackets
+	PMData["rx_mcast_packets"] = PortStats.RxMcastPackets
+	PMData["rx_bcast_packets"] = PortStats.RxBcastPackets
+	PMData["rx_error_packets"] = PortStats.RxErrorPackets
+	PMData["tx_bytes"] = PortStats.TxBytes
+	PMData["tx_packets"] = PortStats.TxPackets
+	PMData["tx_ucast_packets"] = PortStats.TxUcastPackets
+	PMData["tx_mcast_packets"] = PortStats.TxMcastPackets
+	PMData["tx_bcast_packets"] = PortStats.TxBcastPackets
+	PMData["tx_error_packets"] = PortStats.TxErrorPackets
+	PMData["rx_crc_errors"] = PortStats.RxCrcErrors
+	PMData["bip_errors"] = PortStats.BipErrors
+
+	PMData["intf_id"] = uint64(PortStats.IntfId)
+
+	/*
+	   Based upon the intf_id map to an nni port or a pon port
+	   the intf_id is the key to the north or south bound collections
+
+	   Based upon the intf_id the port object (nni_port or pon_port) will
+	   have its data attr. updated by the current dataset collected.
+
+	   For prefixing the rule is currently to use the port number and not the intf_id
+	*/
+	//FIXME : Just use first NNI for now
+	/* TODO should the data be marshaled before sending it ?
+	   if IntfID == IntfIdToPortNo(0, voltha.Port_ETHERNET_NNI) {
+	       //NNI port (just the first one)
+	       err = UpdatePortObjectKpiData(StatMgr.NorthBoundPorts[PortStats.IntfID], PMData)
+	   } else {
+	       //PON ports
+	       err = UpdatePortObjectKpiData(SouthboundPorts[PortStats.IntfID], PMData)
+	   }
+	   if (err != nil) {
+	       log.Error("Error publishing statistics data")
+	   }
+	*/
+
 }
