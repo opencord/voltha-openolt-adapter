@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package main invokes the application
 package main
 
 import (
@@ -36,7 +38,7 @@ import (
 )
 
 type adapter struct {
-	instanceId       string
+	instanceID       string
 	config           *config.AdapterFlags
 	iAdapter         adapters.IAdapter
 	kafkaClient      kafka.Client
@@ -50,12 +52,12 @@ type adapter struct {
 }
 
 func init() {
-	log.AddPackage(log.JSON, log.DebugLevel, nil)
+	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
 	var a adapter
-	a.instanceId = cf.InstanceID
+	a.instanceID = cf.InstanceID
 	a.config = cf
 	a.halted = false
 	a.exitChannel = make(chan int, 1)
@@ -69,7 +71,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup KV Client
 	log.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
-	if err := a.setKVClient(); err != nil {
+	if err = a.setKVClient(); err != nil {
 		log.Fatal("error-setting-kv-client")
 	}
 
@@ -90,42 +92,43 @@ func (a *adapter) start(ctx context.Context) {
 	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
 
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.config.OnuNumber, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
+	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.config.OnuNumber,
+		a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
 
 	// Register the core request handler
-	if err = a.setupRequestHandler(a.instanceId, a.iAdapter); err != nil {
+	if err = a.setupRequestHandler(a.instanceID, a.iAdapter); err != nil {
 		log.Fatal("error-setting-core-request-handler")
 	}
 
-	//    Register this adapter to the Core - retries indefinitely
+	// Register this adapter to the Core - retries indefinitely
 	if err = a.registerWithCore(-1); err != nil {
 		log.Fatal("error-registering-with-core")
 	}
 }
 
-func (rw *adapter) stop() {
+func (a *adapter) stop() {
 	// Stop leadership tracking
-	rw.halted = true
+	a.halted = true
 
 	// send exit signal
-	rw.exitChannel <- 0
+	a.exitChannel <- 0
 
 	// Cleanup - applies only if we had a kvClient
-	if rw.kvClient != nil {
+	if a.kvClient != nil {
 		// Release all reservations
-		if err := rw.kvClient.ReleaseAllReservations(); err != nil {
+		if err := a.kvClient.ReleaseAllReservations(); err != nil {
 			log.Infow("fail-to-release-all-reservations", log.Fields{"error": err})
 		}
 		// Close the DB connection
-		rw.kvClient.Close()
+		a.kvClient.Close()
 	}
 
 	// TODO:  More cleanup
 }
 
-func newKVClient(storeType string, address string, timeout int) (kvstore.Client, error) {
+func newKVClient(storeType, address string, timeout int) (kvstore.Client, error) {
 
 	log.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
@@ -137,7 +140,7 @@ func newKVClient(storeType string, address string, timeout int) (kvstore.Client,
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func newKafkaClient(clientType string, host string, port int) (kafka.Client, error) {
+func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
 
 	log.Infow("common-client-type", log.Fields{"client": clientType})
 	switch clientType {
@@ -150,6 +153,7 @@ func newKafkaClient(clientType string, host string, port int) (kafka.Client, err
 			kafka.ProducerMaxRetries(6),
 			kafka.ProducerRetryBackoff(time.Millisecond*30)), nil
 	}
+
 	return nil, errors.New("unsupported-client-type")
 }
 
@@ -163,17 +167,6 @@ func (a *adapter) setKVClient() error {
 	}
 	a.kvClient = client
 	return nil
-}
-
-func toString(value interface{}) (string, error) {
-	switch t := value.(type) {
-	case []byte:
-		return string(value.([]byte)), nil
-	case string:
-		return value.(string), nil
-	default:
-		return "", fmt.Errorf("unexpected-type-%T", t)
-	}
 }
 
 func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerProxy, error) {
@@ -197,7 +190,7 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
 				return nil, err
 			}
 			count = +1
-			//    Take a nap before retrying
+			// Take a nap before retrying
 			time.Sleep(2 * time.Second)
 		} else {
 			break
@@ -222,9 +215,9 @@ func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerPro
 	return sOLT, nil
 }
 
-func (a *adapter) setupRequestHandler(coreInstanceId string, iadapter adapters.IAdapter) error {
+func (a *adapter) setupRequestHandler(coreInstanceID string, iadapter adapters.IAdapter) error {
 	log.Info("setting-request-handler")
-	requestProxy := com.NewRequestHandlerProxy(coreInstanceId, iadapter, a.coreProxy)
+	requestProxy := com.NewRequestHandlerProxy(coreInstanceID, iadapter, a.coreProxy)
 	if err := a.kip.SubscribeWithRequestHandlerInterface(kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
 		log.Errorw("request-handler-setup-failed", log.Fields{"error": err})
 		return err
@@ -239,19 +232,19 @@ func (a *adapter) registerWithCore(retries int) error {
 	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
 		Vendor: "simulation Enterprise Inc"}
 	types := []*voltha.DeviceType{{Id: "openolt",
-		Adapter:                     "openolt", //Name of the adapter that handles device type
+		Adapter:                     "openolt", // Name of the adapter that handles device type
 		AcceptsBulkFlowUpdate:       false,     // Currently openolt adapter does not support bulk flow handling
 		AcceptsAddRemoveFlowUpdates: true}}
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {
-		if err := a.coreProxy.RegisterAdapter(nil, adapterDescription, deviceTypes); err != nil {
+		if err := a.coreProxy.RegisterAdapter(context.TODO(), adapterDescription, deviceTypes); err != nil {
 			log.Warnw("registering-with-core-failed", log.Fields{"error": err})
 			if retries == count {
 				return err
 			}
-			count += 1
-			//    Take a nap before retrying
+			count++
+			// Take a nap before retrying
 			time.Sleep(2 * time.Second)
 		} else {
 			break
@@ -308,15 +301,15 @@ func main() {
 	cf := config.NewAdapterFlags()
 	cf.ParseCommandArguments()
 
-	//// Setup logging
+	// Setup logging
 
-	//Setup default logger - applies for packages that do not have specific logger set
-	if _, err := log.SetDefaultLogger(log.JSON, cf.LogLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	// Setup default logger - applies for packages that do not have specific logger set
+	if _, err := log.SetDefaultLogger(log.JSON, cf.LogLevel, log.Fields{"instanceID": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
 	// Update all loggers (provisionned via init) with a common field
-	if err := log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if err := log.UpdateAllLoggers(log.Fields{"instanceID": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
@@ -344,5 +337,5 @@ func main() {
 	ad.stop()
 
 	elapsed := time.Since(start)
-	log.Infow("run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
+	log.Infow("run-time", log.Fields{"instanceID": ad.config.InstanceID, "time": elapsed / time.Second})
 }
