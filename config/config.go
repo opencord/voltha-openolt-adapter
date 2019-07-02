@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package config provides the Log, kvstore, Kafka configuration
 package config
 
 import (
@@ -24,21 +26,21 @@ import (
 
 // Open OLT default constants
 const (
-	EtcdStoreName            = "etcd"
-	default_InstanceID       = "openOlt001"
-	default_KafkaAdapterHost = "127.0.0.1"
-	default_KafkaAdapterPort = 9092
-	default_KafkaClusterHost = "127.0.0.1"
-	default_KafkaClusterPort = 9094
-	default_KVStoreType      = EtcdStoreName
-	default_KVStoreTimeout   = 5 //in seconds
-	default_KVStoreHost      = "127.0.0.1"
-	default_KVStorePort      = 2379 // Consul = 8500; Etcd = 2379
-	default_LogLevel         = 0
-	default_Banner           = false
-	default_Topic            = "openolt"
-	default_CoreTopic        = "rwcore"
-	default_OnuNumber        = 1
+	EtcdStoreName           = "etcd"
+	defaultInstanceid       = "openOlt001"
+	defaultKafkaadapterhost = "127.0.0.1"
+	defaultKafkaadapterport = 9092
+	defaultKafkaclusterhost = "127.0.0.1"
+	defaultKafkaclusterport = 9094
+	defaultKvstoretype      = EtcdStoreName
+	defaultKvstoretimeout   = 5 //in seconds
+	defaultKvstorehost      = "127.0.0.1"
+	defaultKvstoreport      = 2379 // Consul = 8500; Etcd = 2379
+	defaultLoglevel         = 0
+	defaultBanner           = false
+	defaultTopic            = "openolt"
+	defaultCoretopic        = "rwcore"
+	defaultOnunumber        = 1
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -61,26 +63,26 @@ type AdapterFlags struct {
 }
 
 func init() {
-	log.AddPackage(log.JSON, log.WarnLevel, nil)
+	_, _ = log.AddPackage(log.JSON, log.WarnLevel, nil)
 }
 
-// NewRWCoreFlags returns a new RWCore config
+// NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:       default_InstanceID,
-		KafkaAdapterHost: default_KafkaAdapterHost,
-		KafkaAdapterPort: default_KafkaAdapterPort,
-		KafkaClusterHost: default_KafkaClusterHost,
-		KafkaClusterPort: default_KafkaClusterPort,
-		KVStoreType:      default_KVStoreType,
-		KVStoreTimeout:   default_KVStoreTimeout,
-		KVStoreHost:      default_KVStoreHost,
-		KVStorePort:      default_KVStorePort,
-		Topic:            default_Topic,
-		CoreTopic:        default_CoreTopic,
-		LogLevel:         default_LogLevel,
-		OnuNumber:        default_OnuNumber,
-		Banner:           default_Banner,
+		InstanceID:       defaultInstanceid,
+		KafkaAdapterHost: defaultKafkaadapterhost,
+		KafkaAdapterPort: defaultKafkaadapterport,
+		KafkaClusterHost: defaultKafkaclusterhost,
+		KafkaClusterPort: defaultKafkaclusterport,
+		KVStoreType:      defaultKvstoretype,
+		KVStoreTimeout:   defaultKvstoretimeout,
+		KVStoreHost:      defaultKvstorehost,
+		KVStorePort:      defaultKvstoreport,
+		Topic:            defaultTopic,
+		CoreTopic:        defaultCoretopic,
+		LogLevel:         defaultLoglevel,
+		OnuNumber:        defaultOnunumber,
+		Banner:           defaultBanner,
 	}
 	return &adapterFlags
 }
@@ -88,46 +90,44 @@ func NewAdapterFlags() *AdapterFlags {
 // ParseCommandArguments parses the arguments when running read-write adaptercore service
 func (so *AdapterFlags) ParseCommandArguments() {
 
-	var help string
-
-	help = fmt.Sprintf("Kafka - Adapter messaging host")
-	flag.StringVar(&(so.KafkaAdapterHost), "kafka_adapter_host", default_KafkaAdapterHost, help)
+	help := fmt.Sprintf("Kafka - Adapter messaging host")
+	flag.StringVar(&(so.KafkaAdapterHost), "kafka_adapter_host", defaultKafkaadapterhost, help)
 
 	help = fmt.Sprintf("Kafka - Adapter messaging port")
-	flag.IntVar(&(so.KafkaAdapterPort), "kafka_adapter_port", default_KafkaAdapterPort, help)
+	flag.IntVar(&(so.KafkaAdapterPort), "kafka_adapter_port", defaultKafkaadapterport, help)
 
 	help = fmt.Sprintf("Kafka - Cluster messaging host")
-	flag.StringVar(&(so.KafkaClusterHost), "kafka_cluster_host", default_KafkaClusterHost, help)
+	flag.StringVar(&(so.KafkaClusterHost), "kafka_cluster_host", defaultKafkaclusterhost, help)
 
 	help = fmt.Sprintf("Kafka - Cluster messaging port")
-	flag.IntVar(&(so.KafkaClusterPort), "kafka_cluster_port", default_KafkaClusterPort, help)
+	flag.IntVar(&(so.KafkaClusterPort), "kafka_cluster_port", defaultKafkaclusterport, help)
 
 	help = fmt.Sprintf("Open OLT topic")
-	flag.StringVar(&(so.Topic), "adapter_topic", default_Topic, help)
+	flag.StringVar(&(so.Topic), "adapter_topic", defaultTopic, help)
 
 	help = fmt.Sprintf("Core topic")
-	flag.StringVar(&(so.CoreTopic), "core_topic", default_CoreTopic, help)
+	flag.StringVar(&(so.CoreTopic), "core_topic", defaultCoretopic, help)
 
 	help = fmt.Sprintf("KV store type")
-	flag.StringVar(&(so.KVStoreType), "kv_store_type", default_KVStoreType, help)
+	flag.StringVar(&(so.KVStoreType), "kv_store_type", defaultKvstoretype, help)
 
 	help = fmt.Sprintf("The default timeout when making a kv store request")
-	flag.IntVar(&(so.KVStoreTimeout), "kv_store_request_timeout", default_KVStoreTimeout, help)
+	flag.IntVar(&(so.KVStoreTimeout), "kv_store_request_timeout", defaultKvstoretimeout, help)
 
 	help = fmt.Sprintf("KV store host")
-	flag.StringVar(&(so.KVStoreHost), "kv_store_host", default_KVStoreHost, help)
+	flag.StringVar(&(so.KVStoreHost), "kv_store_host", defaultKvstorehost, help)
 
 	help = fmt.Sprintf("KV store port")
-	flag.IntVar(&(so.KVStorePort), "kv_store_port", default_KVStorePort, help)
+	flag.IntVar(&(so.KVStorePort), "kv_store_port", defaultKvstoreport, help)
 
 	help = fmt.Sprintf("Log level")
-	flag.IntVar(&(so.LogLevel), "log_level", default_LogLevel, help)
+	flag.IntVar(&(so.LogLevel), "log_level", defaultLoglevel, help)
 
 	help = fmt.Sprintf("Number of ONUs")
-	flag.IntVar(&(so.OnuNumber), "onu_number", default_OnuNumber, help)
+	flag.IntVar(&(so.OnuNumber), "onu_number", defaultOnunumber, help)
 
 	help = fmt.Sprintf("Show startup banner log lines")
-	flag.BoolVar(&so.Banner, "banner", default_Banner, help)
+	flag.BoolVar(&so.Banner, "banner", defaultBanner, help)
 
 	flag.Parse()
 

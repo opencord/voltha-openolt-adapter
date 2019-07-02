@@ -53,6 +53,7 @@ help:
 	@echo "help              : Print this help"
 	@echo "docker-push       : Push the docker images to an external repository"
 	@echo "lint              : Run lint verification, depenancy, gofmt and reference check"
+	@echo "sca               : Runs various SCA through golangci-lint tool"
 	@echo "test              : Run unit tests, if any"
 	@echo
 
@@ -188,8 +189,20 @@ endif
 	$(GOCOVER_COBERTURA) < ./tests/results/go-test-coverage.out > ./tests/results/go-test-coverage.xml ;\
 	exit $$RETURN
 
+GOLANGCI_LINT_TOOL:=$(shell which golangci-lint)
+sca:
+ifeq (,$(GOLANGCI_LINT_TOOL))
+	@echo "Please install golangci-lint tool to run sca"
+	exit 1
+endif
+	@mkdir -p ./sca-report
+	GO111MODULE=on golangci-lint run --out-format junit-xml ./... 2>&1 | tee ./sca-report/sca-report.xml ;\
+	RETURN=$$? ;\
+	exit $$RETURN
+
 clean:
 	rm -rf python/local_imports
+	rm -rf sca-report
 	find python -name '*.pyc' | xargs rm -f
 
 distclean: clean

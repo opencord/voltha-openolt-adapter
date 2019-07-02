@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package adaptercore
 
 import (
 	"errors"
 	"github.com/opencord/voltha-go/rw_core/utils"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	voltha "github.com/opencord/voltha-protos/go/voltha"
+	"github.com/opencord/voltha-protos/go/voltha"
 )
 
 /*=====================================================================
@@ -78,89 +80,84 @@ PON OLT (OF) port number
     +--------+------------------------~~~------+
 */
 
-var MAX_ONUS_PER_PON = 32
-var MIN_UPSTREAM_PORT_ID = 0xfffd
-var MAX_UPSTREAM_PORT_ID = 0xfffffffd
+//MaxOnusPerPon value
+var MaxOnusPerPon = 32
 
-var controllerPorts []uint32 = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
+//MinUpstreamPortID value
+var MinUpstreamPortID = 0xfffd
 
-func MkUniPortNum(intfId uint32, onuId uint32, uniId uint32) uint32 {
+//MaxUpstreamPortID value
+var MaxUpstreamPortID = 0xfffffffd
+
+var controllerPorts = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
+
+//MkUniPortNum returns new UNIportNum based on intfID, inuID and uniID
+func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
 	/* TODO: Add checks */
-	return ((intfId << 11) | (onuId << 4) | uniId)
+	return (intfID << 11) | (onuID << 4) | uniID
 }
 
-func MkFlowId(intfId uint32, onuId uint32, idx uint32) uint32 {
-	return (((intfId << 9) | (onuId << 4)) | idx)
+//OnuIDFromPortNum returns ONUID derived from portNumber
+func OnuIDFromPortNum(portNum uint32) uint32 {
+	return (portNum >> 4) & 127
 }
 
-func OnuIdFromPortNum(portNum uint32) uint32 {
-	return ((portNum >> 4) & 127)
+//IntfIDFromUniPortNum returns IntfID derived from portNum
+func IntfIDFromUniPortNum(portNum uint32) uint32 {
+	return (portNum >> 11) & 15
 }
 
-func IntfIdFromUniPortNum(portNum uint32) uint32 {
-	return ((portNum >> 11) & 15)
+//UniIDFromPortNum return UniID derived from portNum
+func UniIDFromPortNum(portNum uint32) uint32 {
+	return (portNum) & 0xF
 }
 
-func UniIdFromPortNum(portNum uint32) uint32 {
-	return ((portNum) & 0xF)
-}
-
-func IntfIdFromPonPortNo(portNo uint32) uint32 {
-	return (portNo & 15)
-}
-
-func IntfIdToPortNo(intfId uint32, intfType voltha.Port_PortType) uint32 {
+//IntfIDToPortNo returns portId derived from intftype, intfId and portType
+func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
 	if (intfType) == voltha.Port_ETHERNET_NNI {
-		return ((1 << 16) | intfId)
-	} else {
-		if (intfType) == voltha.Port_PON_OLT {
-			return ((2 << 28) | intfId)
-		} else {
-			return 0
-		}
+		return (1 << 16) | intfID
 	}
+	if (intfType) == voltha.Port_PON_OLT {
+		return (2 << 28) | intfID
+	}
+	return 0
 }
 
-func IntfIdFromNniPortNum(portNum uint32) uint32 {
-	return (portNum & 0xFFFF)
+//IntfIDFromNniPortNum returns Intf ID derived from portNum
+func IntfIDFromNniPortNum(portNum uint32) uint32 {
+	return portNum & 0xFFFF
 }
 
-func IntfIdToPortTypeName(intfId uint32) voltha.Port_PortType {
-	if ((2 << 28) ^ intfId) < 16 {
+//IntfIDToPortTypeName returns port type derived from the intfId
+func IntfIDToPortTypeName(intfID uint32) voltha.Port_PortType {
+	if ((2 << 28) ^ intfID) < 16 {
 		return voltha.Port_PON_OLT
-	} else {
-		if (intfId & (1 << 16)) == (1 << 16) {
-			return voltha.Port_ETHERNET_NNI
-		} else {
-			return voltha.Port_ETHERNET_UNI
-		}
 	}
+	if (intfID & (1 << 16)) == (1 << 16) {
+		return voltha.Port_ETHERNET_NNI
+	}
+	return voltha.Port_ETHERNET_UNI
 }
 
-func PortTypeNameByPortIndex(portIndex int32) string {
-	return voltha.Port_PortType_name[portIndex]
-}
-
-func ExtractAccessFromFlow(inPort uint32, outPort uint32) (uint32, uint32, uint32, uint32) {
+//ExtractAccessFromFlow returns AccessDevice information
+func ExtractAccessFromFlow(inPort, outPort uint32) (uint32, uint32, uint32, uint32) {
 	if IsUpstream(outPort) {
-		return inPort, IntfIdFromUniPortNum(inPort), OnuIdFromPortNum(inPort), UniIdFromPortNum(inPort)
-	} else {
-		return outPort, IntfIdFromUniPortNum(outPort), OnuIdFromPortNum(outPort), UniIdFromPortNum(outPort)
+		return inPort, IntfIDFromUniPortNum(inPort), OnuIDFromPortNum(inPort), UniIDFromPortNum(inPort)
 	}
+	return outPort, IntfIDFromUniPortNum(outPort), OnuIDFromPortNum(outPort), UniIDFromPortNum(outPort)
 }
 
+//IsUpstream returns true for Upstream and false for downstream
 func IsUpstream(outPort uint32) bool {
 	for _, port := range controllerPorts {
 		if port == outPort {
 			return true
 		}
 	}
-	if (outPort & (1 << 16)) == (1 << 16) {
-		return true
-	}
-	return false
+	return (outPort & (1 << 16)) == (1 << 16)
 }
 
+//IsControllerBoundFlow returns true/false
 func IsControllerBoundFlow(outPort uint32) bool {
 	for _, port := range controllerPorts {
 		if port == outPort {
@@ -170,15 +167,17 @@ func IsControllerBoundFlow(outPort uint32) bool {
 	return false
 }
 
-func OnuIdFromUniPortNum(portNum uint32) uint32 {
+//OnuIDFromUniPortNum returns onuId from give portNum information.
+func OnuIDFromUniPortNum(portNum uint32) uint32 {
 	return (portNum >> 4) & 0x7F
 }
 
+//FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID and uniID
 func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, error) {
-	var uniPortNo uint32 = 0
-	var ponIntf uint32 = 0
-	var onuId uint32 = 0
-	var uniId uint32 = 0
+	var uniPortNo uint32
+	var ponIntf uint32
+	var onuID uint32
+	var uniID uint32
 
 	if flowDirection == "upstream" {
 		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
@@ -203,12 +202,12 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
+		return 0, 0, 0, errors.New("failed to extract Pon Interface, ONU Id and Uni Id from flow")
 	}
 
-	ponIntf = IntfIdFromUniPortNum(uniPortNo)
-	onuId = OnuIdFromUniPortNum(uniPortNo)
-	uniId = UniIdFromPortNum(uniPortNo)
+	ponIntf = IntfIDFromUniPortNum(uniPortNo)
+	onuID = OnuIDFromUniPortNum(uniPortNo)
+	uniID = UniIDFromPortNum(uniPortNo)
 
-	return ponIntf, onuId, uniId, nil
+	return ponIntf, onuID, uniID, nil
 }
