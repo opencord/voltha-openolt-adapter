@@ -78,7 +78,7 @@ PON OLT (OF) port number
 
 class OpenOltPlatform(object):
     MAX_PONS_PER_OLT = 16
-    MAX_ONUS_PER_PON = 32
+    MAX_ONUS_PER_PON = 64
     MAX_UNIS_PER_ONU = 16
 
     def __init__(self, log, resource_mgr):

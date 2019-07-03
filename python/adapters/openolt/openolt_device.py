@@ -777,6 +777,16 @@ class OpenoltDevice(object):
 
         self.log.debug("onu-added", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str)
 
+        onu_device = yield self.core_proxy.get_child_device(
+           self.device_id,
+           serial_number=serial_number_str)
+
+        yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED,
+                                                  connect_status=ConnectStatus.REACHABLE)
+
+        self.log.debug("set-onu-discovered", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str,
+                       onu_device=onu_device)
+
     def get_ofp_device_info(self, device):
         self.log.info('get_ofp_device_info', device_id=device.id)
 
