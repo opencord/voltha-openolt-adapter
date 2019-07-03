@@ -765,7 +765,7 @@ class OpenoltDevice(object):
         serial_number_str = self.stringify_serial_number(serial_number)
 
         # TODO NEW CORE dont hardcode child device type.  find some way of determining by vendor in serial number
-        yield self.core_proxy.child_device_detected(
+        onu_device = yield self.core_proxy.child_device_detected(
             parent_device_id=self.device_id,
             parent_port_no=port_no,
             child_device_type='brcm_openomci_onu',
@@ -776,6 +776,12 @@ class OpenoltDevice(object):
         )
 
         self.log.debug("onu-added", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str)
+
+        yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED,
+                                                  connect_status=ConnectStatus.REACHABLE)
+
+        self.log.debug("set-onu-discovered", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str,
+                       onu_device=onu_device)
 
     def get_ofp_device_info(self, device):
         self.log.info('get_ofp_device_info', device_id=device.id)
