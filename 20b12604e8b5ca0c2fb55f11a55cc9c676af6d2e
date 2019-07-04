@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4dd41f3c_b163e349",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-07-04T07:11:18Z",
+      "side": 1,
+      "message": "You probably will have problem to get child device here. Core might not receive the PortCreated from onu-adapter yet to put the child device id into Peers  of port(GetChildDevice iterates on these Peers in Core). You may want to check https://gerrit.opencord.org/#/c/14475 and https://gerrit.opencord.org/#/c/14474/ . If the related patch in  link https://gerrit.opencord.org/#/c/14474/ will be merged, then onu_device  will be returned in the response of child_device_detected. After these two patches are merged, we may reflect them to here also.",
+      "range": {
+        "startLine": 780,
+        "startChar": 8,
+        "endLine": 780,
+        "endChar": 60
+      },
+      "revId": "20b12604e8b5ca0c2fb55f11a55cc9c676af6d2e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
