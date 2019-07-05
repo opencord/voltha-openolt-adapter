@@ -22,6 +22,30 @@
       "revId": "20b12604e8b5ca0c2fb55f11a55cc9c676af6d2e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d859519d_b660ed72",
+        "filename": "python/adapters/openolt/openolt_device.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-05T15:02:04Z",
+      "side": 1,
+      "message": "Agreed having ChildDeviceDetected return the device would be much better.  The commit above changes the interface to do just that.  The only question now is testing the python interface to child_device_detected and making sure it still works as expected.",
+      "parentUuid": "4dd41f3c_b163e349",
+      "range": {
+        "startLine": 780,
+        "startChar": 8,
+        "endLine": 780,
+        "endChar": 60
+      },
+      "revId": "20b12604e8b5ca0c2fb55f11a55cc9c676af6d2e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
