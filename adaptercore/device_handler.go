@@ -274,17 +274,8 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 	case *oop.Indication_OnuDiscInd:
 		onuDiscInd := indication.GetOnuDiscInd()
 		log.Infow("Received Onu discovery indication ", log.Fields{"OnuDiscInd": onuDiscInd})
-		//onuID,err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
-		//onuID,err := dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
-		// TODO Get onu ID from the resource manager
-		var onuID uint32 = 1
-		/*if err != nil{
-		    log.Errorw("onu-id-unavailable",log.Fields{"intfID":onuDiscInd.GetIntfId()})
-		    return
-		}*/
-
 		sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
-		go dh.onuDiscIndication(onuDiscInd, onuID, sn)
+		dh.onuDiscIndication(onuDiscInd, sn)
 	case *oop.Indication_OnuInd:
 		onuInd := indication.GetOnuInd()
 		log.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd})
@@ -657,7 +648,7 @@ func (dh *DeviceHandler) activateONU(intfID uint32, onuID int64, serialNum *oop.
 	}
 }
 
-func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, onuID uint32, sn string) error {
+func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn string) error {
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 	if _, ok := dh.discOnus[sn]; ok {
@@ -676,35 +667,42 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, on
 	kwargs := make(map[string]interface{})
 	if sn != "" {
 		kwargs["serial_number"] = sn
+	} else {
+		log.Error("invalid onu serial number")
+		return errors.New("failed to fetch onu serial number")
+	}
+
+	onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
+	var onuID uint32
+	if onuDevice == nil || err != nil {
+		onuID, err = dh.resourceMgr.GetONUID(onuDiscInd.GetIntfId())
+		if err != nil {
+			log.Errorw("failed to fetch onuID from resource manager", log.Fields{"err": err})
+			return err
+		}
+		if err := dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
+			"brcm_openomci_onu", int(channelID),
+			string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); err != nil {
+			log.Errorw("Create onu error",
+				log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
+					"onuID": onuID, "sn": sn, "error": err})
+			return err
+		}
+
+	} else {
+		onuID = onuDevice.ProxyAddress.OnuId
 	}
 	kwargs["onu_id"] = onuID
 	kwargs["parent_port_no"] = parentPortNo
-	onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
-	if onuDevice == nil || err != nil {
-		if er := dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
-			"brcm_openomci_onu", int(channelID),
-			string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); er != nil {
-			log.Errorw("Create onu error",
-				log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
-					"onuID": onuID, "sn": sn, "error": er})
-			return er
-		}
-	}
-	onuDevice, err = dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
-	if err != nil {
-		log.Errorw("failed to get ONU device information", log.Fields{"err": err})
-		return err
-	}
-	er := dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
-	if er != nil {
-		log.Errorw("Unable to update device state", log.Fields{"DeviceID": onuDevice.Id})
-		return er
-	}
-	log.Debugw("onu-discovered-reachable", log.Fields{"deviceID": onuDevice.Id})
-
 	for i := 0; i < 10; i++ {
-		onuDevice, _ := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
-		if onuDevice != nil {
+		if onuDevice, _ := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs); onuDevice != nil {
+			err := dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
+			if err != nil {
+				log.Errorw("failed to update device state", log.Fields{"DeviceID": onuDevice.Id})
+				return err
+			}
+
+			log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id})
 			dh.activateONU(onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn)
 			return nil
 		}
@@ -712,7 +710,7 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, on
 		log.Debugln("Sleep 1 seconds to active onu, retry times ", i+1)
 	}
 	log.Errorw("Cannot query onu, dont activate it.", log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(), "onuID": onuID, "sn": sn})
-	return errors.New("failed to activate onu")
+	return errors.New("Failed to activate onu")
 }
 
 func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
