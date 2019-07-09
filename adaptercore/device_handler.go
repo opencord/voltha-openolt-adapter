@@ -51,6 +51,7 @@ type DeviceHandler struct {
 	device        *voltha.Device
 	coreProxy     *com.CoreProxy
 	AdapterProxy  *com.AdapterProxy
+        EventProxy    *com.EventProxy
 	openOLT       *OpenOLT
 	exitChannel   chan int
 	lockDevice    sync.RWMutex
@@ -58,6 +59,7 @@ type DeviceHandler struct {
 	transitionMap *TransitionMap
 	clientCon     *grpc.ClientConn
 	flowMgr       *OpenOltFlowMgr
+        eventMgr      *OpenOltEventMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
 	discOnus      map[string]bool
 	onus          map[string]*OnuDevice
@@ -87,10 +89,11 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
+func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, ep *com.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
 	var dh DeviceHandler
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
+        dh.EventProxy = ep
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.deviceID = cloned.Id
 	dh.deviceType = cloned.Type
@@ -254,6 +257,7 @@ func (dh *DeviceHandler) handleOltIndication(oltIndication *oop.OltIndication) {
 }
 
 func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
+        raisedTs := time.Now().UnixNano()
 	switch indication.Data.(type) {
 	case *oop.Indication_OltInd:
 		dh.handleOltIndication(indication.GetOltInd())
@@ -298,6 +302,10 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 	case *oop.Indication_AlarmInd:
 		alarmInd := indication.GetAlarmInd()
 		log.Infow("Received alarm indication ", log.Fields{"AlarmInd": alarmInd})
+                if dh.eventMgr.ProcessEvents(alarmInd, dh.deviceId, raisedTs); err != nil {
+                      log.Errorw("Failed to process event indication", log.Fields{"EventInd": alarmInd, "Error": err})
+                }
+
 	}
 }
 
@@ -463,6 +471,8 @@ func (dh *DeviceHandler) doStateConnected() error {
 		return errors.New("instantiating flow manager failed")
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
+        /* Instantiating Event Manager to handle Alarms and KPIs */
+        dh.eventMgr = NewEventMgr(dh.EventProxy)
 
 	// Start reading indications
 	go dh.readIndications()
