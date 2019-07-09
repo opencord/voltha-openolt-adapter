@@ -26,21 +26,22 @@ import (
 
 // Open OLT default constants
 const (
-	EtcdStoreName           = "etcd"
-	defaultInstanceid       = "openOlt001"
-	defaultKafkaadapterhost = "127.0.0.1"
-	defaultKafkaadapterport = 9092
-	defaultKafkaclusterhost = "127.0.0.1"
-	defaultKafkaclusterport = 9094
-	defaultKvstoretype      = EtcdStoreName
-	defaultKvstoretimeout   = 5 //in seconds
-	defaultKvstorehost      = "127.0.0.1"
-	defaultKvstoreport      = 2379 // Consul = 8500; Etcd = 2379
-	defaultLoglevel         = 0
-	defaultBanner           = false
-	defaultTopic            = "openolt"
-	defaultCoretopic        = "rwcore"
-	defaultOnunumber        = 1
+        EtcdStoreName           = "etcd"
+        defaultInstanceid       = "openOlt001"
+        defaultKafkaadapterhost = "127.0.0.1"
+        defaultKafkaadapterport = 9092
+        defaultKafkaclusterhost = "127.0.0.1"
+        defaultKafkaclusterport = 9094
+        defaultKvstoretype      = EtcdStoreName
+        defaultKvstoretimeout   = 5 //in seconds
+        defaultKvstorehost      = "127.0.0.1"
+        defaultKvstoreport      = 2379 // Consul = 8500; Etcd = 2379
+        defaultLoglevel         = 0
+        defaultBanner           = false
+        defaultTopic            = "openolt"
+        defaultCoretopic        = "rwcore"
+        defaultEventtopic       = "voltha.events"
+        defaultOnunumber        = 1
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -57,6 +58,7 @@ type AdapterFlags struct {
 	KVStorePort      int
 	Topic            string
 	CoreTopic        string
+        EventTopic       string
 	LogLevel         int
 	OnuNumber        int
 	Banner           bool
@@ -80,6 +82,7 @@ func NewAdapterFlags() *AdapterFlags {
 		KVStorePort:      defaultKvstoreport,
 		Topic:            defaultTopic,
 		CoreTopic:        defaultCoretopic,
+                EventTopic:       defaultEventTopic,
 		LogLevel:         defaultLoglevel,
 		OnuNumber:        defaultOnunumber,
 		Banner:           defaultBanner,
@@ -107,6 +110,9 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Core topic")
 	flag.StringVar(&(so.CoreTopic), "core_topic", defaultCoretopic, help)
+
+        help = fmt.Sprintf("Event topic")
+        flag.StringVar(&(so.EventTopic), "event_topic", defaultEventtopic, help)
 
 	help = fmt.Sprintf("KV store type")
 	flag.StringVar(&(so.KVStoreType), "kv_store_type", defaultKvstoretype, help)
