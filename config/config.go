@@ -41,6 +41,7 @@ const (
 	defaultDisplayVersionOnly = false
 	defaultTopic              = "openolt"
 	defaultCoretopic          = "rwcore"
+	defaultEventtopic         = "voltha.events"
 	defaultOnunumber          = 1
 )
 
@@ -58,6 +59,7 @@ type AdapterFlags struct {
 	KVStorePort        int
 	Topic              string
 	CoreTopic          string
+	EventTopic         string
 	LogLevel           int
 	OnuNumber          int
 	Banner             bool
@@ -82,6 +84,7 @@ func NewAdapterFlags() *AdapterFlags {
 		KVStorePort:        defaultKvstoreport,
 		Topic:              defaultTopic,
 		CoreTopic:          defaultCoretopic,
+		EventTopic:         defaultEventtopic,
 		LogLevel:           defaultLoglevel,
 		OnuNumber:          defaultOnunumber,
 		Banner:             defaultBanner,
@@ -110,6 +113,9 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Core topic")
 	flag.StringVar(&(so.CoreTopic), "core_topic", defaultCoretopic, help)
+
+	help = fmt.Sprintf("Event topic")
+	flag.StringVar(&(so.EventTopic), "event_topic", defaultEventtopic, help)
 
 	help = fmt.Sprintf("KV store type")
 	flag.StringVar(&(so.KVStoreType), "kv_store_type", defaultKvstoretype, help)
