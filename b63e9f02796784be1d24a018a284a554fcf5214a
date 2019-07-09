@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f6f13f1a_04c0f04f",
+        "filename": "main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-07-09T08:52:01Z",
+      "side": 1,
+      "message": "Package spelling :)",
+      "revId": "b63e9f02796784be1d24a018a284a554fcf5214a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1b08ebb_fb32beca",
+        "filename": "main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-07-09T08:52:01Z",
+      "side": 1,
+      "message": "Should we get rid of dead code... if at all we want to retain some commented code... there should be an explanation as to why it is present",
+      "revId": "b63e9f02796784be1d24a018a284a554fcf5214a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
