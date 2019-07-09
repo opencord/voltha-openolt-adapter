@@ -235,7 +235,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6b91ad0847f5e2ff260d4867b6fa723f6b80f797f87f49ce185d083c4f801289"
+  digest = "1:8813723b4cd2a23cddb4a2ed14f1949dc11017562ebf2a41903310956a8cb1a0"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -250,7 +250,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "6deaa24a2a5bee6d9fd285ccb39b12f7255ee0ab"
+  revision = "44e134a1c07a5238985f816a3a127853cfd9efd2"
 
 [[projects]]
   branch = "master"
@@ -288,7 +288,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d0ff4ba70cda3f93b1307bf1fe280241aa7584c448a5e2a27325620073fc6508"
+  digest = "1:ab16e5cb98bf2b6efcfd927e9cb737b7243014600ebcfbe8786f2e4ad2227ac1"
   name = "go.etcd.io/etcd"
   packages = [
     "auth/authpb",
@@ -304,12 +304,13 @@
     "pkg/systemd",
     "pkg/types",
     "raft",
+    "raft/confchange",
     "raft/quorum",
     "raft/raftpb",
     "raft/tracker",
   ]
   pruneopts = "UT"
-  revision = "5a734e79f501565e8bb1ae7a7a9abcac7ae8c36d"
+  revision = "f498392ca712f854566361e1107d7211adc392b9"
 
 [[projects]]
   digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
@@ -413,7 +414,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = "UT"
-  revision = "3bdd9d9f5532d75d09efb230bd767d265245cfe5"
+  revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
   digest = "1:931727c62baa7a9958acac5d712ae9cc0ea3ff86a664b560febf4f4b0677ee28"

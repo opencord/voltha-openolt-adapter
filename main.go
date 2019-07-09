@@ -47,6 +47,7 @@ type adapter struct {
 	kip              *kafka.InterContainerProxy
 	coreProxy        *com.CoreProxy
 	adapterProxy     *com.AdapterProxy
+	eventProxy       *com.EventProxy
 	halted           bool
 	exitChannel      chan int
 	receiverChannels []<-chan *ic.InterContainerMessage
@@ -92,8 +93,11 @@ func (a *adapter) start(ctx context.Context) {
 	// Create the adaptor proxy to handle request between olt and onu
 	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
 
+	// Create the event proxy to post events to KAFKA
+	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
+
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.config.OnuNumber,
+	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config.OnuNumber,
 		a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
@@ -203,10 +207,10 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
 	return kip, nil
 }
 
-func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, ap *com.AdapterProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
+func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, ap *com.AdapterProxy, ep *com.EventProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
 	log.Info("starting-open-olt")
 	var err error
-	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, onuNumber, kvStoreHost, kvStorePort, KVStoreType)
+	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, onuNumber, kvStoreHost, kvStorePort, KVStoreType)
 
 	if err = sOLT.Start(ctx); err != nil {
 		log.Fatalw("error-starting-messaging-proxy", log.Fields{"error": err})
