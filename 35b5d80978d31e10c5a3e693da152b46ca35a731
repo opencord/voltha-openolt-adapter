@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6470f3fc_f121be54",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-07-10T08:08:44Z",
+      "side": 1,
+      "message": "if the err is not nil, we should return err here and not proceed ahead.",
+      "revId": "35b5d80978d31e10c5a3e693da152b46ca35a731",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
