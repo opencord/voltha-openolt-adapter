@@ -19,6 +19,7 @@ package adaptercore
 
 import (
 	"errors"
+	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/rw_core/utils"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
@@ -81,7 +82,7 @@ PON OLT (OF) port number
 */
 
 //MaxOnusPerPon value
-var MaxOnusPerPon = 32
+var MaxOnusPerPon = 128
 
 //MinUpstreamPortID value
 var MinUpstreamPortID = 0xfffd
@@ -93,7 +94,10 @@ var controllerPorts = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
 
 //MkUniPortNum returns new UNIportNum based on intfID, inuID and uniID
 func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
-	/* TODO: Add checks */
+	var limit = int(onuID)
+	if limit > MaxOnusPerPon {
+		log.Info("Warning: exceeded the MAX ONUS per PON")
+	}
 	return (intfID << 11) | (onuID << 4) | uniID
 }
 
