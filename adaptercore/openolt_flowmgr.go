@@ -33,6 +33,8 @@ import (
 	"github.com/opencord/voltha-protos/go/voltha"
 	"math/big"
 	//deepcopy "github.com/getlantern/deepcopy"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -812,13 +814,31 @@ func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfID int32, onuID int32, uniI
 }
 
 func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) bool {
+
+	var intfID uint32
+	/* For flows which trap out of the NNI, the AccessIntfId is invalid
+	   (set to -1). In such cases, we need to refer to the NetworkIntfId .
+	*/
+	if deviceFlow.AccessIntfId != -1 {
+		intfID = uint32(deviceFlow.AccessIntfId)
+	} else {
+		intfID = uint32(deviceFlow.NetworkIntfId)
+	}
+
 	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
 	_, err := f.deviceHandler.Client.FlowAdd(context.Background(), deviceFlow)
-	if err != nil {
-		log.Errorw("Failed to Add flow to device", log.Fields{"err": err, "deviceFlow": deviceFlow})
+
+	st, _ := status.FromError(err)
+	if st.Code() == codes.AlreadyExists {
+		log.Debug("Flow already exixts", log.Fields{"err": err, "deviceFlow": deviceFlow})
 		return false
 	}
-	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
+
+	if err != nil {
+		log.Errorw("Failed to Add flow to device", log.Fields{"err": err, "deviceFlow": deviceFlow})
+		f.resourceMgr.FreeFlowID(intfID, uint32(deviceFlow.OnuId), uint32(deviceFlow.UniId), deviceFlow.FlowId)
+		return false
+	}
 	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
 	f.registerFlow(logicalFlow, deviceFlow)
 	return true
