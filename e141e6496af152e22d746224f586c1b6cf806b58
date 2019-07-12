@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f11cade7_1cf64706",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-07-12T08:30:09Z",
+      "side": 1,
+      "message": "you should use the log.Warn(\"error-message-here\") instead. When Info logging is disabled, this warning message is lost.",
+      "revId": "e141e6496af152e22d746224f586c1b6cf806b58",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
