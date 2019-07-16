@@ -151,7 +151,8 @@ func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
 			kafka.ProducerReturnOnErrors(true),
 			kafka.ProducerReturnOnSuccess(true),
 			kafka.ProducerMaxRetries(6),
-			kafka.ProducerRetryBackoff(time.Millisecond*30)), nil
+			kafka.ProducerRetryBackoff(time.Millisecond*30),
+			kafka.MetadatMaxRetries(15)), nil
 	}
 
 	return nil, errors.New("unsupported-client-type")

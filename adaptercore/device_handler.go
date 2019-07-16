@@ -680,7 +680,7 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 			log.Errorw("failed to fetch onuID from resource manager", log.Fields{"err": err})
 			return err
 		}
-		if err := dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
+		if _, err := dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
 			"brcm_openomci_onu", int(channelID),
 			string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); err != nil {
 			log.Errorw("Create onu error",
