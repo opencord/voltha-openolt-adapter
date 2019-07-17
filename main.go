@@ -24,6 +24,7 @@ import (
 	"github.com/opencord/voltha-go/adapters"
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
+	"github.com/opencord/voltha-go/common/version"
 	"github.com/opencord/voltha-go/db/kvstore"
 	"github.com/opencord/voltha-go/kafka"
 	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
@@ -230,7 +231,8 @@ func (a *adapter) setupRequestHandler(coreInstanceID string, iadapter adapters.I
 func (a *adapter) registerWithCore(retries int) error {
 	log.Info("registering-with-core")
 	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
-		Vendor: "simulation Enterprise Inc"}
+		Vendor:  "VOLTHA OpenOLT",
+		Version: version.VersionInfo.Version}
 	types := []*voltha.DeviceType{{Id: "openolt",
 		Adapter:                     "openolt", // Name of the adapter that handles device type
 		AcceptsBulkFlowUpdate:       false,     // Currently openolt adapter does not support bulk flow handling
@@ -295,6 +297,11 @@ func printBanner() {
 	fmt.Println("                                              ")
 }
 
+func printVersion() {
+	fmt.Println("VOLTHA OpenOLT Adapter")
+	fmt.Println(version.VersionInfo.String("  "))
+}
+
 func main() {
 	start := time.Now()
 
@@ -316,6 +323,12 @@ func main() {
 	log.SetPackageLogLevel("github.com/opencord/voltha-go/adapters/common", log.DebugLevel)
 
 	defer log.CleanUp()
+
+	// Print version / build information and exit
+	if cf.DisplayVersionOnly {
+		printVersion()
+		return
+	}
 
 	// Print banner if specified
 	if cf.Banner {

@@ -26,40 +26,42 @@ import (
 
 // Open OLT default constants
 const (
-	EtcdStoreName           = "etcd"
-	defaultInstanceid       = "openOlt001"
-	defaultKafkaadapterhost = "127.0.0.1"
-	defaultKafkaadapterport = 9092
-	defaultKafkaclusterhost = "127.0.0.1"
-	defaultKafkaclusterport = 9094
-	defaultKvstoretype      = EtcdStoreName
-	defaultKvstoretimeout   = 5 //in seconds
-	defaultKvstorehost      = "127.0.0.1"
-	defaultKvstoreport      = 2379 // Consul = 8500; Etcd = 2379
-	defaultLoglevel         = 0
-	defaultBanner           = false
-	defaultTopic            = "openolt"
-	defaultCoretopic        = "rwcore"
-	defaultOnunumber        = 1
+	EtcdStoreName             = "etcd"
+	defaultInstanceid         = "openOlt001"
+	defaultKafkaadapterhost   = "127.0.0.1"
+	defaultKafkaadapterport   = 9092
+	defaultKafkaclusterhost   = "127.0.0.1"
+	defaultKafkaclusterport   = 9094
+	defaultKvstoretype        = EtcdStoreName
+	defaultKvstoretimeout     = 5 //in seconds
+	defaultKvstorehost        = "127.0.0.1"
+	defaultKvstoreport        = 2379 // Consul = 8500; Etcd = 2379
+	defaultLoglevel           = 0
+	defaultBanner             = false
+	defaultDisplayVersionOnly = false
+	defaultTopic              = "openolt"
+	defaultCoretopic          = "rwcore"
+	defaultOnunumber          = 1
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	InstanceID       string
-	KafkaAdapterHost string
-	KafkaAdapterPort int
-	KafkaClusterHost string
-	KafkaClusterPort int
-	KVStoreType      string
-	KVStoreTimeout   int // in seconds
-	KVStoreHost      string
-	KVStorePort      int
-	Topic            string
-	CoreTopic        string
-	LogLevel         int
-	OnuNumber        int
-	Banner           bool
+	InstanceID         string
+	KafkaAdapterHost   string
+	KafkaAdapterPort   int
+	KafkaClusterHost   string
+	KafkaClusterPort   int
+	KVStoreType        string
+	KVStoreTimeout     int // in seconds
+	KVStoreHost        string
+	KVStorePort        int
+	Topic              string
+	CoreTopic          string
+	LogLevel           int
+	OnuNumber          int
+	Banner             bool
+	DisplayVersionOnly bool
 }
 
 func init() {
@@ -69,20 +71,21 @@ func init() {
 // NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:       defaultInstanceid,
-		KafkaAdapterHost: defaultKafkaadapterhost,
-		KafkaAdapterPort: defaultKafkaadapterport,
-		KafkaClusterHost: defaultKafkaclusterhost,
-		KafkaClusterPort: defaultKafkaclusterport,
-		KVStoreType:      defaultKvstoretype,
-		KVStoreTimeout:   defaultKvstoretimeout,
-		KVStoreHost:      defaultKvstorehost,
-		KVStorePort:      defaultKvstoreport,
-		Topic:            defaultTopic,
-		CoreTopic:        defaultCoretopic,
-		LogLevel:         defaultLoglevel,
-		OnuNumber:        defaultOnunumber,
-		Banner:           defaultBanner,
+		InstanceID:         defaultInstanceid,
+		KafkaAdapterHost:   defaultKafkaadapterhost,
+		KafkaAdapterPort:   defaultKafkaadapterport,
+		KafkaClusterHost:   defaultKafkaclusterhost,
+		KafkaClusterPort:   defaultKafkaclusterport,
+		KVStoreType:        defaultKvstoretype,
+		KVStoreTimeout:     defaultKvstoretimeout,
+		KVStoreHost:        defaultKvstorehost,
+		KVStorePort:        defaultKvstoreport,
+		Topic:              defaultTopic,
+		CoreTopic:          defaultCoretopic,
+		LogLevel:           defaultLoglevel,
+		OnuNumber:          defaultOnunumber,
+		Banner:             defaultBanner,
+		DisplayVersionOnly: defaultDisplayVersionOnly,
 	}
 	return &adapterFlags
 }
@@ -127,7 +130,10 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	flag.IntVar(&(so.OnuNumber), "onu_number", defaultOnunumber, help)
 
 	help = fmt.Sprintf("Show startup banner log lines")
-	flag.BoolVar(&so.Banner, "banner", defaultBanner, help)
+	flag.BoolVar(&(so.Banner), "banner", defaultBanner, help)
+
+	help = fmt.Sprintf("Show version information and exit")
+	flag.BoolVar(&(so.DisplayVersionOnly), "version", defaultDisplayVersionOnly, help)
 
 	flag.Parse()
 

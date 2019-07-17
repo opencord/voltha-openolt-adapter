@@ -216,7 +216,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:493092a7b59aec01e27d25e3cc4e833c59de8d19c845611a612387592a2b7ff9"
+  digest = "1:6b91ad0847f5e2ff260d4867b6fa723f6b80f797f87f49ce185d083c4f801289"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -224,6 +224,7 @@
     "common/log",
     "common/ponresourcemanager",
     "common/techprofile",
+    "common/version",
     "db/kvstore",
     "db/model",
     "kafka",
@@ -439,6 +440,7 @@
     "github.com/opencord/voltha-go/common/log",
     "github.com/opencord/voltha-go/common/ponresourcemanager",
     "github.com/opencord/voltha-go/common/techprofile",
+    "github.com/opencord/voltha-go/common/version",
     "github.com/opencord/voltha-go/db/kvstore",
     "github.com/opencord/voltha-go/db/model",
     "github.com/opencord/voltha-go/kafka",

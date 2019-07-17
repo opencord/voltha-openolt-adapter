@@ -20,25 +20,37 @@ SHELL = bash -e -o pipefail
 # Variables
 VERSION                  ?= $(shell cat ./VERSION)
 
+DOCKER_LABEL_VCS_DIRTY     = false
+ifneq ($(shell git ls-files --others --modified --exclude-standard 2>/dev/null | wc -l | sed -e 's/ //g'),0)
+    DOCKER_LABEL_VCS_DIRTY = true
+endif
 ## Docker related
+DOCKER_EXTRA_ARGS        ?=
 DOCKER_REGISTRY          ?=
 DOCKER_REPOSITORY        ?=
-DOCKER_BUILD_ARGS        ?=
 DOCKER_TAG               ?= ${VERSION}
 GOADAPTER_IMAGENAME      := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-go
 PYTHONADAPTER_IMAGENAME  := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-py
 ADAPTER_IMAGENAME        := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}
 
 ## Docker labels. Only set ref and commit date if committed
-DOCKER_LABEL_VCS_URL     ?= $(shell git remote get-url $(shell git remote))
-DOCKER_LABEL_BUILD_DATE  ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
-DOCKER_LABEL_COMMIT_DATE = $(shell git show -s --format=%cd --date=iso-strict HEAD)
+DOCKER_LABEL_VCS_URL       ?= $(shell git remote get-url $(shell git remote))
+DOCKER_LABEL_VCS_REF       = $(shell git rev-parse HEAD)
+DOCKER_LABEL_BUILD_DATE    ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
+DOCKER_LABEL_COMMIT_DATE   = $(shell git show -s --format=%cd --date=iso-strict HEAD)
 
-ifeq ($(shell git ls-files --others --modified --exclude-standard 2>/dev/null | wc -l | sed -e 's/ //g'),0)
-  DOCKER_LABEL_VCS_REF = $(shell git rev-parse HEAD)
-else
-  DOCKER_LABEL_VCS_REF = $(shell git rev-parse HEAD)+dirty
-endif
+DOCKER_BUILD_ARGS ?= \
+	${DOCKER_EXTRA_ARGS} \
+	--build-arg org_label_schema_version="${VERSION}" \
+	--build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
+	--build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
+	--build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
+	--build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
+	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
+
+DOCKER_BUILD_ARGS_LOCAL ?= ${DOCKER_BUILD_ARGS} \
+	--build-arg LOCAL_PYVOLTHA=${LOCAL_PYVOLTHA} \
+	--build-arg LOCAL_PROTOS=${LOCAL_PROTOS}
 
 .PHONY: docker-build openolt_go openolt_python local-protos local-volthago local-pyvoltha
 
@@ -111,26 +123,10 @@ build: docker-build
 docker-build: openolt_go openolt_python
 
 openolt_go: local-protos local-volthago
-	docker build $(DOCKER_BUILD_ARGS) \
-    -t ${GOADAPTER_IMAGENAME} \
-    --build-arg org_label_schema_version="${VERSION}" \
-    --build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
-    --build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
-    --build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
-    --build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
-    -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) -t ${GOADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 
 openolt_python: local-protos local-pyvoltha
-	docker build $(DOCKER_BUILD_ARGS) \
-    -t ${PYTHONADAPTER_IMAGENAME} \
-    --build-arg LOCAL_PYVOLTHA=$(LOCAL_PYVOLTHA) \
-    --build-arg LOCAL_PROTOS=$(LOCAL_PROTOS) \
-    --build-arg org_label_schema_version="${VERSION}" \
-    --build-arg org_label_schema_vcs_url="${DOCKER_LABEL_VCS_URL}" \
-    --build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
-    --build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
-    --build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
-    -f python/docker/Dockerfile.openolt_adapter python
+	docker build $(DOCKER_BUILD_ARGS_LOCAL) -t ${PYTHONADAPTER_IMAGENAME} -f python/docker/Dockerfile.openolt_adapter python
 
 	# Current default image gets the base DOCKER_TAG
 	docker tag ${PYTHONADAPTER_IMAGENAME} ${ADAPTER_IMAGENAME}
