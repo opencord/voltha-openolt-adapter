@@ -1,6 +1,5 @@
 
 # How to Build and Run a GOlang based OpenOLT Adapter 
-
 Assuming the VOLTHA2.0 environment is made using the quickstart.md in voltha-go.
 
 Dependencies are committed to the repos as per current standard practice.
@@ -27,29 +26,35 @@ If you are using a custom local copy of protos or voltha-go
 
 Just export LOCAL_PROTOS=true or LOCAL_VOLTHAGO=true to use that instead, assuming you have set them up on GOPATH. See the quickstart.
 
-cd ~/source/voltha-openolt-adapter
-```
-
-Get the latest code changes
-```
-git pull
-```
-To build the docker image
-```
+mkdir -p ~/source
+cd ~/source
+git clone https://github.com/opencord/voltha-openolt-adapter.git
+cd voltha-openolt-adapter
 make build
 ```
 This will create the voltha-openolt-adapter-go docker image
 ```
+
 $ docker images | grep openolt
-voltha-openolt-adapter-go        latest              38688e697472        2 hours ago         37.3MB
+voltha-openolt-adapter          latest               a0f2ba883655        5 seconds ago        842MB
+voltha-openolt-adapter          latest-py            a0f2ba883655        5 seconds ago        842MB
+voltha-openolt-adapter          latest-go            801070129648        About a minute ago   34.5MB
+
 ```
 In case the python voltha openolt adapter is started, stop the python voltha openolt docker container
 
 
 To start the GOlang based OpenOLT adapter 
-
-DOCKER_HOST_IP=<HOST-IP> docker-compose -f compose/adapters-openolt-go.yml up -d
-
+```
+cd ~/source/voltha-go
+docker-compose -f compose/system-test-openolt-go.yml up -d
+```
+To start the Python based adapter based OpenOLT adapter 
+```
+cd ~/source/voltha-go
+docker-compose -f compose/system-test.yml up -d
+```
 The functionality of OLT activation can be verified through BBSIM
 Follow the below steps to start BBSIM and provision it through VOLTHA-CLI
 https://github.com/opencord/voltha-bbsim/blob/master/README.md
+
