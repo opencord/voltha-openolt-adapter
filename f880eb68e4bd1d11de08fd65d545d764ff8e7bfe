@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1848db4_0f27427f",
+        "filename": "docker/Dockerfile.openolt",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-07-18T16:59:13Z",
+      "side": 1,
+      "message": "this seems a bit odd to me, i.e. setting the variables in a dependency. it seems to me that the app should be using its own instance of the version struct and not overloading the dependency version.",
+      "revId": "f880eb68e4bd1d11de08fd65d545d764ff8e7bfe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
