@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89f57972_28a22d4c",
+        "filename": "README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-18T21:51:21Z",
+      "side": 1,
+      "message": "should be ~/source/voltha-openolt-adapter to match clone location below",
+      "range": {
+        "startLine": 12,
+        "startChar": 8,
+        "endLine": 12,
+        "endChar": 13
+      },
+      "revId": "f18048a435fbf665b2c67fe416d933f64d64f4ed",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
