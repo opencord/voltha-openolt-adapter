@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package version
+package config
 
 import (
 	"fmt"
@@ -24,36 +24,36 @@ import (
 // These values can (should) be overridden via ldflags when built with
 // `make`
 var (
-	version   = "unknown-version"
-	goVersion = "unknown-goversion"
-	vcsRef    = "unknown-vcsref"
-	vcsDirty  = "unknown-vcsdirty"
-	buildTime = "unknown-buildtime"
-	os        = "unknown-os"
-	arch      = "unknown-arch"
+	version         = "unknown-version"
+	goVersion       = "unknown-goversion"
+	vcsRef          = "unknown-vcsref"
+	vcsDirty        = "unknown-vcsdirty"
+	buildTime       = "unknown-buildtime"
+	operatingSystem = "unknown-os"
+	arch            = "unknown-arch"
 )
 
 type VersionInfoType struct {
-	Version   string `json:"version"`
-	GoVersion string `json:"goversion"`
-	VcsRef    string `json:"vcsref"`
-	VcsDirty  string `json:"vcsdirty"`
-	BuildTime string `json:"buildtime"`
-	Os        string `json:"os"`
-	Arch      string `json:"arch"`
+	Version         string `json:"version"`
+	GoVersion       string `json:"goversion"`
+	VcsRef          string `json:"vcsref"`
+	VcsDirty        string `json:"vcsdirty"`
+	BuildTime       string `json:"buildtime"`
+	OperatingSystem string `json:"os"`
+	Arch            string `json:"arch"`
 }
 
 var VersionInfo VersionInfoType
 
 func init() {
 	VersionInfo = VersionInfoType{
-		Version:   version,
-		VcsRef:    vcsRef,
-		VcsDirty:  vcsDirty,
-		GoVersion: goVersion,
-		Os:        os,
-		Arch:      arch,
-		BuildTime: buildTime,
+		Version:         version,
+		VcsRef:          vcsRef,
+		VcsDirty:        vcsDirty,
+		GoVersion:       goVersion,
+		OperatingSystem: operatingSystem,
+		Arch:            arch,
+		BuildTime:       buildTime,
 	}
 }
 
@@ -65,6 +65,6 @@ func (v VersionInfoType) String(indent string) string {
 	builder.WriteString(fmt.Sprintf("%sVCS Ref:      %s\n", indent, VersionInfo.VcsRef))
 	builder.WriteString(fmt.Sprintf("%sVCS Dirty:    %s\n", indent, VersionInfo.VcsDirty))
 	builder.WriteString(fmt.Sprintf("%sBuilt:        %s\n", indent, VersionInfo.BuildTime))
-	builder.WriteString(fmt.Sprintf("%sOS/Arch:      %s/%s\n", indent, VersionInfo.Os, VersionInfo.Arch))
+	builder.WriteString(fmt.Sprintf("%sOS/Arch:      %s/%s\n", indent, VersionInfo.OperatingSystem, VersionInfo.Arch))
 	return builder.String()
 }
