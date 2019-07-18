@@ -34,6 +34,24 @@
       "revId": "f880eb68e4bd1d11de08fd65d545d764ff8e7bfe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c93f54bb_7c5c9bb0",
+        "filename": "docker/Dockerfile.openolt",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-07-18T17:10:00Z",
+      "side": 1,
+      "message": "I don\u0027t think you want to copy all of version.go, i.e. the struct def, just create an instance of the version struct, the global variables, and the init function. Granted, that is most of it ...",
+      "parentUuid": "647b0516_e907b73b",
+      "revId": "f880eb68e4bd1d11de08fd65d545d764ff8e7bfe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
