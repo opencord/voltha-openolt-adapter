@@ -16,6 +16,24 @@
       "revId": "f880eb68e4bd1d11de08fd65d545d764ff8e7bfe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "647b0516_e907b73b",
+        "filename": "docker/Dockerfile.openolt",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-18T17:05:55Z",
+      "side": 1,
+      "message": "I was trying to avoid copying version.go, but in this case i think it could make things a bit cleaner.   I learned the hard way that -X needs the fully qualified GOPATH for vendored variables...  If everyone is ok with copying vendor.go i can change it.",
+      "parentUuid": "e1848db4_0f27427f",
+      "revId": "f880eb68e4bd1d11de08fd65d545d764ff8e7bfe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
