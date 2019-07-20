@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"io"
+	"net"
 	"strconv"
 	"strings"
 	"sync"
@@ -129,6 +130,47 @@ func (dh *DeviceHandler) stop(ctx context.Context) {
 	log.Debug("stopping-device-agent")
 	dh.exitChannel <- 1
 	log.Debug("device-agent-stopped")
+}
+
+func macifyIP(ip net.IP) string {
+	if len(ip) > 0 {
+		oct1 := strconv.FormatInt(int64(ip[12]), 16)
+		oct2 := strconv.FormatInt(int64(ip[13]), 16)
+		oct3 := strconv.FormatInt(int64(ip[14]), 16)
+		oct4 := strconv.FormatInt(int64(ip[15]), 16)
+		return fmt.Sprintf("00:00:%02v:%02v:%02v:%02v", oct1, oct2, oct3, oct4)
+	}
+	return ""
+}
+
+func generateMacFromHost(host string) (string, error) {
+	var genmac string
+	var addr net.IP
+	var ips []string
+	var err error
+
+	log.Debugw("generating-mac-from-host", log.Fields{"host": host})
+
+	if addr = net.ParseIP(host); addr == nil {
+		log.Debugw("looking-up-hostname", log.Fields{"host": host})
+
+		if ips, err = net.LookupHost(host); err == nil {
+			log.Debugw("dns-result-ips", log.Fields{"ips": ips})
+			if addr = net.ParseIP(ips[0]); addr == nil {
+				log.Errorw("unable-to-parse-ip", log.Fields{"ip": ips[0]})
+				return "", errors.New("unable-to-parse-ip")
+			}
+			genmac = macifyIP(addr)
+			log.Debugw("using-ip-as-mac", log.Fields{"host": ips[0], "mac": genmac})
+			return genmac, nil
+		}
+		log.Errorw("cannot-resolve-hostname-to-ip", log.Fields{"host": host})
+		return "", err
+	}
+
+	genmac = macifyIP(addr)
+	log.Debugw("using-ip-as-mac", log.Fields{"host": host, "mac": genmac})
+	return genmac, nil
 }
 
 func macAddressToUint32Array(mac string) []uint32 {
@@ -419,28 +461,10 @@ func (dh *DeviceHandler) doStateConnected() error {
 		return nil
 	}
 
-	deviceInfo, err := dh.Client.GetDeviceInfo(context.Background(), new(oop.Empty))
+	deviceInfo, err := dh.populateDeviceInfo()
 	if err != nil {
-		log.Errorw("Failed to fetch device info", log.Fields{"err": err})
+		log.Errorw("Unable to populate Device Info", log.Fields{"err": err})
 		return err
-	}
-	if deviceInfo == nil {
-		log.Errorw("Device info is nil", log.Fields{})
-		return errors.New("failed to get device info from OLT")
-	}
-	log.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
-	dh.device.Root = true
-	dh.device.Vendor = deviceInfo.Vendor
-	dh.device.Model = deviceInfo.Model
-	dh.device.SerialNumber = deviceInfo.DeviceSerialNumber
-	dh.device.HardwareVersion = deviceInfo.HardwareVersion
-	dh.device.FirmwareVersion = deviceInfo.FirmwareVersion
-	// FIXME: Remove Hardcodings
-	dh.device.MacAddress = "0a:0b:0c:0d:0e:0f"
-
-	// Synchronous call to update device - this method is run in its own go routine
-	if er := dh.coreProxy.DeviceUpdate(context.TODO(), dh.device); er != nil {
-		log.Errorw("error-updating-device", log.Fields{"deviceID": dh.device.Id, "error": er})
 	}
 
 	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
@@ -475,6 +499,51 @@ func (dh *DeviceHandler) doStateConnected() error {
 	// Start reading indications
 	go dh.readIndications()
 	return nil
+}
+
+func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
+	var err error
+	var deviceInfo *oop.DeviceInfo
+
+	deviceInfo, err = dh.Client.GetDeviceInfo(context.Background(), new(oop.Empty))
+
+	if err != nil {
+		log.Errorw("Failed to fetch device info", log.Fields{"err": err})
+		return nil, err
+	}
+	if deviceInfo == nil {
+		log.Errorw("Device info is nil", log.Fields{})
+		return nil, errors.New("failed to get device info from OLT")
+	}
+
+	log.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
+	dh.device.Root = true
+	dh.device.Vendor = deviceInfo.Vendor
+	dh.device.Model = deviceInfo.Model
+	dh.device.SerialNumber = deviceInfo.DeviceSerialNumber
+	dh.device.HardwareVersion = deviceInfo.HardwareVersion
+	dh.device.FirmwareVersion = deviceInfo.FirmwareVersion
+
+	if deviceInfo.DeviceId == "" {
+		log.Warnw("no-device-id-provided-using-host", log.Fields{"hostport": dh.device.GetHostAndPort()})
+		host := strings.Split(dh.device.GetHostAndPort(), ":")[0]
+		genmac, err := generateMacFromHost(host)
+		if err != nil {
+			return nil, err
+		}
+		log.Debugw("using-host-for-mac-address", log.Fields{"host": host, "mac": genmac})
+		dh.device.MacAddress = genmac
+	} else {
+		dh.device.MacAddress = deviceInfo.DeviceId
+	}
+
+	// Synchronous call to update device - this method is run in its own go routine
+	if err := dh.coreProxy.DeviceUpdate(context.TODO(), dh.device); err != nil {
+		log.Errorw("error-updating-device", log.Fields{"deviceID": dh.device.Id, "error": err})
+		return nil, err
+	}
+
+	return deviceInfo, nil
 }
 
 //AdoptDevice adopts the OLT device
