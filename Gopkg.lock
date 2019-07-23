@@ -226,8 +226,7 @@
   version = "v1.1.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:204174f45bee615b32e0a79e85e9f5a9403b5e9591a04035e816385fbbbe2588"
+  digest = "1:b30281898441857fadb7fa63751557615727d2d9dabc2e0a982a366594504f12"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -241,11 +240,11 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "90cd955106f8b6924041e0e0d6ddf843a4ceaff4"
+  revision = "5c430f147596e0df6b2e6cf32f1910b3bde0ec1a"
+  version = "2.1.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:5c3529076294da6587e5d23e32c2d97fb449018c5ba4134bb3bc34cf55befd96"
+  digest = "1:78a853c38b4935f01a99fbb41edbb4382a23586f929ecf02dd80d4452f2e3c0d"
   name = "github.com/opencord/voltha-protos"
   packages = [
     "go/common",
@@ -253,10 +252,12 @@
     "go/omci",
     "go/openflow_13",
     "go/openolt",
+    "go/tech_profile",
     "go/voltha",
   ]
   pruneopts = "UT"
-  revision = "f98ca1386c16a1c767dc8642cae9d1bdae8ec43a"
+  revision = "792553b747df7f751d864f7c638aa5b667c0993e"
+  version = "1.0.0"
 
 [[projects]]
   digest = "1:f690a0a27cefae695fa9587aa3ed23652e593be1d98b35f8184d10bccec30444"
@@ -543,6 +544,7 @@
     "github.com/opencord/voltha-protos/go/inter_container",
     "github.com/opencord/voltha-protos/go/openflow_13",
     "github.com/opencord/voltha-protos/go/openolt",
+    "github.com/opencord/voltha-protos/go/tech_profile",
     "github.com/opencord/voltha-protos/go/voltha",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

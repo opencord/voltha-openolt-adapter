@@ -177,7 +177,7 @@ func OnuIDFromUniPortNum(portNum uint32) uint32 {
 }
 
 //FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID and uniID
-func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, error) {
+func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, error) {
 	var uniPortNo uint32
 	var ponIntf uint32
 	var onuID uint32
@@ -206,12 +206,12 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, errors.New("failed to extract Pon Interface, ONU Id and Uni Id from flow")
+		return 0, 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
 	}
 
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
 
-	return ponIntf, onuID, uniID, nil
+	return uniPortNo, ponIntf, onuID, uniID, nil
 }
