@@ -43,6 +43,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	MAX_RETRY         = 10
+	MAX_TIMEOUT_IN_MS = 500
+)
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
@@ -658,12 +663,12 @@ func (dh *DeviceHandler) activateONU(intfID uint32, onuID int64, serialNum *oop.
 func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn string) error {
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
+	dh.lockDevice.Lock()
 	if _, ok := dh.discOnus[sn]; ok {
 		log.Debugw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
+		dh.lockDevice.Unlock()
 		return nil
 	}
-
-	dh.lockDevice.Lock()
 	dh.discOnus[sn] = true
 	dh.lockDevice.Unlock()
 	// evict the onu serial number from local cache
@@ -905,6 +910,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 			//  dh.flowMgr.RemoveFlow(flow)
 		}
 	}
+	log.Debug("UpdateFlowsIncrementally done successfully")
 	return nil
 }
 
@@ -1063,4 +1069,19 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 
 func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
+}
+func (dh *DeviceHandler) GetMeterConfigFromCore(meterID uint32) (*of.OfpMeterConfig, error) {
+	log.Debugw("GetMeterConfigFromCore", log.Fields{"meterID": meterID, "deviceID": dh.device.Id})
+	var meter *of.OfpMeterConfig
+	var err error
+	for i := 0; i < MAX_RETRY; i++ {
+		if meter, err = dh.coreProxy.GetMeterBand(nil, dh.device.Id, meterID); meter != nil {
+			log.Debugw("Got meter config from core", log.Fields{"meterConfig": meter})
+			break
+		} else {
+			time.Sleep(time.Duration(MAX_TIMEOUT_IN_MS) * time.Millisecond)
+			log.Debugln("Sleep 500 ms to get meter, retry times ", i+1)
+		}
+	}
+	return meter, err
 }
