@@ -45,6 +45,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	MAX_RETRY         = 10
+	MAX_TIMEOUT_IN_MS = 500
+)
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
@@ -953,12 +958,12 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 }
 
 //UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges) error {
-	log.Debugw("In Update_flows_incrementally", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups})
+func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+	log.Debugw("Received-incremental-flowupdate-in-device-handler", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
 	if flows != nil {
 		for _, flow := range flows.ToAdd.Items {
 			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
-			dh.flowMgr.AddFlow(flow)
+			dh.flowMgr.AddFlow(flow, flowMetadata)
 		}
 		for _, flow := range flows.ToRemove.Items {
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
@@ -971,6 +976,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 			//  dh.flowMgr.RemoveFlow(flow)
 		}
 	}
+	log.Debug("UpdateFlowsIncrementally done successfully")
 	return nil
 }
 
@@ -1109,4 +1115,19 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 
 func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
+}
+func (dh *DeviceHandler) GetMeterConfigFromCore(meterID uint32) (*of.OfpMeterConfig, error) {
+	log.Debugw("GetMeterConfigFromCore", log.Fields{"meterID": meterID, "deviceID": dh.device.Id})
+	var meter *of.OfpMeterConfig
+	var err error
+	for i := 0; i < MAX_RETRY; i++ {
+		if meter, err = dh.coreProxy.GetMeterBand(nil, dh.device.Id, meterID); meter != nil {
+			log.Debugw("Got meter config from core", log.Fields{"meterConfig": meter})
+			break
+		} else {
+			time.Sleep(time.Duration(MAX_TIMEOUT_IN_MS) * time.Millisecond)
+			log.Debugln("Sleep 500 ms to get meter, retry times ", i+1)
+		}
+	}
+	return meter, err
 }
