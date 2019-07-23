@@ -249,15 +249,15 @@ func (oo *OpenOLT) Get_device_details(device *voltha.Device) error {
 }
 
 //Update_flows_bulk returns
-func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups) error {
+func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error {
 	return errors.New("unImplemented")
 }
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
-func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges) error {
-	log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows})
+func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+	log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows, "flowMetadata": flowMetadata})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.UpdateFlowsIncrementally(device, flows, groups)
+		return handler.UpdateFlowsIncrementally(device, flows, groups, flowMetadata)
 	}
 	log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
 	return errors.New("device-handler-not-set")

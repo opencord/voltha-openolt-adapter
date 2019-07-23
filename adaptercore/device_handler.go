@@ -45,6 +45,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	MAX_RETRY         = 10
+	MAX_TIMEOUT_IN_MS = 500
+)
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
@@ -953,12 +958,12 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 }
 
 //UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges) error {
-	log.Debugw("In Update_flows_incrementally", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups})
+func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+	log.Debugw("Received-incremental-flowupdate-in-device-handler", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
 	if flows != nil {
 		for _, flow := range flows.ToAdd.Items {
 			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
-			dh.flowMgr.AddFlow(flow)
+			dh.flowMgr.AddFlow(flow, flowMetadata)
 		}
 		for _, flow := range flows.ToRemove.Items {
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
@@ -971,6 +976,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 			//  dh.flowMgr.RemoveFlow(flow)
 		}
 	}
+	log.Debug("UpdateFlowsIncrementally done successfully")
 	return nil
 }
 
@@ -1082,11 +1088,20 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 		}
 		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
 		onuID := OnuIDFromPortNum(uint32(egressPortNo))
-		uniID := uint32(egressPortNo)
-		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), Pkt: packet.Data}
+		uniID := UniIDFromPortNum(uint32(egressPortNo))
+
+		gemPortID, err := dh.flowMgr.GetPacketOutGemPortID(intfID, onuID, uint32(egressPortNo))
+		if err != nil {
+			// In this case the openolt agent will receive the gemPortID as 0.
+			// The agent tries to retrieve the gemPortID in this case.
+			// This may not always succeed at the agent and packetOut may fail.
+			log.Error("failed-to-retrieve-gemport-id-for-packet-out")
+		}
+
+		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
 
 		log.Debugw("sending-packet-to-onu", log.Fields{"egress_port_no": egressPortNo, "IntfId": intfID, "onuID": onuID,
-			"uniID": uniID, "packet": hex.EncodeToString(packet.Data)})
+			"uniID": uniID, "gemPortID": gemPortID, "packet": hex.EncodeToString(packet.Data)})
 
 		if _, err := dh.Client.OnuPacketOut(context.Background(), &onuPkt); err != nil {
 			log.Errorw("Error while sending packet-out to ONU", log.Fields{"error": err})
