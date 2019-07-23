@@ -37,6 +37,8 @@ const KvstoreTimeout = 5
 // BasePathKvStore - service/voltha/openolt/<device_id>
 const BasePathKvStore = "service/voltha/openolt/{%s}"
 
+const TP_ID_PATH_SUFFIX = "tp_id/{%d,%d,%d}"            // tp_id/<(pon_id, onu_id, uni_id)>
+const METER_ID_PATH_SUFFIX = "meter_id/{%d,%d,%d}/{%s}" // meter_id/<(pon_id, onu_id, uni_id)>/<direction>
 // FlowInfo holds the flow information
 type FlowInfo struct {
 	Flow            *openolt.Flow
@@ -58,7 +60,7 @@ type OpenOltResourceMgr struct {
 	ResourceMgrs map[uint32]*ponrmgr.PONResourceManager
 }
 
-func newKVClient(storeType, address string, timeout uint32) (kvstore.Client, error) {
+func newKVClient(storeType string, address string, timeout uint32) (kvstore.Client, error) {
 	log.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
@@ -410,8 +412,9 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo(ponIntfID int32, onuID int32
 
 // GetFlowID return flow ID for a given pon interface id, onu id and uni id
 func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ponIntfID uint32, ONUID uint32, uniID uint32,
+	gemportID uint32,
 	flowStoreCookie uint64,
-	flowCategory string) (uint32, error) {
+	flowCategory string, vlanPcp ...uint32) (uint32, error) {
 
 	var err error
 	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, ONUID, uniID)
@@ -422,13 +425,18 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ponIntfID uint32, ONUID uint32, uni
 			FlowInfo := RsrcMgr.GetFlowIDInfo(ponIntfID, ONUID, uniID, uint32(flowID))
 			if FlowInfo != nil {
 				for _, Info := range *FlowInfo {
-					if flowCategory != "" && Info.FlowCategory == flowCategory {
-						log.Debug("Found flow matching with flow category", log.Fields{"flowId": flowID, "flowCategory": flowCategory})
-						return flowID, nil
+					if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
+						log.Debug("Found flow matching with flow catagory", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
+						if Info.FlowCategory == "HSIA_FLOW" && Info.Flow.Classifier.OPbits == vlanPcp[0] {
+							log.Debug("Found matching vlan pcp ", log.Fields{"flowId": flowID, "Vlanpcp": vlanPcp[0]})
+							return flowID, nil
+						}
 					}
-					if flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
-						log.Debug("Found flow matching with flowStore cookie", log.Fields{"flowId": flowID, "flowStoreCookie": flowStoreCookie})
-						return flowID, nil
+					if int32(gemportID) == Info.Flow.GemportId && flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
+						if flowCategory != "" && Info.FlowCategory == flowCategory {
+							log.Debug("Found flow matching with flow catagory", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
+							return flowID, nil
+						}
 					}
 				}
 			}
@@ -690,4 +698,106 @@ func (RsrcMgr *OpenOltResourceMgr) IsFlowCookieOnKVStore(ponIntfID uint32, onuID
 		}
 	}
 	return false
+}
+
+func (RMgr *OpenOltResourceMgr) GetTechProfileIdForOnu(IntfId uint32, OnuId uint32, UniId uint32) uint32 {
+	Path := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
+	var Data uint32
+	Value, err := RMgr.KVStore.Get(Path)
+	if err == nil {
+		if Value != nil {
+			Val, err := kvstore.ToByte(Value.Value)
+			if err != nil {
+				log.Errorw("Failed to convert into byte array", log.Fields{"error": err})
+				return Data
+			}
+			if err = json.Unmarshal(Val, &Data); err != nil {
+				log.Error("Failed to unmarshal", log.Fields{"error": err})
+				return Data
+			}
+		}
+	} else {
+		log.Errorf("Failed to get TP id from kvstore for path %s", Path)
+	}
+	log.Debugf("Getting TP id %d from path %s", Data, Path)
+	return Data
+
+}
+
+func (RMgr *OpenOltResourceMgr) RemoveTechProfileIdForOnu(IntfId uint32, OnuId uint32, UniId uint32) error {
+	IntfOnuUniId := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
+	if err := RMgr.KVStore.Delete(IntfOnuUniId); err != nil {
+		log.Error("Failed to delete techprofile id resource %s in KV store", IntfOnuUniId)
+		return err
+	}
+	return nil
+}
+
+func (RMgr *OpenOltResourceMgr) UpdateTechProfileIdForOnu(IntfId uint32, OnuId uint32,
+	UniId uint32, TpId uint32) error {
+	var Value []byte
+	var err error
+
+	IntfOnuUniId := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
+	log.Debugf("updating tp id %d on path %s", TpId, IntfOnuUniId)
+	Value, err = json.Marshal(TpId)
+	if err != nil {
+		log.Error("failed to Marshal")
+		return err
+	}
+	if err = RMgr.KVStore.Put(IntfOnuUniId, Value); err != nil {
+		log.Errorf("Failed to update resource %s", IntfOnuUniId)
+		return err
+	}
+	return err
+}
+
+func (RMgr *OpenOltResourceMgr) UpdateMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32,
+	UniId uint32, MeterId uint32) error {
+	var Value []byte
+	var err error
+
+	IntfOnuUniId := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
+	Value, err = json.Marshal(MeterId)
+	if err != nil {
+		log.Error("failed to Marshal")
+		return err
+	}
+	if err = RMgr.KVStore.Put(IntfOnuUniId, Value); err != nil {
+		log.Errorf("Failed to update resource %s", IntfOnuUniId)
+		return err
+	}
+	return err
+}
+
+func (RMgr *OpenOltResourceMgr) GetMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32, UniId uint32) (uint32, error) {
+	Path := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
+	var Data uint32
+	Value, err := RMgr.KVStore.Get(Path)
+	if err == nil {
+		if Value != nil {
+			Val, err := kvstore.ToByte(Value.Value)
+			if err != nil {
+				log.Errorw("Failed to convert into byte array", log.Fields{"error": err})
+				return Data, err
+			}
+			if err = json.Unmarshal(Val, &Data); err != nil {
+				log.Error("Failed to unmarshal", log.Fields{"error": err})
+				return Data, err
+			}
+		}
+	} else {
+		log.Errorf("Failed to get Meter id from kvstore for path %s", Path)
+
+	}
+	return Data, err
+}
+
+func (RMgr *OpenOltResourceMgr) RemoveMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32, UniId uint32) error {
+	Path := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
+	if err := RMgr.KVStore.Delete(Path); err != nil {
+		log.Errorf("Failed to delete meter id %s from kvstore ", Path)
+		return err
+	}
+	return nil
 }
