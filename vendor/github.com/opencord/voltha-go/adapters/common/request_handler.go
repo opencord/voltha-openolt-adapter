@@ -99,6 +99,41 @@ func (rhp *RequestHandlerProxy) Adopt_device(args []*ic.Argument) (*empty.Empty,
 }
 
 func (rhp *RequestHandlerProxy) Reconcile_device(args []*ic.Argument) (*empty.Empty, error) {
+	if len(args) < 3 {
+		log.Warn("invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return nil, err
+	}
+
+	device := &voltha.Device{}
+	transactionID := &ic.StrType{}
+	fromTopic := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "device":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.FromTopic:
+			if err := ptypes.UnmarshalAny(arg.Value, fromTopic); err != nil {
+				log.Warnw("cannot-unmarshal-from-topic", log.Fields{"error": err})
+				return nil, err
+			}
+		}
+	}
+	//Update the core reference for that device
+	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
+
+	//Invoke the reconcile device API on the adapter
+	if err := rhp.adapter.Reconcile_device(device); err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
+	}
 	return new(empty.Empty), nil
 }
 
@@ -256,7 +291,7 @@ func (rhp *RequestHandlerProxy) Delete_device(args []*ic.Argument) (*empty.Empty
 	}
 	//Update the core reference for that device
 	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
-	//Invoke the Disable_device API on the adapter
+	//Invoke the delete_device API on the adapter
 	if err := rhp.adapter.Delete_device(device); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
@@ -269,7 +304,7 @@ func (rhp *RequestHandlerProxy) Get_device_details(args []*ic.Argument) (*empty.
 
 func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.Empty, error) {
 	log.Debug("Update_flows_bulk")
-	if len(args) < 4 {
+	if len(args) < 5 {
 		log.Warn("Update_flows_bulk-invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
 		return nil, err
@@ -277,6 +312,7 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 	device := &voltha.Device{}
 	transactionID := &ic.StrType{}
 	flows := &voltha.Flows{}
+	flowMetadata := &voltha.FlowMetadata{}
 	groups := &voltha.FlowGroups{}
 	for _, arg := range args {
 		switch arg.Key {
@@ -295,6 +331,11 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 				log.Warnw("cannot-unmarshal-groups", log.Fields{"error": err})
 				return nil, err
 			}
+		case "flow_metadata":
+			if err := ptypes.UnmarshalAny(arg.Value, flowMetadata); err != nil {
+				log.Warnw("cannot-unmarshal-metadata", log.Fields{"error": err})
+				return nil, err
+			}
 		case kafka.TransactionKey:
 			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
 				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
@@ -303,8 +344,8 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 		}
 	}
 	log.Debugw("Update_flows_bulk", log.Fields{"flows": flows, "groups": groups})
-	//Invoke the adopt device on the adapter
-	if err := rhp.adapter.Update_flows_bulk(device, flows, groups); err != nil {
+	//Invoke the bulk flow update API of the adapter
+	if err := rhp.adapter.Update_flows_bulk(device, flows, groups, flowMetadata); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil
@@ -312,7 +353,7 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 
 func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) (*empty.Empty, error) {
 	log.Debug("Update_flows_incrementally")
-	if len(args) < 3 {
+	if len(args) < 5 {
 		log.Warn("Update_flows_incrementally-invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
 		return nil, err
@@ -320,6 +361,7 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 	device := &voltha.Device{}
 	transactionID := &ic.StrType{}
 	flows := &openflow_13.FlowChanges{}
+	flowMetadata := &voltha.FlowMetadata{}
 	groups := &openflow_13.FlowGroupChanges{}
 	for _, arg := range args {
 		switch arg.Key {
@@ -338,6 +380,11 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 				log.Warnw("cannot-unmarshal-groups", log.Fields{"error": err})
 				return nil, err
 			}
+		case "flow_metadata":
+			if err := ptypes.UnmarshalAny(arg.Value, flowMetadata); err != nil {
+				log.Warnw("cannot-unmarshal-metadata", log.Fields{"error": err})
+				return nil, err
+			}
 		case kafka.TransactionKey:
 			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
 				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
@@ -346,14 +393,47 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 		}
 	}
 	log.Debugw("Update_flows_incrementally", log.Fields{"flows": flows, "groups": groups})
-	//Invoke the adopt device on the adapter
-	if err := rhp.adapter.Update_flows_incrementally(device, flows, groups); err != nil {
+	//Invoke the incremental flow update API of the adapter
+	if err := rhp.adapter.Update_flows_incrementally(device, flows, groups, flowMetadata); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil
 }
 
 func (rhp *RequestHandlerProxy) Update_pm_config(args []*ic.Argument) (*empty.Empty, error) {
+	log.Debug("Update_pm_config")
+	if len(args) < 2 {
+		log.Warn("Update_pm_config-invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return nil, err
+	}
+	device := &voltha.Device{}
+	transactionID := &ic.StrType{}
+	pmConfigs := &voltha.PmConfigs{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "device":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case "pm_configs":
+			if err := ptypes.UnmarshalAny(arg.Value, pmConfigs); err != nil {
+				log.Warnw("cannot-unmarshal-pm-configs", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return nil, err
+			}
+		}
+	}
+	log.Debugw("Update_pm_config", log.Fields{"deviceId": device.Id, "pmConfigs": pmConfigs})
+	//Invoke the pm config update API of the adapter
+	if err := rhp.adapter.Update_pm_config(device, pmConfigs); err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
+	}
 	return new(empty.Empty), nil
 }
 
