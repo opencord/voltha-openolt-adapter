@@ -21,13 +21,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc/codes"
 	"io"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc/codes"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -838,23 +839,6 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 	dh.updateOnuAdminState(onuInd)
 	// operState
 	if onuInd.OperState == "down" {
-		if onuDevice.ConnectStatus != common.ConnectStatus_UNREACHABLE {
-			err := dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_UNREACHABLE,
-				onuDevice.OperStatus)
-			if err != nil {
-				log.Errorw("unable to update onu state", log.Fields{"DeviceID": onuDevice.Id})
-				return
-			}
-			log.Debugln("onu-oper-state-is-down")
-		}
-		if onuDevice.OperStatus != common.OperStatus_DISCOVERED {
-			err := dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_UNREACHABLE,
-				common.OperStatus_DISCOVERED)
-			if err != nil {
-				log.Errorw("unable to update onu state", log.Fields{"DeviceID": onuDevice.Id})
-				return
-			}
-		}
 		log.Debugw("inter-adapter-send-onu-ind", log.Fields{"onuIndication": onuInd})
 
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
@@ -865,13 +849,6 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
 		}
 	} else if onuInd.OperState == "up" {
-		if onuDevice.ConnectStatus != common.ConnectStatus_REACHABLE {
-			err := dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, onuDevice.OperStatus)
-			if err != nil {
-				log.Errorw("unable to update onu state", log.Fields{"DeviceID": onuDevice.Id})
-				return
-			}
-		}
 		if onuDevice.OperStatus != common.OperStatus_DISCOVERED {
 			log.Warnw("ignore onu indication", log.Fields{"intfID": onuInd.IntfId, "onuID": onuInd.OnuId, "operStatus": onuDevice.OperStatus, "msgOperStatus": onuInd.OperState})
 			return
@@ -999,14 +976,6 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 		return err
 	}
 
-	//Update the device oper state
-	cloned.OperStatus = voltha.OperStatus_UNKNOWN
-	dh.device = cloned
-
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
-		return err
-	}
 	log.Debugw("Disable_device-end", log.Fields{"deviceID": device.Id})
 	return nil
 }
