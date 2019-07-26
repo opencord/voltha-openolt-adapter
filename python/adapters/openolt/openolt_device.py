@@ -56,31 +56,32 @@ class OpenoltDevice(object):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=R0904
     states = [
-        'state_null',
-        'state_init',
-        'state_connected',
-        'state_up',
-        'state_down']
+        'state_null', 'state_init', 'state_connected', 'state_up', 'state_down'
+    ]
 
-    transitions = [
-        {'trigger': 'go_state_init',
-         'source': ['state_null', 'state_connected', 'state_down'],
-         'dest': 'state_init',
-         'before': 'do_state_init',
-         'after': 'post_init'},
-        {'trigger': 'go_state_connected',
-         'source': 'state_init',
-         'dest': 'state_connected',
-         'before': 'do_state_connected'},
-        {'trigger': 'go_state_up',
-         'source': ['state_connected', 'state_down'],
-         'dest': 'state_up',
-         'before': 'do_state_up'},
-        {'trigger': 'go_state_down',
-         'source': ['state_up'],
-         'dest': 'state_down',
-         'before': 'do_state_down',
-         'after': 'post_down'}]
+    transitions = [{
+        'trigger': 'go_state_init',
+        'source': ['state_null', 'state_connected', 'state_down'],
+        'dest': 'state_init',
+        'before': 'do_state_init',
+        'after': 'post_init'
+    }, {
+        'trigger': 'go_state_connected',
+        'source': 'state_init',
+        'dest': 'state_connected',
+        'before': 'do_state_connected'
+    }, {
+        'trigger': 'go_state_up',
+        'source': ['state_connected', 'state_down'],
+        'dest': 'state_up',
+        'before': 'do_state_up'
+    }, {
+        'trigger': 'go_state_down',
+        'source': ['state_up'],
+        'dest': 'state_down',
+        'before': 'do_state_down',
+        'after': 'post_down'
+    }]
 
     def __init__(self, **kwargs):
         super(OpenoltDevice, self).__init__()
@@ -98,6 +99,8 @@ class OpenoltDevice(object):
         self.bw_mgr_class = kwargs['support_classes']['bw_mgr']
 
         self.seen_discovery_indications = []
+        self.onu_cache = dict()
+        self.indication_retries = 0
         self.stub = None
         self.connected = False
         is_reconciliation = kwargs.get('reconciliation', False)
@@ -124,9 +127,11 @@ class OpenoltDevice(object):
             self.device.oper_status = OperStatus.ACTIVATING
 
         # Initialize the OLT state machine
-        self.machine = Machine(model=self, states=OpenoltDevice.states,
+        self.machine = Machine(model=self,
+                               states=OpenoltDevice.states,
                                transitions=OpenoltDevice.transitions,
-                               send_event=True, initial='state_null')
+                               send_event=True,
+                               initial='state_null')
         self.go_state_init()
 
     def stringToMacAddr(self, uri):
@@ -172,7 +177,7 @@ class OpenoltDevice(object):
     @inlineCallbacks
     def do_state_connected(self, event):
         self.log.debug("do_state_connected")
-        
+
         self.stub = openolt_pb2_grpc.OpenoltStub(self.channel)
 
         delay = 1
@@ -185,8 +190,8 @@ class OpenoltDevice(object):
                 if delay > 120:
                     self.log.error("gRPC failure too many times")
                 else:
-                    self.log.warn("gRPC failure, retry in %ds: %s"
-                                  % (delay, repr(e)))
+                    self.log.warn("gRPC failure, retry in %ds: %s" %
+                                  (delay, repr(e)))
                     time.sleep(delay)
                     delay += delay
                     reraise = False
@@ -216,7 +221,9 @@ class OpenoltDevice(object):
         if serial_number == None or serial_number == '':
             serial_number = self.host_and_port
 
-        self.log.info('creating-openolt-device', dp_id=dpid, serial_number=serial_number)
+        self.log.info('creating-openolt-device',
+                      dp_id=dpid,
+                      serial_number=serial_number)
 
         self.device.root = True
         self.device.serial_number = serial_number
@@ -236,11 +243,12 @@ class OpenoltDevice(object):
                                                     self.extra_args,
                                                     self.device_info)
         self.platform = self.platform_class(self.log, self.resource_mgr)
-        self.flow_mgr = self.flow_mgr_class(self.core_proxy, self.adapter_proxy, self.log,
+        self.flow_mgr = self.flow_mgr_class(self.core_proxy,
+                                            self.adapter_proxy, self.log,
                                             self.stub, self.device_id,
                                             self.logical_device_id,
                                             self.platform, self.resource_mgr)
-        
+
         self.alarm_mgr = self.alarm_mgr_class(self.log, self.core_proxy,
                                               self.device_id,
                                               self.logical_device_id,
@@ -248,24 +256,26 @@ class OpenoltDevice(object):
                                               self.serial_number)
         self.stats_mgr = self.stats_mgr_class(self, self.log, self.platform)
         self.bw_mgr = self.bw_mgr_class(self.log, self.core_proxy)
-        
+
         self.connected = True
 
     @inlineCallbacks
     def do_state_up(self, event):
         self.log.debug("do_state_up")
 
-        yield self.core_proxy.device_state_update(self.device_id,
-                                               connect_status=ConnectStatus.REACHABLE,
-                                               oper_status=OperStatus.ACTIVE)
+        yield self.core_proxy.device_state_update(
+            self.device_id,
+            connect_status=ConnectStatus.REACHABLE,
+            oper_status=OperStatus.ACTIVE)
         self.log.debug("done_state_up")
 
     @inlineCallbacks
     def do_state_down(self, event):
         self.log.debug("do_state_down")
-        yield self.core_proxy.device_state_update(self.device_id,
-                                               connect_status=ConnectStatus.UNREACHABLE,
-                                               oper_status=OperStatus.UNKNOWN)
+        yield self.core_proxy.device_state_update(
+            self.device_id,
+            connect_status=ConnectStatus.UNREACHABLE,
+            oper_status=OperStatus.UNKNOWN)
         self.log.debug("done_state_down")
 
     # def post_up(self, event):
@@ -340,7 +350,8 @@ class OpenoltDevice(object):
             self.go_state_down()
 
     def intf_indication(self, intf_indication):
-        self.log.debug("intf indication", intf_id=intf_indication.intf_id,
+        self.log.debug("intf indication",
+                       intf_id=intf_indication.intf_id,
                        oper_state=intf_indication.oper_state)
 
         if intf_indication.oper_state == "up":
@@ -365,8 +376,8 @@ class OpenoltDevice(object):
         if intf_oper_indication.type == "nni":
 
             # add_(logical_)port update the port if it exists
-            self.add_port(intf_oper_indication.intf_id,
-                                    Port.ETHERNET_NNI, oper_state)
+            self.add_port(intf_oper_indication.intf_id, Port.ETHERNET_NNI,
+                          oper_state)
 
         elif intf_oper_indication.type == "pon":
             # FIXME - handle PON oper state change
@@ -379,19 +390,23 @@ class OpenoltDevice(object):
 
         serial_number_str = self.stringify_serial_number(serial_number)
 
-        self.log.debug("onu discovery indication", intf_id=intf_id,
+        self.log.debug("onu discovery indication",
+                       intf_id=intf_id,
                        serial_number=serial_number_str)
 
         if serial_number_str in self.seen_discovery_indications:
-            self.log.debug("skipping-seen-onu-discovery-indication", intf_id=intf_id,
+            self.log.debug("skipping-seen-onu-discovery-indication",
+                           intf_id=intf_id,
                            serial_number=serial_number_str)
             return
         else:
             self.seen_discovery_indications.append(serial_number_str)
 
+        self.indication_retries = 0
         # Post ONU Discover alarm  20180809_0805
         try:
-            OnuDiscoveryAlarm(self.alarm_mgr.alarms, pon_id=intf_id,
+            OnuDiscoveryAlarm(self.alarm_mgr.alarms,
+                              pon_id=intf_id,
                               serial_number=serial_number_str).raise_alarm()
         except Exception as disc_alarm_error:
             self.log.exception("onu-discovery-alarm-error",
@@ -399,8 +414,7 @@ class OpenoltDevice(object):
             # continue for now.
 
         onu_device = yield self.core_proxy.get_child_device(
-           self.device_id,
-           serial_number=serial_number_str)
+            self.device_id, serial_number=serial_number_str)
 
         if onu_device is None:
             try:
@@ -419,40 +433,50 @@ class OpenoltDevice(object):
 
         else:
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
+                yield self.core_proxy.device_state_update(
+                    onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             onu_id = onu_device.proxy_address.onu_id
             if onu_device.oper_status == OperStatus.DISCOVERED \
                     or onu_device.oper_status == OperStatus.ACTIVATING:
                 self.log.debug("ignore onu discovery indication, \
                                the onu has been discovered and should be \
-                               activating shorlty", intf_id=intf_id,
-                               onu_id=onu_id, state=onu_device.oper_status)
+                               activating shorlty",
+                               intf_id=intf_id,
+                               onu_id=onu_id,
+                               state=onu_device.oper_status)
             elif onu_device.oper_status == OperStatus.ACTIVE:
                 self.log.warn("onu discovery indication whereas onu is \
                               supposed to be active",
-                              intf_id=intf_id, onu_id=onu_id,
+                              intf_id=intf_id,
+                              onu_id=onu_id,
                               state=onu_device.oper_status)
             elif onu_device.oper_status == OperStatus.UNKNOWN:
                 self.log.info("onu in unknown state, recovering from olt \
-                              reboot probably, activate onu", intf_id=intf_id,
-                              onu_id=onu_id, serial_number=serial_number_str)
+                              reboot probably, activate onu",
+                              intf_id=intf_id,
+                              onu_id=onu_id,
+                              serial_number=serial_number_str)
 
-                yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
+                yield self.core_proxy.device_state_update(
+                    onu_device.id, oper_status=OperStatus.DISCOVERED)
 
                 try:
                     self.activate_onu(intf_id, onu_id, serial_number,
                                       serial_number_str)
                 except Exception as e:
                     self.log.error('onu-activation-error',
-                                   serial_number=serial_number_str, error=e)
+                                   serial_number=serial_number_str,
+                                   error=e)
             else:
-                self.log.warn('unexpected state', onu_id=onu_id,
+                self.log.warn('unexpected state',
+                              onu_id=onu_id,
                               onu_device_oper_state=onu_device.oper_status)
 
     @inlineCallbacks
     def onu_indication(self, onu_indication):
-        self.log.debug("onu indication", intf_id=onu_indication.intf_id,
+        self.log.debug("onu indication with retry",
+                       intf_id=onu_indication.intf_id,
                        onu_id=onu_indication.onu_id,
                        serial_number=onu_indication.serial_number,
                        oper_state=onu_indication.oper_state,
@@ -465,8 +489,7 @@ class OpenoltDevice(object):
 
         if serial_number_str is not None:
             onu_device = yield self.core_proxy.get_child_device(
-                self.device_id,
-                serial_number=serial_number_str)
+                self.device_id, serial_number=serial_number_str)
         else:
             onu_device = yield self.core_proxy.get_child_device(
                 self.device_id,
@@ -474,26 +497,57 @@ class OpenoltDevice(object):
                     onu_indication.intf_id, Port.PON_OLT),
                 onu_id=onu_indication.onu_id)
 
+        onu_key = self.form_onu_key(onu_indication.intf_id,
+                                    onu_indication.onu_id)
         if onu_device is None:
-            self.log.error('onu not found', intf_id=onu_indication.intf_id,
-                           onu_id=onu_indication.onu_id)
-            return
-        onu_key = self.form_onu_key(onu_indication.intf_id, onu_indication.onu_id)
-        self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type, serial_number_str, onu_indication.onu_id, onu_indication.intf_id)
+            if serial_number_str in self.seen_discovery_indications:
+                if onu_key not in self.onu_cache:
+                    # The ONU is probably getting added. Lets retry again
+                    if self.indication_retries < 10:
+                        self.indication_retries += 1
+                        self.log.error(
+                            'onu in discovery indications but not found in core. Retrying again',
+                            intf_id=onu_indication.intf_id,
+                            onu_id=onu_indication.onu_id)
+                        reactor.callLater(3, self.onu_indication,
+                                          onu_indication)
+                    else:
+                        self.log.error('ONU not found',
+                                       intf_id=onu_indication.intf_id,
+                                       onu_id=onu_indication.onu_id)
+                else:
+                    # The ONU device is in the ONU cache
+                    self.log.debug('ONU in cache')
+                    self.indication_retries = 0
+                    onu_device = self.onu_cache[onu_key]
+                    self.log.debug('ONU device found in the cache', onu_device=onu_device)
+            else:
+                self.log.error('onu not found',
+                               intf_id=onu_indication.intf_id,
+                               onu_id=onu_indication.onu_id)
+            if onu_device is None:
+                return
+
+        self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type,
+                                       serial_number_str,
+                                       onu_indication.onu_id,
+                                       onu_indication.intf_id)
         if self.platform.intf_id_from_pon_port_no(onu_device.parent_port_no) \
                 != onu_indication.intf_id:
-            self.log.warn('ONU-is-on-a-different-intf-id-now',
-                          previous_intf_id=self.platform.intf_id_from_pon_port_no(
-                              onu_device.parent_port_no),
-                          current_intf_id=onu_indication.intf_id)
+            self.log.warn(
+                'ONU-is-on-a-different-intf-id-now',
+                previous_intf_id=self.platform.intf_id_from_pon_port_no(
+                    onu_device.parent_port_no),
+                current_intf_id=onu_indication.intf_id)
             # FIXME - handle intf_id mismatch (ONU move?)
 
         if onu_device.proxy_address.onu_id != onu_indication.onu_id:
             # FIXME - handle onu id mismatch
-            self.log.warn('ONU-id-mismatch, can happen if both voltha and '
-                          'the olt rebooted',
-                          expected_onu_id=onu_device.proxy_address.onu_id,
-                          received_onu_id=onu_indication.onu_id)
+            self.log.warn(
+                'ONU-id-mismatch, can happen if both voltha and '
+                'the olt rebooted',
+                expected_onu_id=onu_device.proxy_address.onu_id,
+                received_onu_id=onu_indication.onu_id)
 
         # Admin state
         if onu_indication.admin_state == 'down':
@@ -518,15 +572,18 @@ class OpenoltDevice(object):
         if onu_indication.oper_state == 'down':
 
             if onu_device.connect_status != ConnectStatus.UNREACHABLE:
-                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.UNREACHABLE)
+                yield self.core_proxy.device_state_update(
+                    onu_device.id, connect_status=ConnectStatus.UNREACHABLE)
 
             # Move to discovered state
             self.log.debug('onu-oper-state-is-down')
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
-                yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED)
+                yield self.core_proxy.device_state_update(
+                    onu_device.id, oper_status=OperStatus.DISCOVERED)
 
-            self.log.debug('inter-adapter-send-onu-ind', onu_indication=onu_indication)
+            self.log.debug('inter-adapter-send-onu-ind',
+                           onu_indication=onu_indication)
 
             # TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
             yield self.adapter_proxy.send_inter_adapter_message(
@@ -534,23 +591,25 @@ class OpenoltDevice(object):
                 type=InterAdapterMessageType.ONU_IND_REQUEST,
                 from_adapter="openolt",
                 to_adapter=onu_device.type,
-                to_device_id=onu_device.id
-            )
+                to_device_id=onu_device.id)
 
         elif onu_indication.oper_state == 'up':
 
             if onu_device.connect_status != ConnectStatus.REACHABLE:
-                yield self.core_proxy.device_state_update(onu_device.id, connect_status=ConnectStatus.REACHABLE)
+                yield self.core_proxy.device_state_update(
+                    onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
             if onu_device.oper_status != OperStatus.DISCOVERED:
-                self.log.debug("ignore onu indication",
-                               intf_id=onu_indication.intf_id,
-                               onu_id=onu_indication.onu_id,
-                               state=onu_device.oper_status,
-                               msg_oper_state=onu_indication.oper_state)
-                return
+                if serial_number_str not in self.seen_discovery_indications:
+                    self.log.debug("Ignore ONU indication",
+                                   intf_id=onu_indication.intf_id,
+                                   onu_id=onu_indication.onu_id,
+                                   state=onu_device.oper_status,
+                                   msg_oper_state=onu_indication.oper_state)
+                    return
 
-            self.log.debug('inter-adapter-send-onu-ind', onu_indication=onu_indication)
+            self.log.debug('inter-adapter-send-onu-ind',
+                           onu_indication=onu_indication)
 
             # TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
             yield self.adapter_proxy.send_inter_adapter_message(
@@ -558,12 +617,12 @@ class OpenoltDevice(object):
                 type=InterAdapterMessageType.ONU_IND_REQUEST,
                 from_adapter="openolt",
                 to_adapter=onu_device.type,
-                to_device_id=onu_device.id
-            )
+                to_device_id=onu_device.id)
 
         else:
             self.log.warn('Not-implemented-or-invalid-value-of-oper-state',
                           oper_state=onu_indication.oper_state)
+
     @inlineCallbacks
     def onu_ports_down(self, onu_device, oper_state):
         pass
@@ -582,25 +641,37 @@ class OpenoltDevice(object):
     @inlineCallbacks
     def omci_indication(self, omci_indication):
 
-        self.log.debug("omci indication", intf_id=omci_indication.intf_id,
+        self.log.debug("omci indication",
+                       intf_id=omci_indication.intf_id,
                        onu_id=omci_indication.onu_id)
-        onu_in_cache = self.onus.get(self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id), None)
+        onu_in_cache = self.onus.get(
+            self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id),
+            None)
         if onu_in_cache is None:
-            self.log.debug('omci indication for a device not in cache.', intf_id=omci_indication.intf_id,
-                       onu_id=omci_indication.onu_id)
+            self.log.debug('omci indication for a device not in cache.',
+                           intf_id=omci_indication.intf_id,
+                           onu_id=omci_indication.onu_id)
             onu_device = yield self.core_proxy.get_child_device(
-                self.device_id, onu_id=omci_indication.onu_id,
+                self.device_id,
+                onu_id=omci_indication.onu_id,
                 parent_port_no=self.platform.intf_id_to_port_no(
-                    omci_indication.intf_id, Port.PON_OLT), )
+                    omci_indication.intf_id, Port.PON_OLT),
+            )
             onu_device_type = onu_device.type
             onu_device_id = onu_device.id
             try:
-                serial_number_str = self.stringify_serial_number(omci_indication.serial_number)
+                serial_number_str = self.stringify_serial_number(
+                    omci_indication.serial_number)
             except Exception as e:
                 serial_number_str = None
-	    #if not exist in cache, then add to cache.
-            onu_key = self.form_onu_key(omci_indication.intf_id, omci_indication.onu_id)
-            self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type, serial_number_str, omci_indication.onu_id, omci_indication.intf_id)
+
+#if not exist in cache, then add to cache.
+            onu_key = self.form_onu_key(omci_indication.intf_id,
+                                        omci_indication.onu_id)
+            self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type,
+                                           serial_number_str,
+                                           omci_indication.onu_id,
+                                           omci_indication.intf_id)
         else:
             onu_device_type = onu_in_cache.device_type
             onu_device_id = onu_in_cache.device_id
@@ -615,8 +686,7 @@ class OpenoltDevice(object):
             type=InterAdapterMessageType.OMCI_REQUEST,
             from_adapter="openolt",
             to_adapter=onu_device_type,
-            to_device_id=onu_device_id
-        )
+            to_device_id=onu_device_id)
 
     @inlineCallbacks
     def packet_indication(self, pkt_indication):
@@ -634,26 +704,28 @@ class OpenoltDevice(object):
                 port_num = pkt_indication.port_no
             else:  # TODO Remove this else block after openolt device has been fully rolled out with cookie protobuf change
                 try:
-                    onu_id_uni_id = self.resource_mgr.get_onu_uni_from_ponport_gemport(pkt_indication.intf_id,
-                                                                                       pkt_indication.gemport_id)
+                    onu_id_uni_id = self.resource_mgr.get_onu_uni_from_ponport_gemport(
+                        pkt_indication.intf_id, pkt_indication.gemport_id)
                     onu_id = int(onu_id_uni_id[0])
                     uni_id = int(onu_id_uni_id[1])
-                    self.log.debug("packet indication-kv", onu_id=onu_id, uni_id=uni_id)
+                    self.log.debug("packet indication-kv",
+                                   onu_id=onu_id,
+                                   uni_id=uni_id)
                     if onu_id is None:
                         raise Exception("onu-id-none")
                     if uni_id is None:
                         raise Exception("uni-id-none")
-                    port_num = self.platform.mk_uni_port_num(pkt_indication.intf_id, onu_id, uni_id)
+                    port_num = self.platform.mk_uni_port_num(
+                        pkt_indication.intf_id, onu_id, uni_id)
                 except Exception as e:
                     self.log.error("no-onu-reference-for-gem",
-                                   gemport_id=pkt_indication.gemport_id, e=e)
+                                   gemport_id=pkt_indication.gemport_id,
+                                   e=e)
                     return
-
 
         elif pkt_indication.intf_type == "nni":
             port_num = self.platform.intf_id_to_port_no(
-                pkt_indication.intf_id,
-                Port.ETHERNET_NNI)
+                pkt_indication.intf_id, Port.ETHERNET_NNI)
 
         pkt = Ether(pkt_indication.pkt)
 
@@ -661,14 +733,14 @@ class OpenoltDevice(object):
                        device_id=self.device_id,
                        port_num=port_num)
 
-        yield self.core_proxy.send_packet_in(
-            device_id=self.device_id,
-            port=port_num,
-            packet=str(pkt))
+        yield self.core_proxy.send_packet_in(device_id=self.device_id,
+                                             port=port_num,
+                                             packet=str(pkt))
 
     def packet_out(self, egress_port, msg):
         pkt = Ether(msg)
-        self.log.debug('packet out', egress_port=egress_port,
+        self.log.debug('packet out',
+                       egress_port=egress_port,
                        device_id=self.device_id,
                        packet=str(pkt).encode("HEX"))
 
@@ -681,9 +753,8 @@ class OpenoltDevice(object):
                 if isinstance(outer_shim.payload, Dot1Q):
                     # If double tag, remove the outer tag
                     payload = (
-                            Ether(src=pkt.src, dst=pkt.dst, type=outer_shim.type) /
-                            outer_shim.payload
-                    )
+                        Ether(src=pkt.src, dst=pkt.dst, type=outer_shim.type) /
+                        outer_shim.payload)
                 else:
                     payload = pkt
             else:
@@ -692,7 +763,8 @@ class OpenoltDevice(object):
             send_pkt = binascii.unhexlify(str(payload).encode("HEX"))
 
             self.log.debug(
-                'sending-packet-to-ONU', egress_port=egress_port,
+                'sending-packet-to-ONU',
+                egress_port=egress_port,
                 intf_id=self.platform.intf_id_from_uni_port_num(egress_port),
                 onu_id=self.platform.onu_id_from_port_num(egress_port),
                 uni_id=self.platform.uni_id_from_port_num(egress_port),
@@ -708,7 +780,8 @@ class OpenoltDevice(object):
             self.stub.OnuPacketOut(onu_pkt)
 
         elif egress_port_type == Port.ETHERNET_NNI:
-            self.log.debug('sending-packet-to-uplink', egress_port=egress_port,
+            self.log.debug('sending-packet-to-uplink',
+                           egress_port=egress_port,
                            packet=str(pkt).encode("HEX"))
 
             send_pkt = binascii.unhexlify(str(pkt).encode("HEX"))
@@ -734,7 +807,7 @@ class OpenoltDevice(object):
 
                 #onu_device_id = request.header.to_device_id
                 #onu_device = yield self.core_proxy.get_device(onu_device_id)
-                self.send_proxied_message( omci_msg)
+                self.send_proxied_message(omci_msg)
 
             else:
                 self.log.error("inter-adapter-unhandled-type", request=request)
@@ -751,15 +824,20 @@ class OpenoltDevice(object):
             return
 
         omci = openolt_pb2.OmciMsg(intf_id=omci_msg.proxy_address.channel_id,
-                                   onu_id=omci_msg.proxy_address.onu_id, pkt=str(omci_msg.message))
+                                   onu_id=omci_msg.proxy_address.onu_id,
+                                   pkt=str(omci_msg.message))
         self.stub.OmciMsgOut(omci)
 
-        self.log.debug("omci-message-sent", intf_id=omci_msg.proxy_address.channel_id,
-                                   onu_id=omci_msg.proxy_address.onu_id, pkt=str(omci_msg.message))
+        self.log.debug("omci-message-sent",
+                       intf_id=omci_msg.proxy_address.channel_id,
+                       onu_id=omci_msg.proxy_address.onu_id,
+                       pkt=str(omci_msg.message))
 
     @inlineCallbacks
     def add_onu_device(self, intf_id, port_no, onu_id, serial_number):
-        self.log.info("adding-onu", port_no=port_no, onu_id=onu_id,
+        self.log.info("adding-onu",
+                      port_no=port_no,
+                      onu_id=onu_id,
                       serial_number=serial_number)
 
         serial_number_str = self.stringify_serial_number(serial_number)
@@ -772,16 +850,30 @@ class OpenoltDevice(object):
             channel_id=intf_id,
             vendor_id=serial_number.vendor_id,
             serial_number=serial_number_str,
-            onu_id=onu_id
-        )
+            onu_id=onu_id)
 
-        self.log.debug("onu-added", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str)
+        self.log.debug("onu-added",
+                       onu_id=onu_id,
+                       port_no=port_no,
+                       serial_number=serial_number_str)
 
-        yield self.core_proxy.device_state_update(onu_device.id, oper_status=OperStatus.DISCOVERED,
-                                                  connect_status=ConnectStatus.REACHABLE)
+        yield self.core_proxy.device_state_update(
+            onu_device.id,
+            oper_status=OperStatus.DISCOVERED,
+            connect_status=ConnectStatus.REACHABLE)
 
-        self.log.debug("set-onu-discovered", onu_id=onu_id, port_no=port_no, serial_number=serial_number_str,
+        self.log.debug("set-onu-discovered",
+                       onu_id=onu_id,
+                       port_no=port_no,
+                       serial_number=serial_number_str,
                        onu_device=onu_device)
+
+        self.log.debug('Adding ONU device to the cache',
+                       intf_id=intf_id,
+                       onu_id=onu_id)
+        onu_key = self.form_onu_key(intf_id, onu_id)
+        self.onu_cache[onu_key] = onu_device
+        return
 
     def get_ofp_device_info(self, device):
         self.log.info('get_ofp_device_info', device_id=device.id)
@@ -789,45 +881,41 @@ class OpenoltDevice(object):
         mfr_desc = self.device_info.vendor
         sw_desc = self.device_info.firmware_version
         hw_desc = self.device_info.model
-        if self.device_info.hardware_version: hw_desc += '-' + self.device_info.hardware_version
+        if self.device_info.hardware_version:
+            hw_desc += '-' + self.device_info.hardware_version
 
         return SwitchCapability(
-            desc=ofp_desc(
-                hw_desc=hw_desc,
-                sw_desc=sw_desc,
-                serial_num=device.serial_number
-            ),
+            desc=ofp_desc(hw_desc=hw_desc,
+                          sw_desc=sw_desc,
+                          serial_num=device.serial_number),
             switch_features=ofp_switch_features(
-                n_buffers=256,  # Max packets buffered at once          # TODO fake for now
-                n_tables=2,  # Number of tables supported by datapath   # TODO fake for now
-                capabilities=( #Bitmap of support "ofp_capabilities"    # TODO fake for now
-                        OFPC_FLOW_STATS
-                        | OFPC_TABLE_STATS
-                        | OFPC_PORT_STATS
-                        | OFPC_GROUP_STATS
-                )
-            )
-        )
+                n_buffers=
+                256,  # Max packets buffered at once          # TODO fake for now
+                n_tables=
+                2,  # Number of tables supported by datapath   # TODO fake for now
+                capabilities=
+                (  #Bitmap of support "ofp_capabilities"    # TODO fake for now
+                    OFPC_FLOW_STATS
+                    | OFPC_TABLE_STATS
+                    | OFPC_PORT_STATS
+                    | OFPC_GROUP_STATS)))
 
     def get_ofp_port_info(self, device, port_no):
-        self.log.info('get_ofp_port_info', port_no=port_no, device_id=device.id)
+        self.log.info('get_ofp_port_info',
+                      port_no=port_no,
+                      device_id=device.id)
         cap = OFPPF_1GB_FD | OFPPF_FIBER
-        return PortCapability(
-            port=LogicalPort(
-                ofp_port=ofp_port(
-                    hw_addr=mac_str_to_tuple(self._get_mac_form_port_no(port_no)),
-                    config=0,
-                    state=OFPPS_LIVE,
-                    curr=cap,
-                    advertised=cap,
-                    peer=cap,
-                    curr_speed=OFPPF_1GB_FD,
-                    max_speed=OFPPF_1GB_FD
-                ),
-                device_id=device.id,
-                device_port_no=port_no
-            )
-        )
+        return PortCapability(port=LogicalPort(ofp_port=ofp_port(
+            hw_addr=mac_str_to_tuple(self._get_mac_form_port_no(port_no)),
+            config=0,
+            state=OFPPS_LIVE,
+            curr=cap,
+            advertised=cap,
+            peer=cap,
+            curr_speed=OFPPF_1GB_FD,
+            max_speed=OFPPF_1GB_FD),
+                                               device_id=device.id,
+                                               device_port_no=port_no))
 
     def port_name(self, port_no, port_type, intf_id=None, serial_number=None):
         if port_type is Port.ETHERNET_NNI:
@@ -849,18 +937,22 @@ class OpenoltDevice(object):
 
         label = self.port_name(port_no, port_type, intf_id)
 
-        self.log.debug('adding-port', port_no=port_no, label=label,
+        self.log.debug('adding-port',
+                       port_no=port_no,
+                       label=label,
                        port_type=port_type)
 
-        port = Port(port_no=port_no, label=label, type=port_type,
-                    admin_state=AdminState.ENABLED, oper_status=oper_status)
+        port = Port(port_no=port_no,
+                    label=label,
+                    type=port_type,
+                    admin_state=AdminState.ENABLED,
+                    oper_status=oper_status)
 
         yield self.core_proxy.port_created(self.device_id, port)
 
     @inlineCallbacks
     def delete_port(self, child_serial_number):
-        ports = self.proxy.get('/devices/{}/ports'.format(
-            self.device_id))
+        ports = self.proxy.get('/devices/{}/ports'.format(self.device_id))
         for port in ports:
             if port.label == child_serial_number:
                 self.log.debug('delete-port',
@@ -868,7 +960,7 @@ class OpenoltDevice(object):
                                port=port)
                 yield self.core_proxy.port_removed(self.device_id, port)
                 return
-    
+
     def update_flow_table(self, flow_changes):
 
         self.log.debug("update_flow_table", flow_changes=flow_changes)
@@ -882,7 +974,8 @@ class OpenoltDevice(object):
                           flows_to_remove=[f.id for f in flows_to_remove])
             return
 
-        self.log.debug('flows update', flows_to_add=flows_to_add,
+        self.log.debug('flows update',
+                       flows_to_add=flows_to_add,
                        flows_to_remove=flows_to_remove)
 
         for flow in flows_to_add:
@@ -901,7 +994,7 @@ class OpenoltDevice(object):
 
         # TODO NEW CORE: Core keeps track of logical flows. no need to keep track.  verify, especially olt reboot!
         #self.flow_mgr.repush_all_different_flows()
- 
+
     # There has to be a better way to do this
     def ip_hex(self, ip):
         octets = ip.split(".")
@@ -914,20 +1007,23 @@ class OpenoltDevice(object):
         return ":".join(hex_ip)
 
     def stringify_vendor_specific(self, vendor_specific):
-        return ''.join(str(i) for i in [
-            hex(ord(vendor_specific[0]) >> 4 & 0x0f)[2:],
-            hex(ord(vendor_specific[0]) & 0x0f)[2:],
-            hex(ord(vendor_specific[1]) >> 4 & 0x0f)[2:],
-            hex(ord(vendor_specific[1]) & 0x0f)[2:],
-            hex(ord(vendor_specific[2]) >> 4 & 0x0f)[2:],
-            hex(ord(vendor_specific[2]) & 0x0f)[2:],
-            hex(ord(vendor_specific[3]) >> 4 & 0x0f)[2:],
-            hex(ord(vendor_specific[3]) & 0x0f)[2:]])
+        return ''.join(
+            str(i) for i in [
+                hex(ord(vendor_specific[0]) >> 4 & 0x0f)[2:],
+                hex(ord(vendor_specific[0]) & 0x0f)[2:],
+                hex(ord(vendor_specific[1]) >> 4 & 0x0f)[2:],
+                hex(ord(vendor_specific[1]) & 0x0f)[2:],
+                hex(ord(vendor_specific[2]) >> 4 & 0x0f)[2:],
+                hex(ord(vendor_specific[2]) & 0x0f)[2:],
+                hex(ord(vendor_specific[3]) >> 4 & 0x0f)[2:],
+                hex(ord(vendor_specific[3]) & 0x0f)[2:]
+            ])
 
     def stringify_serial_number(self, serial_number):
-        return ''.join([serial_number.vendor_id,
-                        self.stringify_vendor_specific(
-                            serial_number.vendor_specific)])
+        return ''.join([
+            serial_number.vendor_id,
+            self.stringify_vendor_specific(serial_number.vendor_specific)
+        ])
 
     def destringify_serial_number(self, serial_number_str):
         serial_number = openolt_pb2.SerialNumber(
@@ -976,14 +1072,18 @@ class OpenoltDevice(object):
         else:
             self.log.info('openolt device reenabled')
 
-    def activate_onu(self, intf_id, onu_id, serial_number,
-                     serial_number_str):
+    def activate_onu(self, intf_id, onu_id, serial_number, serial_number_str):
         pir = self.bw_mgr.pir(serial_number_str)
-        self.log.debug("activating-onu", intf_id=intf_id, onu_id=onu_id,
+        self.log.debug("activating-onu",
+                       intf_id=intf_id,
+                       onu_id=onu_id,
                        serial_number_str=serial_number_str,
-                       serial_number=serial_number, pir=pir)
-        onu = openolt_pb2.Onu(intf_id=intf_id, onu_id=onu_id,
-                              serial_number=serial_number, pir=pir)
+                       serial_number=serial_number,
+                       pir=pir)
+        onu = openolt_pb2.Onu(intf_id=intf_id,
+                              onu_id=onu_id,
+                              serial_number=serial_number,
+                              pir=pir)
         self.stub.ActivateOnu(onu)
         self.log.info('onu-activated', serial_number=serial_number_str)
 
@@ -995,8 +1095,8 @@ class OpenoltDevice(object):
                        onu_serial_number=child_device.serial_number)
         try:
             yield self.core_proxy.child_device_removed(self.device_id,
-                                                   child_device.id,
-                                                   child_device)
+                                                       child_device.id,
+                                                       child_device)
         except Exception as e:
             self.log.error('core_proxy error', error=e)
         try:
@@ -1014,12 +1114,9 @@ class OpenoltDevice(object):
         uni_id = 0  # FIXME
         self.flow_mgr.delete_tech_profile_instance(
             child_device.proxy_address.channel_id,
-            child_device.proxy_address.onu_id,
-            uni_id
-        )
+            child_device.proxy_address.onu_id, uni_id)
         pon_intf_id_onu_id = (child_device.proxy_address.channel_id,
-                              child_device.proxy_address.onu_id,
-                              uni_id)
+                              child_device.proxy_address.onu_id, uni_id)
         # Free any PON resources that were reserved for the ONU
         self.resource_mgr.free_pon_resources_for_onu(pon_intf_id_onu_id)
 
