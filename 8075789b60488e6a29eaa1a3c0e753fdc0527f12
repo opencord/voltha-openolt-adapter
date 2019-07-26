@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2659c073_57df9e72",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-07-26T17:03:44Z",
+      "side": 1,
+      "message": "oltIndication is a compound data structure. I do not think this is the right way to pass it to \u0027%s\u0027 format specifier. Please look at other examples on how it is done.",
+      "revId": "8075789b60488e6a29eaa1a3c0e753fdc0527f12",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0a599d57_51967274",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-07-26T17:03:44Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "8075789b60488e6a29eaa1a3c0e753fdc0527f12",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
