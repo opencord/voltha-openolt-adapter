@@ -773,6 +773,8 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 	}
 	//Insert the ONU into cache to use in OnuIndication.
 	//TODO: Do we need to remove this from the cache on ONU change, or wait for overwritten on next discovery.
+	log.Warnw("ONU discovery indication key create", log.Fields{"onuID": onuID,
+		"intfId": onuDiscInd.GetIntfId()})
 	onuKey := dh.formOnuKey(onuDiscInd.GetIntfId(), onuID)
 	dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
 
@@ -797,6 +799,8 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 	ponPort := IntfIDToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
 	var onuDevice *voltha.Device
 	foundInCache := false
+	log.Warnw("ONU indication key create", log.Fields{"onuId": onuInd.OnuId,
+		"intfId": onuInd.GetIntfId()})
 	onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.OnuId)
 	if onuInCache, ok := dh.onus[onuKey]; ok {
 		//If ONU id is discovered before then use GetDevice to get onuDevice because it is cheaper.
@@ -826,7 +830,7 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 			onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.GetOnuId())
 			dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
 		}
-		dh.updateOnuStates(onuDevice, onuInd)
+		dh.updateOnuStates(onuDevice, onuInd, foundInCache)
 
 	} else {
 		log.Errorw("onu not found", log.Fields{"intfID": onuInd.IntfId, "onuID": onuInd.OnuId})
@@ -835,7 +839,7 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 
 }
 
-func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication) {
+func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication, foundInCache bool) {
 	dh.updateOnuAdminState(onuInd)
 	// operState
 	if onuInd.OperState == "down" {
@@ -849,7 +853,8 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
 		}
 	} else if onuInd.OperState == "up" {
-		if onuDevice.OperStatus != common.OperStatus_DISCOVERED {
+		// Ignore operstatus if device was found in cache
+		if !foundInCache && onuDevice.OperStatus != common.OperStatus_DISCOVERED {
 			log.Warnw("ignore onu indication", log.Fields{"intfID": onuInd.IntfId, "onuID": onuInd.OnuId, "operStatus": onuDevice.OperStatus, "msgOperStatus": onuInd.OperState})
 			return
 		}
