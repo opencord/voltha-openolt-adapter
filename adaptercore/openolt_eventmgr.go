@@ -32,6 +32,7 @@ const (
 	onuLopcMissEvent        = "ONU_LOPC_MISS"
 	onuLopcMicErrorEvent    = "ONU_LOPC_MIC_ERROR"
 	oltLosEvent             = "OLT_LOSS_OF_SIGNAL"
+	oltIndicationDown       = "OLT_DOWN_INDICATION"
 	onuDyingGaspEvent       = "ONU_DYING_GASP"
 	onuSignalsFailEvent     = "ONU_SIGNALS_FAIL"
 	onuStartupFailEvent     = "ONU_STARTUP_FAIL"
@@ -115,6 +116,27 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 		log.Errorw("Received unknown indication type", log.Fields{"alarm_ind": alarmInd})
 
 	}
+}
+
+// oltUpDownIndication handles Up and Down state of an OLT
+func (em *OpenOltEventMgr) oltUpDownIndication(oltIndication *oop.OltIndication, deviceID string, raisedTs int64) {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	context["oper-state"] = string(oltIndication.OperState)
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	if oltIndication.OperState == "down" {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "RAISE_EVENT")
+	} else if oltIndication.OperState == "up" {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
+		log.Errorw("Failed to send OLT event", log.Fields{"err": err})
+	}
+	log.Infow("OLT UpDown event sent to KAFKA", log.Fields{})
 }
 
 // OnuDiscoveryIndication is an exported method to handle ONU discovery event
