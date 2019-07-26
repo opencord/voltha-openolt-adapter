@@ -200,17 +200,27 @@ func (f *OpenOltFlowMgr) registerFlow(flowFromCore *ofp.OfpFlowStats, deviceFlow
 func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifierInfo map[string]interface{}, actionInfo map[string]interface{}, flow *ofp.OfpFlowStats) {
 	var allocID []uint32
 	var gemPorts []uint32
+	var uni string
 
 	log.Infow("Dividing flow", log.Fields{"intfId": intfID, "onuId": onuID, "uniId": uniID, "portNo": portNo, "classifier": classifierInfo, "action": actionInfo})
 
 	log.Infow("sorting flow", log.Fields{"intfId": intfID, "onuId": onuID, "uniId": uniID, "portNo": portNo,
 		"classifierInfo": classifierInfo, "actionInfo": actionInfo})
 
-	uni := getUniPortPath(intfID, onuID, uniID)
-	log.Debugw("Uni port name", log.Fields{"uni": uni})
-	allocID, gemPorts = f.createTcontGemports(intfID, onuID, uniID, uni, portNo, flow.GetTableId())
-	if allocID == nil || gemPorts == nil {
-		log.Error("alloc-id-gem-ports-unavailable")
+	// only create tcont/gemports if there is actually an onu id.  otherwise BAL throws an error.  Usually this
+	// is because the flow is an NNI flow and there would be no onu resources associated with it
+	// TODO: properly deal with NNI flows
+	if onuID > 0 {
+		uni = getUniPortPath(intfID, onuID, uniID)
+		log.Debugw("Uni port name", log.Fields{"uni": uni})
+		allocID, gemPorts = f.createTcontGemports(intfID, onuID, uniID, uni, portNo, flow.GetTableId())
+		if allocID == nil || gemPorts == nil {
+			log.Error("alloc-id-gem-ports-unavailable")
+			return
+		}
+		log.Debugw("Generated required alloc and gemport ids", log.Fields{"alloc_id": allocID, "gemPorts": gemPorts})
+	} else {
+		log.Errorw("No onu id for flow", log.Fields{"portNo": portNo, "classifer": classifierInfo, "action": actionInfo})
 		return
 	}
 
