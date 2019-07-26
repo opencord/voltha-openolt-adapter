@@ -292,11 +292,14 @@ func (dh *DeviceHandler) readIndications() {
 }
 
 func (dh *DeviceHandler) handleOltIndication(oltIndication *oop.OltIndication) {
+	raisedTs := time.Now().UnixNano()
 	if oltIndication.OperState == "up" {
 		dh.transitionMap.Handle(DeviceUpInd)
 	} else if oltIndication.OperState == "down" {
 		dh.transitionMap.Handle(DeviceDownInd)
 	}
+	// Send or clear Alarm
+	dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs)
 }
 
 func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
