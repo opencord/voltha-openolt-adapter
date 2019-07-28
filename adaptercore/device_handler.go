@@ -759,7 +759,7 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 			return err
 		}
 		if onuDevice, err = dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
-			"brcm_openomci_onu", int(channelID),
+			"", int(channelID),
 			string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); onuDevice == nil {
 			log.Errorw("Create onu error",
 				log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
