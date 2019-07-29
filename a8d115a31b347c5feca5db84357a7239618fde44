@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "de0175d6_9868f432",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-29T20:09:17Z",
+      "side": 1,
+      "message": "from my understanding with golang maps it needs a lock even if its a reader.  as other threads may be adding items to this map there is a chance of corruption.\n\nSee this: https://stackoverflow.com/questions/11063473/map-with-concurrent-access",
+      "parentUuid": "8ea37d9e_28c1995a",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d488b352_6314db92",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2019-07-29T19:41:47Z",
       "side": 1,
       "message": "Do we need to take lock again here ? Or we can still hold same the lock taken above and release once updated database ?",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8360fe9_d43f241a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-29T20:09:17Z",
+      "side": 1,
+      "message": "I tried to avoid keeping locks locked when making coreProxy (network) calls.  if its all local/in memory work keeping the lock longer seems safe.",
+      "parentUuid": "d488b352_6314db92",
       "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "46f19b2e_08a1b283",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-29T20:09:17Z",
+      "side": 1,
+      "message": "the delete was already here so i kept it.  i think it makes sense to keep this populated as you say until the olt hardware is restarted.  \n\nHow about remove this defer altogether?",
+      "parentUuid": "0d2a2ae6_64ded8e7",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2c15dac_894d7d93",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2019-07-29T19:41:47Z",
       "side": 1,
       "message": "why do we need to take lock here since dh.discOnus[sn] is already updated hence at any point of time one discovery will be processed  fully ?",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ca9968f4_c43d0449",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-29T20:09:17Z",
+      "side": 1,
+      "message": "part of the reason for all the locking is now onuDiscIndication starts its own thread per discovery.  this is to prevent the whole of readIndications thread from being put to sleep, pausing all indications.\n\ngetONUID for multiple concurrent discoveries/activations returned the same onu id for multiple onu being activated at the same time, breaking many things.  hence the lock",
+      "parentUuid": "c2c15dac_894d7d93",
       "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
