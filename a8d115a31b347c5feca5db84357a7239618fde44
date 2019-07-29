@@ -156,6 +156,29 @@
       "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "659eb465_b4d6c45a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 817,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-29T20:13:51Z",
+      "side": 1,
+      "message": "if onuDiscIndication is not its own goroutine, this puts all of readIndications to sleep.  pausing all discoveries, omci, etc.",
+      "range": {
+        "startLine": 817,
+        "startChar": 1,
+        "endLine": 817,
+        "endChar": 28
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
