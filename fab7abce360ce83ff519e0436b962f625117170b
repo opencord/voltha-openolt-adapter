@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c46be3f_c6e26736",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-30T16:33:24Z",
+      "side": 1,
+      "message": "if this is too much of a performance hit then we really just need readlocks before checking these maps. and save the write locks for the update.  Or we change this map to a sync.map which has built in locking.",
+      "range": {
+        "startLine": 605,
+        "startChar": 1,
+        "endLine": 605,
+        "endChar": 21
+      },
+      "revId": "fab7abce360ce83ff519e0436b962f625117170b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
