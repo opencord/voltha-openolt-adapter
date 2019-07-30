@@ -72,6 +72,29 @@
     },
     {
       "key": {
+        "uuid": "fb31d33a_ea129a7e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-30T12:41:34Z",
+      "side": 1,
+      "message": "Here in-order to receive OMCI indications from the device , ONU should have been already activated as part of ONU-DISCOVERY procedure and onu-cache should be readily  available. Ideally this situation should never hit. \n\nAlso it is good to not taking lock during OMCI processing which will impact performance",
+      "range": {
+        "startLine": 605,
+        "startChar": 0,
+        "endLine": 627,
+        "endChar": 24
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d2a2ae6_64ded8e7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -101,6 +124,24 @@
       "side": 1,
       "message": "the delete was already here so i kept it.  i think it makes sense to keep this populated as you say until the olt hardware is restarted.  \n\nHow about remove this defer altogether?",
       "parentUuid": "0d2a2ae6_64ded8e7",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16731d34_df68a98e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-30T12:41:34Z",
+      "side": 1,
+      "message": "Yes we will remove this defer function , and delete explicitly wherever needed",
+      "parentUuid": "46f19b2e_08a1b283",
       "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
