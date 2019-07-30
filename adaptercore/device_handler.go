@@ -1069,11 +1069,11 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 				etherFrame.VLAN = nil
 				packet.Data, err = etherFrame.MarshalBinary()
 				if err != nil {
-					log.Fatalf("failed to marshal frame: %v", err)
+					log.Errorw("failed to marshal frame:", log.Fields{"err": err, "etherFrame": etherFrame})
 					return err
 				}
 				if err := (&etherFrame).UnmarshalBinary(packet.Data); err != nil {
-					log.Fatalf("failed to unmarshal frame: %v", err)
+					log.Errorw("failed to unmarshal frame:", log.Fields{"err": err, "packetData": packet.Data})
 					return err
 				}
 				log.Debug("Double tagged packet , removed outer vlan", log.Fields{"New frame": etherFrame})
