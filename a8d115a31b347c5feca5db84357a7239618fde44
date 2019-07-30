@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "0c97965e_5575a496",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-30T14:33:17Z",
+      "side": 1,
+      "message": "for any single onu, referenced by the one key in the map, yes it should be beyond discovery.  but other onus in different states being worked by other goroutines as part of this olt device handler will also access this this map, adding new keys.  i.e other onu in discovery state adding to the samme map while being read from here could cause corruption.",
+      "parentUuid": "fb31d33a_ea129a7e",
+      "range": {
+        "startLine": 605,
+        "startChar": 0,
+        "endLine": 627,
+        "endChar": 24
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d2a2ae6_64ded8e7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
