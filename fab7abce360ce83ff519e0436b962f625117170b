@@ -22,6 +22,30 @@
       "revId": "fab7abce360ce83ff519e0436b962f625117170b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6af8f1fc_8beb9d41",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-30T20:16:41Z",
+      "side": 1,
+      "message": "Yes Matt , we need to have some sync mechanism  which will also help perform better",
+      "parentUuid": "6c46be3f_c6e26736",
+      "range": {
+        "startLine": 605,
+        "startChar": 1,
+        "endLine": 605,
+        "endChar": 21
+      },
+      "revId": "fab7abce360ce83ff519e0436b962f625117170b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
