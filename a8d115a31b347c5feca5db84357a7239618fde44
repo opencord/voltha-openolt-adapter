@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "03727a36_7d2999f4",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-07-30T20:50:11Z",
+      "side": 1,
+      "message": "for the sake of progress ill pull some of the locks out.  given this function is not in a separate thread it *should* be fine (the readindications thread handles it all).  \n\nideally though all functions off the readIndications thread should be in their own thread, but we can tweak performance later.",
+      "parentUuid": "3b12b4a4_735d91b2",
+      "range": {
+        "startLine": 605,
+        "startChar": 0,
+        "endLine": 627,
+        "endChar": 24
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d2a2ae6_64ded8e7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
