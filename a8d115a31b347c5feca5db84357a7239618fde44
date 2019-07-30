@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3b12b4a4_735d91b2",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-30T20:16:41Z",
+      "side": 1,
+      "message": "Yes Matt , i agree that go-lang maps does not guarantee multiple writer/reader operations concurrently without locking mechanisms \n\nHere the main reason we are caching is to avoid sync call to core to get child device so that it  shall be perform better since we deal with southbound indications on which we don\u0027t have control. But we end-up in same situation by performing many locks/unlocks \n\ni am thinking how to avoid locks here as it will hit impact performance.",
+      "parentUuid": "0c97965e_5575a496",
+      "range": {
+        "startLine": 605,
+        "startChar": 0,
+        "endLine": 627,
+        "endChar": 24
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d2a2ae6_64ded8e7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -166,6 +190,24 @@
       "side": 1,
       "message": "Yes we will remove this defer function , and delete explicitly wherever needed",
       "parentUuid": "46f19b2e_08a1b283",
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a21ac25_b1c125c5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-30T20:16:41Z",
+      "side": 1,
+      "message": "we need to take care of deleting onu cache in appropriate situations  ex: ONT is deactivated , ONT activation is failed etc.",
+      "parentUuid": "16731d34_df68a98e",
       "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
