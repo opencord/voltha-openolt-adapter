@@ -531,8 +531,10 @@
   analyzer-version = 1
   input-imports = [
     "github.com/gogo/protobuf/proto",
+    "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
     "github.com/opencord/voltha-go/adapters",
+    "github.com/opencord/voltha-go/adapters/adapterif",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",
     "github.com/opencord/voltha-go/common/ponresourcemanager",
