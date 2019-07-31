@@ -34,8 +34,8 @@ import (
 //OpenOLT structure holds the OLT information
 type OpenOLT struct {
 	deviceHandlers        map[string]*DeviceHandler
-	coreProxy             *com.CoreProxy
-	adapterProxy          *com.AdapterProxy
+	coreProxy             com.CoreProxyIntf    //*com.CoreProxy
+	adapterProxy          com.AdapterProxyIntf //*com.AdapterProxy
 	eventProxy            *com.EventProxy
 	kafkaICProxy          *kafka.InterContainerProxy
 	numOnus               int
@@ -47,7 +47,10 @@ type OpenOLT struct {
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, eventProxy *com.EventProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
+func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy,
+	coreProxy com.CoreProxyIntf, adapterProxy com.AdapterProxyIntf,
+	eventProxy *com.EventProxy, onuNumber int, kvStoreHost string,
+	kvStorePort int, KVStoreType string) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
