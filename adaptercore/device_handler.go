@@ -33,7 +33,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	com "github.com/opencord/voltha-go/adapters/common"
+	"github.com/opencord/voltha-go/adapters/adapterif"
 	"github.com/opencord/voltha-go/common/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-protos/go/common"
@@ -50,15 +50,19 @@ const (
 	MAX_TIMEOUT_IN_MS = 500
 )
 
+func init() {
+	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
+}
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
 	deviceType    string
 	adminState    string
 	device        *voltha.Device
-	coreProxy     *com.CoreProxy
-	AdapterProxy  *com.AdapterProxy
-	EventProxy    *com.EventProxy
+	coreProxy     adapterif.CoreProxy
+	AdapterProxy  adapterif.AdapterProxy
+	EventProxy    adapterif.EventProxy
 	openOLT       *OpenOLT
 	exitChannel   chan int
 	lockDevice    sync.RWMutex
@@ -96,7 +100,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, ep *com.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
+func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
 	var dh DeviceHandler
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
