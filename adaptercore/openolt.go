@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"sync"
 
-	com "github.com/opencord/voltha-go/adapters/common"
+	"github.com/opencord/voltha-go/adapters/adapterif"
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/kafka"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
@@ -34,9 +34,9 @@ import (
 //OpenOLT structure holds the OLT information
 type OpenOLT struct {
 	deviceHandlers        map[string]*DeviceHandler
-	coreProxy             *com.CoreProxy
-	adapterProxy          *com.AdapterProxy
-	eventProxy            *com.EventProxy
+	coreProxy             adapterif.CoreProxy
+	adapterProxy          adapterif.AdapterProxy
+	eventProxy            adapterif.EventProxy
 	kafkaICProxy          *kafka.InterContainerProxy
 	numOnus               int
 	KVStoreHost           string
@@ -47,7 +47,10 @@ type OpenOLT struct {
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy, coreProxy *com.CoreProxy, adapterProxy *com.AdapterProxy, eventProxy *com.EventProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) *OpenOLT {
+func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy,
+	coreProxy adapterif.CoreProxy, adapterProxy adapterif.AdapterProxy,
+	eventProxy adapterif.EventProxy, onuNumber int, kvStoreHost string,
+	kvStorePort int, KVStoreType string) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)

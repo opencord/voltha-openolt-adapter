@@ -227,10 +227,11 @@
 
 [[projects]]
   branch = "voltha-2.1"
-  digest = "1:f61d3e7e118422cdadad10942bb1000b90d8e1ba8c87e9e278fcbaf8ea4aa6fa"
+  digest = "1:795dd43b23959662cb93a0d1d1658e127b9f0c0559191eecb077e2986e4dd7a0"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
+    "adapters/adapterif",
     "adapters/common",
     "common/log",
     "common/ponresourcemanager",
@@ -241,7 +242,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "057671182103e7e029e919963b03ef4c13e9eb95"
+  revision = "acacd47935d903010a1d4f65e8b2b5964bd4875a"
 
 [[projects]]
   digest = "1:bc21a70b7c12a8d8c2b008d2d61a313bf4ed8f021be84d815f744a869e69c96f"
@@ -531,8 +532,10 @@
   analyzer-version = 1
   input-imports = [
     "github.com/gogo/protobuf/proto",
+    "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
     "github.com/opencord/voltha-go/adapters",
+    "github.com/opencord/voltha-go/adapters/adapterif",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",
     "github.com/opencord/voltha-go/common/ponresourcemanager",
