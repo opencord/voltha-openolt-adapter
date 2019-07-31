@@ -290,6 +290,29 @@
     },
     {
       "key": {
+        "uuid": "91577f0f_a64f4650",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-07-31T21:23:05Z",
+      "side": 1,
+      "message": "isn\u0027t this already checked by \"if _, ok :\u003d dh.discOnus[sn]; ok {\" line?",
+      "range": {
+        "startLine": 798,
+        "startChar": 1,
+        "endLine": 802,
+        "endChar": 2
+      },
+      "revId": "a8d115a31b347c5feca5db84357a7239618fde44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "659eb465_b4d6c45a",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
