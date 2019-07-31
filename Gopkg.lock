@@ -242,7 +242,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "84169b5c5b9913aa612f3145b2a39c288ecd53d1"
+  revision = "4c9e559d974d5a8cf30e9ba6425547303b9a5d0d"
 
 [[projects]]
   digest = "1:78a853c38b4935f01a99fbb41edbb4382a23586f929ecf02dd80d4452f2e3c0d"
@@ -531,8 +531,10 @@
   analyzer-version = 1
   input-imports = [
     "github.com/gogo/protobuf/proto",
+    "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
     "github.com/opencord/voltha-go/adapters",
+    "github.com/opencord/voltha-go/adapters/adapterif",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",
     "github.com/opencord/voltha-go/common/ponresourcemanager",
