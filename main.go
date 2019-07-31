@@ -21,6 +21,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
 	"github.com/opencord/voltha-go/adapters"
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
@@ -31,11 +37,6 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/config/version"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	"github.com/opencord/voltha-protos/go/voltha"
-	"os"
-	"os/signal"
-	"strconv"
-	"syscall"
-	"time"
 )
 
 type adapter struct {
@@ -45,8 +46,8 @@ type adapter struct {
 	kafkaClient      kafka.Client
 	kvClient         kvstore.Client
 	kip              *kafka.InterContainerProxy
-	coreProxy        *com.CoreProxy
-	adapterProxy     *com.AdapterProxy
+	coreProxy        com.CoreProxyIntf
+	adapterProxy     com.AdapterProxyIntf
 	eventProxy       *com.EventProxy
 	halted           bool
 	exitChannel      chan int
@@ -97,7 +98,8 @@ func (a *adapter) start(ctx context.Context) {
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config.OnuNumber,
+	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy,
+		a.config.OnuNumber,
 		a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
@@ -207,7 +209,9 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
 	return kip, nil
 }
 
-func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy, cp *com.CoreProxy, ap *com.AdapterProxy, ep *com.EventProxy, onuNumber int, kvStoreHost string, kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
+func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy,
+	cp com.CoreProxyIntf, ap com.AdapterProxyIntf, ep *com.EventProxy, onuNumber int, kvStoreHost string,
+	kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
 	log.Info("starting-open-olt")
 	var err error
 	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, onuNumber, kvStoreHost, kvStorePort, KVStoreType)

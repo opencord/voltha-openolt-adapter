@@ -45,14 +45,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func init() {
+	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
+}
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
 	deviceType    string
 	adminState    string
 	device        *voltha.Device
-	coreProxy     *com.CoreProxy
-	AdapterProxy  *com.AdapterProxy
+	coreProxy     com.CoreProxyIntf
+	AdapterProxy  com.AdapterProxyIntf
 	EventProxy    *com.EventProxy
 	openOLT       *OpenOLT
 	exitChannel   chan int
@@ -91,7 +95,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp *com.CoreProxy, ap *com.AdapterProxy, ep *com.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
+func NewDeviceHandler(cp com.CoreProxyIntf, ap com.AdapterProxyIntf, ep *com.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
 	var dh DeviceHandler
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
