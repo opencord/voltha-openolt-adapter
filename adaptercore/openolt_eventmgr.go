@@ -19,7 +19,8 @@ package adaptercore
 
 import (
 	"fmt"
-	com "github.com/opencord/voltha-go/adapters/common"
+
+	"github.com/opencord/voltha-go/adapters/adapterif"
 	"github.com/opencord/voltha-go/common/log"
 	oop "github.com/opencord/voltha-protos/go/openolt"
 	"github.com/opencord/voltha-protos/go/voltha"
@@ -60,11 +61,11 @@ const (
 
 // OpenOltEventMgr struct contains
 type OpenOltEventMgr struct {
-	eventProxy *com.EventProxy
+	eventProxy adapterif.EventProxy
 }
 
 // NewEventMgr is a Function to get a new event manager struct for the OpenOLT to process and publish OpenOLT event
-func NewEventMgr(eventProxy *com.EventProxy) *OpenOltEventMgr {
+func NewEventMgr(eventProxy adapterif.EventProxy) *OpenOltEventMgr {
 	var em OpenOltEventMgr
 	em.eventProxy = eventProxy
 	return &em
