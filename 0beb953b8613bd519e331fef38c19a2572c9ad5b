@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5760d082_2faf81df",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 734,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-07-31T03:20:31Z",
+      "side": 1,
+      "message": "This entry doesn\u0027t seem to be evicted as it was being done in the earlier version. Is this intentional?",
+      "revId": "0beb953b8613bd519e331fef38c19a2572c9ad5b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
