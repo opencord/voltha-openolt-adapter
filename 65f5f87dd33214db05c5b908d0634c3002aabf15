@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be34b975_fcf277d1",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 747,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-07-31T21:56:41Z",
+      "side": 1,
+      "message": "Don\u0027t delete map in defer() as it will be triggered even in-case of success scenario. Hence duplicate devices will be detected",
+      "revId": "65f5f87dd33214db05c5b908d0634c3002aabf15",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
