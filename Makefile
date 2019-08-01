@@ -129,7 +129,7 @@ openolt_python: local-protos local-pyvoltha
 	docker build $(DOCKER_BUILD_ARGS_LOCAL) -t ${PYTHONADAPTER_IMAGENAME} -f python/docker/Dockerfile.openolt_adapter python
 
 	# Current default image gets the base DOCKER_TAG
-	docker tag ${PYTHONADAPTER_IMAGENAME} ${ADAPTER_IMAGENAME}
+	docker tag ${GOADAPTER_IMAGENAME} ${ADAPTER_IMAGENAME}
 
 docker-push:
 	docker push ${GOADAPTER_IMAGENAME}
