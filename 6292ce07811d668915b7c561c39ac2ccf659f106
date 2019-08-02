@@ -16,6 +16,24 @@
       "revId": "6292ce07811d668915b7c561c39ac2ccf659f106",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec3eda80_b0012f93",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1091,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-08-02T12:07:37Z",
+      "side": 1,
+      "message": "yes that would make things cleaner.",
+      "parentUuid": "4e880b10_136a11a9",
+      "revId": "6292ce07811d668915b7c561c39ac2ccf659f106",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
