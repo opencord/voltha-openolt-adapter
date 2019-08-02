@@ -19,6 +19,7 @@ package adaptercore
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -1065,52 +1066,69 @@ func (dh *DeviceHandler) handlePacketIndication(packetIn *oop.PacketIndication) 
 
 // PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
 func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) error {
-	log.Debugw("PacketOut", log.Fields{"deviceID": dh.deviceID, "egress_port_no": egressPortNo, "pkt-length": len(packet.Data)})
+	log.Debugw("incoming-packet-out", log.Fields{"deviceID": dh.deviceID, "egress_port_no": egressPortNo,
+		"pkt-length": len(packet.Data), "packetData": hex.EncodeToString(packet.Data)})
+
 	var etherFrame ethernet.Frame
 	err := (&etherFrame).UnmarshalBinary(packet.Data)
 	if err != nil {
 		log.Errorw("Failed to unmarshal into ethernet frame", log.Fields{"err": err, "pkt-length": len(packet.Data)})
 		return err
 	}
-	log.Debugw("Ethernet Frame", log.Fields{"Frame": etherFrame})
+	log.Debugw("decoded-ethernet-frame", log.Fields{"Frame": etherFrame})
 	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
 	if egressPortType == voltha.Port_ETHERNET_UNI {
 		if etherFrame.VLAN != nil { // If double tag, remove the outer tag
 			nextEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
 			if nextEthType == 0x8100 {
-				etherFrame.VLAN = nil
-				packet.Data, err = etherFrame.MarshalBinary()
-				if err != nil {
-					log.Errorw("failed to marshal frame:", log.Fields{"err": err, "etherFrame": etherFrame})
-					return err
+				outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
+				if outerEthType == 0x8100 && nextEthType == 0x8100 {
+					// double 802.1q tagged packet. Library cant parse it properly resulting s-vlan remaining
+					// slice out the outer 802.1q tag.
+					packet.Data = append(packet.Data[:12], packet.Data[16:]...)
+					log.Debugw("fixed-801q-801q-packet-out", log.Fields{"NewPacketData": hex.EncodeToString(packet.Data)})
+				} else {
+					// outer tag is 802.1ad inner tag is 802.1q.  Library can parse this
+					etherFrame.ServiceVLAN = nil
+					packet.Data, err = etherFrame.MarshalBinary()
+					if err != nil {
+						log.Errorw("failed to marshal frame:", log.Fields{"err": err, "NewEtherFrame": etherFrame})
+						return err
+					}
+					log.Debugw("modified-packet-out", log.Fields{"NewFrame": etherFrame, "NewPacketData": hex.EncodeToString(packet.Data)})
 				}
+
 				if err := (&etherFrame).UnmarshalBinary(packet.Data); err != nil {
-					log.Errorw("failed to unmarshal frame:", log.Fields{"err": err, "packetData": packet.Data})
+					log.Errorw("failed to unmarshal frame:", log.Fields{"err": err, "packetData": hex.EncodeToString(packet.Data)})
 					return err
 				}
-				log.Debug("Double tagged packet , removed outer vlan", log.Fields{"New frame": etherFrame})
+				log.Debugw("packet-now-single-tagged", log.Fields{"NewFrame": etherFrame, "packetData": hex.EncodeToString(packet.Data)})
 			}
 		}
 		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
 		onuID := OnuIDFromPortNum(uint32(egressPortNo))
-		uniID := UniIDFromPortNum(uint32(egressPortNo))
+		uniID := uint32(egressPortNo)
 		/*gemPortId, err := dh.flowMgr.GetPacketOutGemPortId(intfID, onuID, uint32(egress_port_no))
 		  if err != nil{
 		      log.Errorw("Error while getting gemport to packet-out",log.Fields{"error": err})
 		      return err
 		  }*/
 		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), Pkt: packet.Data}
-		log.Debug("sending-packet-to-ONU", log.Fields{"egress_port_no": egressPortNo, "IntfId": intfID, "onuID": onuID,
-			"uniID": uniID, "packet": packet.Data})
+
+		log.Debugw("sending-packet-to-onu", log.Fields{"egress_port_no": egressPortNo, "IntfId": intfID, "onuID": onuID,
+			"uniID": uniID, "packet": hex.EncodeToString(packet.Data)})
+
 		if _, err := dh.Client.OnuPacketOut(context.Background(), &onuPkt); err != nil {
 			log.Errorw("Error while sending packet-out to ONU", log.Fields{"error": err})
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
 		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
-		log.Debug("sending-packet-to-uplink", log.Fields{"uplink_pkt": uplinkPkt})
+
+		log.Debugw("sending-packet-to-nni", log.Fields{"uplink_pkt": uplinkPkt, "packet": hex.EncodeToString(packet.Data)})
+
 		if _, err := dh.Client.UplinkPacketOut(context.Background(), &uplinkPkt); err != nil {
-			log.Errorw("Error while sending packet-out to uplink", log.Fields{"error": err})
+			log.Errorw("Error while sending packet-out to NNI", log.Fields{"error": err})
 			return err
 		}
 	} else {
