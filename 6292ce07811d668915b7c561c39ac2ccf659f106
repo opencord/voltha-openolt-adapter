@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e880b10_136a11a9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1091,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-08-02T02:04:46Z",
+      "side": 1,
+      "message": "Do you think there is any value in using the marshal/unmarshal library considering the etherFrame is not being used. Maybe just chop with append(packet.Data[:12], packet.Data[16:]...) if nextEthType \u003d\u003d 0x8100 and call it done ? :)",
+      "revId": "6292ce07811d668915b7c561c39ac2ccf659f106",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
