@@ -210,14 +210,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:34275a1f6f60d46dd507bf9b420c0abeff8bf71027fc06c6f6eda2b0c0a4bad4"
-  name = "github.com/mdlayher/ethernet"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0394541c37b7f86a10e0b49492f6d4f605c34163"
-
-[[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -538,7 +530,6 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
-    "github.com/mdlayher/ethernet",
     "github.com/opencord/voltha-go/adapters",
     "github.com/opencord/voltha-go/adapters/common",
     "github.com/opencord/voltha-go/common/log",
