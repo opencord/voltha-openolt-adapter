@@ -272,8 +272,11 @@ func (dh *DeviceHandler) readIndications() {
 			dh.transitionMap.Handle(DeviceInit)
 			break
 		}
+		dh.lockDevice.RLock()
+		adminState := dh.adminState
+		dh.lockDevice.RUnlock()
 		// When OLT is admin down, allow only NNI operation status change indications.
-		if dh.adminState == "down" {
+		if adminState == "down" {
 			_, isIntfOperInd := indication.Data.(*oop.Indication_IntfOperInd)
 			if isIntfOperInd {
 				intfOperInd := indication.GetIntfOperInd()
@@ -454,7 +457,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 			log.Errorw("error-updating-device-state", log.Fields{"deviceID": dh.device.Id, "error": er})
 		}
 
-		// Since the device was disabled before the OLT was rebooted, enfore the OLT to be Disabled after re-connection.
+		// Since the device was disabled before the OLT was rebooted, enforce the OLT to be Disabled after re-connection.
 		_, err = dh.Client.DisableOlt(context.Background(), new(oop.Empty))
 		if err != nil {
 			log.Errorw("Failed to disable olt ", log.Fields{"err": err})
@@ -980,14 +983,24 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 //Device Port-State: UNKNOWN
 //Device Oper-State: UNKNOWN
 func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
-	if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed to disable olt ", log.Fields{"err": err})
-		return err
-	}
+	/* On device disable ,admin state update has to be done prior sending request to agent since
+	   the indication thread may processes invalid  indications of ONU and OLT*/
 	dh.lockDevice.Lock()
 	dh.adminState = "down"
 	dh.lockDevice.Unlock()
+	if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed to disable olt ", log.Fields{"err": err})
+		dh.lockDevice.Lock()
+		dh.adminState = "up"
+		dh.lockDevice.Unlock()
+		return err
+	}
 	log.Debug("olt-disabled")
+	dh.lockDevice.Lock()
+	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
+	   UNREACHABLE state which needs to be configured again*/
+	dh.discOnus = make(map[string]bool)
+	dh.lockDevice.Unlock()
 
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to disable
