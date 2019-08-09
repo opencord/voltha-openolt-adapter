@@ -70,8 +70,8 @@ class OpenoltAdapter(object):
         self.config = config
         self.descriptor = Adapter(
             id=self.name,
-            vendor='OLT white box vendor',
-            version='0.1',
+            vendor='VOLTHA OpenOLT Python',
+            version='2.0',
             config=AdapterConfig(log_level=LogLevel.INFO)
         )
         log.debug('openolt.__init__', core_proxy=core_proxy, adapter_proxy=adapter_proxy)
