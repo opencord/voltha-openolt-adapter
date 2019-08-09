@@ -426,6 +426,13 @@ class OpenoltDevice(object):
                     intf_id,
                     self.platform.intf_id_to_port_no(intf_id, Port.PON_OLT),
                     onu_id, serial_number)
+
+                # TODO: Match openolt golang behavior for now.
+                # We put this sleep here to prevent the race between state update and onuIndication
+                # In onuIndication the operStatus of device is checked. If it is still not updated in KV store
+                # then the initialisation fails.
+                time.sleep(1)
+
                 self.activate_onu(intf_id, onu_id, serial_number,
                                   serial_number_str)
             except Exception as e:
@@ -475,7 +482,7 @@ class OpenoltDevice(object):
 
     @inlineCallbacks
     def onu_indication(self, onu_indication):
-        self.log.debug("onu indication with retry",
+        self.log.debug("onu indication",
                        intf_id=onu_indication.intf_id,
                        onu_id=onu_indication.onu_id,
                        serial_number=onu_indication.serial_number,
@@ -487,51 +494,43 @@ class OpenoltDevice(object):
         except Exception as e:
             serial_number_str = None
 
-        if serial_number_str is not None:
-            onu_device = yield self.core_proxy.get_child_device(
-                self.device_id, serial_number=serial_number_str)
-        else:
-            onu_device = yield self.core_proxy.get_child_device(
-                self.device_id,
-                parent_port_no=self.platform.intf_id_to_port_no(
-                    onu_indication.intf_id, Port.PON_OLT),
-                onu_id=onu_indication.onu_id)
-
+        onu_device = None
+        found_in_cache = False
         onu_key = self.form_onu_key(onu_indication.intf_id,
                                     onu_indication.onu_id)
-        if onu_device is None:
-            if serial_number_str in self.seen_discovery_indications:
-                if onu_key not in self.onu_cache:
-                    # The ONU is probably getting added. Lets retry again
-                    if self.indication_retries < 10:
-                        self.indication_retries += 1
-                        self.log.error(
-                            'onu in discovery indications but not found in core. Retrying again',
-                            intf_id=onu_indication.intf_id,
-                            onu_id=onu_indication.onu_id)
-                        reactor.callLater(3, self.onu_indication,
-                                          onu_indication)
-                    else:
-                        self.log.error('ONU not found',
-                                       intf_id=onu_indication.intf_id,
-                                       onu_id=onu_indication.onu_id)
-                else:
-                    # The ONU device is in the ONU cache
-                    self.log.debug('ONU in cache')
-                    self.indication_retries = 0
-                    onu_device = self.onu_cache[onu_key]
-                    self.log.debug('ONU device found in the cache', onu_device=onu_device)
+
+        if onu_key in self.onu_cache:
+            onu_cache_device = self.onu_cache[onu_key]
+            found_in_cache = True
+            self.log.debug('lookup-updated-device', serial_number=serial_number_str)
+            # If ONU id is discovered before then use GetDevice to get onuDevice because it is cheaper.
+            onu_device = yield self.core_proxy.get_device(onu_cache_device.id)
+        else:
+            if serial_number_str is not None:
+                self.log.debug('lookup-device-by-serial-number', serial_number=serial_number_str)
+                onu_device = yield self.core_proxy.get_child_device(
+                    self.device_id, serial_number=serial_number_str)
             else:
-                self.log.error('onu not found',
-                               intf_id=onu_indication.intf_id,
-                               onu_id=onu_indication.onu_id)
-            if onu_device is None:
-                return
+                self.log.debug('lookup-device-by-parent-port', intf_id=onu_indication.intf_id, onu_id=onu_indication.onu_id)
+                onu_device = yield self.core_proxy.get_child_device(
+                    self.device_id,
+                    parent_port_no=self.platform.intf_id_to_port_no(
+                        onu_indication.intf_id, Port.PON_OLT),
+                    onu_id=onu_indication.onu_id)
+
+        if onu_device is None:
+            self.log.error('onu not found in cache nor core',
+                           intf_id=onu_indication.intf_id,
+                           onu_id=onu_indication.onu_id)
+            return
+
+        self.log.debug('onu-device-found', onu_device=onu_device)
 
         self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type,
                                        serial_number_str,
                                        onu_indication.onu_id,
                                        onu_indication.intf_id)
+
         if self.platform.intf_id_from_pon_port_no(onu_device.parent_port_no) \
                 != onu_indication.intf_id:
             self.log.warn(
@@ -599,7 +598,7 @@ class OpenoltDevice(object):
                 yield self.core_proxy.device_state_update(
                     onu_device.id, connect_status=ConnectStatus.REACHABLE)
 
-            if onu_device.oper_status != OperStatus.DISCOVERED:
+            if not found_in_cache and onu_device.oper_status != OperStatus.DISCOVERED:
                 if serial_number_str not in self.seen_discovery_indications:
                     self.log.debug("Ignore ONU indication",
                                    intf_id=onu_indication.intf_id,
@@ -665,7 +664,7 @@ class OpenoltDevice(object):
             except Exception as e:
                 serial_number_str = None
 
-#if not exist in cache, then add to cache.
+            #if not exist in cache, then add to cache.
             onu_key = self.form_onu_key(omci_indication.intf_id,
                                         omci_indication.onu_id)
             self.onus[onu_key] = OnuDevice(onu_device.id, onu_device.type,
@@ -842,11 +841,10 @@ class OpenoltDevice(object):
 
         serial_number_str = self.stringify_serial_number(serial_number)
 
-        # TODO NEW CORE dont hardcode child device type.  find some way of determining by vendor in serial number
         onu_device = yield self.core_proxy.child_device_detected(
             parent_device_id=self.device_id,
             parent_port_no=port_no,
-            child_device_type='brcm_openomci_onu',
+            child_device_type='',
             channel_id=intf_id,
             vendor_id=serial_number.vendor_id,
             serial_number=serial_number_str,
@@ -856,6 +854,12 @@ class OpenoltDevice(object):
                        onu_id=onu_id,
                        port_no=port_no,
                        serial_number=serial_number_str)
+
+        self.log.debug('Adding ONU device to the cache',
+                       intf_id=intf_id,
+                       onu_id=onu_id)
+        onu_key = self.form_onu_key(intf_id, onu_id)
+        self.onu_cache[onu_key] = onu_device
 
         yield self.core_proxy.device_state_update(
             onu_device.id,
@@ -867,12 +871,6 @@ class OpenoltDevice(object):
                        port_no=port_no,
                        serial_number=serial_number_str,
                        onu_device=onu_device)
-
-        self.log.debug('Adding ONU device to the cache',
-                       intf_id=intf_id,
-                       onu_id=onu_id)
-        onu_key = self.form_onu_key(intf_id, onu_id)
-        self.onu_cache[onu_key] = onu_device
         return
 
     def get_ofp_device_info(self, device):
