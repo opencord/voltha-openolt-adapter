@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "89e4446d_39545681",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 991,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2019-08-12T05:45:09Z",
+      "side": 1,
+      "message": "updating admin state after sending disable request to agent receives olt_indication with oper_status \"down\" , which triggers DeviceDownInd state which makes device and child devices unreachable",
+      "parentUuid": "8d1e9e60_9d592e63",
+      "range": {
+        "startLine": 991,
+        "startChar": 24,
+        "endLine": 991,
+        "endChar": 34
+      },
+      "revId": "4412419ace0ef6cdc9eed0e8a89f37eda0f214d6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fe380687_8763ed9f",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-08-08T19:09:34Z",
       "side": 1,
       "message": "The child devices do become disabled in voltha, but BAL is not told to remove the flows or remove the PLOAM assignment.  Maybe this should only be cleared on device reboot?  Currently i think thats the only time PLOAM is re-run causing new discovery indications.",
+      "range": {
+        "startLine": 1002,
+        "startChar": 1,
+        "endLine": 1002,
+        "endChar": 36
+      },
+      "revId": "4412419ace0ef6cdc9eed0e8a89f37eda0f214d6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23e1cdb6_fa7e6b23",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1002,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2019-08-12T05:45:09Z",
+      "side": 1,
+      "message": "on disable , the child devices will be marked as \"UNREACHABLE\" from core and needs to configured again when the device gets enabled",
+      "parentUuid": "fe380687_8763ed9f",
       "range": {
         "startLine": 1002,
         "startChar": 1,
