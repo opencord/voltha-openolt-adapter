@@ -46,6 +46,30 @@
       "revId": "76cdf219eca7a41bf48840aa78a1ab46795a1a9e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec4c9c92_4c935dc3",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1091,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-08-13T13:42:40Z",
+      "side": 1,
+      "message": "Yes its harmless.  i was able to get dhcp packet outs to work, the function below does indeed want the logical port.",
+      "parentUuid": "666f9878_13759877",
+      "range": {
+        "startLine": 1091,
+        "startChar": 2,
+        "endLine": 1091,
+        "endChar": 7
+      },
+      "revId": "76cdf219eca7a41bf48840aa78a1ab46795a1a9e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
