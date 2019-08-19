@@ -354,9 +354,13 @@ def __del__(self):
 
 // GetONUID returns the available OnuID for the given pon-port
 func (RsrcMgr *OpenOltResourceMgr) GetONUID(ponIntfID uint32) (uint32, error) {
-
+	// Check if Pon Interface ID is present in Resource-manager-map
+	if _, ok := RsrcMgr.ResourceMgrs[ponIntfID]; !ok {
+		err := errors.New("pon interface " + strconv.Itoa(int(ponIntfID)) + " is not present in resource manager." +
+			"Check whether this interface id is supported by the adapter")
+		return 0 , err
+	}
 	// Get ONU id for a provided pon interface ID.
-
 	ONUID, err := RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ponIntfID,
 		ponrmgr.ONU_ID, 1)
 	if err != nil {
