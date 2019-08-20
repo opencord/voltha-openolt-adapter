@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90fc287f_49e78224",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-08-20T16:02:49Z",
+      "side": 0,
+      "message": "May be better to print  the err in log.",
+      "range": {
+        "startLine": 621,
+        "startChar": 10,
+        "endLine": 621,
+        "endChar": 13
+      },
+      "revId": "4aff82de26f5710ff59ffd23bec044f25ab3e269",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c407bb12_7da02994",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-08-20T16:02:49Z",
+      "side": 0,
+      "message": "Again err can be logged.",
+      "range": {
+        "startLine": 640,
+        "startChar": 12,
+        "endLine": 641,
+        "endChar": 16
+      },
+      "revId": "4aff82de26f5710ff59ffd23bec044f25ab3e269",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
