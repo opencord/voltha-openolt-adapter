@@ -237,6 +237,7 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications() {
+	defer log.Errorw("Indications ended", log.Fields{})
 	indications, err := dh.Client.EnableIndication(context.Background(), new(oop.Empty))
 	if err != nil {
 		log.Errorw("Failed to read indications", log.Fields{"err": err})
@@ -335,9 +336,7 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 	case *oop.Indication_OmciInd:
 		omciInd := indication.GetOmciInd()
 		log.Infow("Received Omci indication ", log.Fields{"OmciInd": omciInd})
-		if err := dh.omciIndication(omciInd); err != nil {
-			log.Errorw("send-omci-indication-errr", log.Fields{"error": err, "omciInd": omciInd})
-		}
+		go dh.omciIndication(omciInd)
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
 		log.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
@@ -601,7 +600,7 @@ func (dh *DeviceHandler) GetOfpPortInfo(device *voltha.Device, portNo int64) (*i
 	}, nil
 }
 
-func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
+func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 	log.Debugw("omci indication", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
 	var deviceType string
 	var deviceID string
@@ -617,8 +616,8 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 
 		onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 		if err != nil {
-			log.Errorw("onu not found", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
-			return err
+			log.Errorw("onu not found", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "error": err})
+			return
 		}
 		deviceType = onuDevice.Type
 		deviceID = onuDevice.Id
@@ -637,10 +636,10 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	if sendErr := dh.AdapterProxy.SendInterAdapterMessage(context.Background(), omciMsg,
 		ic.InterAdapterMessageType_OMCI_REQUEST, dh.deviceType, deviceType,
 		deviceID, proxyDeviceID, ""); sendErr != nil {
-		log.Errorw("send omci request error", log.Fields{"fromAdapter": dh.deviceType, "toAdapter": deviceType, "onuID": deviceID, "proxyDeviceID": proxyDeviceID})
-		return sendErr
+		log.Errorw("send omci request error", log.Fields{"fromAdapter": dh.deviceType, "toAdapter": deviceType, "onuID": deviceID, "proxyDeviceID": proxyDeviceID, "error": sendErr})
+		return
 	}
-	return nil
+	return
 }
 
 //ProcessInterAdapterMessage sends the proxied messages to the target device
