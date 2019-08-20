@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bdc94e52_c1419842",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-20T02:27:29Z",
+      "side": 1,
+      "message": "Instead of such a verbose error, I would be crisp and concise as below..\n\nerr :\u003d errors.New(\"pon-interface-\" + strconv.Itoa(int(ponIntfID)) + \"-invalid\")",
+      "range": {
+        "startLine": 359,
+        "startChar": 2,
+        "endLine": 360,
+        "endChar": 65
+      },
+      "revId": "77f141f8d3a993956897bbda568ab48a3b5cdf48",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
