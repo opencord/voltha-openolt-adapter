@@ -94,6 +94,30 @@
       "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25851394_b0ee09e3",
+        "filename": "Gopkg.lock",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-08-21T15:29:18Z",
+      "side": 1,
+      "message": "Yes, but I would argue you can test first before you create the dependent released. (1) your unit and other tests on the dependent code should be \"complete\", i.e. prove that the dependent\u0027s change is good and (2) you could still test against the dependent change before it was committed and release, but it would take a little more work.",
+      "parentUuid": "aca4c529_9286a7ac",
+      "range": {
+        "startLine": 244,
+        "startChar": 12,
+        "endLine": 244,
+        "endChar": 19
+      },
+      "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
