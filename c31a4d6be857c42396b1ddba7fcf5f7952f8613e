@@ -46,6 +46,30 @@
       "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e436b928_1b369225",
+        "filename": "Gopkg.lock",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-08-21T15:11:39Z",
+      "side": 1,
+      "message": "Id leave it till whoever needs to update this for their new feature.  They can change as part of their patchset and would all be related.",
+      "parentUuid": "fead891a_6467955f",
+      "range": {
+        "startLine": 244,
+        "startChar": 12,
+        "endLine": 244,
+        "endChar": 19
+      },
+      "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
