@@ -70,6 +70,30 @@
       "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aca4c529_9286a7ac",
+        "filename": "Gopkg.lock",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2019-08-21T15:17:24Z",
+      "side": 1,
+      "message": "if I create a patch in the master branch of openolt which has a dependency on the master 2.2.x branch then I would first need to get my dependencies in a released branch first (may not be fully tested because the dependent are not yet using it) and then make my changes in openolt.   Is that the intent of depending on a released version?",
+      "parentUuid": "fead891a_6467955f",
+      "range": {
+        "startLine": 244,
+        "startChar": 12,
+        "endLine": 244,
+        "endChar": 19
+      },
+      "revId": "c31a4d6be857c42396b1ddba7fcf5f7952f8613e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
