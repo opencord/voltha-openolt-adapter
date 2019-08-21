@@ -34,6 +34,7 @@ import (
 	openoltpb2 "github.com/opencord/voltha-protos/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/go/tech_profile"
 	"github.com/opencord/voltha-protos/go/voltha"
+
 	//deepcopy "github.com/getlantern/deepcopy"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -262,9 +263,10 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 
 		} else if ipProto == IgmpProto {
 			log.Info("igmp flow add ignored, not implemented yet")
+			return
 		} else {
 			log.Errorw("Invalid-Classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
-			//return errors.New("Invalid-Classifier-to-handle")
+			return
 		}
 	} else if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == EapEthType {
@@ -284,12 +286,11 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 			} else {
 				installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, EapolFlow, vlanId)
 			}
-			// Send Techprofile download event to child device in go routine as it takes time
-			go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, TpId)
 		}
 		if ethType == LldpEthType {
 			log.Info("Adding LLDP flow")
 			addLLDPFlow(flow, portNo)
+			return
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
 		log.Info("Adding upstream data rule")
@@ -317,7 +318,10 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 		}
 	} else {
 		log.Errorw("Invalid-flow-type-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo, "flow": flow})
+		return
 	}
+	// Send Techprofile download event to child device in go routine as it takes time
+	go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, TpId)
 }
 
 func (f *OpenOltFlowMgr) CreateSchedulerQueues(Dir tp_pb.Direction, IntfId uint32, OnuId uint32, UniId uint32, UniPort uint32, TpInst *tp.TechProfile, MeterId uint32, flowMetadata *voltha.FlowMetadata) error {
