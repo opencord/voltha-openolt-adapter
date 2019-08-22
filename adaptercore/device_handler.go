@@ -45,9 +45,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Constants for number of retries and for timeout
 const (
-	MAX_RETRY         = 10
-	MAX_TIMEOUT_IN_MS = 500
+	MaxRetry       = 10
+	MaxTimeOutInMs = 500
 )
 
 //DeviceHandler will interact with the OLT device.
