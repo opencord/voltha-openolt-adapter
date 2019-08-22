@@ -29,8 +29,6 @@ DOCKER_EXTRA_ARGS        ?=
 DOCKER_REGISTRY          ?=
 DOCKER_REPOSITORY        ?=
 DOCKER_TAG               ?= ${VERSION}
-GOADAPTER_IMAGENAME      := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-go
-PYTHONADAPTER_IMAGENAME  := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}-py
 ADAPTER_IMAGENAME        := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}
 
 ## Docker labels. Only set ref and commit date if committed
@@ -49,19 +47,16 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
 DOCKER_BUILD_ARGS_LOCAL ?= ${DOCKER_BUILD_ARGS} \
-	--build-arg LOCAL_PYVOLTHA=${LOCAL_PYVOLTHA} \
 	--build-arg LOCAL_PROTOS=${LOCAL_PROTOS}
 
-.PHONY: docker-build openolt_go openolt_python local-protos local-volthago local-pyvoltha
+.PHONY: docker-build local-protos local-voltha
 
 # This should to be the first and default target in this Makefile
 help:
 	@echo "Usage: make [<target>]"
 	@echo "where available targets are:"
 	@echo
-	@echo "build             : Build both openolt adapter docker images"
-	@echo "openolt_go        : Build Golang openolt adapter docker image"
-	@echo "openolt_python    : Build Python openolt adapter docker image"
+	@echo "build             : Build openolt adapter docker image"
 	@echo "help              : Print this help"
 	@echo "docker-push       : Push the docker images to an external repository"
 	@echo "lint              : Run lint verification, depenancy, gofmt and reference check"
@@ -73,69 +68,26 @@ help:
 ## Local Development Helpers
 
 local-protos:
-	mkdir -p python/local_imports
 ifdef LOCAL_PROTOS
 	mkdir -p vendor/github.com/opencord/voltha-protos/go
 	cp -r ${GOPATH}/src/github.com/opencord/voltha-protos/go/* vendor/github.com/opencord/voltha-protos/go
-	mkdir -p python/local_imports/voltha-protos/dist
-	cp ../voltha-protos/dist/*.tar.gz python/local_imports/voltha-protos/dist/
 endif
 
-local-pyvoltha:
-	mkdir -p python/local_imports
-ifdef LOCAL_PYVOLTHA
-	mkdir -p python/local_imports/pyvoltha/dist
-	cp ../pyvoltha/dist/*.tar.gz python/local_imports/pyvoltha/dist/
-endif
-
-local-volthago:
-ifdef LOCAL_VOLTHAGO
+local-voltha:
+ifdef LOCAL_VOLTHA
 	mkdir -p vendor/github.com/opencord/voltha-go/
 	cp -rf ${GOPATH}/src/github.com/opencord/voltha-go/ vendor/github.com/opencord/
 	rm -rf vendor/github.com/opencord/voltha-go/vendor
 endif
 
 
-## Python venv dev environment
-
-VENVDIR := python/venv-openolt
-
-venv: distclean local-protos local-pyvoltha
-	virtualenv ${VENVDIR};\
-        source ./${VENVDIR}/bin/activate ; set -u ;\
-	rm ${VENVDIR}/local/bin ${VENVDIR}/local/lib ${VENVDIR}/local/include ;\
-        pip install -r python/requirements.txt
-
-ifdef LOCAL_PYVOLTHA
-	source ./${VENVDIR}/bin/activate ; set -u ;\
-	pip install python/local_imports/pyvoltha/dist/*.tar.gz
-endif
-ifdef LOCAL_PROTOS
-	source ./${VENVDIR}/bin/activate ; set -u ;\
-	pip install python/local_imports/voltha-protos/dist/*.tar.gz
-endif
-
-
 ## Docker targets
 
-build: docker-build
-
-docker-build: openolt_go openolt_python
-
-openolt_go: local-protos local-volthago
-	docker build $(DOCKER_BUILD_ARGS) -t ${GOADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
-
-openolt_python: local-protos local-pyvoltha
-	docker build $(DOCKER_BUILD_ARGS_LOCAL) -t ${PYTHONADAPTER_IMAGENAME} -f python/docker/Dockerfile.openolt_adapter python
-
-	# Current default image gets the base DOCKER_TAG
-	docker tag ${GOADAPTER_IMAGENAME} ${ADAPTER_IMAGENAME}
+build: local-protos local-voltha
+	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 
 docker-push:
-	docker push ${GOADAPTER_IMAGENAME}
-	docker push ${PYTHONADAPTER_IMAGENAME}
 	docker push ${ADAPTER_IMAGENAME}
-
 
 ## lint and unit tests
 
@@ -197,9 +149,7 @@ endif
 	exit $$RETURN
 
 clean:
-	rm -rf python/local_imports
 	rm -rf sca-report
-	find python -name '*.pyc' | xargs rm -f
 
 distclean: clean
 	rm -rf ${VENVDIR}
