@@ -206,7 +206,7 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
+		return 0, 0, 0, 0, errors.New("failed to extract Pon Interface, ONU Id and Uni Id from flow")
 	}
 
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)
