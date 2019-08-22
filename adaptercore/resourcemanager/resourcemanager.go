@@ -32,14 +32,17 @@ import (
 	"github.com/opencord/voltha-protos/go/openolt"
 )
 
-// KvstoreTimeout specifies the time out for KV Store Connection
-const KvstoreTimeout = 5
+const (
+	// KvstoreTimeout specifies the time out for KV Store Connection
+	KvstoreTimeout = 5
+	// BasePathKvStore - service/voltha/openolt/<device_id>
+	BasePathKvStore = "service/voltha/openolt/{%s}"
+	// TpIDPathSuffix - tp_id/<(pon_id, onu_id, uni_id)>
+	TpIDPathSuffix = "tp_id/{%d,%d,%d}"
+	//MeterIDPathSuffix - meter_id/<(pon_id, onu_id, uni_id)>/<direction>
+	MeterIDPathSuffix = "meter_id/{%d,%d,%d}/{%s}"
+)
 
-// BasePathKvStore - service/voltha/openolt/<device_id>
-const BasePathKvStore = "service/voltha/openolt/{%s}"
-
-const TP_ID_PATH_SUFFIX = "tp_id/{%d,%d,%d}"            // tp_id/<(pon_id, onu_id, uni_id)>
-const METER_ID_PATH_SUFFIX = "meter_id/{%d,%d,%d}/{%s}" // meter_id/<(pon_id, onu_id, uni_id)>/<direction>
 // FlowInfo holds the flow information
 type FlowInfo struct {
 	Flow            *openolt.Flow
@@ -427,22 +430,9 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ponIntfID uint32, ONUID uint32, uni
 		log.Debugw("Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "ONUID": ONUID, "uniID": uniID, "KVpath": FlowPath})
 		for _, flowID := range FlowIDs {
 			FlowInfo := RsrcMgr.GetFlowIDInfo(ponIntfID, ONUID, uniID, uint32(flowID))
-			if FlowInfo != nil {
-				for _, Info := range *FlowInfo {
-					if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
-						log.Debug("Found flow matching with flow catagory", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
-						if Info.FlowCategory == "HSIA_FLOW" && Info.Flow.Classifier.OPbits == vlanPcp[0] {
-							log.Debug("Found matching vlan pcp ", log.Fields{"flowId": flowID, "Vlanpcp": vlanPcp[0]})
-							return flowID, nil
-						}
-					}
-					if int32(gemportID) == Info.Flow.GemportId && flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
-						if flowCategory != "" && Info.FlowCategory == flowCategory {
-							log.Debug("Found flow matching with flow catagory", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
-							return flowID, nil
-						}
-					}
-				}
+			er := getFlowIDFromFlowInfo(FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanPcp...)
+			if er == nil {
+				return flowID, er
 			}
 		}
 	}
@@ -704,10 +694,12 @@ func (RsrcMgr *OpenOltResourceMgr) IsFlowCookieOnKVStore(ponIntfID uint32, onuID
 	return false
 }
 
-func (RMgr *OpenOltResourceMgr) GetTechProfileIdForOnu(IntfId uint32, OnuId uint32, UniId uint32) uint32 {
-	Path := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
+// GetTechProfileIDForOnu fetches Tech-Profile-ID from the KV-Store for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}
+func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(IntfID uint32, OnuID uint32, UniID uint32) uint32 {
+	Path := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
 	var Data uint32
-	Value, err := RMgr.KVStore.Get(Path)
+	Value, err := RsrcMgr.KVStore.Get(Path)
 	if err == nil {
 		if Value != nil {
 			Val, err := kvstore.ToByte(Value.Value)
@@ -728,67 +720,75 @@ func (RMgr *OpenOltResourceMgr) GetTechProfileIdForOnu(IntfId uint32, OnuId uint
 
 }
 
-func (RMgr *OpenOltResourceMgr) RemoveTechProfileIdForOnu(IntfId uint32, OnuId uint32, UniId uint32) error {
-	IntfOnuUniId := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
-	if err := RMgr.KVStore.Delete(IntfOnuUniId); err != nil {
-		log.Error("Failed to delete techprofile id resource %s in KV store", IntfOnuUniId)
+// RemoveTechProfileIDForOnu deletes the tech-profile-id  from the KV-Store for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}
+func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(IntfID uint32, OnuID uint32, UniID uint32) error {
+	IntfOnuUniID := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
+	if err := RsrcMgr.KVStore.Delete(IntfOnuUniID); err != nil {
+		log.Error("Failed to delete techprofile id resource %s in KV store", IntfOnuUniID)
 		return err
 	}
 	return nil
 }
 
-func (RMgr *OpenOltResourceMgr) UpdateTechProfileIdForOnu(IntfId uint32, OnuId uint32,
-	UniId uint32, TpId uint32) error {
+//UpdateTechProfileIDForOnu updates (put) already present tech-profile-id for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}
+func (RsrcMgr *OpenOltResourceMgr) UpdateTechProfileIDForOnu(IntfID uint32, OnuID uint32,
+	UniID uint32, TpID uint32) error {
 	var Value []byte
 	var err error
 
-	IntfOnuUniId := fmt.Sprintf(TP_ID_PATH_SUFFIX, IntfId, OnuId, UniId)
-	log.Debugf("updating tp id %d on path %s", TpId, IntfOnuUniId)
-	Value, err = json.Marshal(TpId)
+	IntfOnuUniID := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
+	log.Debugf("updating tp id %d on path %s", TpID, IntfOnuUniID)
+	Value, err = json.Marshal(TpID)
 	if err != nil {
 		log.Error("failed to Marshal")
 		return err
 	}
-	if err = RMgr.KVStore.Put(IntfOnuUniId, Value); err != nil {
-		log.Errorf("Failed to update resource %s", IntfOnuUniId)
+	if err = RsrcMgr.KVStore.Put(IntfOnuUniID, Value); err != nil {
+		log.Errorf("Failed to update resource %s", IntfOnuUniID)
 		return err
 	}
 	return err
 }
 
-func (RMgr *OpenOltResourceMgr) UpdateMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32,
-	UniId uint32, MeterConfig *ofp.OfpMeterConfig) error {
+// UpdateMeterIDForOnu updates the meter id in the KV-Store for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}/direction
+func (RsrcMgr *OpenOltResourceMgr) UpdateMeterIDForOnu(Direction string, IntfID uint32, OnuID uint32,
+	UniID uint32, MeterConfig *ofp.OfpMeterConfig) error {
 	var Value []byte
 	var err error
 
-	IntfOnuUniId := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
+	IntfOnuUniID := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, Direction)
 	Value, err = json.Marshal(*MeterConfig)
 	if err != nil {
 		log.Error("failed to Marshal meter config")
 		return err
 	}
-	if err = RMgr.KVStore.Put(IntfOnuUniId, Value); err != nil {
-		log.Errorf("Failed to store meter into KV store %s", IntfOnuUniId)
+	if err = RsrcMgr.KVStore.Put(IntfOnuUniID, Value); err != nil {
+		log.Errorf("Failed to store meter into KV store %s", IntfOnuUniID)
 		return err
 	}
 	return err
 }
 
-func (RMgr *OpenOltResourceMgr) GetMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32, UniId uint32) (*ofp.OfpMeterConfig, error) {
-	Path := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
+// GetMeterIDForOnu fetches the meter-id fromthe kv store for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}/direction
+func (RsrcMgr *OpenOltResourceMgr) GetMeterIDForOnu(Direction string, IntfID uint32, OnuID uint32, UniID uint32) (*ofp.OfpMeterConfig, error) {
+	Path := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, Direction)
 	var meterConfig ofp.OfpMeterConfig
-	Value, err := RMgr.KVStore.Get(Path)
+	Value, err := RsrcMgr.KVStore.Get(Path)
 	if err == nil {
 		if Value != nil {
 			log.Debug("Found meter in KV store", log.Fields{"Direction": Direction})
-			Val, err := kvstore.ToByte(Value.Value)
-			if err != nil {
-				log.Errorw("Failed to convert into byte array", log.Fields{"error": err})
-				return nil, err
+			Val, er := kvstore.ToByte(Value.Value)
+			if er != nil {
+				log.Errorw("Failed to convert into byte array", log.Fields{"error": er})
+				return nil, er
 			}
-			if err = json.Unmarshal(Val, &meterConfig); err != nil {
-				log.Error("Failed to unmarshal meterconfig", log.Fields{"error": err})
-				return nil, err
+			if er = json.Unmarshal(Val, &meterConfig); er != nil {
+				log.Error("Failed to unmarshal meterconfig", log.Fields{"error": er})
+				return nil, er
 			}
 		} else {
 			log.Debug("meter-does-not-exists-in-KVStore")
@@ -801,11 +801,35 @@ func (RMgr *OpenOltResourceMgr) GetMeterIdForOnu(Direction string, IntfId uint32
 	return &meterConfig, err
 }
 
-func (RMgr *OpenOltResourceMgr) RemoveMeterIdForOnu(Direction string, IntfId uint32, OnuId uint32, UniId uint32) error {
-	Path := fmt.Sprintf(METER_ID_PATH_SUFFIX, IntfId, OnuId, UniId, Direction)
-	if err := RMgr.KVStore.Delete(Path); err != nil {
+// RemoveMeterIDForOnu deletes the meter-id from the kV-Store for the given onu based on the path
+// This path is formed as the following: tp_id/{IntfID, OnuID, UniID}/direction
+func (RsrcMgr *OpenOltResourceMgr) RemoveMeterIDForOnu(Direction string, IntfID uint32, OnuID uint32, UniID uint32) error {
+	Path := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, Direction)
+	if err := RsrcMgr.KVStore.Delete(Path); err != nil {
 		log.Errorf("Failed to delete meter id %s from kvstore ", Path)
 		return err
 	}
 	return nil
+}
+
+func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string, vlanPcp ...uint32) error {
+	if FlowInfo != nil {
+		for _, Info := range *FlowInfo {
+			if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
+				log.Debug("Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
+				if Info.FlowCategory == "HSIA_FLOW" && Info.Flow.Classifier.OPbits == vlanPcp[0] {
+					log.Debug("Found matching vlan pcp ", log.Fields{"flowId": flowID, "Vlanpcp": vlanPcp[0]})
+					return nil
+				}
+			}
+			if int32(gemportID) == Info.Flow.GemportId && flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
+				if flowCategory != "" && Info.FlowCategory == flowCategory {
+					log.Debug("Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
+					return nil
+				}
+			}
+		}
+	}
+	log.Errorw("invalid flow-info", log.Fields{"flow_info": FlowInfo})
+	return errors.New("invalid flow-info")
 }
