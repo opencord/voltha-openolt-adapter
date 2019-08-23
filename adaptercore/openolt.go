@@ -26,6 +26,7 @@ import (
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/kafka"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	"github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
@@ -238,9 +239,23 @@ func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
 	return errors.New("unImplemented")
 }
 
-//Delete_device unimplemented
+//Delete_device
 func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
-	return errors.New("unImplemented")
+	log.Infow("delete-device", log.Fields{"deviceId": device.Id})
+	handler := oo.getDeviceHandler(device.Id)
+	if handler == nil {
+		log.Errorw("no device handler found for device", log.Fields{"deviceId": device.Id})
+		return errors.New("device-handler-not-set")
+	}
+	log.Debugw("reboot-device", log.Fields{"deviceId": device.Id})
+	handler.RebootDevice(device)
+	oo.deleteDeviceHandlerToMap(handler)
+	// delete the resource manager instances for the handler
+	if handler.resourceMgr != nil {
+		log.Debugw("deleting-resource-manager", log.Fields{"deviceId": device.Id})
+		rsrcMgr.DeleteResourceMgr(handler.resourceMgr)
+	}
+	return nil
 }
 
 //Get_device_details unimplemented
