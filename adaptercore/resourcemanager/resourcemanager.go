@@ -195,6 +195,15 @@ func NewResourceMgr(deviceID string, KVStoreHostPort string, kvStoreType string,
 	return &ResourceMgr
 }
 
+func DeleteResourceMgr(ResourceMgr *OpenOltResourceMgr) error {
+	// delete the device pool for all resource manager instances
+	for _, PONRMgr := range ResourceMgr.ResourceMgrs {
+		PONRMgr.ClearDeviceResourcePool()
+	}
+
+	return nil
+}
+
 // InitializeDeviceResourceRangeAndPool initializes the resource range pool according to the sharing type, then apply
 // device specific information. If KV doesn't exist
 // or is broader than the device, the device's information will

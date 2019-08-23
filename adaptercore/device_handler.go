@@ -274,8 +274,14 @@ func (dh *DeviceHandler) readIndications() {
 		}
 		if err != nil {
 			log.Infow("Failed to read from indications", log.Fields{"err": err})
-			dh.transitionMap.Handle(DeviceDownInd)
-			dh.transitionMap.Handle(DeviceInit)
+			// the reboot of device during delete will cause indications to fail
+			// check if the device handler has been deleted from adapter on device delete
+			if handler := dh.openOLT.getDeviceHandler(dh.deviceID); handler == nil {
+				log.Infow("Device deleted. Exiting indications thread", log.Fields{"deviceId": dh.deviceID})
+			} else {
+				dh.transitionMap.Handle(DeviceDownInd)
+				dh.transitionMap.Handle(DeviceInit)
+			}
 			break
 		}
 		dh.lockDevice.RLock()
@@ -449,10 +455,18 @@ func (dh *DeviceHandler) doStateConnected() error {
 		log.Debugln("do-state-connected--device-admin-state-down")
 		device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
 		if err != nil || device == nil {
-			/*TODO: needs to handle error scenarios */
-			log.Errorw("Failed to fetch device device", log.Fields{"err": err})
+			log.Errorw("Failed to fetch device", log.Fields{"err": err})
+			// check if the device handler has been deleted from adapter on device delete
+			if handler := dh.openOLT.getDeviceHandler(dh.deviceID); handler == nil {
+				log.Infow("Device deleted. Ignoring state connected trigger", log.Fields{"deviceId": dh.deviceID})
+				return errors.New("device-deleted")
+			}
+			if device == nil {
+				// if device was not found, we return as we cannot clone a nil device below
+				log.Infow("Device handler present but device not found", log.Fields{"deviceId": dh.deviceID})
+				return errors.New("device-not-found")
+			}
 		}
-
 		cloned := proto.Clone(device).(*voltha.Device)
 		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
