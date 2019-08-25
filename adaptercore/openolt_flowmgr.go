@@ -1044,8 +1044,79 @@ func generateStoredId(flowId uint32, direction string)uint32{
 
 */
 
-func addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
-	log.Info("unimplemented flow : %v, portNo : %v ", flow, portNo)
+func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
+
+	classifierInfo := make(map[string]interface{})
+	actionInfo := make(map[string]interface{})
+
+	classifierInfo[EthType] = uint32(LldpEthType)
+	classifierInfo[PacketTagType] = Untagged
+	actionInfo[TrapToHost] = true
+
+	// LLDP flow is installed to trap LLDP packets on the NNI port.
+	// We manage flow_id resource pool on per PON port basis.
+	// Since this situation is tricky, as a hack, we pass the NNI port
+	// index (network_intf_id) as PON port Index for the flow_id resource
+	// pool. Also, there is no ONU Id available for trapping LLDP packets
+	// on NNI port, use onu_id as -1 (invalid)
+	// ****************** CAVEAT *******************
+	// This logic works if the NNI Port Id falls within the same valid
+	// range of PON Port Ids. If this doesn't work for some OLT Vendor
+	// we need to have a re-look at this.
+	// *********************************************
+
+	var onuID = -1
+	var uniID = -1
+	var gemPortID = -1
+
+	var networkInterfaceID = IntfIDFromNniPortNum(portNo)
+	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), uint32(onuID), uint32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists--not-re-adding")
+		return
+	}
+	flowID, err := f.resourceMgr.GetFlowID(uint32(networkInterfaceID), uint32(onuID), uint32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
+
+	if err != nil {
+		log.Errorw("Flow id unavailable for LLDP traponNNI flow", log.Fields{"error": err})
+		return
+	}
+	var classifierProto *openoltpb2.Classifier
+	var actionProto *openoltpb2.Action
+	if classifierProto = makeOpenOltClassifierField(classifierInfo); classifierProto == nil {
+		log.Error("Error in making classifier protobuf for  LLDP trap on nni flow")
+		return
+	}
+	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
+	if actionProto = makeOpenOltActionField(actionInfo); actionProto == nil {
+		log.Error("Error in making action protobuf for LLDP trap on nni flow")
+		return
+	}
+	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
+
+	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
+		OnuId:         int32(onuID), // OnuId not required
+		UniId:         int32(uniID), // UniId not used
+		FlowId:        flowID,
+		FlowType:      Downstream,
+		NetworkIntfId: int32(networkInterfaceID),
+		GemportId:     int32(gemPortID),
+		Classifier:    classifierProto,
+		Action:        actionProto,
+		Priority:      int32(flow.Priority),
+		Cookie:        flow.Cookie,
+		PortNo:        portNo}
+	if ok := f.addFlowToDevice(flow, &downstreamflow); ok {
+		log.Debug("LLDP trap on NNI flow added to device successfully")
+		flowsToKVStore := f.getUpdatedFlowInfo(&downstreamflow, flowStoreCookie, "", flowID)
+		if err := f.updateFlowInfoToKVStore(int32(networkInterfaceID),
+			int32(onuID),
+			int32(uniID),
+			flowID, flowsToKVStore); err != nil {
+			log.Errorw("Error uploading LLDP flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+		}
+	}
+	return
 }
 
 func getUniPortPath(intfID uint32, onuID uint32, uniID uint32) string {
@@ -1083,13 +1154,23 @@ func (f *OpenOltFlowMgr) decodeStoredID(id uint64) (uint64, string) {
 
 func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, flowID uint32, flowDirection string) {
 	log.Debugw("clearFlowFromResourceManager", log.Fields{"flowID": flowID, "flowDirection": flowDirection, "flow": *flow})
-	portNum, ponIntf, onuID, uniID, err := FlowExtractInfo(flow, flowDirection)
+	portNum, ponIntf, onuID, uniID, inPort, ethType, err := FlowExtractInfo(flow, flowDirection)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	log.Debugw("Extracted access info from flow to be deleted",
 		log.Fields{"ponIntf": ponIntf, "onuID": onuID, "uniID": uniID, "flowID": flowID})
+
+	if ethType == LldpEthType {
+		var networkInterfaceID uint32
+		var onuID = -1
+		var uniID = -1
+
+		networkInterfaceID = IntfIDFromNniPortNum(inPort)
+		f.resourceMgr.FreeFlowID(networkInterfaceID, int32(onuID), int32(uniID), flowID)
+		return
+	}
 
 	flowsInfo := f.resourceMgr.GetFlowIDInfo(ponIntf, onuID, uniID, flowID)
 	if flowsInfo == nil {
@@ -1214,6 +1295,13 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 
 	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[Output]})
 	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
+	if ethType, ok := classifierInfo[EthType]; ok {
+		if ethType.(uint32) == LldpEthType {
+			log.Info("Adding LLDP flow")
+			f.addLLDPFlow(flow, portNo)
+			return
+		}
+	}
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
 			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
@@ -1519,11 +1607,6 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 			} else {
 				installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, EapolFlow, vlanID)
 			}
-		}
-		if ethType == LldpEthType {
-			log.Info("Adding LLDP flow")
-			addLLDPFlow(flow, portNo)
-			return
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
 		log.Info("Adding upstream data rule")
