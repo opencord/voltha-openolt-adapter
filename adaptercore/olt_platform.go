@@ -176,12 +176,14 @@ func OnuIDFromUniPortNum(portNum uint32) uint32 {
 	return (portNum >> 4) & 0x7F
 }
 
-//FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID and uniID
-func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, error) {
+//FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID, uniID, inPort and ethType
+func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, uint32, uint32, error) {
 	var uniPortNo uint32
 	var ponIntf uint32
 	var onuID uint32
 	var uniID uint32
+	var inPort uint32
+	var ethType uint32
 
 	if flowDirection == "upstream" {
 		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
@@ -193,25 +195,26 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 			}
 		}
 	} else if flowDirection == "downstream" {
-		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, action := range utils.GetActions(flow) {
-				if action.Type == utils.OUTPUT {
-					if out := action.GetOutput(); out != nil {
-						uniPortNo = out.GetPort()
-					}
-					break
-				}
+		for _, field := range utils.GetOfbFields(flow) {
+			if field.GetType() == utils.METADATA {
+				uniPortNo = uint32(field.GetTableMetadata() & 0xFFFFFFFF)
+				break
+			} else if field.GetType() == utils.IN_PORT {
+				inPort = field.GetPort()
+			} else if field.GetType() == utils.ETH_TYPE {
+				ethType = field.GetEthType()
 			}
 		}
+
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
+		return 0, 0, 0, 0, 0, 0, errors.New("Failed to extract Pon Interface, ONU Id and Uni Id from flow")
 	}
 
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
 
-	return uniPortNo, ponIntf, onuID, uniID, nil
+	return uniPortNo, ponIntf, onuID, uniID, inPort, ethType, nil
 }
