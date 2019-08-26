@@ -68,6 +68,9 @@ const (
 
 	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
 
+	//Transparent Vlan
+	RESERVED_VLAN = 4095
+
 	//DefaultMgmtVlan default vlan value
 	DefaultMgmtVlan = 4091
 
@@ -905,10 +908,16 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) *openoltp
 		classifier.IpProto = ipProto.(uint32)
 	}
 	if vlanID, ok := classifierInfo[VlanVid]; ok {
-		classifier.OVid = (vlanID.(uint32)) & VlanvIDMask
+		vid := (vlanID.(uint32)) & VlanvIDMask
+		if vid != RESERVED_VLAN {
+			classifier.OVid = vid
+		}
 	}
 	if metadata, ok := classifierInfo[METADATA]; ok {
-		classifier.IVid = uint32(metadata.(uint64))
+		vid := uint32(metadata.(uint64))
+		if vid != RESERVED_VLAN {
+			classifier.IVid = vid
+		}
 	}
 	if vlanPcp, ok := classifierInfo[VlanPcp]; ok {
 		if vlanPcp == 0 {
