@@ -1,0 +1,112 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d919a42_8fc9fba8",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "Please log the error",
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2fe4f647_0ac96840",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "Please log the error",
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94244d40_95a81077",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "if the meter is not removed successfully on the kv store, it comes to next line and prints it is removed successfully.",
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aa5d27fe_81ac79f5",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1199,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "err \u003d ...\nNo need to define new variable.",
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2ad28385_aca21926",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1512,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "I think the TP download has to happen for all the flows now. This change seems to over-write previous changes.\nPlease refer this commit https://github.com/opencord/voltha-openolt-adapter/commit/579fe730e582b2cf05d8f5bc0710972131e03ca9",
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1369dbc5_e99af427",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1658,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-08-26T07:18:24Z",
+      "side": 1,
+      "message": "Please remove if you do not need this code snippet.",
+      "range": {
+        "startLine": 1655,
+        "startChar": 4,
+        "endLine": 1658,
+        "endChar": 5
+      },
+      "revId": "4924726c2e77fc2473db549bc756e48ab8fc9cd4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
