@@ -275,6 +275,10 @@ func (dh *DeviceHandler) readIndications() {
 		}
 		if err != nil {
 			log.Infow("Failed to read from indications", log.Fields{"err": err})
+			if dh.adminState == "deleted" {
+				log.Debug("Device deleted stoping the read indication thread")
+				break
+			}
 			dh.transitionMap.Handle(DeviceDownInd)
 			dh.transitionMap.Handle(DeviceInit)
 			break
@@ -1052,6 +1056,113 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	}
 	log.Debugw("ReEnableDevice-end", log.Fields{"deviceID": device.Id})
 
+	return nil
+}
+
+func (dh *DeviceHandler) clearUNIData(onu *OnuDevice, uniPorts []*voltha.Port) error {
+	var uniID uint32
+	var err error
+	for _, port := range uniPorts {
+		if port.Type == voltha.Port_ETHERNET_UNI {
+			uniID = UniIDFromPortNum(port.PortNo)
+			/* Delete tech-profile instance from the KV store */
+			if err = dh.flowMgr.DeleteTechProfileInstance(onu.intfID, onu.onuID, uniID, onu.serialNumber); err != nil {
+				log.Debugw("Failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
+			flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(onu.intfID, onu.onuID, uniID)
+			for _, flowID := range flowIDs {
+				dh.resourceMgr.FreeFlowID(onu.intfID, int32(onu.onuID), int32(uniID), flowID)
+			}
+			dh.resourceMgr.FreePONResourcesForONU(onu.intfID, onu.onuID, uniID)
+			if err = dh.resourceMgr.RemoveTechProfileIDForOnu(onu.intfID, onu.onuID, uniID); err != nil {
+				log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+			if err = dh.resourceMgr.RemoveMeterIDForOnu("upstream", onu.intfID, onu.onuID, uniID); err != nil {
+				log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+			if err = dh.resourceMgr.RemoveMeterIDForOnu("downstream", onu.intfID, onu.onuID, uniID); err != nil {
+				log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+		}
+	}
+	return nil
+}
+
+func (dh *DeviceHandler) clearNNIData() error {
+	nniUniID := -1
+	nniOnuID := -1
+	flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(uint32(dh.nniIntfID), uint32(nniOnuID), uint32(nniUniID))
+	log.Debugw("Current flow ids for nni", log.Fields{"flow-ids": flowIDs})
+	for _, flowID := range flowIDs {
+		dh.resourceMgr.FreeFlowID(uint32(dh.nniIntfID), -1, -1, uint32(flowID))
+	}
+	//Free the flow-ids for the NNI port
+	dh.resourceMgr.FreePONResourcesForONU(uint32(dh.nniIntfID), uint32(nniOnuID), uint32(nniUniID))
+	/* Free ONU IDs for each pon port
+	   intfIDToONUIds is a map of intf-id: [onu-ids]*/
+	intfIDToONUIds := make(map[uint32][]uint32)
+	for _, onu := range dh.onus {
+		intfIDToONUIds[onu.intfID] = append(intfIDToONUIds[onu.intfID], onu.onuID)
+	}
+	for intfID, onuIds := range intfIDToONUIds {
+		dh.resourceMgr.FreeonuID(intfID, onuIds)
+	}
+	return nil
+}
+
+// DeleteDevice deletes the device instance from openolt handler array.  Also clears allocated resource manager resources.  Also reboots the OLT hardware!
+func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
+	log.Debug("Function entry delete device")
+	dh.lockDevice.Lock()
+	dh.adminState = "deleted"
+	dh.lockDevice.Unlock()
+	/* Clear the KV store data associated with the all the UNI ports
+	   This clears up flow data and also resource map data for various
+	   other pon resources like alloc_id and gemport_id
+	*/
+	for _, onu := range dh.onus {
+		childDevice, err := dh.coreProxy.GetDevice(nil, dh.deviceID, onu.deviceID)
+		if err != nil {
+			log.Debug("Failed to get onu device")
+			continue
+		}
+		uniPorts := childDevice.Ports
+		log.Debugw("onu-uni-ports", log.Fields{"onu-ports": uniPorts})
+		if err := dh.clearUNIData(onu, uniPorts); err != nil {
+			log.Debugw("Failed to clear data for onu", log.Fields{"onu-device": onu})
+		}
+	}
+	/* Clear the flows from KV store associated with NNI port.
+	   There are mostly trap rules from NNI port (like LLDP)
+	*/
+	if err := dh.clearNNIData(); err != nil {
+		log.Debugw("Failed to clear data for NNI port", log.Fields{"device-id": dh.deviceID})
+	}
+	/* Clear the resource pool for each PON port*/
+	if err := dh.resourceMgr.Delete(); err != nil {
+		log.Debug("Failed-to-remove-device-from-Resource-mananger-KV-store")
+	}
+	/*Delete ONU map for the device*/
+	for onu := range dh.onus {
+		delete(dh.onus, onu)
+	}
+	log.Debug("Removed-device-from-Resource-manager-KV-store")
+	//Reset the state
+	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed-to-reboot-olt ", log.Fields{"err": err})
+		return err
+	}
+	cloned := proto.Clone(device).(*voltha.Device)
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
+		return err
+	}
 	return nil
 }
 
