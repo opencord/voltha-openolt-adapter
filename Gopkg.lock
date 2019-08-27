@@ -226,10 +226,12 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:b30281898441857fadb7fa63751557615727d2d9dabc2e0a982a366594504f12"
+  branch = "master"
+  digest = "1:9302a6372545bf96d2aaa1f6ce2eb9f6bf815f582bd63753cc378de6405f85a0"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
+    "adapters/adapterif",
     "adapters/common",
     "common/log",
     "common/ponresourcemanager",
@@ -240,8 +242,7 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "23a112405b76f12b432e7439e9748daba6c06e9b"
-  version = "2.1.1"
+  revision = "84169b5c5b9913aa612f3145b2a39c288ecd53d1"
 
 [[projects]]
   digest = "1:78a853c38b4935f01a99fbb41edbb4382a23586f929ecf02dd80d4452f2e3c0d"
