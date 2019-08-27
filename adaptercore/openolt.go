@@ -240,7 +240,16 @@ func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
 
 //Delete_device unimplemented
 func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
-	return errors.New("unImplemented")
+	log.Infow("delete-device", log.Fields{"deviceId": device.Id})
+	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+		if err := handler.DeleteDevice(device); err != nil {
+			log.Errorw("failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
+		}
+		oo.deleteDeviceHandlerToMap(handler)
+		return nil
+	}
+	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
+	return errors.New("device-handler-not-found")
 }
 
 //Get_device_details unimplemented

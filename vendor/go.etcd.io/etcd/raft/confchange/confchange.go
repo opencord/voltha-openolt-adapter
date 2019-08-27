@@ -41,12 +41,12 @@ type Changer struct {
 // to
 //     (1 2 3)&&(1 2 3).
 //
-// The supplied ConfChanges are then applied to the incoming majority config,
+// The supplied changes are then applied to the incoming majority config,
 // resulting in a joint configuration that in terms of the Raft thesis[1]
 // (Section 4.3) corresponds to `C_{new,old}`.
 //
 // [1]: https://github.com/ongardie/dissertation/blob/master/online-trim.pdf
-func (c Changer) EnterJoint(ccs ...pb.ConfChange) (tracker.Config, tracker.ProgressMap, error) {
+func (c Changer) EnterJoint(autoLeave bool, ccs ...pb.ConfChangeSingle) (tracker.Config, tracker.ProgressMap, error) {
 	cfg, prs, err := c.checkAndCopy()
 	if err != nil {
 		return c.err(err)
@@ -62,10 +62,7 @@ func (c Changer) EnterJoint(ccs ...pb.ConfChange) (tracker.Config, tracker.Progr
 		return c.err(err)
 	}
 	// Clear the outgoing config.
-	{
-		*outgoingPtr(&cfg.Voters) = quorum.MajorityConfig{}
-
-	}
+	*outgoingPtr(&cfg.Voters) = quorum.MajorityConfig{}
 	// Copy incoming to outgoing.
 	for id := range incoming(cfg.Voters) {
 		outgoing(cfg.Voters)[id] = struct{}{}
@@ -74,7 +71,7 @@ func (c Changer) EnterJoint(ccs ...pb.ConfChange) (tracker.Config, tracker.Progr
 	if err := c.apply(&cfg, prs, ccs...); err != nil {
 		return c.err(err)
 	}
-
+	cfg.AutoLeave = autoLeave
 	return checkAndReturn(cfg, prs)
 }
 
@@ -120,6 +117,7 @@ func (c Changer) LeaveJoint() (tracker.Config, tracker.ProgressMap, error) {
 		}
 	}
 	*outgoingPtr(&cfg.Voters) = nil
+	cfg.AutoLeave = false
 
 	return checkAndReturn(cfg, prs)
 }
@@ -129,7 +127,7 @@ func (c Changer) LeaveJoint() (tracker.Config, tracker.ProgressMap, error) {
 // will return an error if that is not the case, if the resulting quorum is
 // zero, or if the configuration is in a joint state (i.e. if there is an
 // outgoing configuration).
-func (c Changer) Simple(ccs ...pb.ConfChange) (tracker.Config, tracker.ProgressMap, error) {
+func (c Changer) Simple(ccs ...pb.ConfChangeSingle) (tracker.Config, tracker.ProgressMap, error) {
 	cfg, prs, err := c.checkAndCopy()
 	if err != nil {
 		return c.err(err)
@@ -142,7 +140,7 @@ func (c Changer) Simple(ccs ...pb.ConfChange) (tracker.Config, tracker.ProgressM
 		return c.err(err)
 	}
 	if n := symdiff(incoming(c.Tracker.Voters), incoming(cfg.Voters)); n > 1 {
-		return tracker.Config{}, nil, errors.New("more than voter changed without entering joint config")
+		return tracker.Config{}, nil, errors.New("more than one voter changed without entering joint config")
 	}
 	if err := checkInvariants(cfg, prs); err != nil {
 		return tracker.Config{}, tracker.ProgressMap{}, nil
@@ -151,14 +149,14 @@ func (c Changer) Simple(ccs ...pb.ConfChange) (tracker.Config, tracker.ProgressM
 	return checkAndReturn(cfg, prs)
 }
 
-// apply a ConfChange to the configuration. By convention, changes to voters are
+// apply a change to the configuration. By convention, changes to voters are
 // always made to the incoming majority config Voters[0]. Voters[1] is either
 // empty or preserves the outgoing majority configuration while in a joint state.
-func (c Changer) apply(cfg *tracker.Config, prs tracker.ProgressMap, ccs ...pb.ConfChange) error {
+func (c Changer) apply(cfg *tracker.Config, prs tracker.ProgressMap, ccs ...pb.ConfChangeSingle) error {
 	for _, cc := range ccs {
 		if cc.NodeID == 0 {
 			// etcd replaces the NodeID with zero if it decides (downstream of
-			// raft) to not apply a ConfChange, so we have to have explicit code
+			// raft) to not apply a change, so we have to have explicit code
 			// here to ignore these.
 			continue
 		}
@@ -259,11 +257,15 @@ func (c Changer) initProgress(cfg *tracker.Config, prs tracker.ProgressMap, id u
 		nilAwareAdd(&cfg.Learners, id)
 	}
 	prs[id] = &tracker.Progress{
-		// We initialize Progress.Next with lastIndex+1 so that the peer will be
-		// probed without an index first.
+		// Initializing the Progress with the last index means that the follower
+		// can be probed (with the last index).
 		//
-		// TODO(tbg): verify that, this is just my best guess.
-		Next:      c.LastIndex + 1,
+		// TODO(tbg): seems awfully optimistic. Using the first index would be
+		// better. The general expectation here is that the follower has no log
+		// at all (and will thus likely need a snapshot), though the app may
+		// have applied a snapshot out of band before adding the replica (thus
+		// making the first index the better choice).
+		Next:      c.LastIndex,
 		Match:     0,
 		Inflights: tracker.NewInflights(c.Tracker.MaxInflight),
 		IsLearner: isLearner,
@@ -326,6 +328,9 @@ func checkInvariants(cfg tracker.Config, prs tracker.ProgressMap) error {
 		}
 		if cfg.LearnersNext != nil {
 			return fmt.Errorf("LearnersNext must be nil when not joint")
+		}
+		if cfg.AutoLeave {
+			return fmt.Errorf("AutoLeave must be false when not joint")
 		}
 	}
 
@@ -408,7 +413,7 @@ func outgoingPtr(voters *quorum.JointConfig) *quorum.MajorityConfig { return &vo
 
 // Describe prints the type and NodeID of the configuration changes as a
 // space-delimited string.
-func Describe(ccs ...pb.ConfChange) string {
+func Describe(ccs ...pb.ConfChangeSingle) string {
 	var buf strings.Builder
 	for _, cc := range ccs {
 		if buf.Len() > 0 {
