@@ -900,6 +900,16 @@ func (f *OpenOltFlowMgr) getTPpath(intfID uint32, uni string, TpID uint32) strin
 	return f.techprofile[intfID].GetTechProfileInstanceKVPath(TpID, uni)
 }
 
+func (f *OpenOltFlowMgr) DeleteTechProfileInstance(intfId uint32, onuId uint32, uniId uint32, sn string) error {
+	tpId := f.resourceMgr.GetTechProfileIdForOnu(intfId, onuId, uniId)
+	uniPortName := fmt.Sprintf("pon-{%d}/onu-{%d}/uni-{%d}", intfId, onuId, uniId)
+	if err := f.techprofile[intfId].DeleteTechProfileInstance(tpId, uniPortName); err != nil {
+		log.Debugw("Failed-to-delete-tp-instance-from-kv-store", log.Fields{"tp-id": tpId, "uni-port-name": uniPortName})
+		return err
+	}
+	return nil
+}
+
 func getFlowStoreCookie(classifier map[string]interface{}, gemPortID uint32) uint64 {
 	if len(classifier) == 0 { // should never happen
 		log.Error("Invalid classfier object")
@@ -1005,7 +1015,7 @@ func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFl
 
 	if err != nil {
 		log.Errorw("Failed to Add flow to device", log.Fields{"err": err, "deviceFlow": deviceFlow})
-		f.resourceMgr.FreeFlowID(intfID, uint32(deviceFlow.OnuId), uint32(deviceFlow.UniId), deviceFlow.FlowId)
+		f.resourceMgr.FreeFlowID(intfID, deviceFlow.OnuId, deviceFlow.UniId, deviceFlow.FlowId)
 		return false
 	}
 	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
@@ -1120,7 +1130,7 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 		f.updateFlowInfoToKVStore(int32(ponIntf), int32(onuID), int32(uniID), flowID, &updatedFlows)
 		if len(updatedFlows) == 0 {
 			log.Debugw("Releasing flow Id to resource manager", log.Fields{"ponIntf": ponIntf, "onuId": onuID, "uniId": uniID, "flowId": flowID})
-			f.resourceMgr.FreeFlowID(ponIntf, onuID, uniID, flowID)
+			f.resourceMgr.FreeFlowID(ponIntf, int32(onuID), int32(uniID), flowID)
 		}
 	}
 	flowIds := f.resourceMgr.GetCurrentFlowIDsForOnu(ponIntf, onuID, uniID)
