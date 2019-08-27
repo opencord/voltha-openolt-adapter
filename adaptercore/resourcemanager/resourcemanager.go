@@ -357,6 +357,16 @@ def __del__(self):
         self.assert_onu_id_limit(pon_intf_id, onu_id)
         self.resource_mgrs[pon_intf_id].assert_resource_limits(uni_id, PONResourceManager.UNI_ID)
 */
+func (RsrcMgr *OpenOltResourceMgr) Delete() error {
+	for _, rsrcMgr := range RsrcMgr.ResourceMgrs {
+		if err := rsrcMgr.ClearDeviceResourcePool(); err != nil {
+			log.Debug("Failed to clear device resource pool")
+			return err
+		}
+	}
+	log.Debug("Cleared device resource pool")
+	return nil
+}
 
 // GetONUID returns the available OnuID for the given pon-port
 func (RsrcMgr *OpenOltResourceMgr) GetONUID(ponIntfID uint32) (uint32, error) {
@@ -374,7 +384,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ponIntfID uint32) (uint32, error) {
 		return ONUID[0], err
 	}
 	if ONUID != nil {
-		RsrcMgr.ResourceMgrs[ponIntfID].InitResourceMap(fmt.Sprintf("%d,%d", ponIntfID, ONUID))
+		RsrcMgr.ResourceMgrs[ponIntfID].InitResourceMap(fmt.Sprintf("%d,%d", ponIntfID, ONUID[0]))
 		return ONUID[0], err
 	}
 
@@ -603,8 +613,8 @@ func (RsrcMgr *OpenOltResourceMgr) FreeonuID(intfID uint32, onuID []uint32) {
 }
 
 // FreeFlowID returns the free flow id for a given interface, onu id and uni id
-func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(IntfID uint32, onuID uint32,
-	uniID uint32, FlowID uint32) {
+func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(IntfID uint32, onuID int32,
+	uniID int32, FlowID uint32) {
 	var IntfONUID string
 	var err error
 	IntfONUID = fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
@@ -656,10 +666,11 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(intfID uint32, onuID u
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(intfID,
 		ponrmgr.FLOW_ID,
 		FlowIDs)
-	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(intfID,
-		ponrmgr.ONU_ID,
-		onuIDs)
-
+	if int32(onuID) >= 0 {
+		RsrcMgr.ResourceMgrs[intfID].FreeResourceID(intfID,
+			ponrmgr.ONU_ID,
+			onuIDs)
+	}
 	// Clear resource map associated with (pon_intf_id, gemport_id) tuple.
 	RsrcMgr.ResourceMgrs[intfID].RemoveResourceMap(IntfOnuIDUniID)
 

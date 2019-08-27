@@ -1055,6 +1055,98 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	return nil
 }
 
+func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
+	log.Debug("Function entry delete device")
+	var uniId uint32
+	nniUniID := -1
+	nniOnuID := -1
+	dh.lockDevice.Lock()
+	dh.adminState = "deleted"
+	dh.lockDevice.Unlock()
+	/* Clear the KV store data associated with the all the UNI ports
+	   This clears up flow data and also resource map data for various
+	   other pon resources like alloc_id and gemport_id
+	*/
+	for _, onu := range dh.onus {
+		childDevice, err := dh.coreProxy.GetDevice(nil, dh.deviceID, onu.deviceID)
+		if err != nil {
+			log.Debug("Failed to get onu device")
+			continue
+		}
+		childDevicePorts := childDevice.Ports
+		log.Debugw("onu-uni-ports", log.Fields{"onu-ports": childDevicePorts})
+		for _, port := range childDevicePorts {
+			if port.Type == voltha.Port_ETHERNET_UNI {
+				uniId = UniIDFromPortNum(port.PortNo)
+				/* Delete tech-profile instance from the KV store */
+				if err = dh.flowMgr.DeleteTechProfileInstance(onu.intfID, onu.onuID, uniId, onu.serialNumber); err != nil {
+					log.Debugw("Failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
+				}
+				log.Debugw("Deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
+				flowIds := dh.resourceMgr.GetCurrentFlowIDsForOnu(onu.intfID, onu.onuID, uniId)
+				for _, flowId := range flowIds {
+					dh.resourceMgr.FreeFlowID(onu.intfID, int32(onu.onuID), int32(uniId), flowId)
+				}
+				dh.resourceMgr.FreePONResourcesForONU(onu.intfID, onu.onuID, uniId)
+				if err = dh.resourceMgr.RemoveTechProfileIdForOnu(onu.intfID, onu.onuID, uniId); err != nil {
+					log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+				}
+				log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+				if err = dh.resourceMgr.RemoveMeterIdForOnu("upstream", onu.intfID, onu.onuID, uniId); err != nil {
+					log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+				}
+				log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+				if err = dh.resourceMgr.RemoveMeterIdForOnu("downstream", onu.intfID, onu.onuID, uniId); err != nil {
+					log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+				}
+				log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+			}
+		}
+	}
+	/* Clear the flows from KV store associated with NNI port.
+	   There are mostly trap rules from NNI port (like LLDP)
+	*/
+	flowIds := dh.resourceMgr.GetCurrentFlowIDsForOnu(uint32(dh.nniIntfID), uint32(nniOnuID), uint32(nniUniID))
+	log.Debugw("Current flow ids for nni", log.Fields{"flow-ids": flowIds})
+	for _, flowId := range flowIds {
+		dh.resourceMgr.FreeFlowID(uint32(dh.nniIntfID), -1, -1, uint32(flowId))
+	}
+	//Free the flow-ids for the NNI port
+	dh.resourceMgr.FreePONResourcesForONU(uint32(dh.nniIntfID), uint32(nniOnuID), uint32(nniUniID))
+
+	/* Free ONU IDs for each pon port
+	   intfIDToONUIds is a map of intf-id: [onu-ids]*/
+	intfIDToONUIds := make(map[uint32][]uint32)
+	for _, onu := range dh.onus {
+		intfIDToONUIds[onu.intfID] = append(intfIDToONUIds[onu.intfID], onu.onuID)
+	}
+	for intfID, onuIds := range intfIDToONUIds {
+		dh.resourceMgr.FreeonuID(intfID, onuIds)
+	}
+	/* Clear the resouce pool for each PON port*/
+	if err := dh.resourceMgr.Delete(); err != nil {
+		log.Debug("Failed-to-remove-device-from-Resource-mananger-KV-store")
+	}
+	/*Delete ONU map for the device*/
+	for onu := range dh.onus {
+		delete(dh.onus, onu)
+	}
+	log.Debug("Removed-device-from-Resource-manager-KV-store")
+	//Reset the state
+	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
+		log.Errorw("Failed-to-reboot-olt ", log.Fields{"err": err})
+		return err
+	}
+	cloned := proto.Clone(device).(*voltha.Device)
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
+		return err
+	}
+	return nil
+}
+
 //RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
