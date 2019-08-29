@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "752b19cd_60263957",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1091,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-08-29T19:15:22Z",
+      "side": 1,
+      "message": "TYPO. This should be RemoveTechProfileIDForOnu. Without this, trying to test the patchset (along with dep for 15084) does not BUILD. There are more below.",
+      "revId": "33eab30de7e6144275620fa9c969fa0115291cd3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ab89e46_9e3be3dc",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1095,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-08-29T19:15:22Z",
+      "side": 1,
+      "message": "TYPO: This should be RemoveMeterIDForOnu. Without this, patch (along with 15084) does not BUILD trying to test. The method name in adapter core resource manager is RemoveMeterIDForOnu.",
+      "revId": "33eab30de7e6144275620fa9c969fa0115291cd3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "deb1f89b_ef706f36",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1099,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-08-29T19:15:22Z",
+      "side": 1,
+      "message": "TYPO again. Should be RemoveMeterIDForOnu",
+      "revId": "33eab30de7e6144275620fa9c969fa0115291cd3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "362897d9_6d46e570",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 904,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-08-29T19:15:22Z",
+      "side": 1,
+      "message": "TYPO. Should be GetTechProfileIDForOnu. Without this, patch does not BUILD when trying to test.",
+      "revId": "33eab30de7e6144275620fa9c969fa0115291cd3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
