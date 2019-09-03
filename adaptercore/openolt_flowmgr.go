@@ -68,7 +68,7 @@ const (
 
 	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
 
-	// ReservedVlan Transparent Vlan
+	//ReservedVlan Transparent Vlan
 	ReservedVlan = 4095
 
 	//DefaultMgmtVlan default vlan value
