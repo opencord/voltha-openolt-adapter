@@ -56,7 +56,7 @@ help:
 	@echo "Usage: make [<target>]"
 	@echo "where available targets are:"
 	@echo
-	@echo "build             : Build openolt adapter docker image"
+	@echo "docker-build      : Build openolt adapter docker image"
 	@echo "help              : Print this help"
 	@echo "docker-push       : Push the docker images to an external repository"
 	@echo "lint              : Run lint verification, depenancy, gofmt and reference check"
@@ -83,7 +83,7 @@ endif
 
 ## Docker targets
 
-build: local-protos local-voltha
+docker-build: local-protos local-voltha
 	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 
 docker-push:
