@@ -1541,7 +1541,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 		log.Info("Adding Downstream data rule")
 		if pcp, ok := classifierInfo[VlanPcp]; ok {
 			gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-				tp_pb.Direction_UPSTREAM,
+				tp_pb.Direction_DOWNSTREAM,
 				pcp.(uint32))
 			//Adding HSIA downstream flow
 			f.addDownstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID[0], gemPort)
