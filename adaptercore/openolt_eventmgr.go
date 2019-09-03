@@ -19,7 +19,6 @@ package adaptercore
 
 import (
 	"fmt"
-
 	"github.com/opencord/voltha-go/adapters/adapterif"
 	"github.com/opencord/voltha-go/common/log"
 	oop "github.com/opencord/voltha-protos/go/openolt"
@@ -62,12 +61,14 @@ const (
 // OpenOltEventMgr struct contains
 type OpenOltEventMgr struct {
 	eventProxy adapterif.EventProxy
+	handler    *DeviceHandler
 }
 
 // NewEventMgr is a Function to get a new event manager struct for the OpenOLT to process and publish OpenOLT event
-func NewEventMgr(eventProxy adapterif.EventProxy) *OpenOltEventMgr {
+func NewEventMgr(eventProxy adapterif.EventProxy, handler *DeviceHandler) *OpenOltEventMgr {
 	var em OpenOltEventMgr
 	em.eventProxy = eventProxy
+	em.handler = handler
 	return &em
 }
 
@@ -181,8 +182,14 @@ func (em *OpenOltEventMgr) oltLosIndication(oltLos *oop.LosIndication, deviceID 
 
 func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, deviceID string, raisedTs int64) {
 	var de voltha.DeviceEvent
+	var serialNumber string
 	context := make(map[string]string)
 	/* Populating event context */
+	serialNumber = ""
+	if onu, ok := em.handler.onus[em.handler.formOnuKey(dgi.IntfId, dgi.OnuId)]; ok {
+		serialNumber = onu.serialNumber
+	}
+	context["serial-number"] = serialNumber
 	context["intf-id"] = string(dgi.IntfId)
 	context["onu-id"] = string(dgi.OnuId)
 	/* Populating device event body */
