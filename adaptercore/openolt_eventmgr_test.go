@@ -27,7 +27,12 @@ import (
 
 func mockEventMgr() *OpenOltEventMgr {
 	ep := &mocks.MockEventProxy{}
-	return NewEventMgr(ep)
+	dh := &DeviceHandler{}
+	dh.onus[dh.formOnuKey(1, 1)] = &OnuDevice{deviceID: "TEST_ONU",
+		deviceType:   "ONU",
+		serialNumber: "TEST_ONU_123",
+		onuID:        1, intfID: 1}
+	return NewEventMgr(ep, dh)
 }
 func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 	em := mockEventMgr()
