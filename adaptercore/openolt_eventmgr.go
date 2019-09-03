@@ -61,12 +61,14 @@ const (
 // OpenOltEventMgr struct contains
 type OpenOltEventMgr struct {
 	eventProxy *com.EventProxy
+	handler *DeviceHandler
 }
 
 // NewEventMgr is a Function to get a new event manager struct for the OpenOLT to process and publish OpenOLT event
-func NewEventMgr(eventProxy *com.EventProxy) *OpenOltEventMgr {
+func NewEventMgr(eventProxy *com.EventProxy, handler *DeviceHandler) *OpenOltEventMgr {
 	var em OpenOltEventMgr
 	em.eventProxy = eventProxy
+	em.handler = handler
 	return &em
 }
 
@@ -182,6 +184,8 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
+	serialNumber := em.handler.onus[em.handler.formOnuKey(dgi.IntfId, dgi.OnuId)].serialNumber
+	context["serial-number"] = serialNumber
 	context["intf-id"] = string(dgi.IntfId)
 	context["onu-id"] = string(dgi.OnuId)
 	/* Populating device event body */
