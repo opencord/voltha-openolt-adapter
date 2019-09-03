@@ -506,7 +506,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
-	dh.eventMgr = NewEventMgr(dh.EventProxy)
+	dh.eventMgr = NewEventMgr(dh.EventProxy, dh)
 
 	// Start reading indications
 	go dh.readIndications()
