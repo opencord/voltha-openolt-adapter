@@ -68,7 +68,7 @@ const (
 
 	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
 
-	//ReservedVlan Transparent Vlan
+	// ReservedVlan Transparent Vlan
 	ReservedVlan = 4095
 
 	//DefaultMgmtVlan default vlan value
@@ -828,37 +828,37 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) *openoltp
 
 	classifier.EthType, _ = classifierInfo[EthType].(uint32)
 	classifier.IpProto, _ = classifierInfo[IPProto].(uint32)
-	if vlanID, ok := classifierInfo[VlanVid]; ok {
-		vid := (vlanID.(uint32)) & VlanvIDMask
+	if vlanID, ok := classifierInfo[VlanVid].(uint32); ok {
+		vid := vlanID & VlanvIDMask
 		if vid != ReservedVlan {
 			classifier.OVid = vid
 		}
 	}
-	if metadata, ok := classifierInfo[Metadata]; ok {
-		vid := uint32(metadata.(uint64))
+	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
+		vid := uint32(metadata)
 		if vid != ReservedVlan {
 			classifier.IVid = vid
 		}
 	}
-	if vlanPcp, ok := classifierInfo[VlanPcp]; ok {
+	if vlanPcp, ok := classifierInfo[VlanPcp].(uint32); ok {
 		if vlanPcp == 0 {
 			classifier.OPbits = VlanPCPMask
 		} else {
-			classifier.OPbits = (vlanPcp.(uint32)) & VlanPCPMask
+			classifier.OPbits = vlanPcp & VlanPCPMask
 		}
 	}
 	classifier.SrcPort, _ = classifierInfo[UDPSrc].(uint32)
 	classifier.DstPort, _ = classifierInfo[UDPDst].(uint32)
-	classifierInfo[Ipv4Dst], _ = classifierInfo[Ipv4Dst].(uint32)
+	classifier.DstIp, _ = classifierInfo[Ipv4Dst].(uint32)
 	classifier.SrcIp, _ = classifierInfo[Ipv4Src].(uint32)
-	if pktTagType, ok := classifierInfo[PacketTagType]; ok {
-		if pktTagType.(string) == SingleTag {
-			classifier.PktTagType = SingleTag
-		} else if pktTagType.(string) == DoubleTag {
-			classifier.PktTagType = DoubleTag
-		} else if pktTagType.(string) == Untagged {
-			classifier.PktTagType = Untagged
-		} else {
+	if pktTagType, ok := classifierInfo[PacketTagType].(string); ok {
+		classifier.PktTagType = pktTagType
+
+		switch pktTagType {
+		case SingleTag:
+		case DoubleTag:
+		case Untagged:
+		default:
 			log.Error("Invalid tag type in classifier") // should not hit
 			return nil
 		}
@@ -1317,7 +1317,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	    Most Significant 2 Bytes = Inner VLAN
 	    Next 2 Bytes = Tech Profile ID(TPID)
 	    Least Significant 4 Bytes = Port ID
-	   Flow METADATA carries Tech-Profile (TP) ID and is mandatory in all
+	   Flow Metadata carries Tech-Profile (TP) ID and is mandatory in all
 	   subscriber related flows.
 	*/
 	metadata := utils.GetMetadataFromWriteMetadataAction(flow)
