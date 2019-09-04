@@ -68,22 +68,22 @@ const (
 
 	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
 
-	//Transparent Vlan
-	RESERVED_VLAN = 4095
+	// ReservedVlan Transparent Vlan
+	ReservedVlan = 4095
 
 	//DefaultMgmtVlan default vlan value
 	DefaultMgmtVlan = 4091
 
 	// Openolt Flow
 
-	//UPSTREAM constant
-	UPSTREAM = "upstream"
-	//DOWNSTREAM constant
-	DOWNSTREAM = "downstream"
+	//Upstream constant
+	Upstream = "upstream"
+	//Downstream constant
+	Downstream = "downstream"
 	//PacketTagType constant
 	PacketTagType = "pkt_tag_type"
-	//UNTAGGED constant
-	UNTAGGED = "untagged"
+	//Untagged constant
+	Untagged = "untagged"
 	//SingleTag constant
 	SingleTag = "single_tag"
 	//DoubleTag constant
@@ -112,12 +112,12 @@ const (
 	Ipv4Dst = "ipv4_dst"
 	//Ipv4Src constant
 	Ipv4Src = "ipv4_src"
-	//METADATA constant
-	METADATA = "metadata"
+	//Metadata constant
+	Metadata = "metadata"
 	//TunnelID constant
 	TunnelID = "tunnel_id"
-	//OUTPUT constant
-	OUTPUT = "output"
+	//Output constant
+	Output = "output"
 	// Actions
 
 	//PopVlan constant
@@ -190,10 +190,10 @@ func NewFlowManager(dh *DeviceHandler, rsrcMgr *rsrcMgr.OpenOltResourceMgr) *Ope
 }
 
 func (f *OpenOltFlowMgr) generateStoredFlowID(flowID uint32, direction string) (uint64, error) {
-	if direction == UPSTREAM {
+	if direction == Upstream {
 		log.Debug("upstream flow, shifting id")
 		return 0x1<<15 | uint64(flowID), nil
-	} else if direction == DOWNSTREAM {
+	} else if direction == Downstream {
 		log.Debug("downstream flow, not shifting id")
 		return uint64(flowID), nil
 	} else {
@@ -522,7 +522,7 @@ func (f *OpenOltFlowMgr) addUpstreamDataFlow(intfID uint32, onuID uint32, uniID 
 	uplinkClassifier[PacketTagType] = SingleTag
 	log.Debugw("Adding upstream data flow", log.Fields{"uplinkClassifier": uplinkClassifier, "uplinkAction": uplinkAction})
 	f.addHSIAFlow(intfID, onuID, uniID, portNo, uplinkClassifier, uplinkAction,
-		UPSTREAM, logicalFlow, allocID, gemportID)
+		Upstream, logicalFlow, allocID, gemportID)
 	/* TODO: Install Secondary EAP on the subscriber vlan */
 }
 
@@ -536,7 +536,7 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniI
 	// Ignore Downlink trap flow given by core, cannot do anything with this flow */
 	if vlan, exists := downlinkClassifier[VlanVid]; exists {
 		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) { //private VLAN given by core
-			if metadata, exists := downlinkClassifier[METADATA]; exists { // inport is filled in metadata by core
+			if metadata, exists := downlinkClassifier[Metadata]; exists { // inport is filled in metadata by core
 				if uint32(metadata.(uint64)) == MkUniPortNum(intfID, onuID, uniID) {
 					log.Infow("Ignoring DL trap device flow from core", log.Fields{"flow": logicalFlow})
 					return
@@ -549,7 +549,7 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniI
 	downlinkAction[PopVlan] = true
 	downlinkAction[VlanVid] = downlinkClassifier[VlanVid]
 	f.addHSIAFlow(intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
-		DOWNSTREAM, logicalFlow, allocID, gemportID)
+		Downstream, logicalFlow, allocID, gemportID)
 }
 
 func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
@@ -657,7 +657,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 		OnuId:         int32(onuID),
 		UniId:         int32(uniID),
 		FlowId:        flowID,
-		FlowType:      UPSTREAM,
+		FlowType:      Upstream,
 		AllocId:       int32(allocID),
 		NetworkIntfId: int32(networkIntfID),
 		GemportId:     int32(gemPortID),
@@ -725,7 +725,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 		OnuId:         int32(onuID),
 		UniId:         int32(uniID),
 		FlowId:        uplinkFlowID,
-		FlowType:      UPSTREAM,
+		FlowType:      Upstream,
 		AllocId:       int32(allocID),
 		NetworkIntfId: int32(networkIntfID),
 		GemportId:     int32(gemPortID),
@@ -796,7 +796,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 			OnuId:         int32(onuID),
 			UniId:         int32(uniID),
 			FlowId:        downlinkFlowID,
-			FlowType:      DOWNSTREAM,
+			FlowType:      Downstream,
 			AllocId:       int32(allocID),
 			NetworkIntfId: int32(networkIntfID),
 			GemportId:     int32(gemPortID),
@@ -825,51 +825,40 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 
 func makeOpenOltClassifierField(classifierInfo map[string]interface{}) *openoltpb2.Classifier {
 	var classifier openoltpb2.Classifier
-	if etherType, ok := classifierInfo[EthType]; ok {
-		classifier.EthType = etherType.(uint32)
-	}
-	if ipProto, ok := classifierInfo[IPProto]; ok {
-		classifier.IpProto = ipProto.(uint32)
-	}
-	if vlanID, ok := classifierInfo[VlanVid]; ok {
-		vid := (vlanID.(uint32)) & VlanvIDMask
-		if vid != RESERVED_VLAN {
+
+	classifier.EthType, _ = classifierInfo[EthType].(uint32)
+	classifier.IpProto, _ = classifierInfo[IPProto].(uint32)
+	if vlanID, ok := classifierInfo[VlanVid].(uint32); ok {
+		vid := vlanID & VlanvIDMask
+		if vid != ReservedVlan {
 			classifier.OVid = vid
 		}
 	}
-	if metadata, ok := classifierInfo[METADATA]; ok {
-		vid := uint32(metadata.(uint64))
-		if vid != RESERVED_VLAN {
+	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
+		vid := uint32(metadata)
+		if vid != ReservedVlan {
 			classifier.IVid = vid
 		}
 	}
-	if vlanPcp, ok := classifierInfo[VlanPcp]; ok {
+	if vlanPcp, ok := classifierInfo[VlanPcp].(uint32); ok {
 		if vlanPcp == 0 {
 			classifier.OPbits = VlanPCPMask
 		} else {
-			classifier.OPbits = (vlanPcp.(uint32)) & VlanPCPMask
+			classifier.OPbits = vlanPcp & VlanPCPMask
 		}
 	}
-	if udpSrc, ok := classifierInfo[UDPSrc]; ok {
-		classifier.SrcPort = udpSrc.(uint32)
-	}
-	if udpDst, ok := classifierInfo[UDPDst]; ok {
-		classifier.DstPort = udpDst.(uint32)
-	}
-	if ipv4Dst, ok := classifierInfo[Ipv4Dst]; ok {
-		classifier.DstIp = ipv4Dst.(uint32)
-	}
-	if ipv4Src, ok := classifierInfo[Ipv4Src]; ok {
-		classifier.SrcIp = ipv4Src.(uint32)
-	}
-	if pktTagType, ok := classifierInfo[PacketTagType]; ok {
-		if pktTagType.(string) == SingleTag {
-			classifier.PktTagType = SingleTag
-		} else if pktTagType.(string) == DoubleTag {
-			classifier.PktTagType = DoubleTag
-		} else if pktTagType.(string) == UNTAGGED {
-			classifier.PktTagType = UNTAGGED
-		} else {
+	classifier.SrcPort, _ = classifierInfo[UDPSrc].(uint32)
+	classifier.DstPort, _ = classifierInfo[UDPDst].(uint32)
+	classifier.DstIp, _ = classifierInfo[Ipv4Dst].(uint32)
+	classifier.SrcIp, _ = classifierInfo[Ipv4Src].(uint32)
+	if pktTagType, ok := classifierInfo[PacketTagType].(string); ok {
+		classifier.PktTagType = pktTagType
+
+		switch pktTagType {
+		case SingleTag:
+		case DoubleTag:
+		case Untagged:
+		default:
 			log.Error("Invalid tag type in classifier") // should not hit
 			return nil
 		}
@@ -1030,10 +1019,10 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) bool 
 
 func generateStoredId(flowId uint32, direction string)uint32{
 
-	if direction == UPSTREAM{
+	if direction == Upstream{
 		log.Debug("Upstream flow shifting flowid")
 		return ((0x1 << 15) | flowId)
-	}else if direction == DOWNSTREAM{
+	}else if direction == Downstream{
 		log.Debug("Downstream flow not shifting flowid")
 		return flowId
 	}else{
@@ -1076,9 +1065,9 @@ func (f *OpenOltFlowMgr) clearFlowsAndSchedulerForLogicalPort(childDevice *volth
 
 func (f *OpenOltFlowMgr) decodeStoredID(id uint64) (uint64, string) {
 	if id>>15 == 0x1 {
-		return id & 0x7fff, UPSTREAM
+		return id & 0x7fff, Upstream
 	}
-	return id, DOWNSTREAM
+	return id, Downstream
 }
 
 func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, flowID uint32, flowDirection string) {
@@ -1212,8 +1201,8 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 		return
 	}
 
-	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[OUTPUT]})
-	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[OUTPUT].(uint32))
+	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[Output]})
+	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
 			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
@@ -1229,7 +1218,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	    Most Significant 2 Bytes = Inner VLAN
 	    Next 2 Bytes = Tech Profile ID(TPID)
 	    Least Significant 4 Bytes = Port ID
-	   Flow METADATA carries Tech-Profile (TP) ID and is mandatory in all
+	   Flow Metadata carries Tech-Profile (TP) ID and is mandatory in all
 	   subscriber related flows.
 	*/
 	metadata := utils.GetMetadataFromWriteMetadataAction(flow)
@@ -1246,7 +1235,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 		return
 	}
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
-	if IsUpstream(actionInfo[OUTPUT].(uint32)) {
+	if IsUpstream(actionInfo[Output].(uint32)) {
 		UsMeterID = utils.GetMeterIdFromFlow(flow)
 		log.Debugw("Upstream-flow-meter-id", log.Fields{"UsMeterID": UsMeterID})
 	} else {
@@ -1442,7 +1431,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		OnuId:         int32(onuID), // OnuId not required
 		UniId:         int32(uniID), // UniId not used
 		FlowId:        flowID,
-		FlowType:      DOWNSTREAM,
+		FlowType:      Downstream,
 		AllocId:       int32(allocID), // AllocId not used
 		NetworkIntfId: int32(networkInterfaceID),
 		GemportId:     int32(gemPortID), // GemportId not used
@@ -1587,8 +1576,8 @@ func formulateClassifierInfoFromFlow(classifierInfo map[string]interface{}, flow
 			classifierInfo[Ipv4Src] = field.GetIpv4Src()
 			log.Debug("field-type-ipv4-src", log.Fields{"classifierInfo[IPV4_SRC]": classifierInfo[Ipv4Src].(uint32)})
 		} else if field.Type == utils.METADATA {
-			classifierInfo[METADATA] = field.GetTableMetadata()
-			log.Debug("field-type-metadata", log.Fields{"classifierInfo[METADATA]": classifierInfo[METADATA].(uint64)})
+			classifierInfo[Metadata] = field.GetTableMetadata()
+			log.Debug("field-type-metadata", log.Fields{"classifierInfo[Metadata]": classifierInfo[Metadata].(uint64)})
 		} else if field.Type == utils.TUNNEL_ID {
 			classifierInfo[TunnelID] = field.GetTunnelId()
 			log.Debug("field-type-tunnelId", log.Fields{"classifierInfo[TUNNEL_ID]": classifierInfo[TunnelID].(uint64)})
@@ -1603,8 +1592,8 @@ func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface
 	for _, action := range utils.GetActions(flow) {
 		if action.Type == utils.OUTPUT {
 			if out := action.GetOutput(); out != nil {
-				actionInfo[OUTPUT] = out.GetPort()
-				log.Debugw("action-type-output", log.Fields{"out_port": actionInfo[OUTPUT].(uint32)})
+				actionInfo[Output] = out.GetPort()
+				log.Debugw("action-type-output", log.Fields{"out_port": actionInfo[Output].(uint32)})
 			} else {
 				log.Error("Invalid output port in action")
 				return errors.New("invalid output port in action")
@@ -1654,13 +1643,13 @@ func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface
 }
 
 func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
-	if isControllerFlow := IsControllerBoundFlow(actionInfo[OUTPUT].(uint32)); isControllerFlow {
+	if isControllerFlow := IsControllerBoundFlow(actionInfo[Output].(uint32)); isControllerFlow {
 		log.Debug("Controller bound trap flows, getting inport from tunnelid")
 		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
 		if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
-				log.Debugw("upstream pon-to-controller-flow,inport-in-tunnelid", log.Fields{"newInPort": classifierInfo[InPort].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
+				log.Debugw("upstream pon-to-controller-flow,inport-in-tunnelid", log.Fields{"newInPort": classifierInfo[InPort].(uint32), "outPort": actionInfo[Output].(uint32)})
 			} else {
 				log.Error("upstream pon-to-controller-flow, NO-inport-in-tunnelid")
 				return errors.New("upstream pon-to-controller-flow, NO-inport-in-tunnelid")
@@ -1669,23 +1658,23 @@ func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]
 	} else {
 		log.Debug("Non-Controller flows, getting uniport from tunnelid")
 		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
-		if portType := IntfIDToPortTypeName(actionInfo[OUTPUT].(uint32)); portType == voltha.Port_PON_OLT {
+		if portType := IntfIDToPortTypeName(actionInfo[Output].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
-				actionInfo[OUTPUT] = uniPort
-				log.Debugw("downstream-nni-to-pon-port-flow, outport-in-tunnelid", log.Fields{"newOutPort": actionInfo[OUTPUT].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
+				actionInfo[Output] = uniPort
+				log.Debugw("downstream-nni-to-pon-port-flow, outport-in-tunnelid", log.Fields{"newOutPort": actionInfo[Output].(uint32), "outPort": actionInfo[Output].(uint32)})
 			} else {
-				log.Debug("downstream-nni-to-pon-port-flow, no-outport-in-tunnelid", log.Fields{"InPort": classifierInfo[InPort].(uint32), "outPort": actionInfo[OUTPUT].(uint32)})
+				log.Debug("downstream-nni-to-pon-port-flow, no-outport-in-tunnelid", log.Fields{"InPort": classifierInfo[InPort].(uint32), "outPort": actionInfo[Output].(uint32)})
 				return errors.New("downstream-nni-to-pon-port-flow, no-outport-in-tunnelid")
 			}
 			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
 		} else if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
-				log.Debugw("upstream-pon-to-nni-port-flow, inport-in-tunnelid", log.Fields{"newInPort": actionInfo[OUTPUT].(uint32),
-					"outport": actionInfo[OUTPUT].(uint32)})
+				log.Debugw("upstream-pon-to-nni-port-flow, inport-in-tunnelid", log.Fields{"newInPort": actionInfo[Output].(uint32),
+					"outport": actionInfo[Output].(uint32)})
 			} else {
 				log.Debug("upstream-pon-to-nni-port-flow, no-inport-in-tunnelid", log.Fields{"InPort": classifierInfo[InPort].(uint32),
-					"outPort": actionInfo[OUTPUT].(uint32)})
+					"outPort": actionInfo[Output].(uint32)})
 				return errors.New("upstream-pon-to-nni-port-flow, no-inport-in-tunnelid")
 			}
 		}
