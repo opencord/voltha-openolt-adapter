@@ -1025,19 +1025,23 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 	dh.adminState = "down"
 	dh.lockDevice.Unlock()
 	if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed to disable olt ", log.Fields{"err": err})
-		dh.lockDevice.Lock()
-		dh.adminState = "up"
-		dh.lockDevice.Unlock()
-		return err
+		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+			log.Errorw("failed-to-disable-olt ", log.Fields{"err": err})
+			dh.lockDevice.Lock()
+			dh.adminState = "up"
+			dh.lockDevice.Unlock()
+			return err
+		}
+
 	}
 	log.Debug("olt-disabled")
 	dh.lockDevice.Lock()
 	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
 	   UNREACHABLE state which needs to be configured again*/
 	dh.discOnus = make(map[string]bool)
+	dh.onus = make(map[string]*OnuDevice)
 	dh.lockDevice.Unlock()
-
+	go dh.notifyChildDevices()
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to disable
 	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
@@ -1045,8 +1049,30 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 		return err
 	}
 
-	log.Debugw("Disable_device-end", log.Fields{"deviceID": device.Id})
+	log.Debugw("disable-device-end", log.Fields{"deviceID": device.Id})
 	return nil
+}
+
+func (dh *DeviceHandler) notifyChildDevices() {
+
+	// Update onu state as unreachable in onu adapter
+	onuInd := oop.OnuIndication{}
+	onuInd.OperState = "unreachable"
+	//get the child device for the parent device
+	onuDevices, err := dh.coreProxy.GetChildDevices(context.TODO(), dh.device.Id)
+	if err != nil {
+		log.Errorw("failed-to-get-child-devices-information", log.Fields{"deviceID": dh.device.Id, "error": err})
+	}
+	for _, onuDevice := range onuDevices.Items {
+		err := dh.AdapterProxy.SendInterAdapterMessage(context.TODO(), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
+			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+		if err != nil {
+			log.Errorw("failed-to-send-inter-adapter-message", log.Fields{"OnuInd": onuInd,
+				"From Adapter": "openolt", "DeviceType": onuDevice.Type, "DeviceID": onuDevice.Id})
+		}
+
+	}
+
 }
 
 //ReenableDevice re-enables the olt device after disable
@@ -1056,8 +1082,10 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 //Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	if _, err := dh.Client.ReenableOlt(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed to reenable olt ", log.Fields{"err": err})
-		return err
+		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+			log.Errorw("Failed to reenable olt ", log.Fields{"err": err})
+			return err
+		}
 	}
 
 	dh.lockDevice.Lock()
