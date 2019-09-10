@@ -469,8 +469,7 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 		wantErr       bool
 	}{
 		{"DisableDevice-1", dh1, args{device: dh1.device}, false},
-		{"DisableDevice-2", dh1, args{device: dh1.device}, true},
-		{"DisableDevice-3", dh2, args{device: dh2.device}, true},
+		{"DisableDevice-2", dh1, args{device: dh2.device}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
