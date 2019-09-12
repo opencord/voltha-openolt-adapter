@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c5a5dbb_b5be5bf3",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 1000616
+      },
+      "writtenOn": "2019-09-12T11:16:10Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you return error here ?",
+      "revId": "23325786600181bb032850cf04465828df826720",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87385bd8_6175597b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1042,
+      "author": {
+        "id": 1000616
+      },
+      "writtenOn": "2019-09-12T11:16:10Z",
+      "side": 1,
+      "message": "Have you tested this? It seems like the Key \u0027DevieType\u0027 is wrong (spelling)",
+      "revId": "23325786600181bb032850cf04465828df826720",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
