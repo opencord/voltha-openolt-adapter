@@ -18,28 +18,20 @@
 package mocks
 
 import (
-	"context"
 	"errors"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/opencord/voltha-protos/go/inter_container"
+	"github.com/opencord/voltha-protos/go/voltha"
 )
 
-// MockAdapterProxy mocks the AdapterProxy interface.
-type MockAdapterProxy struct {
+// MockEventProxy for mocking EventProxyIntf
+type MockEventProxy struct {
 }
 
-// SendInterAdapterMessage mocks SendInterAdapterMessage function.
-func (ma *MockAdapterProxy) SendInterAdapterMessage(ctx context.Context,
-	msg proto.Message,
-	msgType inter_container.InterAdapterMessageType_Types,
-	fromAdapter string,
-	toAdapter string,
-	toDeviceID string,
-	proxyDeviceID string,
-	messageID string) error {
-	if toDeviceID == "" {
-		return errors.New("no deviceid")
+// SendDeviceEvent mocks the SendDeviceEvent function
+func (me *MockEventProxy) SendDeviceEvent(deviceEvent *voltha.DeviceEvent, category voltha.EventCategory_EventCategory,
+	subCategory voltha.EventSubCategory_EventSubCategory, raisedTs int64) error {
+	if raisedTs == 0 {
+		return errors.New("raisedTS cannot be zero")
 	}
 	return nil
 }
