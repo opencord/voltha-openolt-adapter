@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2bc9d91_b84e8526",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-09-16T05:27:34Z",
+      "side": 1,
+      "message": "you might want to first check if the key exists in the onus map. I think it almost always exists, but check..",
+      "range": {
+        "startLine": 187,
+        "startChar": 17,
+        "endLine": 187,
+        "endChar": 78
+      },
+      "revId": "9c1ccaeeef7be14e516ce09d6fbf29b6bf3c52c5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
