@@ -410,7 +410,7 @@
   revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
-  digest = "1:931727c62baa7a9958acac5d712ae9cc0ea3ff86a664b560febf4f4b0677ee28"
+  digest = "1:472a63591492a241f66e0740382d3b30b246d7e0692ec00bed0f36c92b9f34c0"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -449,8 +449,8 @@
     "tap",
   ]
   pruneopts = "UT"
-  revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
-  version = "v1.22.0"
+  revision = "39e8a7b072a67ca2a75f57fa2e0d50995f5b22f6"
+  version = "v1.23.1"
 
 [[projects]]
   digest = "1:b449dbaada891dc97f016bc3519bb1af0e1a4296828f7a560a0ba47ea75f20bb"
@@ -551,6 +551,7 @@
     "github.com/opencord/voltha-protos/go/voltha",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/status",
   ]
   solver-name = "gps-cdcl"

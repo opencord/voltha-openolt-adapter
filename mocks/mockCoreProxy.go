@@ -20,6 +20,7 @@ package mocks
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/opencord/voltha-go/kafka"
 	"github.com/opencord/voltha-protos/go/voltha"
@@ -29,106 +30,163 @@ import (
 type MockCoreProxy struct {
 	// Values to be used in test can reside inside this structure
 	// TODO store relevant info in this, use this info for negative and positive tests
+	Devices map[string]*voltha.Device
 }
 
 // UpdateCoreReference mock updatesCoreReference
-func (mp *MockCoreProxy) UpdateCoreReference(deviceID string, coreReference string) {
+func (mcp *MockCoreProxy) UpdateCoreReference(deviceID string, coreReference string) {
 	panic("implement me")
 }
 
 // DeleteCoreReference mock DeleteCoreReference function
-func (mp *MockCoreProxy) DeleteCoreReference(deviceID string) {
+func (mcp *MockCoreProxy) DeleteCoreReference(deviceID string) {
 	panic("implement me")
 }
 
 // GetCoreTopic implements mock GetCoreTopic
-func (mp *MockCoreProxy) GetCoreTopic(deviceID string) kafka.Topic {
+func (mcp *MockCoreProxy) GetCoreTopic(deviceID string) kafka.Topic {
 	panic("implement me")
 }
 
 // GetAdapterTopic implements mock GetAdapterTopic
-func (mp *MockCoreProxy) GetAdapterTopic(args ...string) kafka.Topic {
+func (mcp *MockCoreProxy) GetAdapterTopic(args ...string) kafka.Topic {
 	panic("implement me")
 }
 
 // RegisterAdapter implements mock RegisterAdapter
-func (mp *MockCoreProxy) RegisterAdapter(ctx context.Context, adapter *voltha.Adapter,
+func (mcp *MockCoreProxy) RegisterAdapter(ctx context.Context, adapter *voltha.Adapter,
 	deviceTypes *voltha.DeviceTypes) error {
 	if ctx == nil || adapter == nil || deviceTypes == nil {
-
 		return errors.New("registerAdapter func parameters cannot be nil")
 	}
 	return nil
-
 }
 
 // DeviceUpdate implements mock DeviceUpdate
-func (mp *MockCoreProxy) DeviceUpdate(ctx context.Context, device *voltha.Device) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) DeviceUpdate(ctx context.Context, device *voltha.Device) error {
+	if device.Id == "" {
+		return errors.New("invalid Device")
+	}
+	return nil
 }
 
 // PortCreated implements mock PortCreated
-func (mp *MockCoreProxy) PortCreated(ctx context.Context, deviceID string, port *voltha.Port) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) PortCreated(ctx context.Context, deviceID string, port *voltha.Port) error {
+	if port.Type > 7 || deviceID == "" {
+		return errors.New("invalid porttype")
+	}
+	return nil
 }
 
 // PortsStateUpdate implements mock PortsStateUpdate
-func (mp *MockCoreProxy) PortsStateUpdate(ctx context.Context, deviceID string, operStatus voltha.OperStatus_OperStatus) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) PortsStateUpdate(ctx context.Context, deviceID string, operStatus voltha.OperStatus_OperStatus) error {
+	if deviceID == "" {
+		return errors.New("invalid Device")
+	}
+	return nil
 }
 
 // DeleteAllPorts implements mock DeleteAllPorts
-func (mp *MockCoreProxy) DeleteAllPorts(ctx context.Context, deviceID string) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) DeleteAllPorts(ctx context.Context, deviceID string) error {
+	if deviceID == "" {
+		return errors.New("invalid Device id")
+	}
+	return nil
 }
 
 // DeviceStateUpdate implements mock DeviceStateUpdate
-func (mp *MockCoreProxy) DeviceStateUpdate(ctx context.Context, deviceID string,
+func (mcp *MockCoreProxy) DeviceStateUpdate(ctx context.Context, deviceID string,
 	connStatus voltha.ConnectStatus_ConnectStatus, operStatus voltha.OperStatus_OperStatus) error {
-	panic("implement me")
+	if deviceID == "" {
+		return errors.New("invalid Device id")
+	}
+	return nil
 }
 
 // ChildDeviceDetected implements mock ChildDeviceDetected
-func (mp *MockCoreProxy) ChildDeviceDetected(ctx context.Context, parentDeviceID string, parentPortNo int,
+func (mcp *MockCoreProxy) ChildDeviceDetected(ctx context.Context, parentdeviceID string, parentPortNo int,
 	childDeviceType string, channelID int, vendorID string, serialNumber string, onuID int64) (*voltha.Device, error) {
-	panic("implement me")
+	if parentdeviceID == "" {
+		return nil, errors.New("invalid deviceID")
+	}
+	return nil, nil
 }
 
-// ChildDevicesLost implements mock ChildDevicesLost
-func (mp *MockCoreProxy) ChildDevicesLost(ctx context.Context, parentDeviceID string) error {
-	panic("implement me")
+// ChildDevicesLost implements mock ChildDevicesLost.
+func (mcp *MockCoreProxy) ChildDevicesLost(ctx context.Context, parentdeviceID string) error {
+	//panic("implement me")
+	if parentdeviceID == "" {
+		return errors.New("invalid device id")
+	}
+	return nil
 }
 
 // ChildDevicesDetected implements mock ChildDevicesDetecte
-func (mp *MockCoreProxy) ChildDevicesDetected(ctx context.Context, parentDeviceID string) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) ChildDevicesDetected(ctx context.Context, parentdeviceID string) error {
+	if parentdeviceID == "" {
+		return errors.New("invalid device id")
+	}
+	return nil
 }
 
 // GetDevice implements mock GetDevice
-func (mp *MockCoreProxy) GetDevice(ctx context.Context, parentDeviceID string, deviceID string) (*voltha.Device, error) {
-	if parentDeviceID != "" {
-		return &voltha.Device{}, nil
+func (mcp *MockCoreProxy) GetDevice(ctx context.Context, parentdeviceID string, deviceID string) (*voltha.Device, error) {
+	if parentdeviceID == "" || deviceID == "" {
+		return &voltha.Device{}, errors.New("invalid deviceID")
+	}
+	for k, v := range mcp.Devices {
+		if k == "olt" {
+			return v, nil
+		}
 	}
 	return nil, errors.New("device detection failed")
 }
 
 // GetChildDevice implements mock GetChildDevice
-func (mp *MockCoreProxy) GetChildDevice(ctx context.Context, parentDeviceID string, kwargs map[string]interface{}) (*voltha.Device, error) {
-	if parentDeviceID != "" {
-		return &voltha.Device{}, nil
+func (mcp *MockCoreProxy) GetChildDevice(ctx context.Context, parentdeviceID string, kwargs map[string]interface{}) (*voltha.Device, error) {
+
+	if parentdeviceID == "" {
+		return nil, errors.New("device detection failed")
 	}
+	onuID := kwargs["onu_id"]
+	var onuDevice *voltha.Device
+	for _, val := range mcp.Devices {
+		if val.GetId() == fmt.Sprintf("%v", onuID) {
+			onuDevice = val
+			break
+		}
+	}
+	if onuDevice != nil {
+		return onuDevice, nil
+	}
+	//return &voltha.Device{}, nil
 	return nil, errors.New("device detection failed")
 }
 
 // GetChildDevices implements mock GetChildDevices
-func (mp *MockCoreProxy) GetChildDevices(ctx context.Context, parentDeviceID string) (*voltha.Devices, error) {
-	if parentDeviceID != "" {
-		return &voltha.Devices{}, nil
+func (mcp *MockCoreProxy) GetChildDevices(ctx context.Context, parentdeviceID string) (*voltha.Devices, error) {
+	if parentdeviceID == "" {
+		return nil, errors.New("invalid deviceID")
+	}
+	onuDevices := make([]*voltha.Device, 0)
+
+	for _, val := range mcp.Devices {
+		if val != nil {
+			onuDevices = append(onuDevices, val)
+		}
+	}
+
+	deviceList := &voltha.Devices{Items: onuDevices}
+	if len(deviceList.Items) > 0 {
+		return deviceList, nil
 	}
 	return nil, errors.New("device detection failed")
 }
 
 // SendPacketIn  implements mock SendPacketIn
-func (mp *MockCoreProxy) SendPacketIn(ctx context.Context, deviceID string, port uint32, pktPayload []byte) error {
-	panic("implement me")
+func (mcp *MockCoreProxy) SendPacketIn(ctx context.Context, deviceID string, port uint32, pktPayload []byte) error {
+	if deviceID == "" {
+		return errors.New("invalid Device ID")
+	}
+	return nil
 }
