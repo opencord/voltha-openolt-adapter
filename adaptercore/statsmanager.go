@@ -206,15 +206,15 @@ func InitPorts(Intftype string, DeviceID string) (interface{}, error) {
 	if Intftype == "nni" {
 		NniPorts := make(map[uint32]NniPort)
 		for i = 0; i <= 1; i++ {
-			Port := BuildPortObject(i, "nni", DeviceID).(NniPort)
-			NniPorts[Port.IntfID] = Port
+			Port := BuildPortObject(i, "nni", DeviceID).(*NniPort)
+			NniPorts[Port.IntfID] = *Port
 		}
 		return NniPorts, nil
 	} else if Intftype == "pon" {
 		PONPorts := make(map[uint32]PonPort)
 		for i = 0; i <= 16; i++ {
-			PONPort := BuildPortObject(i, "pon", DeviceID).(PonPort)
-			PONPorts[PONPort.IntfID] = PONPort
+			PONPort := BuildPortObject(i, "pon", DeviceID).(*PonPort)
+			PONPorts[PONPort.IntfID] = *PONPort
 		}
 		return PONPorts, nil
 	} else {
