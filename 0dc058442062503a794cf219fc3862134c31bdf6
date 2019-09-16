@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8fb45a88_8eb5cf7c",
+        "filename": "mocks/mockAdapterProxy.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1000438
+      },
+      "writtenOn": "2019-09-16T15:32:02Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this error description be \"no deviceid\" instead of \"invalid deviceid\" ?",
+      "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "24bd62fb_999c2e1a",
+        "filename": "mocks/mockCoreProxy.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000438
+      },
+      "writtenOn": "2019-09-16T15:32:02Z",
+      "side": 1,
+      "message": "Again, shouldn\u0027t this be \"empty Device id\" and a few more times up/down the page.",
+      "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "875b17b1_6e7ce11b",
+        "filename": "mocks/mockEventproxy.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000438
+      },
+      "writtenOn": "2019-09-16T15:32:02Z",
+      "side": 1,
+      "message": "Couldn\u0027t this error message be more descriptive?",
+      "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
