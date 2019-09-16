@@ -534,6 +534,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
+    "github.com/golang/protobuf/ptypes/any",
     "github.com/opencord/voltha-go/adapters",
     "github.com/opencord/voltha-go/adapters/adapterif",
     "github.com/opencord/voltha-go/adapters/common",
@@ -552,6 +553,7 @@
     "github.com/opencord/voltha-protos/go/voltha",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/status",
   ]
   solver-name = "gps-cdcl"
