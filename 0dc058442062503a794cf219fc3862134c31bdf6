@@ -50,6 +50,23 @@
       "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc76762b_d2b66c65",
+        "filename": "mocks/mockOpenOltClient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-09-17T10:16:54Z",
+      "side": 1,
+      "message": "I do not understand how you plan to use this counter? The DisableOlt and EnableOlt mocks check if it is 0 and increment it and return success. Else it returns failure. Who decrements this counter?\nWhy does it need a counter if all you you are interested in value 0, why not a boolean flag?",
+      "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
