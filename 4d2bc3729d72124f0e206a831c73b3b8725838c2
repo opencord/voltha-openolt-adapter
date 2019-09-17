@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc3e55ab_49720cd8",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-09-17T10:36:25Z",
+      "side": 1,
+      "message": "Where is the definition of Port ? Shouldn\u0027t this be NniPort?",
+      "range": {
+        "startLine": 209,
+        "startChar": 3,
+        "endLine": 209,
+        "endChar": 7
+      },
+      "revId": "4d2bc3729d72124f0e206a831c73b3b8725838c2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
