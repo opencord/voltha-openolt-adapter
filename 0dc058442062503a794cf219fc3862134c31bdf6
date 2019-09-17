@@ -67,6 +67,24 @@
       "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ea2ed296_71c6c9a2",
+        "filename": "mocks/mockOpenOltClient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2019-09-17T10:25:00Z",
+      "side": 1,
+      "message": "The idea is to Mock(Simulate) different error scenarios. In device_handler.go, \"readindications\" func we have infinite for loop. In unit test cases we need to terminate with multiple error scenarios. So we need to have a counter here.",
+      "parentUuid": "bc76762b_d2b66c65",
+      "revId": "0dc058442062503a794cf219fc3862134c31bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
