@@ -195,21 +195,21 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 			}
 		}
 	} else if flowDirection == "downstream" {
-		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, field := range utils.GetOfbFields(flow) {
-				if field.GetType() == utils.METADATA {
-					for _, action := range utils.GetActions(flow) {
-						if action.Type == utils.OUTPUT {
-							if out := action.GetOutput(); out != nil {
-								uniPortNo = out.GetPort()
-							}
-							break
-						}
+		for _, field := range utils.GetOfbFields(flow) {
+			if field.GetType() == utils.ETH_TYPE {
+				ethType = field.GetEthType()
+				break
+			}
+		}
+		uniPortNo = uint32(utils.GetMetadataFromWriteMetadataAction(flow) & 0xFFFFFFFF)
+
+		if uniPortNo == 0 {
+			for _, action := range utils.GetActions(flow) {
+				if action.Type == utils.OUTPUT {
+					if out := action.GetOutput(); out != nil {
+						uniPortNo = out.GetPort()
 					}
-				} else if field.GetType() == utils.IN_PORT {
-					inPort = field.GetPort()
-				} else if field.GetType() == utils.ETH_TYPE {
-					ethType = field.GetEthType()
+					break
 				}
 			}
 		}
