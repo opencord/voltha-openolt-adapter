@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd2206a9_70b6da85",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1155,
+      "author": {
+        "id": 1000547
+      },
+      "writtenOn": "2019-09-18T09:43:50Z",
+      "side": 1,
+      "message": "What is the need to reboot OLT?\n\nDuring OLT Delete, if all the allocated resources (flows, schedulers and other PON resource) are released gracefully then there is no need to reboot OLT.\n\nPlease let us know if there is any limiation at openolt-agent/BAL because of which OLT has to be rebooted during delete",
+      "revId": "eb2e9555469bdc078229b3979c6f38872f783b1f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
