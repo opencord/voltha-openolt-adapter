@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b77aa689_1ce343ca",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2019-09-19T06:59:09Z",
+      "side": 1,
+      "message": "may I know, why adapterif.EventProxy interface changed to EventProxy structure?",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 16
+      },
+      "revId": "e47cc5b41bbec5a075d162af5f8048297e36dbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a5c03768_7f079e92",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2019-09-19T06:59:09Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 69,
+        "startChar": 29,
+        "endLine": 69,
+        "endChar": 32
+      },
+      "revId": "e47cc5b41bbec5a075d162af5f8048297e36dbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
