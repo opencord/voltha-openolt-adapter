@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7c96aa3_7e66eb92",
+        "filename": "mocks/mockEventproxy.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-09-19T11:09:35Z",
+      "side": 1,
+      "message": "Maybe instead of checking raisedTs \u003d\u003d 0 you could check if deviceEvent \u003d\u003d nil or keep both.",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 2
+      },
+      "revId": "81330a5a471aedd9022e62fe51018af72ba51017",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
