@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3c5c12d_be5240ee",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1000438
+      },
+      "writtenOn": "2019-09-20T17:15:25Z",
+      "side": 1,
+      "message": "We need a comment here that explains the if uniPortNo \u003d\u003d 0 we actually failed to extract the uniPortNo not that the portNo is really 0.  It is not obvious that this is an error condition.\n\nWe should also log the error condition with as much troubleshooting data as is available and probably should return an error",
+      "revId": "e36cf620c825e770fbaf67eb9b65d0fbcc84398f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
