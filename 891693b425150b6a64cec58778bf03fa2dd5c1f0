@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a9fbf85_c6426da1",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-09-20T20:11:07Z",
+      "side": 0,
+      "message": "we dont want to lose this.  one of the big changes from 1.x to 2.x is we went back to using the decomposed flows.  the decomposed flows use the pon port as the openflow port, so for 2.x we decided rather than putting more stuff in metadata we would use the tunnel id to find the uni port for the flow.   \n\ngiven this is 2.x with tech profile code now, the approach may just should be try to get the uni port from the tunnel id, and if that fails then just throw an error.  there really is not an alternative location to find the uni port at this point.",
+      "range": {
+        "startLine": 198,
+        "startChar": 24,
+        "endLine": 198,
+        "endChar": 47
+      },
+      "revId": "891693b425150b6a64cec58778bf03fa2dd5c1f0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
