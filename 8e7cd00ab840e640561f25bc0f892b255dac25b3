@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "588105b1_08ea40f6",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-09-23T11:35:04Z",
+      "side": 1,
+      "message": "need to add this argument to the unit test to pass jenkins.",
+      "range": {
+        "startLine": 68,
+        "startChar": 49,
+        "endLine": 68,
+        "endChar": 72
+      },
+      "revId": "8e7cd00ab840e640561f25bc0f892b255dac25b3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
