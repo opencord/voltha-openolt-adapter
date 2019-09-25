@@ -29,6 +29,7 @@ import (
 	tp "github.com/opencord/voltha-go/common/techprofile"
 	"github.com/opencord/voltha-go/rw_core/utils"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
+	"github.com/opencord/voltha-protos/go/common"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	openoltpb2 "github.com/opencord/voltha-protos/go/openolt"
@@ -1017,8 +1018,14 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) bool 
 	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
 	_, err := f.deviceHandler.Client.FlowRemove(context.Background(), deviceFlow)
 	if err != nil {
+		if f.deviceHandler.device.ConnectStatus == common.ConnectStatus_UNREACHABLE {
+			log.Warnw("Can not remove flow from device since it's unreachable", log.Fields{"err": err, "deviceFlow": deviceFlow})
+			//Assume the flow is removed
+			return true
+		}
 		log.Errorw("Failed to Remove flow from device", log.Fields{"err": err, "deviceFlow": deviceFlow})
 		return false
+
 	}
 	log.Debugw("Flow removed from device successfully ", log.Fields{"flow": *deviceFlow})
 	return true
