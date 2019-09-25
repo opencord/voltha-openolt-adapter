@@ -382,6 +382,8 @@ func (dh *DeviceHandler) doStateUp() error {
 
 // doStateDown handle the olt down indication
 func (dh *DeviceHandler) doStateDown() error {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
 	log.Debug("do-state-down-start")
 
 	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
@@ -424,9 +426,12 @@ func (dh *DeviceHandler) doStateDown() error {
 		if er != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
-			return er
+			//Do not return here and continue to process other ONUs
 		}
 	}
+	/* Discovered ONUs entries need to be cleared , since after OLT
+	   is up, it starts sending discovery indications again*/
+	dh.discOnus = make(map[string]bool)
 	log.Debugw("do-state-down-end", log.Fields{"deviceID": device.Id})
 	return nil
 }
