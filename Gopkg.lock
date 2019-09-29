@@ -281,7 +281,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8870102b74079c2b7a48b29aaf655af14a662db5f98d3b1ff621b398d84aec96"
+  digest = "1:8581cbc7002abc2f1f6c04e518bd8e34ae254e614ab37fa2ffbaf80cc87f13a5"
   name = "go.etcd.io/etcd"
   packages = [
     "auth/authpb",
@@ -296,6 +296,7 @@
     "etcdserver/etcdserverpb",
     "mvcc/mvccpb",
     "pkg/logutil",
+    "pkg/mock/mockserver",
     "pkg/systemd",
     "pkg/types",
     "raft",
@@ -551,6 +552,7 @@
     "github.com/opencord/voltha-protos/go/openolt",
     "github.com/opencord/voltha-protos/go/tech_profile",
     "github.com/opencord/voltha-protos/go/voltha",
+    "go.etcd.io/etcd/pkg/mock/mockserver",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/metadata",
