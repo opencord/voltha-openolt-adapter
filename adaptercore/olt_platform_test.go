@@ -217,33 +217,35 @@ func TestExtractAccessFromFlow(t *testing.T) {
 		outPort uint32
 	}
 	tests := []struct {
-		name  string
-		args  args
-		want  uint32
-		want1 uint32
-		want2 uint32
-		want3 uint32
+		name   string
+		args   args
+		port   uint32
+		IntfID uint32
+		onuID  uint32
+		uniID  uint32
 	}{
 		// TODO: Add test cases.
-		{"ExtractAccessFromFlow-1", args{inPort: 10, outPort: 65536}, 10, 0, 0, 10},
+		{"ExtractAccessFromFlow-1", args{inPort: 100, outPort: 65536}, 100, 0, 6, 4},
+		{"ExtractAccessFromFlow-1", args{inPort: 65536, outPort: 10}, 10, 0, 0, 10},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1, got2, got3 := ExtractAccessFromFlow(tt.args.inPort, tt.args.outPort)
-			if got != tt.want {
-				t.Errorf("ExtractAccessFromFlow() got = %v, want %v", got, tt.want)
+			if got != tt.port {
+				t.Errorf("ExtractAccessFromFlow() got = %v, want %v", got, tt.port)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("ExtractAccessFromFlow() got1 = %v, want %v", got1, tt.want1)
+			if got1 != tt.IntfID {
+				t.Errorf("ExtractAccessFromFlow() got1 = %v, want %v", got1, tt.IntfID)
 			}
-			if got2 != tt.want2 {
-				t.Errorf("ExtractAccessFromFlow() got2 = %v, want %v", got2, tt.want2)
+			if got2 != tt.onuID {
+				t.Errorf("ExtractAccessFromFlow() got2 = %v, want %v", got2, tt.onuID)
 			}
-			if got3 != tt.want3 {
-				t.Errorf("ExtractAccessFromFlow() got3 = %v, want %v", got3, tt.want3)
+			if got3 != tt.uniID {
+				t.Errorf("ExtractAccessFromFlow() got3 = %v, want %v", got3, tt.uniID)
 			}
 		})
 	}
+	//t.Error()
 }
 
 func TestIsUpstream(t *testing.T) {
@@ -302,6 +304,7 @@ func TestFlowExtractInfo(t *testing.T) {
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(2),
+			fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2)),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
 			fu.EthType(2048),
 		},
@@ -332,7 +335,7 @@ func TestFlowExtractInfo(t *testing.T) {
 		{"FlowExtractInfo-1", args{flow: ofpstats, flowDirection: "upstream"}, 2, 0, 0, 2, 0, 0, false},
 
 		// Negative Testcases
-		{"FlowExtractInfo-2", args{flow: ofpstats, flowDirection: "downstream"}, 0, 0, 0, 0, 0, 0, true},
+		{"FlowExtractInfo-2", args{flow: ofpstats, flowDirection: "downstream"}, 1, 0, 0, 1, 2, 2048, false},
 		{"FlowExtractInfo-3", args{flow: nil, flowDirection: "downstream"}, 0, 0, 0, 0, 0, 0, true},
 		{"FlowExtractInfo-4", args{flow: &ofp.OfpFlowStats{}, flowDirection: "downstream"}, 0, 0, 0, 0, 0, 0, true},
 	}
