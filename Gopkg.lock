@@ -281,19 +281,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ab16e5cb98bf2b6efcfd927e9cb737b7243014600ebcfbe8786f2e4ad2227ac1"
+  digest = "1:939c523be7f72d5410ed92c5ddd9195f438d5526fbefdd5f0cc3a5b9eb554630"
   name = "go.etcd.io/etcd"
   packages = [
     "auth/authpb",
     "clientv3",
     "clientv3/balancer",
+    "clientv3/balancer/connectivity",
     "clientv3/balancer/picker",
     "clientv3/balancer/resolver/endpoint",
     "clientv3/concurrency",
+    "clientv3/credentials",
     "etcdserver/api/v3rpc/rpctypes",
     "etcdserver/etcdserverpb",
     "mvcc/mvccpb",
     "pkg/logutil",
+    "pkg/mock/mockserver",
     "pkg/systemd",
     "pkg/types",
     "raft",
@@ -303,7 +306,7 @@
     "raft/tracker",
   ]
   pruneopts = "UT"
-  revision = "f498392ca712f854566361e1107d7211adc392b9"
+  revision = "3712a5d045603013f2ea97ba0fca4eb7daa3a2e5"
 
 [[projects]]
   digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
@@ -410,7 +413,7 @@
   revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
-  digest = "1:931727c62baa7a9958acac5d712ae9cc0ea3ff86a664b560febf4f4b0677ee28"
+  digest = "1:cf01ae0753310464677058b125fa31e74fd943781782ada503180ad784fc83d3"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -425,7 +428,6 @@
     "encoding",
     "encoding/proto",
     "grpclog",
-    "health/grpc_health_v1",
     "internal",
     "internal/backoff",
     "internal/balancerload",
@@ -550,6 +552,7 @@
     "github.com/opencord/voltha-protos/go/openolt",
     "github.com/opencord/voltha-protos/go/tech_profile",
     "github.com/opencord/voltha-protos/go/voltha",
+    "go.etcd.io/etcd/pkg/mock/mockserver",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/metadata",
