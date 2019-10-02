@@ -22,6 +22,30 @@
       "revId": "820d54bcd8982e7b9ac1dd384b38abd43abebdc1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bee53719_5bcaba9e",
+        "filename": "main_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-10-02T14:53:53Z",
+      "side": 1,
+      "message": "Is this an issue than needs to be resolved?",
+      "parentUuid": "0b1e79a0_1dede656",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 18
+      },
+      "revId": "820d54bcd8982e7b9ac1dd384b38abd43abebdc1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
