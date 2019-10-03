@@ -1394,10 +1394,10 @@ func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum st
 func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gemPort uint32) {
 	onuIDkey := onuIDKey{intfID: intfID, onuID: onuID}
 	if val, ok := f.onuIds[onuIDkey]; ok {
-		onuInfo := val
+		//onuInfo := val
 		gemportKey := gemPortKey{intfID: intfID, gemPort: gemPort}
 		f.onuGemPortIds[gemportKey] = onuInfo
-		log.Debugw("Cached Gemport to Onuinfo map", log.Fields{"GemPort": gemPort, "intfId": onuInfo.intfID, "onuId": onuInfo.onuID})
+		log.Debugw("Cached Gemport to Onuinfo map", log.Fields{"GemPort": gemPort, "intfId": val.intfID, "onuId": val.onuID})
 		return
 	}
 	log.Errorw("OnuInfo not found", log.Fields{"intfId": intfID, "onuId": onuID, "gemPort": gemPort})
