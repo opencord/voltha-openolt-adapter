@@ -120,29 +120,29 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		flowMetadata *voltha.FlowMetadata
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name       string
+		schedQueue schedQueue
+		wantErr    bool
 	}{
 		// TODO: Add test cases.
-		{"CreateSchedulerQueues-1", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 1, flowMetadata: flowmetadata}, false},
-		{"CreateSchedulerQueues-2", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 1, flowMetadata: flowmetadata}, false},
-		{"CreateSchedulerQueues-3", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 2, flowMetadata: flowmetadata}, true},
-		{"CreateSchedulerQueues-4", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 2, flowMetadata: flowmetadata}, true},
-		{"CreateSchedulerQueues-5", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 2, OnuID: 2, UniID: 2, UniPort: 2, TpInst: tprofile, MeterID: 2, flowMetadata: flowmetadata}, true},
-		{"CreateSchedulerQueues-6", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 2, OnuID: 2, UniID: 2, UniPort: 2, TpInst: tprofile2, MeterID: 2, flowMetadata: flowmetadata}, true},
-		{"CreateSchedulerQueues-13", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 1, flowMetadata: flowmetadata}, false},
+		{"CreateSchedulerQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 1, flowmetadata}, false},
+		{"CreateSchedulerQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 1, flowmetadata}, false},
+		{"CreateSchedulerQueues-3", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 2, flowmetadata}, true},
+		{"CreateSchedulerQueues-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 2, flowmetadata}, true},
+		{"CreateSchedulerQueues-5", schedQueue{tp_pb.Direction_UPSTREAM, 2, 2, 2, 64, 2, tprofile, 2, flowmetadata}, true},
+		{"CreateSchedulerQueues-6", schedQueue{tp_pb.Direction_DOWNSTREAM, 2, 2, 2, 65, 2, tprofile2, 2, flowmetadata}, true},
+		{"CreateSchedulerQueues-13", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 1, flowmetadata}, false},
 		//Negative testcases
-		{"CreateSchedulerQueues-7", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 1, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-8", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 0, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-9", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 1, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-10", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 2, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-11", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 2, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-12", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 2}, true},
+		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 1, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-8", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 1, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-10", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 2, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 2, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-12", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 2, nil}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.CreateSchedulerQueues(tt.args.Dir, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.UniPort, tt.args.TpInst, tt.args.MeterID, tt.args.flowMetadata); (err != nil) != tt.wantErr {
+			if err := flowMgr.CreateSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.CreateSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -174,21 +174,21 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 		TpInst  *tp.TechProfile
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name       string
+		schedQueue schedQueue
+		wantErr    bool
 	}{
 		// TODO: Add test cases.
-		{"RemoveSchedulerQueues", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile}, false},
-		{"RemoveSchedulerQueues", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2}, false},
+		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
+		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
 		// negative test cases
-		{"RemoveSchedulerQueues", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2}, false},
-		{"RemoveSchedulerQueues", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2}, false},
+		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := flowMgr.RemoveSchedulerQueues(tt.args.Dir, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.UniPort, tt.args.TpInst); (err != nil) != tt.wantErr {
+			if err := flowMgr.RemoveSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.RemoveSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -373,6 +373,7 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 		onuID  uint32
 		uniID  uint32
 		sn     string
+		tpID   uint32
 	}
 	tests := []struct {
 		name    string
@@ -380,12 +381,12 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"DeleteTechProfileInstance", args{intfID: 0, onuID: 1, uniID: 1, sn: ""}, true},
+		{"DeleteTechProfileInstance", args{intfID: 0, onuID: 1, uniID: 1, sn: "", tpID: 0}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := flwMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn); (err != nil) != tt.wantErr {
+			if err := flwMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn, tt.args.tpID); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.DeleteTechProfileInstance() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
