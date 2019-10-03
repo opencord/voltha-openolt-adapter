@@ -132,7 +132,7 @@ func (kvclient *MockResKVClient) Get(key string, timeout int, lock ...bool) (*kv
 			bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DSCP_REMARK,
 				Rate: 1024, Data: &ofp.OfpMeterBandHeader_DscpRemark{DscpRemark: &ofp.OfpMeterBandDscpRemark{PrecLevel: 3}}})
 
-			sep := strings.Split(key, "/")[2]
+			sep := strings.Split(key, "/")[1]
 			val, _ := strconv.ParseInt(strings.Split(sep, ",")[1], 10, 32)
 			if uint32(val) > 1 {
 				meterConfig := &ofp.OfpMeterConfig{MeterId: uint32(val), Bands: bands}
@@ -410,15 +410,15 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 		name   string
 		fields *fields
 		args   args
-		want   uint32
+		want   []uint32
 	}{
-		{"GetCurrentAllocIDForOnu-1", getResMgr(), args{2, 2, 2}, 0},
+		{"GetCurrentAllocIDForOnu-1", getResMgr(), args{2, 2, 2}, []uint32{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetCurrentAllocIDForOnu(tt.args.intfID, tt.args.onuID, tt.args.uniID); got != tt.want {
-				t.Errorf("GetCurrentAllocIDForOnu() = %v, want %v", got, tt.want)
+			if got := RsrcMgr.GetCurrentAllocIDsForOnu(tt.args.intfID, tt.args.onuID, tt.args.uniID); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetCurrentAllocIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -547,6 +547,7 @@ func TestOpenOltResourceMgr_GetMeterIDForOnu(t *testing.T) {
 		IntfID    uint32
 		OnuID     uint32
 		UniID     uint32
+		tpID      uint32
 	}
 	tests := []struct {
 		name    string
@@ -555,15 +556,15 @@ func TestOpenOltResourceMgr_GetMeterIDForOnu(t *testing.T) {
 		want    *ofp.OfpMeterConfig
 		wantErr error
 	}{
-		{"GetMeterIDOnu", getResMgr(), args{"DOWNSTREAM", 1, 1, 1},
+		{"GetMeterIDOnu", getResMgr(), args{"DOWNSTREAM", 1, 1, 1, 64},
 			&ofp.OfpMeterConfig{}, errors.New("failed to get Meter config from kvstore for path")},
-		{"GetMeterIDOnu", getResMgr(), args{"DOWNSTREAM", 2, 2, 2},
+		{"GetMeterIDOnu", getResMgr(), args{"DOWNSTREAM", 2, 2, 2, 65},
 			&ofp.OfpMeterConfig{}, errors.New("failed to get Meter config from kvstore for path")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			got, err := RsrcMgr.GetMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID)
+			got, err := RsrcMgr.GetMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.tpID)
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) && err != nil {
 				t.Errorf("GetMeterIDForOnu() got = %v, want %v", got, tt.want)
 			}
@@ -606,10 +607,10 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 		name   string
 		fields *fields
 		args   args
-		want   uint32
+		want   []uint32
 	}{
 		{"GetTechProfileIDForOnu-1", getResMgr(), args{2, 2, 2},
-			uint32(1)},
+			[]uint32{1}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -653,6 +654,7 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 		IntfID    uint32
 		OnuID     uint32
 		UniID     uint32
+		tpID      uint32
 	}
 	tests := []struct {
 		name    string
@@ -660,13 +662,14 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"RemoveMeterIdForOnu-1", getResMgr(), args{"DOWNSTREAM", 1, 1, 1},
+		{"RemoveMeterIdForOnu-1", getResMgr(), args{"DOWNSTREAM", 1, 1, 1, 64},
 			errors.New("failed to delete meter id %s from kvstore")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.RemoveMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			if err := RsrcMgr.RemoveMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveMeterIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -678,6 +681,7 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 		IntfID uint32
 		OnuID  uint32
 		UniID  uint32
+		tpID   uint32
 	}
 	tests := []struct {
 		name    string
@@ -685,13 +689,14 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"RemoveTechProfileIDForOnu-1", getResMgr(), args{2, 2, 2},
+		{"RemoveTechProfileIDForOnu-1", getResMgr(), args{2, 2, 2, 64},
 			errors.New("failed to delete techprofile id resource %s in KV store")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.RemoveTechProfileIDForOnu(tt.args.IntfID, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			if err := RsrcMgr.RemoveTechProfileIDForOnu(tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveTechProfileIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -796,7 +801,8 @@ func TestOpenOltResourceMgr_UpdateGEMportsPonportToOnuMapOnKVStore(t *testing.T)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(tt.args.gemPorts, tt.args.PonPort, tt.args.onuID, tt.args.uniID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			if err := RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(tt.args.gemPorts, tt.args.PonPort,
+				tt.args.onuID, tt.args.uniID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateGEMportsPonportToOnuMapOnKVStore() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -809,6 +815,7 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 		IntfID      uint32
 		OnuID       uint32
 		UniID       uint32
+		tpID        uint32
 		MeterConfig *ofp.OfpMeterConfig
 	}
 	tests := []struct {
@@ -818,12 +825,13 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 		wantErr error
 	}{
 		{"UpdateMeterIDForOnu-1", getResMgr(), args{"DOWNSTREAM", 2, 2,
-			2, &ofp.OfpMeterConfig{}}, errors.New("failed to get Meter config from kvstore for path")},
+			2, 64, &ofp.OfpMeterConfig{}}, errors.New("failed to get Meter config from kvstore for path")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.MeterConfig); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			if err := RsrcMgr.UpdateMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+				tt.args.tpID, tt.args.MeterConfig); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateMeterIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
 		})

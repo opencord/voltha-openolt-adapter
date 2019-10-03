@@ -83,7 +83,7 @@ func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvsto
 			bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DSCP_REMARK,
 				Rate: 1024, Data: &ofp.OfpMeterBandHeader_DscpRemark{DscpRemark: &ofp.OfpMeterBandDscpRemark{PrecLevel: 3}}})
 
-			sep := strings.Split(key, "/")[2]
+			sep := strings.Split(key, "/")[1]
 			val, _ := strconv.ParseInt(strings.Split(sep, ",")[1], 10, 32)
 			if uint32(val) > 1 {
 				meterConfig := &ofp.OfpMeterConfig{MeterId: uint32(val), Bands: bands}
