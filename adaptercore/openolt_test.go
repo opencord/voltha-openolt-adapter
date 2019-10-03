@@ -730,9 +730,9 @@ func TestOpenOLT_Suppress_alarm(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"supress_alarm-1", fields{}, args{}, errors.New("unImplemented")},
-		{"supress_alarm-2", fields{}, args{}, errors.New("unImplemented")},
-		{"supress_alarm-3", fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_alarm-1", fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_alarm-2", fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_alarm-3", fields{}, args{}, errors.New("unImplemented")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
