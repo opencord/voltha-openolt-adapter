@@ -1394,10 +1394,10 @@ func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum st
 func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gemPort uint32) {
 	onuIDkey := onuIDKey{intfID: intfID, onuID: onuID}
 	if val, ok := f.onuIds[onuIDkey]; ok {
-		onuInfo := val
+		onuInf := val
 		gemportKey := gemPortKey{intfID: intfID, gemPort: gemPort}
-		f.onuGemPortIds[gemportKey] = onuInfo
-		log.Debugw("Cached Gemport to Onuinfo map", log.Fields{"GemPort": gemPort, "intfId": onuInfo.intfID, "onuId": onuInfo.onuID})
+		f.onuGemPortIds[gemportKey] = onuInf
+		log.Debugw("Cached Gemport to Onuinfo map", log.Fields{"GemPort": gemPort, "intfId": onuInf.intfID, "onuId": onuInf.onuID})
 		return
 	}
 	log.Errorw("OnuInfo not found", log.Fields{"intfId": intfID, "onuId": onuID, "gemPort": gemPort})
@@ -1409,14 +1409,14 @@ func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gem
 func (f *OpenOltFlowMgr) getOnuIDfromGemPortMap(serialNumber string, intfID uint32, gemPortID uint32) (uint32, error) {
 	log.Debugw("Getting ONU ID from GEM port and PON port", log.Fields{"serialNumber": serialNumber, "intfId": intfID, "gemPortId": gemPortID})
 	if serialNumber != "" {
-		if onuInfo, ok := f.onuSerialNumbers[serialNumber]; ok {
-			return onuInfo.onuID, nil
+		if onuInf, ok := f.onuSerialNumbers[serialNumber]; ok {
+			return onuInf.onuID, nil
 		}
 	} else {
 		gemportKey := gemPortKey{intfID: intfID, gemPort: gemPortID}
-		if onuInfo, ok := f.onuGemPortIds[gemportKey]; ok {
-			log.Debugw("Retrieved onu info from access", log.Fields{"intfId": intfID, "gemPortId": gemPortID, "onuId": onuInfo.onuID})
-			return onuInfo.onuID, nil
+		if onuInf, ok := f.onuGemPortIds[gemportKey]; ok {
+			log.Debugw("Retrieved onu info from access", log.Fields{"intfId": intfID, "gemPortId": gemPortID, "onuId": onuInf.onuID})
+			return onuInf.onuID, nil
 		}
 	}
 	log.Errorw("onuid is not found", log.Fields{"serialNumber": serialNumber, "intfId": intfID, "gemPort": gemPortID})
