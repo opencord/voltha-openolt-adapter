@@ -1115,7 +1115,7 @@ func (dh *DeviceHandler) clearUNIData(onu *OnuDevice) error {
 		uniID = UniIDFromPortNum(port)
 		log.Debugw("clearing-resource-data-for-uni-port", log.Fields{"port": port, "uniID": uniID})
 		/* Delete tech-profile instance from the KV store */
-		if err = dh.flowMgr.DeleteTechProfileInstance(onu.intfID, onu.onuID, uniID, onu.serialNumber); err != nil {
+		if err = dh.flowMgr.DeleteTechProfileInstances(onu.intfID, onu.onuID, uniID, onu.serialNumber); err != nil {
 			log.Debugw("Failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
 		}
 		log.Debugw("Deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
@@ -1124,18 +1124,21 @@ func (dh *DeviceHandler) clearUNIData(onu *OnuDevice) error {
 			dh.resourceMgr.FreeFlowID(onu.intfID, int32(onu.onuID), int32(uniID), flowID)
 		}
 		dh.resourceMgr.FreePONResourcesForONU(onu.intfID, onu.onuID, uniID)
-		if err = dh.resourceMgr.RemoveTechProfileIDForOnu(onu.intfID, onu.onuID, uniID); err != nil {
+		if err = dh.resourceMgr.RemoveTechProfileIDsForOnu(onu.intfID, onu.onuID, uniID); err != nil {
 			log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
 		}
 		log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
-		if err = dh.resourceMgr.RemoveMeterIDForOnu("upstream", onu.intfID, onu.onuID, uniID); err != nil {
-			log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(onu.intfID, onu.onuID, uniID)
+		for _, tpID := range tpIDList {
+			if err = dh.resourceMgr.RemoveMeterIDForOnu("upstream", onu.intfID, onu.onuID, uniID, tpID); err != nil {
+				log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+			if err = dh.resourceMgr.RemoveMeterIDForOnu("downstream", onu.intfID, onu.onuID, uniID, tpID); err != nil {
+				log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+			}
+			log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
 		}
-		log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
-		if err = dh.resourceMgr.RemoveMeterIDForOnu("downstream", onu.intfID, onu.onuID, uniID); err != nil {
-			log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
-		}
-		log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
 	}
 	return nil
 }
