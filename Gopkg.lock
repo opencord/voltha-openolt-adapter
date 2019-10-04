@@ -227,7 +227,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9302a6372545bf96d2aaa1f6ce2eb9f6bf815f582bd63753cc378de6405f85a0"
+  digest = "1:955257b92eafddae06807b037b66c0bbe34f3eb828dce0b7424e85d1270719ba"
   name = "github.com/opencord/voltha-go"
   packages = [
     "adapters",
@@ -242,10 +242,10 @@
     "rw_core/utils",
   ]
   pruneopts = "UT"
-  revision = "4c9e559d974d5a8cf30e9ba6425547303b9a5d0d"
+  revision = "676f0ddf24b3d5be9bdcadd89f2c8cc503468df8"
 
 [[projects]]
-  digest = "1:78a853c38b4935f01a99fbb41edbb4382a23586f929ecf02dd80d4452f2e3c0d"
+  digest = "1:bc21a70b7c12a8d8c2b008d2d61a313bf4ed8f021be84d815f744a869e69c96f"
   name = "github.com/opencord/voltha-protos"
   packages = [
     "go/common",
@@ -257,8 +257,8 @@
     "go/voltha",
   ]
   pruneopts = "UT"
-  revision = "792553b747df7f751d864f7c638aa5b667c0993e"
-  version = "1.0.0"
+  revision = "b6b797cceae987556bc705acc6273b1c7e43ce05"
+  version = "v1.0.3"
 
 [[projects]]
   digest = "1:f690a0a27cefae695fa9587aa3ed23652e593be1d98b35f8184d10bccec30444"
@@ -452,14 +452,6 @@
   pruneopts = "UT"
   revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
   version = "v1.22.0"
-
-[[projects]]
-  digest = "1:b449dbaada891dc97f016bc3519bb1af0e1a4296828f7a560a0ba47ea75f20bb"
-  name = "gopkg.in/Shopify/sarama.v1"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "dde3ddda8b4b3a594690086725799ab1573bb895"
-  version = "v1.23.0"
 
 [[projects]]
   digest = "1:c902038ee2d6f964d3b9f2c718126571410c5d81251cbab9fe58abd37803513c"
