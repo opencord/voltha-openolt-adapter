@@ -124,6 +124,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	ep := &mocks.MockEventProxy{}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
+	dh.nniIntfID = 1
 	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: nil, Model: "openolt", DeviceId: dh.deviceID}
 	dh.resourceMgr = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf}
 	dh.flowMgr = NewFlowManager(dh, dh.resourceMgr)
