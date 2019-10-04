@@ -18,24 +18,28 @@
 package adaptercore
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/opencord/voltha-protos/go/voltha"
 
 	"github.com/opencord/voltha-go/common/log"
 	tp "github.com/opencord/voltha-go/common/techprofile"
 	"github.com/opencord/voltha-go/db/model"
 	fu "github.com/opencord/voltha-go/rw_core/utils"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/openolt"
 	openoltpb2 "github.com/opencord/voltha-protos/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/go/tech_profile"
-	"github.com/opencord/voltha-protos/go/voltha"
 )
+
+var flowMgr *OpenOltFlowMgr
 
 func init() {
 	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
+	flowMgr = newMockFlowmgr()
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 	ranges := []*openolt.DeviceInfo_DeviceResourceRanges{
@@ -48,6 +52,11 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 		Ranges: ranges,
 	}
 	rsrMgr := resourcemanager.NewResourceMgr("olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
+	for key := range rsrMgr.ResourceMgrs {
+		rsrMgr.ResourceMgrs[key].KVStore = &model.Backend{}
+		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}
+		rsrMgr.ResourceMgrs[key].TechProfileMgr = mocks.MockTechProfile{TpID: key}
+	}
 	return rsrMgr
 }
 
@@ -80,15 +89,16 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	packetInGemPort[packetInInfoKey{intfID: 2, onuID: 2, logicalPort: 2}] = 2
 
 	flwMgr.packetInGemPort = packetInGemPort
-	tps := make([]*tp.TechProfileMgr, len(rsrMgr.ResourceMgrs))
-	for key, val := range rsrMgr.ResourceMgrs {
-		tps[key] = val.TechProfileMgr
+	tps := make([]tp.TechProfileIf, len(rsrMgr.ResourceMgrs))
+	for key := range rsrMgr.ResourceMgrs {
+		tps[key] = mocks.MockTechProfile{TpID: key}
 	}
 	flwMgr.techprofile = tps
 	return flwMgr
 }
+
 func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
-	flowMgr := newMockFlowmgr()
+	// flowMgr := newMockFlowmgr()
 
 	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
 		ProfileType: "pt1", NumGemPorts: 1, NumTconts: 1, Version: 1,
@@ -135,7 +145,7 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		//Negative testcases
 		{"CreateSchedulerQueues-7", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 1, flowMetadata: &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-8", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 0, flowMetadata: &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-9", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 1, flowMetadata: &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-9", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 1, flowMetadata: &voltha.FlowMetadata{}}, false},
 		{"CreateSchedulerQueues-10", args{Dir: tp_pb.Direction_UPSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile, MeterID: 2, flowMetadata: &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-11", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 2, flowMetadata: &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-12", args{Dir: tp_pb.Direction_DOWNSTREAM, IntfID: 1, OnuID: 1, UniID: 1, UniPort: 1, TpInst: tprofile2, MeterID: 2}, true},
@@ -151,7 +161,7 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 
 func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 
-	flowMgr := newMockFlowmgr()
+	// flowMgr := newMockFlowmgr()
 	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
 		ProfileType: "pt1", NumGemPorts: 1, NumTconts: 1, Version: 1,
 		InstanceCtrl: tp.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
@@ -193,11 +203,12 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 			}
 		})
 	}
+
 }
 
 func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
-	flowMgr := newMockFlowmgr()
-
+	// flowMgr := newMockFlowmgr()
+	log.Debug("Info Warning Error: Starting RemoveFlow() test")
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(2),
@@ -211,6 +222,36 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		},
 	}
 	ofpstats := fu.MkFlowStat(fa)
+	ofpstats.Cookie = ofpstats.Id
+	flowMgr.storedDeviceFlows = append(flowMgr.storedDeviceFlows, *ofpstats)
+	lldpFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.EthType(0x88CC),
+			fu.TunnelId(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+	lldpofpstats := fu.MkFlowStat(lldpFa)
+	//lldpofpstats.Cookie = lldpofpstats.Id
+
+	dhcpFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.UdpSrc(67),
+			//fu.TunnelId(536870912),
+			fu.IpProto(17),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+	dhcpofpstats := fu.MkFlowStat(dhcpFa)
+	//dhcpofpstats.Cookie = dhcpofpstats.Id
 	type args struct {
 		flow *ofp.OfpFlowStats
 	}
@@ -220,22 +261,57 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"RemoveFlow", args{flow: ofpstats}},
+		{"RemoveFlow", args{flow: lldpofpstats}},
+		{"RemoveFlow", args{flow: dhcpofpstats}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			flowMgr.RemoveFlow(tt.args.flow)
 		})
 	}
+	// t.Error("=====")
 }
 
 func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
-
-	flowMgr := newMockFlowmgr()
+	// flowMgr := newMockFlowmgr()
 	kw := make(map[string]uint64)
 	kw["table_id"] = 1
 	kw["meter_id"] = 1
-	kw["write_metadata"] = 2
+	kw["write_metadata"] = 0x4000000000 // Tech-Profile-ID 64
+
+	// Upstream flow
 	fa := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65536),
+			fu.PushVlan(0x8100),
+		},
+		KV: kw,
+	}
+
+	// Downstream flow
+	fa3 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65536),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			//fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
+			fu.PopVlan(),
+			fu.Output(536870912),
+		},
+		KV: kw,
+	}
+
+	fa2 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(1000),
 			fu.Metadata_ofp(1),
@@ -249,11 +325,145 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		KV: kw,
 	}
 
+	// TODO Add LLDP flow
+	// TODO Add DHCP flow
+
+	// Flows for negative scenarios
+	// Failure in formulateActionInfoFromFlow()
+	fa4 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1000),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Experimenter(257, []byte{1, 2, 3, 4}),
+		},
+		KV: kw,
+	}
+
+	// Invalid Output
+	fa5 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1000),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(0),
+		},
+		KV: kw,
+	}
+
+	// Tech-Profile-ID update (not supported)
+	kw6 := make(map[string]uint64)
+	kw6["table_id"] = 1
+	kw6["meter_id"] = 1
+	kw6["write_metadata"] = 0x4100000000 // TpID Other than the stored one
+	fa6 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.TunnelId(16),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65535),
+		},
+		KV: kw6,
+	}
+
+	lldpFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.EthType(0x88CC),
+			fu.TunnelId(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+
+	dhcpFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.UdpSrc(67),
+			//fu.TunnelId(536870912),
+			fu.IpProto(17),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+	igmpFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.UdpSrc(67),
+			//fu.TunnelId(536870912),
+			fu.IpProto(2),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+
+	fa9 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.TunnelId(16),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanPcp(1000),
+			fu.UdpDst(65535),
+			fu.UdpSrc(536870912),
+			fu.Ipv4Dst(65535),
+			fu.Ipv4Src(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65535),
+		},
+		KV: kw6,
+	}
+
+	fa10 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65533),
+			//	fu.TunnelId(16),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanPcp(1000),
+			fu.UdpDst(65535),
+			fu.UdpSrc(536870912),
+			fu.Ipv4Dst(65535),
+			fu.Ipv4Src(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65535),
+		},
+		KV: kw6,
+	}
 	ofpstats := fu.MkFlowStat(fa)
-	fmt.Println("ofpstats ", ofpstats)
-	//ofpstats.Dat
+	ofpstats2 := fu.MkFlowStat(fa2)
+	ofpstats3 := fu.MkFlowStat(fa3)
+	ofpstats4 := fu.MkFlowStat(fa4)
+	ofpstats5 := fu.MkFlowStat(fa5)
+	ofpstats6 := fu.MkFlowStat(fa6)
+	ofpstats7 := fu.MkFlowStat(lldpFa)
+	ofpstats8 := fu.MkFlowStat(dhcpFa)
+	ofpstats9 := fu.MkFlowStat(fa9)
+	ofpstats10 := fu.MkFlowStat(fa10)
+	igmpstats := fu.MkFlowStat(igmpFa)
+
 	ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1}
-	//ofpWritemetaData := &ofp.ofp
 	flowMetadata := &voltha.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	}
@@ -267,6 +477,17 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"AddFlow", args{flow: ofpstats, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats2, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats3, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats4, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats5, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats6, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats7, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats8, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats9, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: igmpstats, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
+		//ofpstats10
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -276,7 +497,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
-	flowMgr := newMockFlowmgr()
+	// flowMgr := newMockFlowmgr()
 	type args struct {
 		intfID    uint32
 		onuID     uint32
@@ -299,7 +520,7 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
-	flowMgr := newMockFlowmgr()
+	// flowMgr := newMockFlowmgr()
 	type args struct {
 		packetIn *openoltpb2.PacketIndication
 	}
@@ -332,7 +553,7 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
-	flwMgr := newMockFlowmgr()
+	// flwMgr := newMockFlowmgr()
 
 	type args struct {
 		intfID  uint32
@@ -353,7 +574,7 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flwMgr.GetPacketOutGemPortID(tt.args.intfID, tt.args.onuID, tt.args.portNum)
+			got, err := flowMgr.GetPacketOutGemPortID(tt.args.intfID, tt.args.onuID, tt.args.portNum)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -367,7 +588,7 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
-	flwMgr := newMockFlowmgr()
+	// flwMgr := newMockFlowmgr()
 	type args struct {
 		intfID uint32
 		onuID  uint32
@@ -380,14 +601,270 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"DeleteTechProfileInstance", args{intfID: 0, onuID: 1, uniID: 1, sn: ""}, true},
+		{"DeleteTechProfileInstance", args{intfID: 0, onuID: 1, uniID: 1, sn: ""}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := flwMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn); (err != nil) != tt.wantErr {
+			if err := flowMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.DeleteTechProfileInstance() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
+	// flowMgr := newMockFlowmgr()
+	kw := make(map[string]uint64)
+	kw["table_id"] = 1
+	kw["meter_id"] = 1
+	kw["write_metadata"] = 0x4000000000 // Tech-Profile-ID 64
+
+	// Upstream flow
+	fa := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.IpProto(17), // dhcp
+			fu.VlanPcp(257),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65536),
+			fu.PushVlan(0x8100),
+		},
+		KV: kw,
+	}
+
+	// EAPOL
+	fa2 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.EthType(0x888E),
+			fu.VlanPcp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(65536),
+			fu.PushVlan(0x8100),
+		},
+		KV: kw,
+	}
+
+	// HSIA
+	fa3 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			//fu.EthType(0x8100),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0)),
+			fu.Output(65536),
+			fu.PushVlan(0x8100),
+		},
+		KV: kw,
+	}
+
+	fa4 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65535),
+			fu.Metadata_ofp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanPcp(1),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0)),
+			fu.Output(536870912),
+			fu.PopVlan(),
+		},
+		KV: kw,
+	}
+
+	classifierInfo := make(map[string]interface{})
+	actionInfo := make(map[string]interface{})
+	classifierInfo2 := make(map[string]interface{})
+	actionInfo2 := make(map[string]interface{})
+	classifierInfo3 := make(map[string]interface{})
+	actionInfo3 := make(map[string]interface{})
+	classifierInfo4 := make(map[string]interface{})
+	actionInfo4 := make(map[string]interface{})
+	flowState := fu.MkFlowStat(fa)
+	flowState2 := fu.MkFlowStat(fa2)
+	flowState3 := fu.MkFlowStat(fa3)
+	flowState4 := fu.MkFlowStat(fa4)
+	formulateClassifierInfoFromFlow(classifierInfo, flowState)
+	formulateClassifierInfoFromFlow(classifierInfo2, flowState2)
+	formulateClassifierInfoFromFlow(classifierInfo3, flowState3)
+	formulateClassifierInfoFromFlow(classifierInfo4, flowState4)
+
+	err := formulateActionInfoFromFlow(actionInfo, classifierInfo, flowState)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+
+	err = formulateActionInfoFromFlow(actionInfo2, classifierInfo2, flowState2)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+
+	err = formulateActionInfoFromFlow(actionInfo3, classifierInfo3, flowState3)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+
+	err = formulateActionInfoFromFlow(actionInfo4, classifierInfo4, flowState4)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+
+	//ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1}
+	//flowMetadata := &voltha.FlowMetadata{
+	//	Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
+	//}
+
+	TpInst := &tp.TechProfile{
+		Name:                 "Test-Tech-Profile",
+		SubscriberIdentifier: "257",
+		ProfileType:          "Mock",
+		Version:              1,
+		NumGemPorts:          4,
+		NumTconts:            1,
+		InstanceCtrl: tp.InstanceControl{
+			Onu: "1",
+			Uni: "16",
+		},
+	}
+
+	type fields struct {
+		techprofile       []tp.TechProfileIf
+		deviceHandler     *DeviceHandler
+		resourceMgr       *rsrcMgr.OpenOltResourceMgr
+		onuIds            map[onuIDKey]onuInfo
+		onuSerialNumbers  map[string]onuInfo
+		onuGemPortIds     map[gemPortKey]onuInfo
+		packetInGemPort   map[packetInInfoKey]uint32
+		storedDeviceFlows []ofp.OfpFlowStats
+	}
+	type args struct {
+		args           map[string]uint32
+		classifierInfo map[string]interface{}
+		actionInfo     map[string]interface{}
+		flow           *ofp.OfpFlowStats
+		gemPort        uint32
+		intfID         uint32
+		onuID          uint32
+		uniID          uint32
+		portNo         uint32
+		TpInst         *tp.TechProfile
+		allocID        []uint32
+		gemPorts       []uint32
+		TpID           uint32
+		uni            string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "checkAndAddFlow-1",
+			args: args{
+				args:           nil,
+				classifierInfo: classifierInfo,
+				actionInfo:     actionInfo,
+				flow:           flowState,
+				gemPort:        1,
+				intfID:         1,
+				onuID:          1,
+				uniID:          16,
+				portNo:         1,
+				TpInst:         TpInst,
+				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				gemPorts:       []uint32{1, 2, 3, 4},
+				TpID:           64,
+				uni:            "16",
+			},
+		},
+		{
+			name: "checkAndAddFlow-2",
+			args: args{
+				args:           nil,
+				classifierInfo: classifierInfo2,
+				actionInfo:     actionInfo2,
+				flow:           flowState2,
+				gemPort:        1,
+				intfID:         1,
+				onuID:          1,
+				uniID:          16,
+				portNo:         1,
+				TpInst:         TpInst,
+				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				gemPorts:       []uint32{1, 2, 3, 4},
+				TpID:           64,
+				uni:            "16",
+			},
+		},
+		{
+			name: "checkAndAddFlow-3",
+			args: args{
+				args:           nil,
+				classifierInfo: classifierInfo3,
+				actionInfo:     actionInfo3,
+				flow:           flowState3,
+				gemPort:        1,
+				intfID:         1,
+				onuID:          1,
+				uniID:          16,
+				portNo:         1,
+				TpInst:         TpInst,
+				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				gemPorts:       []uint32{1, 2, 3, 4},
+				TpID:           64,
+				uni:            "16",
+			},
+		},
+		{
+			name: "checkAndAddFlow-4",
+			args: args{
+				args:           nil,
+				classifierInfo: classifierInfo4,
+				actionInfo:     actionInfo4,
+				flow:           flowState4,
+				gemPort:        1,
+				intfID:         1,
+				onuID:          1,
+				uniID:          16,
+				portNo:         1,
+				TpInst:         TpInst,
+				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				gemPorts:       []uint32{1, 2, 3, 4},
+				TpID:           64,
+				uni:            "16",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			flowMgr.checkAndAddFlow(tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow, tt.args.gemPort,
+				tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.portNo, tt.args.TpInst, tt.args.allocID, tt.args.gemPorts,
+				tt.args.TpID, tt.args.uni)
 		})
 	}
 }

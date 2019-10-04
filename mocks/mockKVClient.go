@@ -23,8 +23,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/opencord/voltha-go/common/log"
+	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
+
 	"github.com/opencord/voltha-go/db/kvstore"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
+	openolt "github.com/opencord/voltha-protos/go/openolt"
 )
 
 const (
@@ -32,6 +36,16 @@ const (
 	MeterConfig = "meter_id"
 	// TpIDPathSuffix to extract Techprofile
 	TpIDPathSuffix = "tp_id"
+	// FlowIDpool to extract Flow ids
+	FlowIDpool = "flow_id_pool"
+	// FlowIDs to extract flow_ids
+	FlowIDs = "flow_ids"
+	// FlowIDInfo  to extract flowId info
+	FlowIDInfo = "flow_id_info"
+	// GemportIDs to gemport_ids
+	GemportIDs = "gemport_ids"
+	// AllocIDs to extract alloc_ids
+	AllocIDs = "alloc_ids"
 )
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -50,8 +64,17 @@ func (kvclient *MockKVClient) List(key string, timeout int, lock ...bool) (map[s
 
 // Get mock function implementation for KVClient
 func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvstore.KVPair, error) {
+	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
-
+		log.Debug("Warning Key Not Blank")
+		if strings.Contains(key, "meter_id/{0,62,8}/{upstream}") {
+			meterConfig := ofp.OfpMeterConfig{
+				Flags:   0,
+				MeterId: 1,
+			}
+			str, _ := json.Marshal(meterConfig)
+			return kvstore.NewKVPair(key, string(str), "mock", 3000, 1), nil
+		}
 		if strings.Contains(key, MeterConfig) {
 			var bands []*ofp.OfpMeterBandHeader
 			bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DSCP_REMARK,
@@ -60,15 +83,23 @@ func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvsto
 			bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DSCP_REMARK,
 				Rate: 1024, Data: &ofp.OfpMeterBandHeader_DscpRemark{DscpRemark: &ofp.OfpMeterBandDscpRemark{PrecLevel: 3}}})
 
-			//	bands = append(bands, &ofp.OfpMeterBandHeader{})
-			// Data: &ofp.OfpMeterBandHeader_Drop{Drop: &ofp.OfpMeterBandDrop{}}
 			sep := strings.Split(key, "/")[2]
 			val, _ := strconv.ParseInt(strings.Split(sep, ",")[1], 10, 32)
 			if uint32(val) > 1 {
 				meterConfig := &ofp.OfpMeterConfig{MeterId: uint32(val), Bands: bands}
 				str, _ := json.Marshal(meterConfig)
-				//json.marshall()
-				return kvstore.NewKVPair(key, string(str), "mock", 3000, 1), nil
+
+				return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+			}
+
+			if strings.Contains(key, "meter_id/{1,1,1}/{downstream}") {
+
+				band1 := &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 1000, BurstSize: 5000}
+				band2 := &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 2000, BurstSize: 5000}
+				bands := []*ofp.OfpMeterBandHeader{band1, band2}
+				ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1, Bands: bands}
+				str, _ := json.Marshal(ofpMeterConfig)
+				return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 			}
 			if uint32(val) == 1 {
 				return nil, nil
@@ -76,6 +107,43 @@ func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvsto
 			return nil, errors.New("invalid meter")
 		}
 		if strings.Contains(key, TpIDPathSuffix) {
+			str, _ := json.Marshal(64)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, FlowIDpool) {
+			log.Debug("Error Error Error Key:", FlowIDpool)
+			data := make(map[string]interface{})
+			data["pool"] = "1024"
+			data["start_idx"] = 1
+			data["end_idx"] = 1024
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, FlowIDs) {
+			data := []uint32{1, 2}
+			log.Debug("Error Error Error Key:", FlowIDs)
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, FlowIDInfo) {
+
+			data := []resourcemanager.FlowInfo{
+				{
+					Flow:            &openolt.Flow{FlowId: 1, OnuId: 1, UniId: 1, GemportId: 1},
+					FlowStoreCookie: uint64(48132224281636694),
+				},
+			}
+			log.Debug("Error Error Error Key:", FlowIDs)
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, GemportIDs) {
+			log.Debug("Error Error Error Key:", GemportIDs)
+			str, _ := json.Marshal(1)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, AllocIDs) {
+			log.Debug("Error Error Error Key:", AllocIDs)
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
