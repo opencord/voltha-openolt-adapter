@@ -161,7 +161,7 @@ type packetInInfoKey struct {
 
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
 type OpenOltFlowMgr struct {
-	techprofile       []*tp.TechProfileMgr
+	techprofile       []tp.TechProfileIf
 	deviceHandler     *DeviceHandler
 	resourceMgr       *rsrcMgr.OpenOltResourceMgr
 	onuIds            map[onuIDKey]onuInfo       //OnuId -> OnuInfo
@@ -177,7 +177,7 @@ func NewFlowManager(dh *DeviceHandler, rsrcMgr *rsrcMgr.OpenOltResourceMgr) *Ope
 	var flowMgr OpenOltFlowMgr
 	flowMgr.deviceHandler = dh
 	flowMgr.resourceMgr = rsrcMgr
-	flowMgr.techprofile = make([]*tp.TechProfileMgr, MaxPonPorts)
+	flowMgr.techprofile = make([]tp.TechProfileIf, MaxPonPorts)
 	if err := flowMgr.populateTechProfilePerPonPort(); err != nil {
 		log.Error("Error while populating tech profile mgr\n")
 		return nil

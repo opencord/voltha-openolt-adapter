@@ -80,9 +80,9 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	packetInGemPort[packetInInfoKey{intfID: 2, onuID: 2, logicalPort: 2}] = 2
 
 	flwMgr.packetInGemPort = packetInGemPort
-	tps := make([]*tp.TechProfileMgr, len(rsrMgr.ResourceMgrs))
-	for key, val := range rsrMgr.ResourceMgrs {
-		tps[key] = val.TechProfileMgr
+	tps := make([]tp.TechProfileIf, len(rsrMgr.ResourceMgrs))
+	for key := range rsrMgr.ResourceMgrs {
+		tps[key] = &mocks.MockTechprofile{TpID: key}
 	}
 	flwMgr.techprofile = tps
 	return flwMgr
