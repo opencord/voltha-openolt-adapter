@@ -311,7 +311,7 @@ func (dh *DeviceHandler) readIndications() {
 
 func (dh *DeviceHandler) handleOltIndication(oltIndication *oop.OltIndication) {
 	raisedTs := time.Now().UnixNano()
-	if oltIndication.OperState == "up" {
+	if oltIndication.OperState == "up" && dh.transitionMap.currentDeviceState != deviceStateUp {
 		dh.transitionMap.Handle(DeviceUpInd)
 	} else if oltIndication.OperState == "down" {
 		dh.transitionMap.Handle(DeviceDownInd)
