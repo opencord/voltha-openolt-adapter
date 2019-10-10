@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b7b901d_8d460996",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "May not be necessary to pass the duplicate params again. The intfID, onuID, uniID etc. are already passed in args map.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7846ee2c_fd581611",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1215,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "Remove duplicate \u0027found\u0027",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1f0f596_cbc2ab49",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "Can you please elaborate which case are you addressing here? Why this special handling is needed.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1de9b58_326558d5",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1252,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "It is not clear to me why TP ID should be removed for a ONU here. There my be other flows still for the ONU.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d43c9f85_7460ca2a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "The \u0027updatedFlows\u0027 is only for one flow_id. But there could many other flows for the ONU. But we cleaning up everything here.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d12164f_a7aae641",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-10T06:59:11Z",
+      "side": 1,
+      "message": "You should remove the below comment",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
