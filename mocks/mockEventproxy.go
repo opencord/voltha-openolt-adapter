@@ -35,3 +35,11 @@ func (me *MockEventProxy) SendDeviceEvent(deviceEvent *voltha.DeviceEvent, categ
 	}
 	return nil
 }
+
+func (me *MockEventProxy) SendKpiEvent(deviceEvent *voltha.KpiEvent2, category voltha.EventCategory_EventCategory,
+	subCategory voltha.EventSubCategory_EventSubCategory, raisedTs int64) error {
+	if raisedTs == 0 {
+		return errors.New("raisedTS cannot be zero")
+	}
+	return nil
+}
