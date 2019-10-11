@@ -1302,6 +1302,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 
 	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[Output]})
 	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
+
 	if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == LldpEthType {
 			log.Info("Adding LLDP flow")
@@ -1320,6 +1321,9 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 			}
 		}
 	}
+
+	f.deviceHandler.AddUniPortToOnu(intfID, onuID, portNo)
+
 	/* Metadata 8 bytes:
 	    Most Significant 2 Bytes = Inner VLAN
 	    Next 2 Bytes = Tech Profile ID(TPID)
