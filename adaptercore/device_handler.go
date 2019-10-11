@@ -35,6 +35,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	"github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-protos/go/common"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
@@ -76,6 +77,9 @@ type DeviceHandler struct {
 	discOnus      map[string]bool
 	onus          map[string]*OnuDevice
 	nniIntfID     int
+	portStats     *OpenOltStatisticsMgr
+	metrics       *pmmetrics.PmMetrics
+	stopCollector chan bool
 }
 
 //OnuDevice represents ONU related info
@@ -87,6 +91,17 @@ type OnuDevice struct {
 	intfID        uint32
 	proxyDeviceID string
 	uniPorts      map[uint32]struct{}
+}
+
+var pmNames = []string{
+	"rx_bytes",
+	"rx_packets",
+	"rx_mcast_packets",
+	"rx_bcast_packets",
+	"tx_bytes",
+	"tx_packets",
+	"tx_mcast_packets",
+	"tx_bcast_packets",
 }
 
 //NewOnuDevice creates a new Onu Device
@@ -122,7 +137,8 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	// when the first IntfOperInd with status as "up" is received for
 	// any one of the available NNI port on the OLT device.
 	dh.nniIntfID = -1
-
+	dh.stopCollector = make(chan bool)
+	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -360,15 +376,14 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 		go dh.handlePacketIndication(pktInd)
 	case *oop.Indication_PortStats:
 		portStats := indication.GetPortStats()
-		log.Infow("Received port stats indication", log.Fields{"PortStats": portStats})
+		go dh.portStats.PortStatisticsIndication(portStats, dh.resourceMgr.DevInfo.GetPonPorts())
 	case *oop.Indication_FlowStats:
 		flowStats := indication.GetFlowStats()
 		log.Infow("Received flow stats", log.Fields{"FlowStats": flowStats})
 	case *oop.Indication_AlarmInd:
 		alarmInd := indication.GetAlarmInd()
 		log.Infow("Received alarm indication ", log.Fields{"AlarmInd": alarmInd})
-		dh.eventMgr.ProcessEvents(alarmInd, dh.deviceID, raisedTs)
-
+		go dh.eventMgr.ProcessEvents(alarmInd, dh.deviceID, raisedTs)
 	}
 }
 
@@ -523,6 +538,8 @@ func (dh *DeviceHandler) doStateConnected() error {
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
 	dh.eventMgr = NewEventMgr(dh.EventProxy, dh)
+	// Stats config for new device
+	dh.portStats = NewOpenOltStatsMgr(dh)
 
 	// Start reading indications
 	go dh.readIndications()
@@ -574,11 +591,52 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 	return deviceInfo, nil
 }
 
+func startCollector(dh *DeviceHandler) {
+	// Initial delay for OLT initialization
+	time.Sleep(1 * time.Minute)
+	log.Debugf("Starting-Collector")
+	context := make(map[string]string)
+	for {
+		select {
+		case <-dh.stopCollector:
+			log.Debugw("Stopping-Collector-for-OLT", log.Fields{"deviceID:": dh.deviceID})
+			close(dh.stopCollector)
+			return
+		default:
+			freq := dh.metrics.ToPmConfigs().DefaultFreq
+			time.Sleep(time.Duration(freq) * time.Second)
+			context["oltid"] = dh.deviceID
+			context["devicetype"] = dh.deviceType
+			// NNI Stats
+			cmnni := dh.portStats.collectNNIMetrics(uint32(0))
+			log.Debugf("Collect-NNI-Metrics %v", cmnni)
+			go dh.portStats.publishMetrics("NNIStats", cmnni, uint32(0), context, dh.deviceID)
+			log.Debugf("Publish-NNI-Metrics")
+			// PON Stats
+			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
+			for i := uint32(0); i < NumPonPORTS; i++ {
+				cmpon := dh.portStats.collectPONMetrics(i)
+				log.Debugf("Collect-PON-Metrics %v", cmpon)
+
+				go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
+				log.Debugf("Publish-PON-Metrics")
+			}
+		}
+	}
+}
+
 //AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(device *voltha.Device) {
 	dh.transitionMap = NewTransitionMap(dh)
 	log.Infow("Adopt_device", log.Fields{"deviceID": device.Id, "Address": device.GetHostAndPort()})
 	dh.transitionMap.Handle(DeviceInit)
+
+	// Now, set the initial PM configuration for that device
+	if err := dh.coreProxy.DevicePMConfigUpdate(nil, dh.metrics.ToPmConfigs()); err != nil {
+		log.Errorw("error-updating-PMs", log.Fields{"deviceId": device.Id, "error": err})
+	}
+
+	go startCollector(dh)
 }
 
 //GetOfpDeviceInfo Gets the Ofp information of the given device
@@ -901,7 +959,7 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
-				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id, "Error": err})
+				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
 			return
 		}
 	} else {
@@ -1174,6 +1232,8 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 		delete(dh.onus, onu)
 	}
 	log.Debug("Removed-device-from-Resource-manager-KV-store")
+	// Stop the Stats collector
+	dh.stopCollector <- true
 	//Reset the state
 	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
 		log.Errorw("Failed-to-reboot-olt ", log.Fields{"err": err})
