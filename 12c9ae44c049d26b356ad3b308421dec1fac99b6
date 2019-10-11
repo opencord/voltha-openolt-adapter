@@ -33,6 +33,24 @@
       "revId": "12c9ae44c049d26b356ad3b308421dec1fac99b6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc262675_8e9e4738",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-11T07:29:02Z",
+      "side": 1,
+      "message": "To substantiate more on my previous comment, the uni port_no is irrelevant for trap flows out of the NNI. So, the AddUniPortToOnu should be moved to point where we are done handling trap-nni flows.",
+      "parentUuid": "2c5217df_a58e44da",
+      "revId": "12c9ae44c049d26b356ad3b308421dec1fac99b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
