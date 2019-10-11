@@ -193,3 +193,8 @@ func (mcp *MockCoreProxy) SendPacketIn(ctx context.Context, deviceID string, por
 	}
 	return nil
 }
+
+// DevicePMConfigUpdate implements mock DevicePMConfigUpdate
+func (mcp *MockCoreProxy) DevicePMConfigUpdate(ctx context.Context, pmConfigs *voltha.PmConfigs) error {
+	return nil
+}
