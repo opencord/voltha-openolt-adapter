@@ -194,10 +194,15 @@ func (mcp *MockCoreProxy) SendPacketIn(ctx context.Context, deviceID string, por
 	return nil
 }
 
+<<<<<<< bef8943874760940dd2a2b5c67da31df618b5b16
 // DeviceReasonUpdate  implements mock SendPacketIn
 func (mcp *MockCoreProxy) DeviceReasonUpdate(ctx context.Context, deviceID string, reason string) error {
 	if deviceID == "" {
 		return errors.New("no Device ID")
 	}
+=======
+// DevicePMConfigUpdate implements mock DevicePMConfigUpdate
+func (mcp *MockCoreProxy) DevicePMConfigUpdate(ctx context.Context, pmConfigs *voltha.PmConfigs) error {
+>>>>>>> VOL-1381 and VOL-1091 Add feature to collect PMmetrics of OLT, this will collect Tx and Rx and posts to kafka. This commit is also related to changes of commit 72b25abd4e804596413558ef10f098c2262dd65d voltha-go
 	return nil
 }
