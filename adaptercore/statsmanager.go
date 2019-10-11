@@ -20,11 +20,15 @@ package adaptercore
 import (
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"github.com/opencord/voltha-protos/go/openolt"
 	"github.com/opencord/voltha-protos/go/voltha"
 )
+
+var mutex = &sync.Mutex{}
 
 // PonPort representation
 type PonPort struct {
@@ -74,7 +78,7 @@ func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *P
 	PON.IntfID = IntfID
 	PON.PortNum = PortNum
 	PON.PortID = 0
-	PON.Label = fmt.Sprintf("%s,%d", "pon-", PONID)
+	PON.Label = fmt.Sprintf("%s%d", "pon-", PONID)
 
 	PON.ONUs = make(map[uint32]interface{})
 	PON.ONUsByID = make(map[uint32]interface{})
@@ -145,7 +149,7 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 	var NNI NniPort
 
 	NNI.PortNum = PortNum
-	NNI.Name = fmt.Sprintf("%s,%d", "nni-", PortNum)
+	NNI.Name = fmt.Sprintf("%s%d", "nni-", PortNum)
 	NNI.IntfID = IntfID
 
 	NNI.RxBytes = 0
@@ -166,8 +170,8 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 // OpenOltStatisticsMgr structure
 type OpenOltStatisticsMgr struct {
 	Device         *DeviceHandler
-	NorthBoundPort map[uint32]NniPort
-	SouthBoundPort map[uint32]PonPort
+	NorthBoundPort map[uint32]*NniPort
+	SouthBoundPort map[uint32]*PonPort
 	// TODO  PMMetrics Metrics
 }
 
@@ -181,16 +185,16 @@ func NewOpenOltStatsMgr(Dev *DeviceHandler) *OpenOltStatisticsMgr {
 	// Northbound and Southbound ports
 	// added to initialize the pm_metrics
 	var Ports interface{}
-	Ports, _ = InitPorts("nni", Dev.deviceID)
-	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]NniPort)
-	Ports, _ = InitPorts("pon", Dev.deviceID)
-	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]PonPort)
-
+	Ports, _ = InitPorts("nni", Dev.deviceID, 1)
+	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]*NniPort)
+	NumPonPorts := Dev.resourceMgr.DevInfo.GetPonPorts()
+	Ports, _ = InitPorts("pon", Dev.deviceID, NumPonPorts)
+	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]*PonPort)
 	return &StatMgr
 }
 
 // InitPorts collects the port objects:  nni and pon that are updated with the current data from the OLT
-func InitPorts(Intftype string, DeviceID string) (interface{}, error) {
+func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}, error) {
 	/*
 	     This method collects the port objects:  nni and pon that are updated with the
 	     current data from the OLT
@@ -204,17 +208,17 @@ func InitPorts(Intftype string, DeviceID string) (interface{}, error) {
 	*/
 	var i uint32
 	if Intftype == "nni" {
-		NniPorts := make(map[uint32]NniPort)
-		for i = 0; i <= 1; i++ {
+		NniPorts := make(map[uint32]*NniPort)
+		for i = 0; i < numOfPorts; i++ {
 			Port := BuildPortObject(i, "nni", DeviceID).(*NniPort)
-			NniPorts[Port.IntfID] = *Port
+			NniPorts[Port.IntfID] = Port
 		}
 		return NniPorts, nil
 	} else if Intftype == "pon" {
-		PONPorts := make(map[uint32]PonPort)
-		for i = 0; i <= 16; i++ {
+		PONPorts := make(map[uint32]*PonPort)
+		for i = 0; i < numOfPorts; i++ {
 			PONPort := BuildPortObject(i, "pon", DeviceID).(*PonPort)
-			PONPorts[PONPort.IntfID] = *PONPort
+			PONPorts[PortNoToIntfID(PONPort.IntfID, voltha.Port_PON_OLT)] = PONPort
 		}
 		return PONPorts, nil
 	} else {
@@ -237,13 +241,16 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	//This builds a port object which is added to the
 	//appropriate northbound or southbound values
 	if IntfType == "nni" {
-		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_UNI)
-		return NewNniPort(PortNum, IntfID)
+		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
+		nniID := PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
+		log.Debugf("NniID %v", nniID)
+		return NewNniPort(PortNum, nniID)
 	} else if IntfType == "pon" {
 		// PON ports require a different configuration
 		//  intf_id and pon_id are currently equal.
-		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
-		PONID := IntfID
+		IntfID := IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
+		PONID := PortNoToIntfID(IntfID, voltha.Port_PON_OLT)
+		log.Debugf("PonID %v", PONID)
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
 	} else {
 		log.Errorf("Invalid type of interface %s", IntfType)
@@ -251,10 +258,114 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	}
 }
 
+// collectNNIMetrics will collect the nni port metrics
+func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]float32 {
+
+	nnival := make(map[string]float32)
+	mutex.Lock()
+	cm := StatMgr.Device.portStats.NorthBoundPort[nniID]
+	mutex.Unlock()
+	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
+
+	if metricName != nil && len(metricName) > 0 {
+		for mName := range metricName {
+			switch mName {
+			case "rx_bytes":
+				nnival["RxBytes"] = float32(cm.RxBytes)
+			case "rx_packets":
+				nnival["RxPackets"] = float32(cm.RxPackets)
+			case "rx_mcast_packets":
+				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
+			case "rx_bcast_packets":
+				nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			case "tx_bytes":
+				nnival["TxBytes"] = float32(cm.TxBytes)
+			case "tx_packets":
+				nnival["TxPackets"] = float32(cm.TxPackets)
+			case "tx_mcast_packets":
+				nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
+			case "tx_bcast_packets":
+				nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			}
+		}
+	}
+	return nnival
+}
+
+// collectPONMetrics will collect the pon port metrics
+func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]float32 {
+
+	ponval := make(map[string]float32)
+	mutex.Lock()
+	cm := StatMgr.Device.portStats.SouthBoundPort[pID]
+	mutex.Unlock()
+	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
+
+	if metricName != nil && len(metricName) > 0 {
+		for mName := range metricName {
+			switch mName {
+			case "rx_bytes":
+				ponval["RxBytes"] = float32(cm.RxBytes)
+			case "rx_packets":
+				ponval["RxPackets"] = float32(cm.RxPackets)
+			case "rx_mcast_packets":
+				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
+			case "rx_bcast_packets":
+				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			case "tx_bytes":
+				ponval["TxBytes"] = float32(cm.TxBytes)
+			case "tx_packets":
+				ponval["TxPackets"] = float32(cm.TxPackets)
+			case "tx_mcast_packets":
+				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
+			case "tx_bcast_packets":
+				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			}
+		}
+	}
+	return ponval
+}
+
+// publishMatrics will publish the pon port metrics
+func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[string]float32, portnum uint32, context map[string]string, devID string) {
+	log.Debugf("Post-%v %v", portType, val)
+
+	var metricInfo voltha.MetricInformation
+	var ke voltha.KpiEvent2
+	var volthaEventSubCatgry voltha.EventSubCategory_EventSubCategory
+
+	if portType == "NNIStats" {
+		volthaEventSubCatgry = voltha.EventSubCategory_NNI
+	} else {
+		volthaEventSubCatgry = voltha.EventSubCategory_PON
+	}
+
+	raisedTs := time.Now().UnixNano()
+	mmd := voltha.MetricMetaData{
+		Title:    portType,
+		Ts:       float64(raisedTs),
+		Context:  context,
+		DeviceId: devID,
+	}
+
+	metricInfo.Metadata = &mmd
+	metricInfo.Metrics = val
+
+	ke.SliceData = []*voltha.MetricInformation{&metricInfo}
+	ke.Type = voltha.KpiEventType_slice
+	ke.Ts = float64(time.Now().UnixNano())
+
+	if err := StatMgr.Device.EventProxy.SendKpiEvent(&ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
+		log.Errorw("Failed to send Pon stats", log.Fields{"err": err})
+	}
+
+}
+
 // PortStatisticsIndication handles the port statistics indication
-func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics) {
+func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 	log.Debugf("port-stats-collected %v", PortStats)
-	StatMgr.PortsStatisticsKpis(PortStats)
+	StatMgr.PortsStatisticsKpis(PortStats, NumPonPorts)
+	log.Infow("Received port stats indication", log.Fields{"PortStats": PortStats})
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 
@@ -265,7 +376,7 @@ func FlowStatisticsIndication(self, FlowStats *openolt.FlowStatistics) {
 }
 
 // PortsStatisticsKpis map the port stats values into a dictionary, creates the kpiEvent and then publish to Kafka
-func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.PortStatistics) {
+func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 
 	/*map the port stats values into a dictionary
 	  Create a kpoEvent and publish to Kafka
@@ -276,7 +387,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 	//var err error
 	IntfID := PortStats.IntfId
 
-	if (IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) < IntfID) &&
+	if (IntfIDToPortNo(1, voltha.Port_ETHERNET_NNI) < IntfID) &&
 		(IntfID < IntfIDToPortNo(4, voltha.Port_ETHERNET_NNI)) {
 		/*
 		   for this release we are only interested in the first NNI for
@@ -284,24 +395,45 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 		   we are not using the other 3
 		*/
 		return
-	}
-	PMData := make(map[string]uint64)
-	PMData["rx_bytes"] = PortStats.RxBytes
-	PMData["rx_packets"] = PortStats.RxPackets
-	PMData["rx_ucast_packets"] = PortStats.RxUcastPackets
-	PMData["rx_mcast_packets"] = PortStats.RxMcastPackets
-	PMData["rx_bcast_packets"] = PortStats.RxBcastPackets
-	PMData["rx_error_packets"] = PortStats.RxErrorPackets
-	PMData["tx_bytes"] = PortStats.TxBytes
-	PMData["tx_packets"] = PortStats.TxPackets
-	PMData["tx_ucast_packets"] = PortStats.TxUcastPackets
-	PMData["tx_mcast_packets"] = PortStats.TxMcastPackets
-	PMData["tx_bcast_packets"] = PortStats.TxBcastPackets
-	PMData["tx_error_packets"] = PortStats.TxErrorPackets
-	PMData["rx_crc_errors"] = PortStats.RxCrcErrors
-	PMData["bip_errors"] = PortStats.BipErrors
+	} else if IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) == IntfID {
 
-	PMData["intf_id"] = uint64(PortStats.IntfId)
+		var portNNIStat NniPort
+		portNNIStat.IntfID = IntfID
+		portNNIStat.PortNum = uint32(0)
+		portNNIStat.RxBytes = PortStats.RxBytes
+		portNNIStat.RxPackets = PortStats.RxPackets
+		portNNIStat.RxMcastPackets = PortStats.RxMcastPackets
+		portNNIStat.RxBcastPackets = PortStats.RxBcastPackets
+		portNNIStat.TxBytes = PortStats.TxBytes
+		portNNIStat.TxPackets = PortStats.TxPackets
+		portNNIStat.TxMcastPackets = PortStats.TxMcastPackets
+		portNNIStat.TxBcastPackets = PortStats.TxBcastPackets
+		mutex.Lock()
+		StatMgr.NorthBoundPort[0] = &portNNIStat
+		mutex.Unlock()
+		log.Debugf("Received-NNI-Stats: %v", StatMgr.NorthBoundPort)
+	}
+	for i := uint32(0); i < NumPonPorts; i++ {
+
+		if IntfIDToPortNo(i, voltha.Port_PON_OLT) == IntfID {
+			var portPonStat PonPort
+			portPonStat.IntfID = IntfID
+			portPonStat.PortNum = i
+			portPonStat.PONID = i
+			portPonStat.RxBytes = PortStats.RxBytes
+			portPonStat.RxPackets = PortStats.RxPackets
+			portPonStat.RxMcastPackets = PortStats.RxMcastPackets
+			portPonStat.RxBcastPackets = PortStats.RxBcastPackets
+			portPonStat.TxBytes = PortStats.TxBytes
+			portPonStat.TxPackets = PortStats.TxPackets
+			portPonStat.TxMcastPackets = PortStats.TxMcastPackets
+			portPonStat.TxBcastPackets = PortStats.TxBcastPackets
+			mutex.Lock()
+			StatMgr.SouthBoundPort[i] = &portPonStat
+			mutex.Unlock()
+			log.Debugf("Received-PON-Stats-for-Port %v : %v", i, StatMgr.SouthBoundPort[i])
+		}
+	}
 
 	/*
 	   Based upon the intf_id map to an nni port or a pon port
