@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c31bd3e8_ab51a296",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-11T07:26:35Z",
+      "side": 1,
+      "message": "Since this is an exported function, the linters expect that this function should have comments.",
+      "revId": "12c9ae44c049d26b356ad3b308421dec1fac99b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2c5217df_a58e44da",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-11T07:26:35Z",
+      "side": 1,
+      "message": "The ExtractAccessFromFlow will return invalid intfID, onuID and uniID for trap flows out of the NNI port. This critical information is probably missing in the ExtractAccessFromFlow function. If you move the AddUniPortToOnu function right after addLLDPFlow and addDHCPTrapFlowOnNNI, i.e., after line 1323 it should be fine.",
+      "revId": "12c9ae44c049d26b356ad3b308421dec1fac99b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
