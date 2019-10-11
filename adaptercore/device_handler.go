@@ -86,6 +86,7 @@ type OnuDevice struct {
 	onuID         uint32
 	intfID        uint32
 	proxyDeviceID string
+	uniPorts      []uint32
 }
 
 //NewOnuDevice creates a new Onu Device
@@ -974,6 +975,22 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 	log.Debug("Sent packet-in to core successfully")
 }
 
+func (dh *DeviceHandler) AddUniPortToOnu(intfId, onuId, uniPort uint32) {
+	onuKey := dh.formOnuKey(intfId, onuId)
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	if onuDevice, ok := dh.onus[onuKey]; ok {
+		for _, port := range onuDevice.uniPorts {
+			if port == uniPort {
+				// port already in list.
+				return
+			}
+		}
+		log.Infow("adding-uni-port", log.Fields{"port": uniPort, "intfId": intfId, "onuId": onuId})
+		onuDevice.uniPorts = append(onuDevice.uniPorts, uniPort)
+	}
+}
+
 //UpdateFlowsIncrementally updates the device flow
 func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	log.Debugw("Received-incremental-flowupdate-in-device-handler", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
@@ -1069,35 +1086,33 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	return nil
 }
 
-func (dh *DeviceHandler) clearUNIData(onu *OnuDevice, uniPorts []*voltha.Port) error {
+func (dh *DeviceHandler) clearUNIData(onu *OnuDevice) error {
 	var uniID uint32
 	var err error
-	for _, port := range uniPorts {
-		if port.Type == voltha.Port_ETHERNET_UNI {
-			uniID = UniIDFromPortNum(port.PortNo)
-			/* Delete tech-profile instance from the KV store */
-			if err = dh.flowMgr.DeleteTechProfileInstance(onu.intfID, onu.onuID, uniID, onu.serialNumber); err != nil {
-				log.Debugw("Failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
-			}
-			log.Debugw("Deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
-			flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(onu.intfID, onu.onuID, uniID)
-			for _, flowID := range flowIDs {
-				dh.resourceMgr.FreeFlowID(onu.intfID, int32(onu.onuID), int32(uniID), flowID)
-			}
-			dh.resourceMgr.FreePONResourcesForONU(onu.intfID, onu.onuID, uniID)
-			if err = dh.resourceMgr.RemoveTechProfileIDForOnu(onu.intfID, onu.onuID, uniID); err != nil {
-				log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
-			}
-			log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
-			if err = dh.resourceMgr.RemoveMeterIDForOnu("upstream", onu.intfID, onu.onuID, uniID); err != nil {
-				log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
-			}
-			log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
-			if err = dh.resourceMgr.RemoveMeterIDForOnu("downstream", onu.intfID, onu.onuID, uniID); err != nil {
-				log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
-			}
-			log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+	for _, port := range onu.uniPorts {
+		uniID = UniIDFromPortNum(port)
+		/* Delete tech-profile instance from the KV store */
+		if err = dh.flowMgr.DeleteTechProfileInstance(onu.intfID, onu.onuID, uniID, onu.serialNumber); err != nil {
+			log.Debugw("Failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
 		}
+		log.Debugw("Deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.onuID})
+		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(onu.intfID, onu.onuID, uniID)
+		for _, flowID := range flowIDs {
+			dh.resourceMgr.FreeFlowID(onu.intfID, int32(onu.onuID), int32(uniID), flowID)
+		}
+		dh.resourceMgr.FreePONResourcesForONU(onu.intfID, onu.onuID, uniID)
+		if err = dh.resourceMgr.RemoveTechProfileIDForOnu(onu.intfID, onu.onuID, uniID); err != nil {
+			log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+		}
+		log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.onuID})
+		if err = dh.resourceMgr.RemoveMeterIDForOnu("upstream", onu.intfID, onu.onuID, uniID); err != nil {
+			log.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+		}
+		log.Debugw("Removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.onuID})
+		if err = dh.resourceMgr.RemoveMeterIDForOnu("downstream", onu.intfID, onu.onuID, uniID); err != nil {
+			log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
+		}
+		log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.onuID})
 	}
 	return nil
 }
@@ -1128,6 +1143,10 @@ func (dh *DeviceHandler) clearNNIData() error {
 func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	log.Debug("Function entry delete device")
 	dh.lockDevice.Lock()
+	if dh.adminState == "deleted" {
+		dh.lockDevice.Unlock()
+		return nil
+	}
 	dh.adminState = "deleted"
 	dh.lockDevice.Unlock()
 	/* Clear the KV store data associated with the all the UNI ports
@@ -1135,14 +1154,8 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	   other pon resources like alloc_id and gemport_id
 	*/
 	for _, onu := range dh.onus {
-		childDevice, err := dh.coreProxy.GetDevice(nil, dh.deviceID, onu.deviceID)
-		if err != nil {
-			log.Debug("Failed to get onu device")
-			continue
-		}
-		uniPorts := childDevice.Ports
-		log.Debugw("onu-uni-ports", log.Fields{"onu-ports": uniPorts})
-		if err := dh.clearUNIData(onu, uniPorts); err != nil {
+		log.Debugw("onu-uni-ports", log.Fields{"onu-ports": onu.uniPorts})
+		if err := dh.clearUNIData(onu); err != nil {
 			log.Debugw("Failed to clear data for onu", log.Fields{"onu-device": onu})
 		}
 	}
@@ -1152,10 +1165,10 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	if err := dh.clearNNIData(); err != nil {
 		log.Debugw("Failed to clear data for NNI port", log.Fields{"device-id": dh.deviceID})
 	}
-	/* Clear the resource pool for each PON port*/
-	if err := dh.resourceMgr.Delete(); err != nil {
-		log.Debug("Failed-to-remove-device-from-Resource-mananger-KV-store")
-	}
+
+	/* Clear the resource pool for each PON port in the background */
+	go dh.resourceMgr.Delete()
+
 	/*Delete ONU map for the device*/
 	for onu := range dh.onus {
 		delete(dh.onus, onu)
