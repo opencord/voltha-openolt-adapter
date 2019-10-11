@@ -23,6 +23,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/opencord/voltha-go/common/pmmetrics"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/opencord/voltha-go/common/log"
@@ -43,6 +45,7 @@ func init() {
 func newMockCoreProxy() *mocks.MockCoreProxy {
 	mcp := mocks.MockCoreProxy{}
 	mcp.Devices = make(map[string]*voltha.Device)
+	var pm []*voltha.PmConfig
 	mcp.Devices["olt"] = &voltha.Device{
 
 		Id:           "olt",
@@ -61,6 +64,13 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			ChannelGroupId: 1,
 		},
 		ConnectStatus: 1,
+		PmConfigs: &voltha.PmConfigs{
+			DefaultFreq:  10,
+			Id:           "olt",
+			FreqOverride: false,
+			Grouped:      false,
+			Metrics:      pm,
+		},
 	}
 	mcp.Devices["onu1"] = &voltha.Device{
 
@@ -80,6 +90,13 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			ChannelGroupId: 1,
 		},
 		ConnectStatus: 1,
+		PmConfigs: &voltha.PmConfigs{
+			DefaultFreq:  10,
+			Id:           "olt",
+			FreqOverride: false,
+			Grouped:      false,
+			Metrics:      pm,
+		},
 	}
 	mcp.Devices["onu2"] = &voltha.Device{
 		Id:         "2",
@@ -99,6 +116,13 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			ChannelGroupId: 1,
 		},
 		ConnectStatus: 1,
+		PmConfigs: &voltha.PmConfigs{
+			DefaultFreq:  10,
+			Id:           "olt",
+			FreqOverride: false,
+			Grouped:      false,
+			Metrics:      pm,
+		},
 	}
 	return &mcp
 }
@@ -130,6 +154,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}}
 	dh.transitionMap = &TransitionMap{}
+	dh.portStats = &OpenOltStatisticsMgr{}
+	dh.metrics = &pmmetrics.PmMetrics{}
 	return dh
 }
 
@@ -701,7 +727,7 @@ func TestDeviceHandler_AdoptDevice(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"AdoptDevice-1", dh1, args{device: dh1.device}},
-		{"AdoptDevice-1", dh2, args{device: dh2.device}},
+		{"AdoptDevice-2", dh2, args{device: dh2.device}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -982,6 +1008,31 @@ func TestDeviceHandler_readIndications(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.devicehandler.readIndications()
+		})
+	}
+}
+
+func Test_startCollector(t *testing.T) {
+	type args struct {
+		dh *DeviceHandler
+	}
+	dh := newMockDeviceHandler()
+	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
+	dh.portStats.NorthBoundPort[0] = &NniPort{Name: "OLT-1"}
+	dh.portStats.SouthBoundPort = make(map[uint32]*PonPort)
+	for i := 0; i < 16; i++ {
+		dh.portStats.SouthBoundPort[uint32(i)] = &PonPort{DeviceID: "OLT-1"}
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		// TODO: Add test cases.
+		{"StartCollector-1", args{dh}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			//startCollector(tt.args.dh)
 		})
 	}
 }

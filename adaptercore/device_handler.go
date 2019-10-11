@@ -35,6 +35,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-go/adapters/adapterif"
 	"github.com/opencord/voltha-go/common/log"
+	"github.com/opencord/voltha-go/common/pmmetrics"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-protos/go/common"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
@@ -76,6 +77,8 @@ type DeviceHandler struct {
 	discOnus      map[string]bool
 	onus          map[string]*OnuDevice
 	nniIntfID     int
+	portStats     *OpenOltStatisticsMgr
+	metrics       *pmmetrics.PmMetrics
 }
 
 //OnuDevice represents ONU related info
@@ -86,6 +89,17 @@ type OnuDevice struct {
 	onuID         uint32
 	intfID        uint32
 	proxyDeviceID string
+}
+
+var pmNames = []string{
+	"rx_bytes",
+	"rx_packets",
+	"rx_mcast_packets",
+	"rx_bcast_packets",
+	"tx_bytes",
+	"tx_packets",
+	"tx_mcast_packets",
+	"tx_bcast_packets",
 }
 
 //NewOnuDevice creates a new Onu Device
@@ -121,6 +135,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	// any one of the available NNI port on the OLT device.
 	dh.nniIntfID = -1
 
+	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -358,6 +373,7 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 		go dh.handlePacketIndication(pktInd)
 	case *oop.Indication_PortStats:
 		portStats := indication.GetPortStats()
+		dh.portStats.PortStatisticsIndication(portStats)
 		log.Infow("Received port stats indication", log.Fields{"PortStats": portStats})
 	case *oop.Indication_FlowStats:
 		flowStats := indication.GetFlowStats()
@@ -521,6 +537,8 @@ func (dh *DeviceHandler) doStateConnected() error {
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
 	dh.eventMgr = NewEventMgr(dh.EventProxy, dh)
+	// Stats config for new device
+	dh.portStats = NewOpenOltStatsMgr(dh)
 
 	// Start reading indications
 	go dh.readIndications()
@@ -572,11 +590,43 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 	return deviceInfo, nil
 }
 
+func startCollector(dh *DeviceHandler) {
+	time.Sleep(1 * time.Minute)
+	log.Debugf("Starting-Collector")
+	context := make(map[string]string)
+	for {
+		freq := dh.metrics.ToPmConfigs().DefaultFreq
+		time.Sleep(time.Duration(freq) * time.Second)
+		context["oltid"] = dh.deviceID
+		context["devicetype"] = dh.deviceType
+		// NNI Stats
+		cmnni := collectNNIMetrics(dh, uint32(0))
+		log.Debugf("Collect-NNI-Metrics %v", cmnni)
+		publishNNIMetrics(cmnni, dh.EventProxy, dh.deviceID, context)
+		log.Debugf("Publish-NNI-Metrics")
+		// PON Stats
+		for i := 0; i < 16; i++ {
+			cmpon := collectPONMetrics(dh, uint32(i))
+			log.Debugf("Collect-PON-Metrics %v", cmpon)
+
+			publishPONMetrics(cmpon, dh.EventProxy, dh.deviceID, context)
+			log.Debugf("Publish-PON-Metrics")
+		}
+	}
+}
+
 //AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(device *voltha.Device) {
 	dh.transitionMap = NewTransitionMap(dh)
 	log.Infow("Adopt_device", log.Fields{"deviceID": device.Id, "Address": device.GetHostAndPort()})
 	dh.transitionMap.Handle(DeviceInit)
+
+	// Now, set the initial PM configuration for that device
+	if err := dh.coreProxy.DevicePMConfigUpdate(nil, dh.metrics.ToPmConfigs()); err != nil {
+		log.Errorw("error-updating-PMs", log.Fields{"deviceId": device.Id, "error": err})
+	}
+
+	go startCollector(dh)
 }
 
 //GetOfpDeviceInfo Gets the Ofp information of the given device
