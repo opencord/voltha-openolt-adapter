@@ -127,6 +127,17 @@ func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
 	return 0
 }
 
+//PortNoToIntfID returns portnumber derived from interfaceID
+func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
+	if (intfType) == voltha.Port_ETHERNET_NNI {
+		return (1 << 16) ^ portno
+	}
+	if (intfType) == voltha.Port_PON_OLT {
+		return (2 << 28) ^ portno
+	}
+	return 0
+}
+
 //IntfIDFromNniPortNum returns Intf ID derived from portNum
 func IntfIDFromNniPortNum(portNum uint32) uint32 {
 	return portNum & 0xFFFF
