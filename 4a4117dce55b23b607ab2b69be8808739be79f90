@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "02edbc50_71f144c4",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-14T08:55:17Z",
+      "side": 1,
+      "message": "For the TT use-case, the OLT adapter receives three flows: VOIP US DHCP, VOIP US Dataplane, and VOIP DS Dataplane. In such a case, US DHCP flow-id is different from corresponding data plane flows.  (i.e while VOIP US DHCP flow-id is 1, data plane flows are symmetric, and have the same flow-id such as 2).  \n\nLet\u0027s think about the scenario that we delete the VOIP service for a user. OLT adapter receives three flow removal requests. After the symmetric flows have been removed, I want to free the corresponding gem port, alloc-id and technology profile id for the next usage. (each service definition doesn\u0027t include DHCP flow - i.e. TT VOIP service uses DHCP but HSI doesn\u0027t). So I need to delete the related technology profile id from the technology profile list of (pon, onu, uni, tp_id). The OLT adapter can receive the US DHCP flow removal request firstly, and I don\u0027t want to release the related resources at this point.\n\nI think each different service will have a different technology_profile id for that (pon, onu, uni). So, there is no need to keep that technology profile id. The important point is here to wait until both symmetric flows (data-plane flows) are gone. So, I check the US trap-to-host flow to be sure that we don\u0027t delete the technology profile id after the trap-to-host flow is removed. I think this answer also fits the next question regarding the removal of technology profile id for an onu.  (Please note that I tested this solution for both AT\u0026T and TT use-case)",
+      "parentUuid": "e1f0f596_cbc2ab49",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1de9b58_326558d5",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
