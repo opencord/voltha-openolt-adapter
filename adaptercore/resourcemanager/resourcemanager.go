@@ -141,19 +141,22 @@ func NewResourceMgr(deviceID string, KVStoreHostPort string, kvStoreType string,
 		Pool.Start = devInfo.OnuIdStart
 		Pool.End = devInfo.OnuIdEnd
 		Pool.Sharing = openolt.DeviceInfo_DeviceResourceRanges_Pool_DEDICATED_PER_INTF
-		ranges.Pools = append(ranges.Pools, &Pool)
+		onuPool := Pool
+		ranges.Pools = append(ranges.Pools, &onuPool)
 
 		Pool.Type = openolt.DeviceInfo_DeviceResourceRanges_Pool_ALLOC_ID
 		Pool.Start = devInfo.AllocIdStart
 		Pool.End = devInfo.AllocIdEnd
 		Pool.Sharing = openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH
-		ranges.Pools = append(ranges.Pools, &Pool)
+		allocPool := Pool
+		ranges.Pools = append(ranges.Pools, &allocPool)
 
 		Pool.Type = openolt.DeviceInfo_DeviceResourceRanges_Pool_GEMPORT_ID
 		Pool.Start = devInfo.GemportIdStart
 		Pool.End = devInfo.GemportIdEnd
 		Pool.Sharing = openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH
-		ranges.Pools = append(ranges.Pools, &Pool)
+		gemPool := Pool
+		ranges.Pools = append(ranges.Pools, &gemPool)
 
 		Pool.Type = openolt.DeviceInfo_DeviceResourceRanges_Pool_FLOW_ID
 		Pool.Start = devInfo.FlowIdStart
@@ -382,7 +385,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ponIntfID uint32) (uint32, error) {
 	if err != nil {
 		log.Errorf("Failed to get resource for interface %d for type %s",
 			ponIntfID, ponrmgr.ONU_ID)
-		return ONUID[0], err
+		return 0, err
 	}
 	if ONUID != nil {
 		RsrcMgr.ResourceMgrs[ponIntfID].InitResourceMap(fmt.Sprintf("%d,%d", ponIntfID, ONUID[0]))
