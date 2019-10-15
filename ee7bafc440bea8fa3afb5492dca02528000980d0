@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5669d6b5_c8ddf1f7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1057,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-10-15T16:49:50Z",
+      "side": 1,
+      "message": "lets hold off on this until the device/port state is sorted out.  The proto does not have ConnState and given the core is getting rid of its \"ConnState\" it would be better if adapter-to-agent used the same semantics.",
+      "range": {
+        "startLine": 1057,
+        "startChar": 1,
+        "endLine": 1057,
+        "endChar": 17
+      },
+      "revId": "ee7bafc440bea8fa3afb5492dca02528000980d0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
