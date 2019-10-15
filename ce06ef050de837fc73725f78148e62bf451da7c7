@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49a136d8_a482397c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 610,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-10-15T16:43:40Z",
+      "side": 1,
+      "message": "this should be discoverable from resource manager rather than hardcoded.",
+      "range": {
+        "startLine": 610,
+        "startChar": 17,
+        "endLine": 610,
+        "endChar": 20
+      },
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "734bbd4d_a175d362",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-10-15T16:43:40Z",
+      "side": 1,
+      "message": "same here.  should be discoverable.",
+      "range": {
+        "startLine": 357,
+        "startChar": 17,
+        "endLine": 357,
+        "endChar": 19
+      },
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
