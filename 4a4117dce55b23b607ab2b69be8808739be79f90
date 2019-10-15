@@ -71,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "331fba57_a9beb260",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-15T09:57:26Z",
+      "side": 1,
+      "message": "I think the assumption you have made is DHCP Trap flow delete comes first always. Isn\u0027t there a possibility where the order of flows are not guaranteed from ONOS. What happens if we receive HSI delete first and then DHCP delete?",
+      "parentUuid": "02edbc50_71f144c4",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1de9b58_326558d5",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
@@ -99,6 +117,41 @@
       "writtenOn": "2019-10-10T06:59:11Z",
       "side": 1,
       "message": "The \u0027updatedFlows\u0027 is only for one flow_id. But there could many other flows for the ONU. But we cleaning up everything here.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cbf7c99b_50d8c9d4",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-15T09:57:26Z",
+      "side": 1,
+      "message": "I wanted to follow up on this comment.\nIs the case where each Gem port corresponds to one service? Or what is this Case?\nAlso, should not move the RemoveTechProfileIDForONU after this handling?",
+      "parentUuid": "d43c9f85_7460ca2a",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d952f13_935031f9",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1302,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-15T09:57:26Z",
+      "side": 1,
+      "message": "You may want to call clearFlowFromResourceManager on a separate go routine.",
       "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
