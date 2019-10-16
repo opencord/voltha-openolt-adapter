@@ -22,6 +22,30 @@
       "revId": "b26b450a595f20b6a2717a5ff2436009be5f4436",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bf7fb8dc_2fc951f7",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2019-10-16T07:26:46Z",
+      "side": 1,
+      "message": "The same object is creating for multiple times. So initializing the flowMgr object globally and using every. this reduces the test to run faster and avoid Jenkins build timeout exception.",
+      "parentUuid": "87bdeeae_9aaad247",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 3
+      },
+      "revId": "b26b450a595f20b6a2717a5ff2436009be5f4436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
