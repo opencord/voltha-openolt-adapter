@@ -2,6 +2,91 @@
   "comments": [
     {
       "key": {
+        "uuid": "73fd28ec_93ec1a13",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "I think this should be in its own go routine. Seems to do a lot of processing and will block the read indications",
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e161eba_b0fa5a81",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "Same here. Should be in its own go routine.",
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89d45369_ae236f17",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "This too should be in its own go routine.",
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c9a7012_8f6fee93",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 596,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "Any reason why you need this?",
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "37a5bcdf_044697ce",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "Put this into its own go routine?",
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49a136d8_a482397c",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -19,6 +104,23 @@
         "endLine": 610,
         "endChar": 20
       },
+      "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5adc1873_c88bafcb",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-16T05:55:06Z",
+      "side": 1,
+      "message": "Put this into its own go routine?",
       "revId": "ce06ef050de837fc73725f78148e62bf451da7c7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
