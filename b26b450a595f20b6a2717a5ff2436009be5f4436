@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87bdeeae_9aaad247",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-16T07:22:40Z",
+      "side": 1,
+      "message": "Any particular reason as to why this variable was declared here instead of declaring inside newMockFlowMgr() as I see a lot of commented out statement of flowmgr :\u003d newMockFlowMgr()",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 3
+      },
+      "revId": "b26b450a595f20b6a2717a5ff2436009be5f4436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
