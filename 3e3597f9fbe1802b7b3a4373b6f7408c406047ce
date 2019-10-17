@@ -22,6 +22,30 @@
       "revId": "3e3597f9fbe1802b7b3a4373b6f7408c406047ce",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b11fb898_6277a202",
+        "filename": "adaptercore/olt_state_transitions_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-17T09:25:18Z",
+      "side": 1,
+      "message": "it should be very clear what is that you are testing for someone else to scale/fix/modify it later. Test cases, IMHO, should also have decent comments and documentation on what it is trying to test. I have seen that pretty much all tests in OpenOLT have little/no documentation at all.",
+      "parentUuid": "a5d53136_e348af2e",
+      "range": {
+        "startLine": 37,
+        "startChar": 31,
+        "endLine": 37,
+        "endChar": 32
+      },
+      "revId": "3e3597f9fbe1802b7b3a4373b6f7408c406047ce",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
