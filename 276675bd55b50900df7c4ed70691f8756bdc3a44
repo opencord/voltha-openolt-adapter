@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56490fa5_005d1293",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-17T06:26:26Z",
+      "side": 1,
+      "message": "Change it to log.Info and log statement to starting RemoveFlow() test",
+      "range": {
+        "startLine": 211,
+        "startChar": 1,
+        "endLine": 211,
+        "endChar": 4
+      },
+      "revId": "276675bd55b50900df7c4ed70691f8756bdc3a44",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
