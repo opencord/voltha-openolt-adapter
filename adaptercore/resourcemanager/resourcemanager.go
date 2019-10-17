@@ -419,7 +419,10 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowIDInfo(ponIntfID uint32, onuID uint32,
 func (RsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(PONIntfID uint32, ONUID uint32, UNIID uint32) []uint32 {
 
 	FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
-	return RsrcMgr.ResourceMgrs[PONIntfID].GetCurrentFlowIDsForOnu(FlowPath)
+	if mgrs, exist := RsrcMgr.ResourceMgrs[PONIntfID]; exist {
+		return mgrs.GetCurrentFlowIDsForOnu(FlowPath)
+	}
+	return nil
 }
 
 // UpdateFlowIDInfo updates flow info for the given pon interface, onu id, and uni id
