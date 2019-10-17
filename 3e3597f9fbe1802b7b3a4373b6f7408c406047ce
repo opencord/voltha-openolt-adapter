@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5d53136_e348af2e",
+        "filename": "adaptercore/olt_state_transitions_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-17T09:22:46Z",
+      "side": 1,
+      "message": "Why don\u0027t you use the actual state and transition names. These numbers do not make any sense.\nThis has to be done at all places in this file.",
+      "range": {
+        "startLine": 37,
+        "startChar": 31,
+        "endLine": 37,
+        "endChar": 32
+      },
+      "revId": "3e3597f9fbe1802b7b3a4373b6f7408c406047ce",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
