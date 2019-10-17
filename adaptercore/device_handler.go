@@ -1023,18 +1023,17 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 	   the indication thread may processes invalid  indications of ONU and OLT*/
 	dh.lockDevice.Lock()
 	dh.adminState = "down"
-	dh.lockDevice.Unlock()
-	if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed to disable olt ", log.Fields{"err": err})
-		dh.lockDevice.Lock()
-		dh.adminState = "up"
-		dh.lockDevice.Unlock()
-		return err
+	if dh.Client != nil {
+		if _, err := dh.Client.DisableOlt(context.Background(), new(oop.Empty)); err != nil {
+			log.Errorw("Failed to disable olt ", log.Fields{"err": err, "deviceID": device.Id})
+			dh.adminState = "up"
+			dh.lockDevice.Unlock()
+			return err
+		}
 	}
-	log.Debug("olt-disabled")
-	dh.lockDevice.Lock()
+	log.Debugw("olt-disabled", log.Fields{"deviceID": device.Id})
 	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
-	   UNREACHABLE state which needs to be configured again*/
+	UNREACHABLE state which needs to be configured again*/
 	dh.discOnus = make(map[string]bool)
 	dh.lockDevice.Unlock()
 
@@ -1121,6 +1120,9 @@ func (dh *DeviceHandler) clearUNIData(onu *OnuDevice) error {
 func (dh *DeviceHandler) clearNNIData() error {
 	nniUniID := -1
 	nniOnuID := -1
+	if dh.resourceMgr == nil {
+		return fmt.Errorf("No resource manager for deviceID %s", dh.deviceID)
+	}
 	flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(uint32(dh.nniIntfID), uint32(nniOnuID), uint32(nniUniID))
 	log.Debugw("Current flow ids for nni", log.Fields{"flow-ids": flowIDs})
 	for _, flowID := range flowIDs {
@@ -1154,20 +1156,22 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	   This clears up flow data and also resource map data for various
 	   other pon resources like alloc_id and gemport_id
 	*/
-	for _, onu := range dh.onus {
-		if err := dh.clearUNIData(onu); err != nil {
-			log.Debugw("Failed to clear data for onu", log.Fields{"onu-device": onu})
+	if dh.resourceMgr != nil {
+		for _, onu := range dh.onus {
+			if err := dh.clearUNIData(onu); err != nil {
+				log.Debugw("Failed to clear data for onu", log.Fields{"onu-device": onu})
+			}
 		}
-	}
-	/* Clear the flows from KV store associated with NNI port.
-	   There are mostly trap rules from NNI port (like LLDP)
-	*/
-	if err := dh.clearNNIData(); err != nil {
-		log.Debugw("Failed to clear data for NNI port", log.Fields{"device-id": dh.deviceID})
-	}
+		/* Clear the flows from KV store associated with NNI port.
+		   There are mostly trap rules from NNI port (like LLDP)
+		*/
+		if err := dh.clearNNIData(); err != nil {
+			log.Debugw("Failed to clear data for NNI port", log.Fields{"deviceID": dh.deviceID})
+		}
 
-	/* Clear the resource pool for each PON port in the background */
-	go dh.resourceMgr.Delete()
+		/* Clear the resource pool for each PON port in the background */
+		go dh.resourceMgr.Delete()
+	}
 
 	/*Delete ONU map for the device*/
 	for onu := range dh.onus {
@@ -1175,9 +1179,11 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	}
 	log.Debug("Removed-device-from-Resource-manager-KV-store")
 	//Reset the state
-	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed-to-reboot-olt ", log.Fields{"err": err})
-		return err
+	if dh.Client != nil {
+		if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
+			log.Errorw("Failed-to-reboot-olt ", log.Fields{"deviceID": dh.deviceID, "err": err})
+			return err
+		}
 	}
 	cloned := proto.Clone(device).(*voltha.Device)
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
@@ -1192,7 +1198,7 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 //RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
-		log.Errorw("Failed to reboot olt ", log.Fields{"err": err})
+		log.Errorw("Failed to reboot olt ", log.Fields{"deviceID": dh.deviceID, "err": err})
 		return err
 	}
 
