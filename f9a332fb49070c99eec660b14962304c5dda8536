@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1d14015d_b592a1bc",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-17T15:54:58Z",
+      "side": 1,
+      "message": "Is this for loop required?",
+      "range": {
+        "startLine": 210,
+        "startChar": 2,
+        "endLine": 210,
+        "endChar": 5
+      },
+      "revId": "f9a332fb49070c99eec660b14962304c5dda8536",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b429bb89_f48a8941",
         "filename": "adaptercore/statsmanager.go",
         "patchSetId": 4
@@ -42,6 +65,75 @@
         "startChar": 17,
         "endLine": 217,
         "endChar": 19
+      },
+      "revId": "f9a332fb49070c99eec660b14962304c5dda8536",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a1b1106c_0b35b2d2",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-17T15:54:58Z",
+      "side": 1,
+      "message": "This could be reciever function i.e. publishNNIMetrics( sm *OpenOltStatisticsMgr) in this way we can avoid the event proxy argument as OpenOltStatisticsMgr has deviceMgr and devicemgr has event proxy so sm.Device.EventProxy should work",
+      "range": {
+        "startLine": 266,
+        "startChar": 5,
+        "endLine": 266,
+        "endChar": 21
+      },
+      "revId": "f9a332fb49070c99eec660b14962304c5dda8536",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e1ad2964_dd6720bd",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-17T15:54:58Z",
+      "side": 1,
+      "message": "In my opinion this should be voltha.KpiEvent2 and one method need to implemented in event proxy sendKpiEvent() instead of using sendDeviceEvent().\nAlso de.Description is textual description of an event.",
+      "range": {
+        "startLine": 270,
+        "startChar": 1,
+        "endLine": 270,
+        "endChar": 26
+      },
+      "revId": "f9a332fb49070c99eec660b14962304c5dda8536",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a23e6d55_26c1d4b2",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-10-17T15:54:58Z",
+      "side": 1,
+      "message": "It would be better to use the enums instead of 2 and 4",
+      "range": {
+        "startLine": 277,
+        "startChar": 35,
+        "endLine": 277,
+        "endChar": 39
       },
       "revId": "f9a332fb49070c99eec660b14962304c5dda8536",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
