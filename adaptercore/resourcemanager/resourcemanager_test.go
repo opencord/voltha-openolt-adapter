@@ -31,10 +31,16 @@ import (
 	"testing"
 )
 
+/*
+	initialize's the logger
+*/
 func init() {
 	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
 }
 
+/*
+	Constant's defined.
+*/
 const (
 	// MeterConfig meter to extract meter
 	MeterConfig = "meter_id"
@@ -70,6 +76,9 @@ type fields struct {
 type MockResKVClient struct {
 }
 
+/*
+	Return's mocked resource manager.
+*/
 func getResMgr() *fields {
 	var resMgr fields
 	resMgr.KVStore = &model.Backend{
@@ -103,6 +112,10 @@ func getResMgr() *fields {
 	resMgr.ResourceMgrs[2] = ponMgr
 	return &resMgr
 }
+
+/*
+	List function implemented for KVClient.
+*/
 func (kvclient *MockResKVClient) List(key string, timeout int, lock ...bool) (map[string]*kvstore.KVPair, error) {
 	return nil, errors.New("key didn't find")
 }
@@ -216,6 +229,9 @@ func (kvclient *MockResKVClient) CloseWatch(key string, ch chan *kvstore.Event) 
 func (kvclient *MockResKVClient) Close() {
 }
 
+/*
+	Return's the resource manager object.
+*/
 func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 	return &OpenOltResourceMgr{
 		DeviceID:     testResMgr.DeviceID,
@@ -230,6 +246,9 @@ func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 	}
 }
 
+/*
+	Check's the resource manager object creation.
+*/
 func TestNewResourceMgr(t *testing.T) {
 	type args struct {
 		deviceID        string
@@ -257,6 +276,9 @@ func TestNewResourceMgr(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Delete's the resource's from the device, else return's error.
+*/
 func TestOpenOltResourceMgr_Delete(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -275,6 +297,9 @@ func TestOpenOltResourceMgr_Delete(t *testing.T) {
 	}
 }
 
+/*
+	Check's if  Delete's the flow id from resource manager, else return's error.
+*/
 func TestOpenOltResourceMgr_FreeFlowID(t *testing.T) {
 	type args struct {
 		IntfID uint32
@@ -297,6 +322,9 @@ func TestOpenOltResourceMgr_FreeFlowID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if  Delete's the flow id's from the resource manager , else return's error.
+*/
 func TestOpenOltResourceMgr_FreeFlowIDs(t *testing.T) {
 
 	type args struct {
@@ -320,6 +348,9 @@ func TestOpenOltResourceMgr_FreeFlowIDs(t *testing.T) {
 	}
 }
 
+/*
+	Check's if  Delete's the pon resource manager .
+*/
 func TestOpenOltResourceMgr_FreePONResourcesForONU(t *testing.T) {
 	type args struct {
 		intfID uint32
@@ -341,6 +372,9 @@ func TestOpenOltResourceMgr_FreePONResourcesForONU(t *testing.T) {
 	}
 }
 
+/*
+	Check's if  Delete's the onu id from resource manager.
+*/
 func TestOpenOltResourceMgr_FreeonuID(t *testing.T) {
 	type args struct {
 		intfID uint32
@@ -361,6 +395,9 @@ func TestOpenOltResourceMgr_FreeonuID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if  Return's the allocation id , else return's error
+*/
 func TestOpenOltResourceMgr_GetAllocID(t *testing.T) {
 
 	type args struct {
@@ -386,6 +423,9 @@ func TestOpenOltResourceMgr_GetAllocID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's allocation id for onu, else return's error.
+*/
 func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 	type args struct {
 		intfID uint32
@@ -410,6 +450,9 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's the flow id's for onu, else return's error.
+*/
 func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 
 	type args struct {
@@ -435,6 +478,9 @@ func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's gem port id's for onu, else return's error.
+*/
 func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 	type args struct {
 		intfID uint32
@@ -459,6 +505,9 @@ func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's flow id , else return's error.
+*/
 func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 
 	type args struct {
@@ -495,6 +544,9 @@ func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's gemport id's , else return errors.
+*/
 func TestOpenOltResourceMgr_GetGEMPortID(t *testing.T) {
 	type args struct {
 		ponPort    uint32
@@ -527,6 +579,9 @@ func TestOpenOltResourceMgr_GetGEMPortID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's meter-id , else return's error.
+*/
 func TestOpenOltResourceMgr_GetMeterIDForOnu(t *testing.T) {
 	type args struct {
 		Direction string
@@ -557,6 +612,9 @@ func TestOpenOltResourceMgr_GetMeterIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's onu id else return's error.
+*/
 func TestOpenOltResourceMgr_GetONUID(t *testing.T) {
 	type args struct {
 		ponIntfID uint32
@@ -581,6 +639,9 @@ func TestOpenOltResourceMgr_GetONUID(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's profile id , else return's error.
+*/
 func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 
 	type args struct {
@@ -607,6 +668,9 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's flow cookie's, else return's error.
+*/
 func TestOpenOltResourceMgr_IsFlowCookieOnKVStore(t *testing.T) {
 	type args struct {
 		ponIntfID       uint32
@@ -632,6 +696,9 @@ func TestOpenOltResourceMgr_IsFlowCookieOnKVStore(t *testing.T) {
 	}
 }
 
+/*
+	Check's if remove's meter id , else return's error.
+*/
 func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 
 	type args struct {
@@ -659,6 +726,9 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's tech-profile id , else return's error.
+*/
 func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 	type args struct {
 		IntfID uint32
@@ -684,6 +754,9 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's allocation id, else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 	type args struct {
 		ponPort uint32
@@ -710,6 +783,9 @@ func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's flow id , else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
 	type args struct {
 		ponIntfID int32
@@ -736,6 +812,9 @@ func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's gemport id, else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 
 	type args struct {
@@ -763,6 +842,9 @@ func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's gem port id's to kv-store, else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateGEMportsPonportToOnuMapOnKVStore(t *testing.T) {
 	type args struct {
 		gemPorts []uint32
@@ -789,6 +871,9 @@ func TestOpenOltResourceMgr_UpdateGEMportsPonportToOnuMapOnKVStore(t *testing.T)
 	}
 }
 
+/*
+	Check's if Update's meter id, else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 	type args struct {
 		Direction   string
@@ -816,6 +901,9 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's tech-profile id , else return's error.
+*/
 func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 	type args struct {
 		IntfID uint32
@@ -842,6 +930,9 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Check's the kv-client, else return's error.
+*/
 func TestSetKVClient(t *testing.T) {
 	type args struct {
 		backend  string
@@ -866,6 +957,9 @@ func TestSetKVClient(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's flow id info, else return's error.
+*/
 func Test_getFlowIDFromFlowInfo(t *testing.T) {
 	type args struct {
 		FlowInfo        *[]FlowInfo
@@ -918,6 +1012,9 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Check's new kv-client creation.
+*/
 func Test_newKVClient(t *testing.T) {
 	type args struct {
 		storeType string
