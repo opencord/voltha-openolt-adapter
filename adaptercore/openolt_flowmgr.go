@@ -25,9 +25,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/opencord/voltha-go/common/log"
-	tp "github.com/opencord/voltha-go/common/techprofile"
 	"github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/common/log"
+	tp "github.com/opencord/voltha-lib-go/pkg/common/techprofile"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-protos/go/common"
 	ic "github.com/opencord/voltha-protos/go/inter_container"

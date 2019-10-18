@@ -22,10 +22,10 @@ import (
 
 	"github.com/opencord/voltha-protos/go/voltha"
 
-	"github.com/opencord/voltha-go/common/log"
-	tp "github.com/opencord/voltha-go/common/techprofile"
-	"github.com/opencord/voltha-go/db/model"
 	fu "github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/common/log"
+	tp "github.com/opencord/voltha-lib-go/pkg/common/techprofile"
+	"github.com/opencord/voltha-lib-go/pkg/db/model"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
