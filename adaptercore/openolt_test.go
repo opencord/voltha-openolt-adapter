@@ -47,8 +47,10 @@ type fields struct {
 	ctx                   context.Context
 }
 
+/**
+Return's mocked Open-olt object.
+*/
 func mockOlt() *fields {
-	//var newOlt fields
 	dh := newMockDeviceHandler()
 	newOlt := &fields{}
 	newOlt.deviceHandlers = map[string]*DeviceHandler{}
@@ -56,6 +58,9 @@ func mockOlt() *fields {
 	return newOlt
 }
 
+/*
+	Return's the pointer of Open-olt object.
+*/
 func testOltObject(testOlt *fields) *OpenOLT {
 	return &OpenOLT{
 		deviceHandlers: testOlt.deviceHandlers,
@@ -71,6 +76,9 @@ func testOltObject(testOlt *fields) *OpenOLT {
 	}
 }
 
+/*
+	Return's the mocked Device object.
+*/
 func mockDevice() *voltha.Device {
 	device := &voltha.Device{
 		Id:       "olt",
@@ -91,6 +99,9 @@ func mockDevice() *voltha.Device {
 	return device
 }
 
+/*
+	Test's the creation of open-olt object.
+*/
 func TestNewOpenOLT(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -115,6 +126,9 @@ func TestNewOpenOLT(t *testing.T) {
 	}
 }
 
+/*
+	Check's the Abandon device functionality.
+*/
 func TestOpenOLT_Abandon_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -140,6 +154,9 @@ func TestOpenOLT_Abandon_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's Activate updated image functionality.
+*/
 func TestOpenOLT_Activate_image_update(t *testing.T) {
 	type args struct {
 		device  *voltha.Device
@@ -170,6 +187,9 @@ func TestOpenOLT_Activate_image_update(t *testing.T) {
 	}
 }
 
+/*
+	Check's Adaptor-descriptor functionality.
+*/
 func TestOpenOLT_Adapter_descriptor(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -190,6 +210,9 @@ func TestOpenOLT_Adapter_descriptor(t *testing.T) {
 	}
 }
 
+/*
+	Check's create device functionality, else return's nil device error.
+*/
 func TestOpenOLT_Adopt_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -222,6 +245,9 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's cancel image download functionality.
+*/
 func TestOpenOLT_Cancel_image_download(t *testing.T) {
 	type args struct {
 		device  *voltha.Device
@@ -252,6 +278,9 @@ func TestOpenOLT_Cancel_image_download(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Delete's the device if exists , else return's error.
+*/
 func TestOpenOLT_Delete_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -275,6 +304,9 @@ func TestOpenOLT_Delete_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's the type of the device.
+*/
 func TestOpenOLT_Device_types(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -300,6 +332,9 @@ func TestOpenOLT_Device_types(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Disable's the activated device, else return's error.
+*/
 func TestOpenOLT_Disable_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -323,6 +358,9 @@ func TestOpenOLT_Disable_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's the download image functionality.
+*/
 func TestOpenOLT_Download_image(t *testing.T) {
 	type args struct {
 		device  *voltha.Device
@@ -353,6 +391,9 @@ func TestOpenOLT_Download_image(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's the device details , else return's error.
+*/
 func TestOpenOLT_Get_device_details(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -378,6 +419,9 @@ func TestOpenOLT_Get_device_details(t *testing.T) {
 	}
 }
 
+/*
+	Check's the get image functionality .
+*/
 func TestOpenOLT_Get_image_download_status(t *testing.T) {
 	type args struct {
 		device  *voltha.Device
@@ -408,6 +452,9 @@ func TestOpenOLT_Get_image_download_status(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's ofp device info, else return's error.
+*/
 func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -438,6 +485,9 @@ func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's ofp port info, else return's error.
+*/
 func TestOpenOLT_Get_ofp_port_info(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -469,6 +519,9 @@ func TestOpenOLT_Get_ofp_port_info(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Return's the health info device, else error.
+*/
 func TestOpenOLT_Health(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -491,6 +544,9 @@ func TestOpenOLT_Health(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Process's the inter adaptor messages, else return's error.
+*/
 func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
 	type args struct {
 		msg *ic.InterAdapterMessage
@@ -532,6 +588,9 @@ func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Reboot's the device, else return's error.
+*/
 func TestOpenOLT_Reboot_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -555,6 +614,9 @@ func TestOpenOLT_Reboot_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Send's the packet to the device, else return's error.
+*/
 func TestOpenOLT_Receive_packet_out(t *testing.T) {
 	acts := []*ofp.OfpAction{
 		fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
@@ -590,6 +652,9 @@ func TestOpenOLT_Receive_packet_out(t *testing.T) {
 	}
 }
 
+/*
+	Check's the reconcile functionality.
+*/
 func TestOpenOLT_Reconcile_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -614,6 +679,9 @@ func TestOpenOLT_Reconcile_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Re-enable's the device, else return's the error.
+*/
 func TestOpenOLT_Reenable_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -637,6 +705,9 @@ func TestOpenOLT_Reenable_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's the revert image functionality.
+*/
 func TestOpenOLT_Revert_image_update(t *testing.T) {
 	type args struct {
 		device  *voltha.Device
@@ -667,6 +738,9 @@ func TestOpenOLT_Revert_image_update(t *testing.T) {
 	}
 }
 
+/*
+	Check's the self validation functionality of the device.
+*/
 func TestOpenOLT_Self_test_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
@@ -691,6 +765,9 @@ func TestOpenOLT_Self_test_device(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Start's the device, else return's error.
+*/
 func TestOpenOLT_Start(t *testing.T) {
 	type args struct {
 		ctx context.Context
@@ -713,6 +790,9 @@ func TestOpenOLT_Start(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Stop's the started device, else return's error.
+*/
 func TestOpenOLT_Stop(t *testing.T) {
 	type args struct {
 		ctx context.Context
@@ -736,6 +816,9 @@ func TestOpenOLT_Stop(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Suppress the alarm from the device, else return's error.
+*/
 func TestOpenOLT_Suppress_alarm(t *testing.T) {
 	type args struct {
 		filter *voltha.AlarmFilter
@@ -761,6 +844,9 @@ func TestOpenOLT_Suppress_alarm(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Un-suppress the alarm from the device , else return's error.
+*/
 func TestOpenOLT_Unsuppress_alarm(t *testing.T) {
 	type args struct {
 		filter *voltha.AlarmFilter
@@ -786,6 +872,9 @@ func TestOpenOLT_Unsuppress_alarm(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's the flows, else returns error.
+*/
 func TestOpenOLT_Update_flows_bulk(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
@@ -813,6 +902,9 @@ func TestOpenOLT_Update_flows_bulk(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's the flows incrementally , else return's error.
+*/
 func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
@@ -842,6 +934,9 @@ func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Update's the pm configs , else return's error.
+*/
 func TestOpenOLT_Update_pm_config(t *testing.T) {
 	type args struct {
 		device    *voltha.Device
@@ -869,6 +964,9 @@ func TestOpenOLT_Update_pm_config(t *testing.T) {
 	}
 }
 
+/*
+	Check's if Delete's the device handler.
+*/
 func TestOpenOLT_deleteDeviceHandlerToMap(t *testing.T) {
 	type args struct {
 		agent *DeviceHandler
