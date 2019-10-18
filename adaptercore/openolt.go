@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/opencord/voltha-go/adapters/adapterif"
-	"github.com/opencord/voltha-go/common/log"
-	"github.com/opencord/voltha-go/kafka"
+	"github.com/opencord/voltha-lib-go/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/pkg/log"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	"github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
