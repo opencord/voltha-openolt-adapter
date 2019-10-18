@@ -25,8 +25,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-go/common/log"
 	fu "github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/common/log"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
 	ic "github.com/opencord/voltha-protos/go/inter_container"

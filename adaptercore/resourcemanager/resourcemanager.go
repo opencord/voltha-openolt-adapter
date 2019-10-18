@@ -24,10 +24,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/opencord/voltha-go/common/log"
-	ponrmgr "github.com/opencord/voltha-go/common/ponresourcemanager"
-	"github.com/opencord/voltha-go/db/kvstore"
-	"github.com/opencord/voltha-go/db/model"
+	"github.com/opencord/voltha-lib-go/pkg/common/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/pkg/common/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/pkg/db/model"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/openolt"
 )
