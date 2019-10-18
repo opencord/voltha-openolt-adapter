@@ -53,6 +53,40 @@
     },
     {
       "key": {
+        "uuid": "6e4a34a4_db128bae",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1158,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-18T19:43:28Z",
+      "side": 1,
+      "message": "if dh.resourceMgr !\u003d nil { //start check here",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d2c1e21_7dd5c8d7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1160,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-18T19:43:28Z",
+      "side": 1,
+      "message": "Might be safer to also clear UNIData based on resource mgr initialization. Since anyway uni ports wouldn\u0027t be in the list as flows would not be pushed and hence no uniports discovered to clear resources for, might be still safe and consistent with clearNNIData. \nIn fact it might be worthwhile to do the entire conditional before clearing uni and nni data.",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30cd53a3_ace3297b",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -64,6 +98,24 @@
       "writtenOn": "2019-10-18T19:37:26Z",
       "side": 1,
       "message": "Both clearNNIData and resourceMgr delete should be conditional based on whether resourceMgr was created. \nSo: \nif dh.resourceMgr !\u003d nil {\n    clearNNIData\n    go dh.resourceMgr.Delete()\n}",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13b19b2b_ca959a59",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1167,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-18T19:43:28Z",
+      "side": 1,
+      "message": "Worthwhile moving the dh.resourceMgr !\u003d nil before clearing UNI data.",
+      "parentUuid": "30cd53a3_ace3297b",
       "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
