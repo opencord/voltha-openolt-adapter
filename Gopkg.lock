@@ -227,22 +227,32 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:955257b92eafddae06807b037b66c0bbe34f3eb828dce0b7424e85d1270719ba"
+  digest = "1:64588657252ce76782f9f3612a38ef5132b1104f6930bbccc1e99f5e7fd8b641"
   name = "github.com/opencord/voltha-go"
   packages = [
-    "adapters",
-    "adapters/adapterif",
-    "adapters/common",
     "common/log",
-    "common/ponresourcemanager",
-    "common/techprofile",
-    "db/kvstore",
-    "db/model",
-    "kafka",
     "rw_core/utils",
   ]
   pruneopts = "UT"
   revision = "676f0ddf24b3d5be9bdcadd89f2c8cc503468df8"
+
+[[projects]]
+  digest = "1:608c31948048d9057aa75e54adadf817c76794074c711dc3c9c982bb3c58553e"
+  name = "github.com/opencord/voltha-lib-go"
+  packages = [
+    "pkg/adapters",
+    "pkg/adapters/adapterif",
+    "pkg/adapters/common",
+    "pkg/db/kvstore",
+    "pkg/db/model",
+    "pkg/kafka",
+    "pkg/log",
+    "pkg/ponresourcemanager",
+    "pkg/techprofile",
+  ]
+  pruneopts = "UT"
+  revision = "e73f91e306e9942a744829c74b304d2c063a8d61"
+  version = "v2.2.2"
 
 [[projects]]
   digest = "1:bc21a70b7c12a8d8c2b008d2d61a313bf4ed8f021be84d815f744a869e69c96f"
@@ -527,16 +537,16 @@
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/ptypes",
     "github.com/golang/protobuf/ptypes/any",
-    "github.com/opencord/voltha-go/adapters",
-    "github.com/opencord/voltha-go/adapters/adapterif",
-    "github.com/opencord/voltha-go/adapters/common",
-    "github.com/opencord/voltha-go/common/log",
-    "github.com/opencord/voltha-go/common/ponresourcemanager",
-    "github.com/opencord/voltha-go/common/techprofile",
-    "github.com/opencord/voltha-go/db/kvstore",
-    "github.com/opencord/voltha-go/db/model",
-    "github.com/opencord/voltha-go/kafka",
     "github.com/opencord/voltha-go/rw_core/utils",
+    "github.com/opencord/voltha-lib-go/pkg/adapters",
+    "github.com/opencord/voltha-lib-go/pkg/adapters/adapterif",
+    "github.com/opencord/voltha-lib-go/pkg/adapters/common",
+    "github.com/opencord/voltha-lib-go/pkg/db/kvstore",
+    "github.com/opencord/voltha-lib-go/pkg/db/model",
+    "github.com/opencord/voltha-lib-go/pkg/kafka",
+    "github.com/opencord/voltha-lib-go/pkg/log",
+    "github.com/opencord/voltha-lib-go/pkg/ponresourcemanager",
+    "github.com/opencord/voltha-lib-go/pkg/techprofile",
     "github.com/opencord/voltha-protos/go/common",
     "github.com/opencord/voltha-protos/go/inter_container",
     "github.com/opencord/voltha-protos/go/openflow_13",

@@ -20,8 +20,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/opencord/voltha-go/common/log"
-	"github.com/opencord/voltha-go/kafka"
+	"github.com/opencord/voltha-lib-go/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/config"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
 	ca "github.com/opencord/voltha-protos/go/inter_container"

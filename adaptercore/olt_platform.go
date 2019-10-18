@@ -19,8 +19,8 @@ package adaptercore
 
 import (
 	"errors"
-	"github.com/opencord/voltha-go/common/log"
 	"github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/log"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
 )

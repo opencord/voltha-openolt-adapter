@@ -18,9 +18,9 @@
 package mocks
 
 import (
-	"github.com/opencord/voltha-go/common/log"
-	tp "github.com/opencord/voltha-go/common/techprofile"
-	"github.com/opencord/voltha-go/db/model"
+	"github.com/opencord/voltha-lib-go/pkg/db/model"
+	"github.com/opencord/voltha-lib-go/pkg/log"
+	tp "github.com/opencord/voltha-lib-go/pkg/techprofile"
 	tp_pb "github.com/opencord/voltha-protos/go/tech_profile"
 )
 

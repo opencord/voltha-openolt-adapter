@@ -19,8 +19,8 @@ package adaptercore
 
 import (
 	"fmt"
-	"github.com/opencord/voltha-go/adapters/adapterif"
-	"github.com/opencord/voltha-go/common/log"
+	"github.com/opencord/voltha-lib-go/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/pkg/log"
 	oop "github.com/opencord/voltha-protos/go/openolt"
 	"github.com/opencord/voltha-protos/go/voltha"
 )
