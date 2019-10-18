@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package resourcemanager
 
 import (
@@ -56,6 +57,7 @@ const (
 	FlowIDpool = "flow_id_pool"
 )
 
+// fields mocks  OpenOltResourceMgr struct.
 type fields struct {
 	DeviceID     string
 	HostAndPort  string
@@ -67,9 +69,12 @@ type fields struct {
 	DevInfo      *openolt.DeviceInfo
 	ResourceMgrs map[uint32]*ponrmgr.PONResourceManager
 }
+
+// MockKVClient mocks the AdapterProxy interface.
 type MockResKVClient struct {
 }
 
+// getResMgr mocks OpenOltResourceMgr struct.
 func getResMgr() *fields {
 	var resMgr fields
 	resMgr.KVStore = &model.Backend{
@@ -103,6 +108,8 @@ func getResMgr() *fields {
 	resMgr.ResourceMgrs[2] = ponMgr
 	return &resMgr
 }
+
+// List function implemented for KVClient.
 func (kvclient *MockResKVClient) List(key string, timeout int, lock ...bool) (map[string]*kvstore.KVPair, error) {
 	return nil, errors.New("key didn't find")
 }
@@ -216,6 +223,7 @@ func (kvclient *MockResKVClient) CloseWatch(key string, ch chan *kvstore.Event) 
 func (kvclient *MockResKVClient) Close() {
 }
 
+// testResMgrObject maps fields type to OpenOltResourceMgr type.
 func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 	return &OpenOltResourceMgr{
 		DeviceID:     testResMgr.DeviceID,

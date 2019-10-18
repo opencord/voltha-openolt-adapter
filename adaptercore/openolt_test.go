@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package adaptercore
 
 import (
@@ -32,6 +33,13 @@ import (
 	"github.com/opencord/voltha-protos/go/voltha"
 )
 
+/**
+This file contains unit test cases for functions in the file openolt.go.
+This file also implements the IAdapter interface to mock the open-olt and few utility functions.
+Most of the test cases are self explanatory.
+*/
+
+// mocks the OpenOLT struct.
 type fields struct {
 	deviceHandlers        map[string]*DeviceHandler
 	coreProxy             *com.CoreProxy
@@ -47,8 +55,8 @@ type fields struct {
 	ctx                   context.Context
 }
 
+// mockOlt mocks OpenOLT struct.
 func mockOlt() *fields {
-	//var newOlt fields
 	dh := newMockDeviceHandler()
 	newOlt := &fields{}
 	newOlt.deviceHandlers = map[string]*DeviceHandler{}
@@ -56,6 +64,7 @@ func mockOlt() *fields {
 	return newOlt
 }
 
+// testOltObject maps fields type to OpenOLt type.
 func testOltObject(testOlt *fields) *OpenOLT {
 	return &OpenOLT{
 		deviceHandlers: testOlt.deviceHandlers,
@@ -71,6 +80,7 @@ func testOltObject(testOlt *fields) *OpenOLT {
 	}
 }
 
+// mockDevice mocks Device.
 func mockDevice() *voltha.Device {
 	device := &voltha.Device{
 		Id:       "olt",
@@ -556,6 +566,7 @@ func TestOpenOLT_Reboot_device(t *testing.T) {
 }
 
 func TestOpenOLT_Receive_packet_out(t *testing.T) {
+	//
 	acts := []*ofp.OfpAction{
 		fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
 		fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
