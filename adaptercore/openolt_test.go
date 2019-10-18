@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/*
+This file contains unit test cases for functions in the file openolt.go.
+This file also implements the fields struct to mock the Openolt and few utility functions.
+*/
+
+//Package adaptercore provides the utility for olt devices, flows and statistics
 package adaptercore
 
 import (
@@ -32,6 +38,7 @@ import (
 	"github.com/opencord/voltha-protos/go/voltha"
 )
 
+// mocks the OpenOLT struct.
 type fields struct {
 	deviceHandlers        map[string]*DeviceHandler
 	coreProxy             *com.CoreProxy
@@ -47,8 +54,8 @@ type fields struct {
 	ctx                   context.Context
 }
 
+// mockOlt mocks OpenOLT struct.
 func mockOlt() *fields {
-	//var newOlt fields
 	dh := newMockDeviceHandler()
 	newOlt := &fields{}
 	newOlt.deviceHandlers = map[string]*DeviceHandler{}
@@ -56,6 +63,7 @@ func mockOlt() *fields {
 	return newOlt
 }
 
+// testOltObject maps fields type to OpenOLt type.
 func testOltObject(testOlt *fields) *OpenOLT {
 	return &OpenOLT{
 		deviceHandlers: testOlt.deviceHandlers,
@@ -71,6 +79,7 @@ func testOltObject(testOlt *fields) *OpenOLT {
 	}
 }
 
+// mockDevice mocks Device.
 func mockDevice() *voltha.Device {
 	device := &voltha.Device{
 		Id:       "olt",
