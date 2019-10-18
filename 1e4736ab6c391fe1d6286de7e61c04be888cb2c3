@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f4a41ae5_e2716f1b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1030,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-18T19:29:18Z",
+      "side": 1,
+      "message": "deadlock as lock held on entry.",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c381ee15_1a4f3351",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1042,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-18T19:29:18Z",
+      "side": 1,
+      "message": "You might want to drop the lock before PortsStateUpdate. Doesn\u0027t seem like a good idea to hold it across grpc by deferring unlock.",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
