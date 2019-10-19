@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0e337fdf_21f4f5ca",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1030,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4a41ae5_e2716f1b",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c381ee15_1a4f3351",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2019-10-18T19:29:18Z",
       "side": 1,
       "message": "You might want to drop the lock before PortsStateUpdate. Doesn\u0027t seem like a good idea to hold it across grpc by deferring unlock.",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18983394_58437630",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1042,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c381ee15_1a4f3351",
       "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "bdeca25a_eb003980",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1123,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Better to have this check also here if someone else wants to call this function in the future and forget to check nil value.",
+      "parentUuid": "b8e2b1b6_12451cca",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6e4a34a4_db128bae",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "b1aa1f83_625f0657",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1158,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e4a34a4_db128bae",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d2c1e21_7dd5c8d7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2019-10-18T19:43:28Z",
       "side": 1,
       "message": "Might be safer to also clear UNIData based on resource mgr initialization. Since anyway uni ports wouldn\u0027t be in the list as flows would not be pushed and hence no uniports discovered to clear resources for, might be still safe and consistent with clearNNIData. \nIn fact it might be worthwhile to do the entire conditional before clearing uni and nni data.",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7b90841_c5dd4493",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1160,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d2c1e21_7dd5c8d7",
       "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -116,6 +206,42 @@
       "side": 1,
       "message": "Worthwhile moving the dh.resourceMgr !\u003d nil before clearing UNI data.",
       "parentUuid": "30cd53a3_ace3297b",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dff2db44_53c3be8b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1167,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30cd53a3_ace3297b",
+      "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bb25ae56_0323375e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1167,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-10-19T05:21:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13b19b2b_ca959a59",
       "revId": "1e4736ab6c391fe1d6286de7e61c04be888cb2c3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
