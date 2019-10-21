@@ -1,60 +1,29 @@
+# How to Build the Golang based OpenOLT Adapter 
 
-# How to Build and Run a GOlang based OpenOLT Adapter 
-Assuming the VOLTHA2.0 environment is made using the quickstart.md in voltha-go.
-
-Dependencies are committed to the repos as per current standard practice.
-If you need to update them you can do so with dep. This includes the voltha-protos and voltha-go dependencies.
-
-Ensure your GOPATH variable is set according to the quickstart
-Create a symbolic link in the $GOPATH/src tree to the voltha-openolt-adapter repository:
-```sh
-mkdir -p $GOPATH/src/github.com/opencord
-ln -s ~/repos/voltha-openolt-adapter $GOPATH/src/github.com/opencord/voltha-openolt-adapter
+## Working with Go Dependencies
+This project uses Go Modules https://github.com/golang/go/wiki/Modules to manage
+dependencies. As a local best pratice this project also vendors the dependencies.
+If you need to update dependencies please follow the Go Modules best practices
+and also perform the following steps before committing a patch:
+```bash
+go mod tidy
+go mod verify
+go mod vendor
 ```
 
-Install dep for fetching dependencies
-```sh
-mkdir -p $GOPATH/bin
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+## Building with a Local Copy of `voltha-protos` or `voltha-go`
+If you want to build/test using a local copy or `voltha-protos` or `voltha-go`
+this can be accomplished by using the environment variables `LOCAL_PROTOS` and
+`LOCAL_VOLTHA`. These environment variables should be set to the filesystem
+path where the local source is located, e.g.
 
-Pull and build dependencies for the project.  This may take a while.  This may likely update versions of 3rd party packages in the vendor folder.   This may introduce unexpected changes.   If everything still works feel free to check in the vendor updates as needed.
-
-cd $GOPATH/src/github.com/opencord/voltha-go/
-dep ensure
-
-If you are using a custom local copy of protos or voltha-go
-
-Just export LOCAL_PROTOS=true or LOCAL_VOLTHAGO=true to use that instead, assuming you have set them up on GOPATH. See the quickstart.
-
-mkdir -p ~/source
-cd ~/source
-git clone https://github.com/opencord/voltha-openolt-adapter.git
-cd voltha-openolt-adapter
-make build
-```
-This will create the voltha-openolt-adapter-go docker image
+```bash
+LOCAL\_PROTOS=$HOME/src/voltha-protos
+LOCAL\_VOLTHA=$HOME/src/voltha-go
 ```
 
-$ docker images | grep openolt
-voltha-openolt-adapter          latest               a0f2ba883655        5 seconds ago        842MB
-voltha-openolt-adapter          latest-py            a0f2ba883655        5 seconds ago        842MB
-voltha-openolt-adapter          latest-go            801070129648        About a minute ago   34.5MB
-
-```
-In case the python voltha openolt adapter is started, stop the python voltha openolt docker container
-
-
-To start the GOlang based OpenOLT adapter 
-```
-cd ~/source/voltha-go
-docker-compose -f compose/system-test-openolt-go.yml up -d
-```
-To start the Python based adapter based OpenOLT adapter 
-```
-cd ~/source/voltha-go
-docker-compose -f compose/system-test.yml up -d
-```
-The functionality of OLT activation can be verified through BBSIM
-Follow the below steps to start BBSIM and provision it through VOLTHA-CLI
-https://github.com/opencord/voltha-bbsim/blob/master/README.md
-
+When these environment variables are set the vendored versions of these packages
+will be removed from the `vendor` directory and replaced by coping the files from
+the specificed locattions to the `vendor` directory. *NOTE:* _this means that 
+the files in the `vendor` directory are no longer what is in the `git` repository 
+and it will take manual `git` intervention to put the original files back._

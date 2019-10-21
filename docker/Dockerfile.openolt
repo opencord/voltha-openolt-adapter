@@ -21,17 +21,8 @@ FROM golang:1.12-alpine3.9 AS build-env
 RUN apk add --no-cache wget git make build-base protobuf protobuf-dev
 
 # Prepare directory structure
-RUN ["mkdir", "-p", "/build"]
-RUN ["mkdir", "-p", "$GOPATH/src", "$GOPATH/pkg", "$GOPATH/bin"]
-RUN ["mkdir", "-p", "$GOPATH/src/github.com/opencord"]
-RUN ["mkdir", "-p", "$GOPATH/src/github.com/opencord/voltha-openolt-adapter"]
-
-WORKDIR $GOPATH/src/github.com/opencord/voltha-openolt-adapter
-
-COPY adaptercore ./adaptercore
-COPY config ./config
-COPY vendor ./vendor
-COPY *.go ./
+WORKDIR /go/src
+COPY . .
 
 ARG org_label_schema_version=unknown
 ARG org_label_schema_vcs_url=unknown
@@ -42,7 +33,8 @@ ARG org_opencord_vcs_dirty=unknown
 
 # Build openolt
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
-RUN go build -o /build/openolt \
+ENV GO111MODULE=on
+RUN go build -mod=vendor -o /go/bin/openolt \
 	-ldflags \
 	"-X github.com/opencord/voltha-openolt-adapter/config/version.version=$org_label_schema_version \
 	 -X github.com/opencord/voltha-openolt-adapter/config/version.vcsRef=$org_label_schema_vcs_ref  \
@@ -61,7 +53,7 @@ FROM alpine:3.9.4
 WORKDIR /app
 
 # Copy required files
-COPY --from=build-env /build/openolt /app/
+COPY --from=build-env /go/bin/openolt /app/
 
 # Label image
 ARG org_label_schema_version=unknown
