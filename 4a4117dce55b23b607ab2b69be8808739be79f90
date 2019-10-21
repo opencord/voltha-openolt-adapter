@@ -89,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "8ec34080_15f74895",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-21T10:29:57Z",
+      "side": 1,
+      "message": "For the TT\u0027s HSI use-case, we don\u0027t send DHCP trap flow - for VOIP and multicast, we send. - Anyway, the services with US DHCP flow, of course, data-plane service flow deletion can be received before the DHCP. In such a case, if we receive both upstream and downstream flow deletion requests (for symmetric flows), I remove the related gem, tcont and tech-profile instances and after these, when we receive us dhcp flow removal request, I do nothing, just return. Maybe we can find a better way but this is the best solution for me now. The main idea and requirement is after the flows are deleted, it is needed to free gem and tconts. As you know, TT uses multi-tcont, multi-gems, multi tech-profiles and it is very important to free the unused objects. If you suggest a better way, I can update this part.",
+      "parentUuid": "331fba57_a9beb260",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1de9b58_326558d5",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
@@ -100,6 +118,24 @@
       "writtenOn": "2019-10-10T06:59:11Z",
       "side": 1,
       "message": "It is not clear to me why TP ID should be removed for a ONU here. There my be other flows still for the ONU.",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e2fe016_bdafb477",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1252,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-21T10:29:57Z",
+      "side": 1,
+      "message": "Let\u0027s think TT HSI use-case. We send just two flows (us and ds data-plane flows) using one tech profile id (one gem and one tcont).\nWhen we send volt-remove request to Voltha, firstly we delete the flows; then we delete the gem port and the tcont. After the release operation of these subjects, this tech profile id is not used by the (pon,onu,uni) anymore. So we delete this tech profile id from the (pon,onu,uni) mapping.",
+      "parentUuid": "c1de9b58_326558d5",
       "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -135,6 +171,24 @@
       "side": 1,
       "message": "I wanted to follow up on this comment.\nIs the case where each Gem port corresponds to one service? Or what is this Case?\nAlso, should not move the RemoveTechProfileIDForONU after this handling?",
       "parentUuid": "d43c9f85_7460ca2a",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cad11fa0_f8c660c7",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-21T10:29:57Z",
+      "side": 1,
+      "message": "I implemented this method for the AT\u0026T and DT use-cases. For AT\u0026T use case, one technology profile includes four gem ports and we send different flows for each gem port using different p-bits. So let\u0027s think the volt-remove scenario: we will want to delete the flows by one by; and the release the related gem ports and the alloc id. Finally, we will want to delete the tech profile instance and delete tcont. i.e. If we delete the data-plane flows for gem1, we can delete the related gem but not the related tcont (it is still used by gem2, gem3 and gem4). So I need to be sure that all gem ports and all flows are deleted for this t-cont to release the alloc id and delete the tech profile instance.",
+      "parentUuid": "cbf7c99b_50d8c9d4",
       "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
