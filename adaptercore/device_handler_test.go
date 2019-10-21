@@ -28,8 +28,10 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
 	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
@@ -149,9 +151,38 @@ func newMockDeviceHandler() *DeviceHandler {
 	ep := &mocks.MockEventProxy{}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
-	dh.nniIntfID = 1
 	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: nil, Model: "openolt", DeviceId: dh.deviceID}
-	dh.resourceMgr = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf}
+	dh.resourceMgr = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf,
+		KVStore: &db.Backend{
+			Client: &mocks.MockKVClient{},
+		}}
+	dh.resourceMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
+	ranges := make(map[string]interface{})
+	sharedIdxByType := make(map[string]string)
+	sharedIdxByType["ALLOC_ID"] = "ALLOC_ID"
+	sharedIdxByType["ONU_ID"] = "ONU_ID"
+	sharedIdxByType["GEMPORT_ID"] = "GEMPORT_ID"
+	sharedIdxByType["FLOW_ID"] = "FLOW_ID"
+	ranges["ONU_ID"] = uint32(0)
+	ranges["GEMPORT_ID"] = uint32(0)
+	ranges["ALLOC_ID"] = uint32(0)
+	ranges["FLOW_ID"] = uint32(0)
+	ranges["onu_id_shared"] = uint32(0)
+	ranges["alloc_id_shared"] = uint32(0)
+	ranges["gemport_id_shared"] = uint32(0)
+	ranges["flow_id_shared"] = uint32(0)
+
+	ponmgr := &ponrmgr.PONResourceManager{
+		DeviceID: "onu-1",
+		IntfIDs:  []uint32{1, 2},
+		KVStore: &db.Backend{
+			Client: &mocks.MockKVClient{},
+		},
+		PonResourceRanges: ranges,
+		SharedIdxByType:   sharedIdxByType,
+	}
+	dh.resourceMgr.ResourceMgrs[1] = ponmgr
+	dh.resourceMgr.ResourceMgrs[2] = ponmgr
 	dh.flowMgr = NewFlowManager(dh, dh.resourceMgr)
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}}
