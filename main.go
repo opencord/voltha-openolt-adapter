@@ -32,6 +32,7 @@ import (
 	"github.com/opencord/voltha-go/adapters"
 	com "github.com/opencord/voltha-go/adapters/common"
 	"github.com/opencord/voltha-go/common/log"
+	"github.com/opencord/voltha-go/common/probe"
 	"github.com/opencord/voltha-go/db/kvstore"
 	"github.com/opencord/voltha-go/kafka"
 	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
@@ -74,10 +75,28 @@ func (a *adapter) start(ctx context.Context) {
 	log.Info("Starting Core Adapter components")
 	var err error
 
+	var p *probe.Probe
+	if value := ctx.Value(probe.ProbeContextKey); value != nil {
+		if _, ok := value.(*probe.Probe); ok {
+			p = value.(*probe.Probe)
+			p.RegisterService(
+				"message-bus",
+				"kv-store",
+				"container-proxy",
+				"core-request-handler",
+				"register-with-core",
+			)
+		}
+	}
+
 	// Setup KV Client
 	log.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
 	if err = a.setKVClient(); err != nil {
 		log.Fatal("error-setting-kv-client")
+	}
+
+	if p != nil {
+		p.UpdateStatus("kv-store", probe.ServiceStatusRunning)
 	}
 
 	// Setup Kafka Client
@@ -85,8 +104,12 @@ func (a *adapter) start(ctx context.Context) {
 		log.Fatal("Unsupported-common-client")
 	}
 
+	if p != nil {
+		p.UpdateStatus("message-bus", probe.ServiceStatusRunning)
+	}
+
 	// Start the common InterContainer Proxy - retries indefinitely
-	if a.kip, err = a.startInterContainerProxy(-1); err != nil {
+	if a.kip, err = a.startInterContainerProxy(ctx, -1); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
 
@@ -107,12 +130,12 @@ func (a *adapter) start(ctx context.Context) {
 	}
 
 	// Register the core request handler
-	if err = a.setupRequestHandler(a.instanceID, a.iAdapter); err != nil {
+	if err = a.setupRequestHandler(ctx, a.instanceID, a.iAdapter); err != nil {
 		log.Fatal("error-setting-core-request-handler")
 	}
 
 	// Register this adapter to the Core - retries indefinitely
-	if err = a.registerWithCore(-1); err != nil {
+	if err = a.registerWithCore(ctx, -1); err != nil {
 		log.Fatal("error-registering-with-core")
 	}
 }
@@ -179,7 +202,7 @@ func (a *adapter) setKVClient() error {
 	return nil
 }
 
-func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerProxy, error) {
+func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (*kafka.InterContainerProxy, error) {
 	log.Infow("starting-intercontainer-messaging-proxy", log.Fields{"host": a.config.KafkaAdapterHost,
 		"port": a.config.KafkaAdapterPort, "topic": a.config.Topic})
 	var err error
@@ -207,6 +230,7 @@ func (a *adapter) startInterContainerProxy(retries int) (*kafka.InterContainerPr
 		}
 	}
 
+	probe.UpdateStatusFromContext(ctx, "container-proxy", probe.ServiceStatusRunning)
 	log.Info("common-messaging-proxy-created")
 	return kip, nil
 }
@@ -227,7 +251,7 @@ func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerPro
 	return sOLT, nil
 }
 
-func (a *adapter) setupRequestHandler(coreInstanceID string, iadapter adapters.IAdapter) error {
+func (a *adapter) setupRequestHandler(ctx context.Context, coreInstanceID string, iadapter adapters.IAdapter) error {
 	log.Info("setting-request-handler")
 	requestProxy := com.NewRequestHandlerProxy(coreInstanceID, iadapter, a.coreProxy)
 	if err := a.kip.SubscribeWithRequestHandlerInterface(kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
@@ -235,11 +259,12 @@ func (a *adapter) setupRequestHandler(coreInstanceID string, iadapter adapters.I
 		return err
 
 	}
+	probe.UpdateStatusFromContext(ctx, "core-request-handler", probe.ServiceStatusRunning)
 	log.Info("request-handler-setup-done")
 	return nil
 }
 
-func (a *adapter) registerWithCore(retries int) error {
+func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	log.Info("registering-with-core")
 	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
 		Vendor:  "VOLTHA OpenOLT",
@@ -263,6 +288,7 @@ func (a *adapter) registerWithCore(retries int) error {
 			break
 		}
 	}
+	probe.UpdateStatusFromContext(ctx, "register-with-core", probe.ServiceStatusRunning)
 	log.Info("registered-with-core")
 	return nil
 }
@@ -352,7 +378,13 @@ func main() {
 	defer cancel()
 
 	ad := newAdapter(cf)
-	go ad.start(ctx)
+
+	p := &probe.Probe{}
+	go p.ListenAndServe(fmt.Sprintf("%s:%d", ad.config.ProbeHost, ad.config.ProbePort))
+
+	probeCtx := context.WithValue(ctx, probe.ProbeContextKey, p)
+
+	go ad.start(probeCtx)
 
 	code := waitForExit()
 	log.Infow("received-a-closing-signal", log.Fields{"code": code})
