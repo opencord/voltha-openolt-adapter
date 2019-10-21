@@ -70,26 +70,7 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 
 	dh.resourceMgr = rsrMgr
 	flwMgr := NewFlowManager(dh, rsrMgr)
-	onuIds := make(map[onuIDKey]onuInfo)
-	onuIds[onuIDKey{intfID: 1, onuID: 1}] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
-	onuIds[onuIDKey{intfID: 2, onuID: 2}] = onuInfo{intfID: 2, onuID: 2, serialNumber: "2"}
-	flwMgr.onuIds = onuIds
 
-	onuSerialNumbers := make(map[string]onuInfo)
-	onuSerialNumbers["1"] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
-	onuSerialNumbers["2"] = onuInfo{intfID: 2, onuID: 1, serialNumber: "2"}
-	flwMgr.onuSerialNumbers = onuSerialNumbers
-
-	onuGemPortIds := make(map[gemPortKey]onuInfo)
-	onuGemPortIds[gemPortKey{intfID: 1, gemPort: 1}] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
-	onuGemPortIds[gemPortKey{intfID: 2, gemPort: 2}] = onuInfo{intfID: 2, onuID: 2, serialNumber: "2"}
-	flwMgr.onuGemPortIds = onuGemPortIds
-
-	packetInGemPort := make(map[packetInInfoKey]uint32)
-	packetInGemPort[packetInInfoKey{intfID: 1, onuID: 1, logicalPort: 1}] = 1
-	packetInGemPort[packetInInfoKey{intfID: 2, onuID: 2, logicalPort: 2}] = 2
-
-	flwMgr.packetInGemPort = packetInGemPort
 	tps := make([]tp.TechProfileIf, len(rsrMgr.ResourceMgrs))
 	for key := range rsrMgr.ResourceMgrs {
 		tps[key] = mocks.MockTechProfile{TpID: key}
@@ -223,7 +204,6 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}
 	ofpstats := fu.MkFlowStat(fa)
 	ofpstats.Cookie = ofpstats.Id
-	flowMgr.storedDeviceFlows = append(flowMgr.storedDeviceFlows, *ofpstats)
 	lldpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
@@ -755,14 +735,9 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 
 	type fields struct {
-		techprofile       []tp.TechProfileIf
-		deviceHandler     *DeviceHandler
-		resourceMgr       *rsrcMgr.OpenOltResourceMgr
-		onuIds            map[onuIDKey]onuInfo
-		onuSerialNumbers  map[string]onuInfo
-		onuGemPortIds     map[gemPortKey]onuInfo
-		packetInGemPort   map[packetInInfoKey]uint32
-		storedDeviceFlows []ofp.OfpFlowStats
+		techprofile   []tp.TechProfileIf
+		deviceHandler *DeviceHandler
+		resourceMgr   *rsrcMgr.OpenOltResourceMgr
 	}
 	type args struct {
 		args           map[string]uint32
