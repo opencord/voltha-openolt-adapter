@@ -198,18 +198,18 @@ func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
 //Reconcile_device unimplemented
 func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 	if device == nil {
-               log.Warn("device-is-nil")
-               return errors.New("nil-device")
+		log.Warn("device-is-nil")
+		return errors.New("nil-device")
 	}
-        log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
-        var handler *DeviceHandler
-        if handler = oo.getDeviceHandler(device.Id); handler == nil {
-                handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
-                oo.addDeviceHandlerToMap(handler)
+	log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
+	var handler *DeviceHandler
+	if handler = oo.getDeviceHandler(device.Id); handler == nil {
+		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
+		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
-                handler.transitionMap.Handle(DeviceInit)
-        }
-        return nil
+		handler.transitionMap.Handle(DeviceInit)
+	}
+	return nil
 }
 
 //Abandon_device unimplemented

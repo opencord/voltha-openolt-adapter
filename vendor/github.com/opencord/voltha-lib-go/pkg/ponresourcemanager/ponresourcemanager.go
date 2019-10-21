@@ -101,7 +101,7 @@ const (
 	//Flow Id info: Use to store more metadata associated with the flow_id
 	//Format: <device_id>/<(pon_intf_id, onu_id)>/flow_id_info/<flow_id>
 	FLOW_ID_INFO_PATH = "{%s}/{%s}/flow_id_info/{%d}"
-	
+
 	//path on the kvstore to store packetin gemport,which will be used for packetin, pcketout
 	//format: onu_packetin/<intfid>,<onuid>,<logicalport>
 	ONU_PACKETIN_PATH = "{%s}/onu_packetin/{%d},{%d},{%d}"
@@ -109,11 +109,6 @@ const (
 	//path on the kvstore to store onugem info map
 	//format: onu_gem/<intfid>
 	ONU_GEM_INFO_PATH = "{%s}/onu_gem_info/{%d}" // onu_gem/<(intfid)>
-
-	//path on the kvstroe to store nni interface ids
-	//format: nniintfids
-	NNI_INTFIDS = "nniintfids" //slice of nni interfaces
-
 
 	//Constants for internal usage.
 	PON_INTF_ID     = "pon_intf_id"
@@ -1192,136 +1187,115 @@ func ToString(value interface{}) (string, error) {
 	}
 }
 
-func (PONRMgr *PONResourceManager) AddOnuGemInfo(intfID uint32,  onuGemData interface{}) error {
-        /*
-           Update onugem info map, 
-           :param pon_intf_id: reference of PON interface id
-           :param onuegmdata: onugem info map
-        */
-        var Value []byte
-        var err error
-        Path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfID)
-        Value, err = json.Marshal(onuGemData)
-        if err != nil {
-                log.Error("failed to Marshal")
-                return err
-        }
+func (PONRMgr *PONResourceManager) AddOnuGemInfo(intfID uint32, onuGemData interface{}) error {
+	/*
+	   Update onugem info map,
+	   :param pon_intf_id: reference of PON interface id
+	   :param onuegmdata: onugem info map
+	*/
+	var Value []byte
+	var err error
+	Path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfID)
+	Value, err = json.Marshal(onuGemData)
+	if err != nil {
+		log.Error("failed to Marshal")
+		return err
+	}
 
-        if err = PONRMgr.KVStore.Put(Path, Value); err != nil {
-                log.Errorf("Failed to update resource %s", Path)
-                return err
-        }
-        return err
+	if err = PONRMgr.KVStore.Put(Path, Value); err != nil {
+		log.Errorf("Failed to update resource %s", Path)
+		return err
+	}
+	return err
 }
 
 func (PONRMgr *PONResourceManager) GetOnuInfo(IntfId uint32, onuGemInfo interface{}) error {
-	/* 
+	/*
 	  Get onugeminfo map from kvstore
 	  :param intfid: refremce pon intfid
 	  :param onuGemInfo: onugem info to return from kv strore.
 	*/
-        var Val []byte
+	var Val []byte
 
-        path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, IntfId)
-        value, err:= PONRMgr.KVStore.Get(path)
-        if err != nil {
-                log.Errorw("Failed to get from kv store", log.Fields{"path": path})
-                return err
-        } else if value == nil {
-                log.Debug("No onuinfo for path", log.Fields{"path": path})
-                return nil // returning nil as this could happen if there are no onus for the interface yet
-        }
-        if Val, err = kvstore.ToByte(value.Value); err != nil {
-                log.Error("Failed to convert to byte array")
-                return err
-        }
+	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, IntfId)
+	value, err := PONRMgr.KVStore.Get(path)
+	if err != nil {
+		log.Errorw("Failed to get from kv store", log.Fields{"path": path})
+		return err
+	} else if value == nil {
+		log.Debug("No onuinfo for path", log.Fields{"path": path})
+		return nil // returning nil as this could happen if there are no onus for the interface yet
+	}
+	if Val, err = kvstore.ToByte(value.Value); err != nil {
+		log.Error("Failed to convert to byte array")
+		return err
+	}
 
-        if err = json.Unmarshal(Val, &onuGemInfo); err != nil {
-                log.Error("Failed to unmarshall")
-                return err
-        }
-        log.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemInfo})
-        return  err
+	if err = json.Unmarshal(Val, &onuGemInfo); err != nil {
+		log.Error("Failed to unmarshall")
+		return err
+	}
+	log.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemInfo})
+	return err
 }
 
 func (PONRMgr *PONResourceManager) UpdateGemPortForPktIn(intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) error {
 
-        path := fmt.Sprintf(ONU_PACKETIN_PATH, PONRMgr.DeviceID, intfID, onuID, logicalPort)
-        Value, err := json.Marshal(gemPort)
-        if err != nil {
-                log.Error("Failed to marshal data")
+	path := fmt.Sprintf(ONU_PACKETIN_PATH, PONRMgr.DeviceID, intfID, onuID, logicalPort)
+	Value, err := json.Marshal(gemPort)
+	if err != nil {
+		log.Error("Failed to marshal data")
 		return err
-        }
-        if err = PONRMgr.KVStore.Put(path, Value); err != nil {
-                log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Value})
+	}
+	if err = PONRMgr.KVStore.Put(path, Value); err != nil {
+		log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Value})
 		return err
-        }
-        log.Debugw("added gem packet in successfully", log.Fields{"path": path, "gem": gemPort})
+	}
+	log.Debugw("added gem packet in successfully", log.Fields{"path": path, "gem": gemPort})
 
-        return nil
+	return nil
 }
 
 func (PONRMgr *PONResourceManager) GetGemPortFromOnuPktIn(intfID uint32, onuID uint32, logicalPort uint32) (uint32, error) {
 
-        var gemPort uint32
-        var Val []byte
-        path := fmt.Sprintf(ONU_PACKETIN_PATH, PONRMgr.DeviceID, intfID, onuID, logicalPort)
+	var gemPort uint32
+	var Val []byte
+	path := fmt.Sprintf(ONU_PACKETIN_PATH, PONRMgr.DeviceID, intfID, onuID, logicalPort)
 
-        value, err:= PONRMgr.KVStore.Get(path)
-        if err != nil {
-                log.Errorw("Failed to get from kv store", log.Fields{"path": path})
-                return uint32(0), err
-        }
+	value, err := PONRMgr.KVStore.Get(path)
+	if err != nil {
+		log.Errorw("Failed to get from kv store", log.Fields{"path": path})
+		return uint32(0), err
+	}
 
-        if Val, err = kvstore.ToByte(value.Value); err != nil {
-                log.Error("Failed to convert to byte array")
-                return uint32(0), err
-        }
-        if err = json.Unmarshal(Val, &gemPort); err != nil {
-                log.Error("Failed to unmarshall")
-                return uint32(0), err
-        }
-        log.Debugw("found packein gemport from path", log.Fields{"path": path, "gem": gemPort})
-        return gemPort, nil
+	if Val, err = kvstore.ToByte(value.Value); err != nil {
+		log.Error("Failed to convert to byte array")
+		return uint32(0), err
+	}
+	if err = json.Unmarshal(Val, &gemPort); err != nil {
+		log.Error("Failed to unmarshall")
+		return uint32(0), err
+	}
+	log.Debugw("found packein gemport from path", log.Fields{"path": path, "gem": gemPort})
+	return gemPort, nil
 }
 
-/*
-func (PONRMgr *PONResourceManager) GetNNIFromKVStore(nni interface{}) (error){
+func (PONRMgr *PONResourceManager) DelGemPortPktIn(intfID uint32, onuID uint32, logicalPort uint32) error {
 
-        var Val []byte
-
-        value, err := Rmgr.KVStore.Get(NNI_INTFIDS)
-        if err != nil {
-                log.Error("failed to get data from kv store")
-                return nil, err
+	path := fmt.Sprintf(ONU_PACKETIN_PATH, PONRMgr.DeviceID, intfID, onuID, logicalPort)
+        if err := PONRMgr.KVStore.Delete(path); err != nil {
+                log.Errorf("Falied to remove resource %s", path)
+                return err 
         }
-        if len(Val) != 0 {
-                if Val, err = kvstore.ToByte(value.Value); err != nil {
-                        log.Error("Failed to convert to byte array")
-                        return nil, err
-                }
-                if err = json.Unmarshal(Val, &nni); err != nil {
-                        log.Error("Failed to unmarshall")
-                        return  nil, err
-                }
-        }
-        return nni, err
+        return nil
 }
 
-func (PONRMgr *PONResourceManager) AddNNIToKVStore(nniIntf interface{}) error {
-        var Value []byte
-	var err   error
-
-        Value, err = json.Marshal(nni)
-        if err != nil {
-                log.Error("Failed to marshal data")
-        }
-        if err = Rmgr.KVStore.Put(NNI_INTFIDS, Value); err != nil {
-                log.Errorw("Failed to put to kvstore", log.Fields{"path": NNI_INTFIDS, "value": Value})
+func (PONRMgr *PONResourceManager) DelOnuGemInfoForIntf(intfId uint32) error {
+	
+	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfId)
+	if err := PONRMgr.KVStore.Delete(path); err != nil {
+                log.Errorf("Falied to remove resource %s", path)
                 return err
         }
-        log.Debugw("added nni to kv successfully", log.Fields{"path": NNI_INTFIDS, "nni": nniIntf})
         return nil
-}*/
-
-
+}

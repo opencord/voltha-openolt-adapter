@@ -268,11 +268,11 @@ func (dh *DeviceHandler) readIndications() {
 		if err == io.EOF {
 			log.Infow("EOF for  indications", log.Fields{"err": err})
 			indications, err = dh.Client.EnableIndication(context.Background(), new(oop.Empty))
-		        if err != nil {
-                		log.Errorw("Failed to read indications", log.Fields{"err": err})
-                		return
-        		}
-		 	continue
+			if err != nil {
+				log.Errorw("Failed to read indications", log.Fields{"err": err})
+				return
+			}
+			continue
 		}
 		if err != nil {
 			log.Infow("Failed to read from indications", log.Fields{"err": err})
@@ -504,28 +504,6 @@ func (dh *DeviceHandler) doStateConnected() error {
 		log.Errorw("updating-ports-failed", log.Fields{"deviceID": device.Id, "error": err})
 		return err
 	}
-	//get the child device for the parent device
-       /* onuDevices, err := dh.coreProxy.GetChildDevices(context.TODO(), dh.device.Id)
-        if err != nil {
-                log.Errorw("failed to get child devices information", log.Fields{"deviceID": dh.device.Id, "error": err})
-                return err
-        }*/
-	/*change the operstate of the child to UP. on a fresh device up there will be no child devices yet. 
-	  in case of adapter reconcile we need to send up indication to child devices. 
-	*/
-        /*for _, onuDevice := range onuDevices.Items {
-
-                // Update onu state as down in onu adapter
-                onuInd := oop.OnuIndication{}
-                onuInd.OperState = "up"
-                er := dh.AdapterProxy.SendInterAdapterMessage(context.TODO(), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-                        "openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
-                if er != nil {
-                        log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
-                                "From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
-                        return er
-                }
-        }*/
 
 	KVStoreHostPort := fmt.Sprintf("%s:%d", dh.openOLT.KVStoreHost, dh.openOLT.KVStorePort)
 	// Instantiate resource manager
@@ -1106,7 +1084,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 func (dh *DeviceHandler) clearUNIData(onu *rsrcMgr.OnuGemInfo) error {
 	var uniID uint32
 	var err error
-	for port := range onu.UniPorts {
+	for _, port := range onu.UniPorts {
 		//delete(onu.UniPorts, port)
 		uniID = UniIDFromPortNum(uint32(port))
 		log.Debugw("clearing-resource-data-for-uni-port", log.Fields{"port": port, "uniID": uniID})
@@ -1132,6 +1110,9 @@ func (dh *DeviceHandler) clearUNIData(onu *rsrcMgr.OnuGemInfo) error {
 			log.Debugw("Failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
 		}
 		log.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
+		if err = dh.resourceMgr.DelGemPortPktIn(onu.IntfID, onu.OnuID, uint32(port)); err != nil {
+			log.Debugw("Failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
+		}
 	}
 	return nil
 }
@@ -1139,7 +1120,7 @@ func (dh *DeviceHandler) clearUNIData(onu *rsrcMgr.OnuGemInfo) error {
 func (dh *DeviceHandler) clearNNIData() error {
 	nniUniID := -1
 	nniOnuID := -1
-	nni ,err := dh.resourceMgr.GetNNIFromKVStore()
+	nni, err := dh.resourceMgr.GetNNIFromKVStore()
 	log.Debugw("NNI are ", log.Fields{"nni": nni})
 	for _, nniIntfID := range nni {
 		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(uint32(nniIntfID), int32(nniOnuID), int32(nniUniID))
@@ -1152,7 +1133,7 @@ func (dh *DeviceHandler) clearNNIData() error {
 		log.Error("Failed to clear nni from kv store")
 		return err
 	}
-	return err 
+	return err
 }
 
 // DeleteDevice deletes the device instance from openolt handler array.  Also clears allocated resource manager resources.  Also reboots the OLT hardware!
@@ -1176,19 +1157,18 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 		err := dh.resourceMgr.ResourceMgrs[ponPort].GetOnuInfo(ponPort, &onuGemData)
 		if err != nil {
 			log.Errorw("Failed to get onu info for port ", log.Fields{"ponport": ponPort})
-			return err 
+			return err
 		}
 		for _, onu := range onuGemData {
-			log.Debugw("onu data ", log.Fields{"onu":onu})
+			log.Debugw("onu data ", log.Fields{"onu": onu})
 			if err = dh.clearUNIData(&onu); err != nil {
 				log.Errorw("Failed to clear data for onu", log.Fields{"onu-device": onu})
 			}
 		}
 		onuGemData = nil
-		err = dh.resourceMgr.UpdateOnuInfo(ponPort, onuGemData)
+		err = dh.resourceMgr.DelOnuGemInfoForIntf(ponPort)
 		if err != nil {
 			log.Errorw("Failed to update onugem info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
-			return err
 		}
 	}
 	/* Clear the flows from KV store associated with NNI port.

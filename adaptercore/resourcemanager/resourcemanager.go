@@ -45,23 +45,23 @@ const (
 
 const TP_ID_PATH_SUFFIX = "tp_id/{%d,%d,%d}"            // tp_id/<(pon_id, onu_id, uni_id)>
 const METER_ID_PATH_SUFFIX = "meter_id/{%d,%d,%d}/{%s}" // meter_id/<(pon_id, onu_id, uni_id)>/<direction>
-const ONU_GEM_PATH = "onu_gem/{%d}" // onu_gem/<(intfid)>
-const ONU_PACKETIN_PATH = "onupakcetin/{%d,%d,%d}" // onupacketin/<(intfid, onuid, logicalportid)>
-const NNI_INTFIDS = "nniintfids" //slice of nni interfaces 
+const ONU_GEM_PATH = "onu_gem/{%d}"                     // onu_gem/<(intfid)>
+const ONU_PACKETIN_PATH = "onupakcetin/{%d,%d,%d}"      // onupacketin/<(intfid, onuid, logicalportid)>
+const NNI_INTFIDS = "nniintfids"                        //slice of nni interfaces
 
 // FlowInfo holds the flow information
 type FlowInfo struct {
 	Flow            *openolt.Flow
 	FlowStoreCookie uint64
 	FlowCategory    string
-	LogicalFlowID	uint64
+	LogicalFlowID   uint64
 }
 
 type OnuGemInfo struct {
-        OnuID        uint32
-        SerialNumber string
-	IntfID	     uint32
-        GemPorts     []uint32
+	OnuID        uint32
+	SerialNumber string
+	IntfID       uint32
+	GemPorts     []uint32
 	UniPorts     []uint32
 }
 
@@ -643,7 +643,7 @@ func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(IntfID uint32, onuID int32,
 	log.Debugf("ABHI delte path %s", IntfONUID)
 	err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(IntfONUID, FlowID, false)
 	if err != nil {
-		log.Error("Failed to Update flow id infor for %s", IntfONUID)
+		log.Errorw("Failed to Update flow id  for", log.Fields{"intf": IntfONUID})
 	}
 	RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(IntfONUID, FlowID)
 	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(IntfID, ponrmgr.FLOW_ID, FlowIds)
@@ -661,7 +661,7 @@ func (RsrcMgr *OpenOltResourceMgr) FreeFlowIDs(IntfID uint32, onuID uint32,
 		IntfOnuIDUniID = fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
 		err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(IntfOnuIDUniID, flow, false)
 		if err != nil {
-			log.Error("Failed to Update flow id infor for %s", IntfOnuIDUniID)
+			log.Errorw("Failed to Update flow id for", log.Fields{"intf": IntfOnuIDUniID})
 		}
 		RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(IntfOnuIDUniID, flow)
 	}
@@ -760,7 +760,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(IntfID uint32, OnuID u
 func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(IntfID uint32, OnuID uint32, UniID uint32) error {
 	IntfOnuUniID := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
 	if err := RsrcMgr.KVStore.Delete(IntfOnuUniID); err != nil {
-		log.Error("Failed to delete techprofile id resource %s in KV store", IntfOnuUniID)
+		log.Errorw("Failed to delete techprofile id resource in KV store", log.Fields{"path": IntfOnuUniID})
 		return err
 	}
 	return nil
@@ -871,25 +871,23 @@ func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowS
 
 func (RMgr *OpenOltResourceMgr) AddGemToOnuGemInfo(intfID uint32, onuID uint32, gemPort uint32) error {
 	var onuGemData []OnuGemInfo
-        var err error
+	var err error
 
-	//path := fmt.Sprintf(ONU_GEM_PATH, intfID)
-        if err = RMgr.ResourceMgrs[intfID].GetOnuInfo(intfID, &onuGemData); err != nil {
-                log.Errorf("failed to get onuifo for intfid %d", intfID)
-                return err
-        }
+	if err = RMgr.ResourceMgrs[intfID].GetOnuInfo(intfID, &onuGemData); err != nil {
+		log.Errorf("failed to get onuifo for intfid %d", intfID)
+		return err
+	}
 	if len(onuGemData) == 0 {
-		log.Errorw("failed to ger Onuid info ", log.Fields{"intfid":intfID, "onuid": onuID})
+		log.Errorw("failed to ger Onuid info ", log.Fields{"intfid": intfID, "onuid": onuID})
 		return err
 	}
 
-log.Debugw("ABHI gem data before is ", log.Fields{"data": onuGemData})
 	for idx, onugem := range onuGemData {
 		if onugem.OnuID == onuID {
 			for _, gem := range onuGemData[idx].GemPorts {
 				if gem == gemPort {
 					log.Debugw("Gem already present in onugem info, skpping addition", log.Fields{"gem": gem})
-				 	return nil
+					return nil
 				}
 			}
 			log.Debugw("Added gem to onugem info", log.Fields{"gem": gemPort})
@@ -897,21 +895,21 @@ log.Debugw("ABHI gem data before is ", log.Fields{"data": onuGemData})
 			break
 		}
 	}
-log.Debugw("ABHI gem data after is ", log.Fields{"data": onuGemData})
 	err = RMgr.ResourceMgrs[intfID].AddOnuGemInfo(intfID, onuGemData)
-        if err != nil {
-                log.Error("Failed to add onugem to kv store")
+	if err != nil {
+		log.Error("Failed to add onugem to kv store")
 		return err
-        }
+	}
 	return err
-} 
+}
 
+/*
 func (RMgr *OpenOltResourceMgr) GetOnuInfo(IntfId uint32) ([]OnuGemInfo, error) {
 	var onuGemData []OnuGemInfo
 	var Val []byte
 
 	path := fmt.Sprintf(ONU_GEM_PATH, IntfId)
-	value, err:= RMgr.KVStore.Get(path)
+	value, err := RMgr.KVStore.Get(path)
 	if err != nil {
 		log.Errorw("Failed to get from kv store", log.Fields{"path": path})
 		return nil, err
@@ -920,9 +918,9 @@ func (RMgr *OpenOltResourceMgr) GetOnuInfo(IntfId uint32) ([]OnuGemInfo, error) 
 		return nil, nil // returning nil as this could happen if there are no onus for the interface yet
 	}
 	if Val, err = kvstore.ToByte(value.Value); err != nil {
-                log.Error("Failed to convert to byte array")
-                return nil, err
-        }
+		log.Error("Failed to convert to byte array")
+		return nil, err
+	}
 
 	if err = json.Unmarshal(Val, &onuGemData); err != nil {
 		log.Error("Failed to unmarshall")
@@ -931,7 +929,7 @@ func (RMgr *OpenOltResourceMgr) GetOnuInfo(IntfId uint32) ([]OnuGemInfo, error) 
 	log.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemData})
 	return onuGemData, err
 }
-
+*/
 func (RMgr *OpenOltResourceMgr) AddOnuInfo(IntfId uint32, onuGem OnuGemInfo) error {
 	var onuGemData []OnuGemInfo
 	var err error
@@ -942,86 +940,103 @@ func (RMgr *OpenOltResourceMgr) AddOnuInfo(IntfId uint32, onuGem OnuGemInfo) err
 	}
 	onuGemData = append(onuGemData, onuGem)
 	err = RMgr.ResourceMgrs[IntfId].AddOnuGemInfo(IntfId, onuGemData)
-        if err != nil {
-                log.Error("Failed to add onugem to kv store")
-                return err
-        }
+	if err != nil {
+		log.Error("Failed to add onugem to kv store")
+		return err
+	}
 
 	log.Debugw("added onu to onugeminfo", log.Fields{"intf": IntfId, "onugem": onuGem})
 	return err
 }
 
 func (RMgr *OpenOltResourceMgr) UpdateOnuInfo(IntfId uint32, onuGem []OnuGemInfo) error {
-        var onuGemData []OnuGemInfo
-        var err error
+	var onuGemData []OnuGemInfo
+	var err error
 
-        err = RMgr.ResourceMgrs[IntfId].AddOnuGemInfo(IntfId, onuGemData)
-        if err != nil {
-                log.Error("Failed to add onugem to kv store")
-                return err
-        }
+	err = RMgr.ResourceMgrs[IntfId].AddOnuGemInfo(IntfId, onuGemData)
+	if err != nil {
+		log.Error("Failed to add onugem to kv store")
+		return err
+	}
 
-        log.Debugw("updated onugeminfo", log.Fields{"intf": IntfId, "onugem": onuGem})
-        return err
+	log.Debugw("updated onugeminfo", log.Fields{"intf": IntfId, "onugem": onuGem})
+	return err
 }
 
 func (Rmgr *OpenOltResourceMgr) AddUniPortToOnuInfo(intfID uint32, onuID uint32, portNo uint32) {
 	var onuGemData []OnuGemInfo
-        var err error
+	var err error
 
-        if err = Rmgr.ResourceMgrs[intfID].GetOnuInfo(intfID, &onuGemData); err != nil {
-                log.Errorf("failed to get onuifo for intfid %d", intfID)
-                return 
-        }
+	if err = Rmgr.ResourceMgrs[intfID].GetOnuInfo(intfID, &onuGemData); err != nil {
+		log.Errorf("failed to get onuifo for intfid %d", intfID)
+		return
+	}
 	for idx, onu := range onuGemData {
 		if onu.OnuID == onuID {
 			for _, uni := range onu.UniPorts {
 				if uni == portNo {
 					log.Debugw("uni already present in onugem info", log.Fields{"uni": portNo})
-					return 
+					return
 				}
 			}
 			onuGemData[idx].UniPorts = append(onuGemData[idx].UniPorts, portNo)
-			break 
+			break
 		}
 	}
 	err = Rmgr.ResourceMgrs[intfID].AddOnuGemInfo(intfID, onuGemData)
-        if err != nil {
-                log.Errorw("Failed to add uin port in onugem to kv store", log.Fields{"uni": portNo})
-                return 
-        }
-	return 
+	if err != nil {
+		log.Errorw("Failed to add uin port in onugem to kv store", log.Fields{"uni": portNo})
+		return
+	}
+	return
 }
 
 func (Rmgr *OpenOltResourceMgr) UpdateGemPortForPktIn(intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) {
-	
+
 	if err := Rmgr.ResourceMgrs[intfID].UpdateGemPortForPktIn(intfID, onuID, logicalPort, gemPort); err != nil {
-                log.Errorf("failed to update gemport for pkt in %d", intfID)
-        }
-	return 
+		log.Errorf("failed to update gemport for pkt in %d", intfID)
+	}
+	return
 }
 
 func (Rmgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(intfID uint32, onuID uint32, logicalPort uint32) (uint32, error) {
 
 	var gemPort uint32
-	var err     error
+	var err error
 
 	if gemPort, err = Rmgr.ResourceMgrs[intfID].GetGemPortFromOnuPktIn(intfID, onuID, logicalPort); err != nil {
-                log.Errorf("failed to fetch gemport for pkt in %d", intfID)
-                return uint32(0), err
-        }
+		log.Errorf("failed to fetch gemport for pkt in %d", intfID)
+		return uint32(0), err
+	}
 
 	log.Debugw("found packein gemport from path", log.Fields{"gem": gemPort})
-        return gemPort, nil
+	return gemPort, nil
 }
 
-func (Rmgr *OpenOltResourceMgr) GetNNIFromKVStore() ([]uint32, error){
+func (Rmgr *OpenOltResourceMgr) DelGemPortPktIn(intfID uint32, onuID uint32, logicalPort uint32) error {
+
+	var err error
+	if err = Rmgr.ResourceMgrs[intfID].DelGemPortPktIn(intfID, onuID, logicalPort); err != nil {
+		log.Errorf("failed to fetch gemport for pkt in %d", intfID)
+		return err
+	}
+	return err
+}
+
+func (Rmgr *OpenOltResourceMgr) DelOnuGemInfoForIntf(intfId uint32) error {
+	if err := Rmgr.ResourceMgrs[intfId].DelOnuGemInfoForIntf(intfId); err != nil {
+		log.Errorw("failed to delete onu gem info for", log.Fields{"intfid": intfId})
+		return err
+	}
+	return nil
+}
+
+func (Rmgr *OpenOltResourceMgr) GetNNIFromKVStore() ([]uint32, error) {
 
 	var nni []uint32
 	var Val []byte
 
 	path := fmt.Sprintf(NNI_INTFIDS)
-	log.Debugw("Get nnin from kv store", log.Fields{"path": path})
 	value, err := Rmgr.KVStore.Get(path)
 	if err != nil {
 		log.Error("failed to get data from kv store")
@@ -1029,14 +1044,14 @@ func (Rmgr *OpenOltResourceMgr) GetNNIFromKVStore() ([]uint32, error){
 	}
 	if value != nil {
 		if Val, err = kvstore.ToByte(value.Value); err != nil {
-                	log.Error("Failed to convert to byte array")
-                	return nil, err
-        	}
-        	if err = json.Unmarshal(Val, &nni); err != nil {
-                	log.Error("Failed to unmarshall")
-                	return  nil, err
+			log.Error("Failed to convert to byte array")
+			return nil, err
 		}
-        }
+		if err = json.Unmarshal(Val, &nni); err != nil {
+			log.Error("Failed to unmarshall")
+			return nil, err
+		}
+	}
 	return nni, err
 }
 
@@ -1051,16 +1066,15 @@ func (Rmgr *OpenOltResourceMgr) AddNNIToKVStore(nniIntf uint32) error {
 
 	path := fmt.Sprintf(NNI_INTFIDS)
 	nni = append(nni, nniIntf)
-	log.Debugw("Add nni to kv store", log.Fields{"path": path, "nni": nni})
-        Value, err = json.Marshal(nni)
-        if err != nil {
-                log.Error("Failed to marshal data")
-        }
-        if err = Rmgr.KVStore.Put(path, Value); err != nil {
-                log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Value})
+	Value, err = json.Marshal(nni)
+	if err != nil {
+		log.Error("Failed to marshal data")
+	}
+	if err = Rmgr.KVStore.Put(path, Value); err != nil {
+		log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Value})
 		return err
-        }
-        log.Debugw("added nni to kv successfully", log.Fields{"path": path, "nni": nniIntf})
+	}
+	log.Debugw("added nni to kv successfully", log.Fields{"path": path, "nni": nniIntf})
 	return nil
 }
 
@@ -1069,8 +1083,8 @@ func (Rmgr *OpenOltResourceMgr) DelNNiFromKVStore() error {
 	path := fmt.Sprintf(NNI_INTFIDS)
 
 	if err := Rmgr.KVStore.Delete(path); err != nil {
-                log.Errorw("Failed to delete nni interfaces from kv store", log.Fields{"path": path})
-                return err
-        }
-        return nil
+		log.Errorw("Failed to delete nni interfaces from kv store", log.Fields{"path": path})
+		return err
+	}
+	return nil
 }
