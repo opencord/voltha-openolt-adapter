@@ -195,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "637957e3_0a66dd18",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T08:18:00Z",
+      "side": 1,
+      "message": "For AT\u0026T use case if HSIA delete comes first, the scheduler/queues wont be cleaned on the BAL because DHCP flow still uses some gem ports. But, when DHCP delete comes, it will return from above, because it is a trapToHost flow. Is that correct? Then the schedulers/queues wont be freed.\nSorry, I have so many questions. But, I just want to get some basic right.",
+      "parentUuid": "cad11fa0_f8c660c7",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d952f13_935031f9",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
