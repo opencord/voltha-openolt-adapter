@@ -69,6 +69,7 @@ github.com/opencord/voltha-lib-go/pkg/adapters/common
 github.com/opencord/voltha-lib-go/pkg/db/kvstore
 github.com/opencord/voltha-lib-go/pkg/kafka
 github.com/opencord/voltha-lib-go/pkg/log
+github.com/opencord/voltha-lib-go/pkg/probe
 github.com/opencord/voltha-lib-go/pkg/techprofile
 github.com/opencord/voltha-lib-go/pkg/db/model
 github.com/opencord/voltha-lib-go/pkg/ponresourcemanager
