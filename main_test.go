@@ -83,7 +83,8 @@ func Test_adapter_KVClient(t *testing.T) {
 
 func Test_registerWithCore(t *testing.T) {
 	ad := newMockAdapter()
-	err := ad.registerWithCore(1)
+	ctx := context.TODO()
+	err := ad.registerWithCore(ctx, 1)
 	if err != nil {
 		t.Errorf("Expected error:nil, got error: %v", err)
 	}
@@ -92,7 +93,8 @@ func Test_startInterContainerProxy(t *testing.T) {
 	ad := newMockAdapter()
 	kc := &mockKafkaClient{}
 	ad.kafkaClient = kc
-	icp, err := ad.startInterContainerProxy(1)
+	ctx := context.TODO()
+	icp, err := ad.startInterContainerProxy(ctx, 1)
 	if icp != nil {
 		t.Log("Intercontainer proxy ", icp)
 	}
@@ -167,7 +169,8 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 		ad.config.KVStorePort, ad.config.KVStoreType)
 	printBanner()
 	printVersion()
-	if err := ad.setupRequestHandler(ad.config.InstanceID, oolt); err != nil {
+	ctx := context.TODO()
+	if err := ad.setupRequestHandler(ctx, ad.config.InstanceID, oolt); err != nil {
 		t.Logf("adapter.setupRequestHandler() error = %v", err)
 	}
 

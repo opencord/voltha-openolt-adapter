@@ -43,6 +43,8 @@ const (
 	defaultCoretopic          = "rwcore"
 	defaultEventtopic         = "voltha.events"
 	defaultOnunumber          = 1
+	default_ProbeHost         = ""
+	default_ProbePort         = 8080
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -64,6 +66,8 @@ type AdapterFlags struct {
 	OnuNumber          int
 	Banner             bool
 	DisplayVersionOnly bool
+	ProbeHost          string
+	ProbePort          int
 }
 
 func init() {
@@ -89,6 +93,8 @@ func NewAdapterFlags() *AdapterFlags {
 		OnuNumber:          defaultOnunumber,
 		Banner:             defaultBanner,
 		DisplayVersionOnly: defaultDisplayVersionOnly,
+		ProbeHost:          default_ProbeHost,
+		ProbePort:          default_ProbePort,
 	}
 	return &adapterFlags
 }
@@ -140,6 +146,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Show version information and exit")
 	flag.BoolVar(&(so.DisplayVersionOnly), "version", defaultDisplayVersionOnly, help)
+
+	help = fmt.Sprintf("The address on which to listen to answer liveness and readiness probe queries over HTTP.")
+	flag.StringVar(&(so.ProbeHost), "probe_host", default_ProbeHost, help)
+
+	help = fmt.Sprintf("The port on which to listen to answer liveness and readiness probe queries over HTTP.")
+	flag.IntVar(&(so.ProbePort), "probe_port", default_ProbePort, help)
 
 	flag.Parse()
 
