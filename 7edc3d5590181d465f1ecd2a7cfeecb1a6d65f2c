@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4ef0360_656d5108",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1197,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T10:35:29Z",
+      "side": 1,
+      "message": "This function should only delete resources from RM. It seems to also delete flow from device.",
+      "revId": "7edc3d5590181d465f1ecd2a7cfeecb1a6d65f2c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "35808f2a_b997e175",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T10:35:29Z",
+      "side": 1,
+      "message": "spelling",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 38
+      },
+      "revId": "7edc3d5590181d465f1ecd2a7cfeecb1a6d65f2c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "532ed24d_f15fc343",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T10:35:29Z",
+      "side": 1,
+      "message": "remove this if not needed",
+      "revId": "7edc3d5590181d465f1ecd2a7cfeecb1a6d65f2c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
