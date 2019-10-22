@@ -249,6 +249,24 @@
     },
     {
       "key": {
+        "uuid": "b216fa45_024044f5",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-22T11:01:40Z",
+      "side": 1,
+      "message": "Okay, I will handle this situation on the OLT application.",
+      "parentUuid": "12226eb6_a5f2f8e5",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d952f13_935031f9",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
