@@ -231,6 +231,24 @@
     },
     {
       "key": {
+        "uuid": "12226eb6_a5f2f8e5",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T10:55:28Z",
+      "side": 1,
+      "message": "Yes, that would work. Basically any trap flows should always be sent first (for all operator workflows).",
+      "parentUuid": "412da024_ac059056",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d952f13_935031f9",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
