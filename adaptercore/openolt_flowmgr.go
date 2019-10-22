@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+        "strings"
 	"math/big"
 
 	"github.com/opencord/voltha-go/rw_core/utils"
@@ -571,7 +572,14 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, 
 		vlanPit = classifier[VlanPcp].(uint32)
 		log.Debugw("Found pbit in the flow", log.Fields{"vlan_pit": vlanPit})
 	}
+
+	networkIntfID := f.deviceHandler.nniIntfID
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkIntfID), uint32(onuID), uint32(uniID), flowStoreCookie); present {
+	    log.Debug("Flow-exists--not-re-adding")
+	    return
+	}
+
 	flowID, err := f.resourceMgr.GetFlowID(intfID, onuID, uniID, gemPortID, flowStoreCookie, HsiaFlow, vlanPit)
 	if err != nil {
 		log.Errorw("Flow id unavailable for HSIA flow", log.Fields{"direction": direction})
@@ -589,7 +597,6 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, 
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
-	networkIntfID := f.deviceHandler.nniIntfID
 	flow := openoltpb2.Flow{AccessIntfId: int32(intfID),
 		OnuId:         int32(onuID),
 		UniId:         int32(uniID),
@@ -632,7 +639,12 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 	classifier[PacketTagType] = SingleTag
 	delete(classifier, VlanVid)
 
+	networkIntfID := f.deviceHandler.nniIntfID
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkIntfID), uint32(onuID), uint32(uniID), flowStoreCookie); present {
+	    log.Debug("Flow-exists--not-re-adding")
+	    return
+	}
 
 	flowID, err := f.resourceMgr.GetFlowID(intfID, onuID, uniID, gemPortID, flowStoreCookie, "", 0 /*classifier[VLAN_PCP].(uint32)*/)
 
@@ -652,7 +664,6 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 		log.Error("Error in making action protobuf for ul flow")
 		return
 	}
-	networkIntfID := f.deviceHandler.nniIntfID
 
 	dhcpFlow = openoltpb2.Flow{AccessIntfId: int32(intfID),
 		OnuId:         int32(onuID),
@@ -684,7 +695,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 }
 
 // Add EAPOL flow to  device with mac, vlanId as classifier for upstream and downstream
-func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, vlanID uint32) {
+func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, vlanID uint32) {
 	log.Debugw("Adding EAPOL to device", log.Fields{"intfId": intfID, "onuId": onuID, "portNo": portNo, "allocId": allocID, "gemPortId": gemPortID, "vlanId": vlanID, "flow": logicalFlow})
 
 	uplinkClassifier := make(map[string]interface{})
@@ -698,9 +709,24 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 	uplinkClassifier[EthType] = uint32(EapEthType)
 	uplinkClassifier[PacketTagType] = SingleTag
 	uplinkClassifier[VlanVid] = vlanID
+
+	var vlanPit uint32
+	if _, ok := classifier[VlanPcp]; ok {
+		vlanPit = classifier[VlanPcp].(uint32)
+                uplinkClassifier[VlanPcp] = vlanPit
+		log.Debugw("Found pbit in the flow", log.Fields{"vlan_pit": vlanPit})
+	}
+
 	// Fill action
 	uplinkAction[TrapToHost] = true
+
+	networkIntfID := f.deviceHandler.nniIntfID
 	flowStoreCookie := getFlowStoreCookie(uplinkClassifier, gemPortID)
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkIntfID), uint32(onuID), uint32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists--not-re-adding")
+		return
+	}
+
 	//Add Uplink EAPOL Flow
 	uplinkFlowID, err := f.resourceMgr.GetFlowID(intfID, onuID, uniID, gemPortID, flowStoreCookie, "", 0)
 	if err != nil {
@@ -721,7 +747,6 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 		return
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
-	networkIntfID := f.deviceHandler.nniIntfID
 	upstreamFlow = openoltpb2.Flow{AccessIntfId: int32(intfID),
 		OnuId:         int32(onuID),
 		UniId:         int32(uniID),
@@ -775,7 +800,14 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 		// Fill action
 		downlinkAction[PushVlan] = true
 		downlinkAction[VlanVid] = vlanID
+
+	        networkIntfID := f.deviceHandler.nniIntfID
 		flowStoreCookie := getFlowStoreCookie(downlinkClassifier, gemPortID)
+	        if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkIntfID), uint32(onuID), uint32(uniID), flowStoreCookie); present {
+	            log.Debug("Flow-exists--not-re-adding")
+	            return
+	        }
+
 		downlinkFlowID, err := f.resourceMgr.GetFlowID(intfID, onuID, uniID, gemPortID, flowStoreCookie, "", 0)
 		if err != nil {
 			log.Errorw("flowId unavailable for DL EAPOL",
@@ -842,11 +874,7 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) *openoltp
 		}
 	}
 	if vlanPcp, ok := classifierInfo[VlanPcp].(uint32); ok {
-		if vlanPcp == 0 {
-			classifier.OPbits = VlanPCPMask
-		} else {
-			classifier.OPbits = vlanPcp & VlanPCPMask
-		}
+            classifier.OPbits = vlanPcp & VlanPCPMask
 	}
 	classifier.SrcPort, _ = classifierInfo[UDPSrc].(uint32)
 	classifier.DstPort, _ = classifierInfo[UDPDst].(uint32)
@@ -1473,25 +1501,33 @@ func installFlowOnAllGemports(
 	f1 func(intfId uint32, onuId uint32, uniId uint32,
 		portNo uint32, classifier map[string]interface{}, action map[string]interface{},
 		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32),
-	f2 func(intfId uint32, onuId uint32, uniId uint32, portNo uint32,
+	f2 func(intfId uint32, onuId uint32, uniId uint32, portNo uint32, classifier map[string]interface{},
 		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32, vlanId uint32),
 	args map[string]uint32,
 	classifier map[string]interface{}, action map[string]interface{},
 	logicalFlow *ofp.OfpFlowStats,
 	gemPorts []uint32,
+        TpInst *tp.TechProfile,
 	FlowType string,
 	vlanID ...uint32) {
 	log.Debugw("Installing flow on all GEM ports", log.Fields{"FlowType": FlowType, "gemPorts": gemPorts, "vlan": vlanID})
-	for _, gemPortID := range gemPorts {
-		if FlowType == HsiaFlow || FlowType == DhcpFlow {
+        for _, gemPortAttribute := range TpInst.UpstreamGemPortAttributeList {
+            var gemPortID uint32
+	    for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, "0b") {
+                if pbitSet == '1' {
+                    classifier[VlanPcp] = uint32(len((strings.TrimPrefix(gemPortAttribute.PbitMap, "0b"))))-1-uint32(pos)
+                    gemPortID = gemPortAttribute.GemportID
+		    if FlowType == HsiaFlow || FlowType == DhcpFlow {
 			f1(args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
-		} else if FlowType == EapolFlow {
-			f2(args["intfId"], args["onuId"], args["uniId"], args["portNo"], logicalFlow, args["allocId"], gemPortID, vlanID[0])
-		} else {
+		    } else if FlowType == EapolFlow {
+			f2(args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, logicalFlow, args["allocId"], gemPortID, vlanID[0])
+		    } else {
 			log.Errorw("Unrecognized Flow Type", log.Fields{"FlowType": FlowType})
 			return
-		}
-	}
+		    }
+                }
+            }
+        }
 }
 
 func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) {
@@ -1590,7 +1626,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 				f.addDHCPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID[0], gemPort)
 			} else {
 				//Adding DHCP upstream flow to all gemports
-				installFlowOnAllGemports(f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, DhcpFlow)
+				installFlowOnAllGemports(f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow)
 			}
 
 		} else if ipProto == IgmpProto {
@@ -1614,9 +1650,9 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 					tp_pb.Direction_UPSTREAM,
 					pcp.(uint32))
 
-				f.addEAPOLFlow(intfID, onuID, uniID, portNo, flow, allocID[0], gemPort, vlanID)
+				f.addEAPOLFlow(intfID, onuID, uniID, portNo, classifierInfo, flow, allocID[0], gemPort, vlanID)
 			} else {
-				installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, EapolFlow, vlanID)
+				installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, EapolFlow, vlanID)
 			}
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
@@ -1629,7 +1665,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 			f.addUpstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID[0], gemPort)
 		} else {
 			//Adding HSIA upstream flow to all gemports
-			installFlowOnAllGemports(f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow)
+			installFlowOnAllGemports(f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow)
 		}
 	} else if _, ok := actionInfo[PopVlan]; ok {
 		log.Info("Adding Downstream data rule")
@@ -1641,7 +1677,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 			f.addDownstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID[0], gemPort)
 		} else {
 			//Adding HSIA downstream flow to all gemports
-			installFlowOnAllGemports(f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow)
+			installFlowOnAllGemports(f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow)
 		}
 	} else {
 		log.Errorw("Invalid-flow-type-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo, "flow": flow})
