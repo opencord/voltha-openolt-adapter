@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ab9793f_f1c29518",
+        "filename": "adaptercore/resourcemanager/resourcemanager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-22T07:15:01Z",
+      "side": 1,
+      "message": "I do not want to be very picky :) But here are some things that really bothers me..\nThe apostrophe - \u0027 - is used incorrectly almost everywhere in this file and also in other file. Please check on the internet on how to use it.\nAnd also do not put comments just for the heck of it. I really do not see the point. You are introducing more grammar mistakes in the process.\nToo many comments are noise. If it is the linter that complains about having comments where you do need them, then check how you can configure the linter to not complain about certain things. If you really need to put a comment for whatever reason, then put the right comments.\nThere are so many great opensource projects on the internet and you may check how to use comments.",
+      "revId": "3eac1f079294defc33e03a3064a8034bce3740a6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
