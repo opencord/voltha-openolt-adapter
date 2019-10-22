@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "749a73eb_e351f5a9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1044,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-10-22T17:16:26Z",
+      "side": 1,
+      "message": "We don\u0027t need this. When DisableOlt is sent to OLT, then OLT sends OltIndication(down) to volt-adapter and child devices are notified by this indication. Please check doStateDown() function.\nBy the way DisableOlt works  in our tests.",
+      "range": {
+        "startLine": 1044,
+        "startChar": 7,
+        "endLine": 1044,
+        "endChar": 25
+      },
+      "revId": "b99e1cd9871c1469f2233b83442c67bb043db2fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
