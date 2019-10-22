@@ -213,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "412da024_ac059056",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1267,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2019-10-22T10:53:19Z",
+      "side": 1,
+      "message": "That\u0027s great. It also helps me to think about all use-cases. You are right on your comment. But it seems to send remove sched \u0026 queue request and getting an error from the openolt agent (because the gem is used by another flow - us trap flow) is not a good idea here. Maybe, I can guarantee to send the us trap flow removal from ONOS (OLT app) firstly. In such a case, it can work better. What do you think?",
+      "parentUuid": "637957e3_0a66dd18",
+      "revId": "4a4117dce55b23b607ab2b69be8808739be79f90",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d952f13_935031f9",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
