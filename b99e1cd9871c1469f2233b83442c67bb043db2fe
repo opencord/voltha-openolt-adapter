@@ -22,6 +22,30 @@
       "revId": "b99e1cd9871c1469f2233b83442c67bb043db2fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8f7bdb73_a60256db",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1044,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2019-10-23T10:56:28Z",
+      "side": 1,
+      "message": "When the OLT is admin DOWN all the indications will be ignored from the adapter. So the adapter has to notify child devices explicitly .As of now , current code is not sending any messages to child devices on OLT disable since olt_indication is also getting ignored. It just updates the connection state of it from core.\nAnd Dostatedown is a state maintained to handle OLT unreachability i think .",
+      "parentUuid": "749a73eb_e351f5a9",
+      "range": {
+        "startLine": 1044,
+        "startChar": 7,
+        "endLine": 1044,
+        "endChar": 25
+      },
+      "revId": "b99e1cd9871c1469f2233b83442c67bb043db2fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
