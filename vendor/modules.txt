@@ -62,7 +62,7 @@ github.com/mitchellh/go-homedir
 github.com/mitchellh/mapstructure
 # github.com/opencord/voltha-go v0.0.0-20191018170815-cb7c88a83125
 github.com/opencord/voltha-go/rw_core/utils
-# github.com/opencord/voltha-lib-go v0.0.0-20191017201200-e73f91e306e9
+# github.com/opencord/voltha-lib-go v0.0.0-20191023185531-80258b36a64b
 github.com/opencord/voltha-lib-go/pkg/adapters
 github.com/opencord/voltha-lib-go/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/pkg/adapters/common

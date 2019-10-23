@@ -147,8 +147,6 @@ github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=
 github.com/json-iterator/go v1.1.7 h1:KfgG9LzI+pYjr4xvmz/5H4FXjokeP+rlHLhv3iH62Fo=
 github.com/json-iterator/go v1.1.7/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
-github.com/jstemmer/go-junit-report v0.9.1 h1:6QPYqodiu3GuPL+7mfx+NwDdp2eTkp9IfEUpgAwUN0o=
-github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
@@ -198,6 +196,8 @@ github.com/opencord/voltha-go v0.0.0-20191018170815-cb7c88a83125 h1:yl7OfFs9vdIv
 github.com/opencord/voltha-go v0.0.0-20191018170815-cb7c88a83125/go.mod h1:98NCXBPUxv60BA5dkLBwDSfsE9vbxORz2mACL1WlDB0=
 github.com/opencord/voltha-lib-go v0.0.0-20191017201200-e73f91e306e9 h1:/CA9esQ/L41vhvwCIDI+cLjrawry5+1fQWt/O91KFXU=
 github.com/opencord/voltha-lib-go v0.0.0-20191017201200-e73f91e306e9/go.mod h1:+bjwfm5bbP1j6liscpn3UFqbh6hHDkmLDWU3AdYLDY4=
+github.com/opencord/voltha-lib-go v0.0.0-20191023185531-80258b36a64b h1:s3zvCa27RhpVy+wCk5R4iKa9H61B1MzbSL2164B1w68=
+github.com/opencord/voltha-lib-go v0.0.0-20191023185531-80258b36a64b/go.mod h1:+bjwfm5bbP1j6liscpn3UFqbh6hHDkmLDWU3AdYLDY4=
 github.com/opencord/voltha-protos v1.0.3 h1:9v+R/QGF1xK+HKTqFM0IqCABoGCAxC8iKH4VzNBJDto=
 github.com/opencord/voltha-protos v1.0.3/go.mod h1:myfFIkJdA+rCXmKdLImhh79MfabN4ZOKQ4grk32DnPQ=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
@@ -248,8 +248,6 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c h1:+aPplBwWcHBo6q9xrfWdMrT9o4kltkmmvpemgIjep/8=
-github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c/go.mod h1:SbErYREK7xXdsRiigaQiQkI9McGRzYMvlKYaP3Nimdk=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8 h1:ndzgwNDnKIqyCvHTXaCqh9KlOWKvBry6nuXMJmonVsE=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=

@@ -193,3 +193,11 @@ func (mcp *MockCoreProxy) SendPacketIn(ctx context.Context, deviceID string, por
 	}
 	return nil
 }
+
+// DeviceReasonUpdate  implements mock SendPacketIn
+func (mcp *MockCoreProxy) DeviceReasonUpdate(ctx context.Context, deviceID string, reason string) error {
+	if deviceID == "" {
+		return errors.New("no Device ID")
+	}
+	return nil
+}
