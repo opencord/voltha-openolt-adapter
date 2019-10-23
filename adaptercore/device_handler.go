@@ -901,7 +901,7 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
-				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
+            "From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id, "Error": err})
 			return
 		}
 	} else {

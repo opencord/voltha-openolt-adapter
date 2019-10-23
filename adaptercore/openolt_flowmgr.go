@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+    "sync"
 
 	"github.com/opencord/voltha-go/rw_core/utils"
 	"github.com/opencord/voltha-lib-go/pkg/log"
@@ -169,6 +170,7 @@ type OpenOltFlowMgr struct {
 	onuGemPortIds     map[gemPortKey]onuInfo     //GemPortId -> OnuInfo
 	packetInGemPort   map[packetInInfoKey]uint32 //packet in gem port
 	storedDeviceFlows []ofp.OfpFlowStats         /* Required during deletion to obtain device flows from logical flows */
+    onuIdsLock        sync.RWMutex
 }
 
 //NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
@@ -186,6 +188,7 @@ func NewFlowManager(dh *DeviceHandler, rsrcMgr *rsrcMgr.OpenOltResourceMgr) *Ope
 	flowMgr.onuSerialNumbers = make(map[string]onuInfo)
 	flowMgr.onuGemPortIds = make(map[gemPortKey]onuInfo)
 	flowMgr.packetInGemPort = make(map[packetInInfoKey]uint32)
+    flowMgr.onuIdsLock = sync.RWMutex{}
 	log.Info("Initialization of  flow manager success!!")
 	return &flowMgr
 }
@@ -1390,13 +1393,17 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum string) {
 	onu := onuInfo{intfID: intfID, onuID: onuID, serialNumber: serialNum}
 	onuIDkey := onuIDKey{intfID: intfID, onuID: onuID}
-	f.onuIds[onuIDkey] = onu
+	f.onuIdsLock.Lock()
+    defer f.onuIdsLock.Unlock()
+    f.onuIds[onuIDkey] = onu
 	log.Debugw("Updated onuinfo", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum})
 }
 
 //addGemPortToOnuInfoMap function stores adds GEMport to ONU map
 func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gemPort uint32) {
 	onuIDkey := onuIDKey{intfID: intfID, onuID: onuID}
+    f.onuIdsLock.RLock()
+    defer f.onuIdsLock.RUnlock()
 	if val, ok := f.onuIds[onuIDkey]; ok {
 		onuInf := val
 		gemportKey := gemPortKey{intfID: intfID, gemPort: gemPort}
