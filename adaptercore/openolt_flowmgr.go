@@ -548,7 +548,14 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniI
 
 	/* Already this info available classifier? */
 	downlinkAction[PopVlan] = true
-	downlinkAction[VlanVid] = downlinkClassifier[VlanVid]
+        dlClVid, ook := downlinkClassifier[VlanVid].(int)
+        if ook {
+                downlinkAction[VlanVid] = dlClVid & 0xfff
+        } else {
+		log.Error("setting-an-invalid-action")
+		downlinkAction[VlanVid] = downlinkClassifier[VlanVid]
+        }
+
 	f.addHSIAFlow(intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
 		Downstream, logicalFlow, allocID, gemportID)
 }
@@ -1663,7 +1670,7 @@ func formulateClassifierInfoFromFlow(classifierInfo map[string]interface{}, flow
 			classifierInfo[InPort] = field.GetPort()
 			log.Debug("field-type-in-port", log.Fields{"classifierInfo[IN_PORT]": classifierInfo[InPort].(uint32)})
 		} else if field.Type == utils.VLAN_VID {
-			classifierInfo[VlanVid] = field.GetVlanVid()
+			classifierInfo[VlanVid] = field.GetVlanVid() & 0xfff
 			log.Debug("field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
 		} else if field.Type == utils.VLAN_PCP {
 			classifierInfo[VlanPcp] = field.GetVlanPcp()
