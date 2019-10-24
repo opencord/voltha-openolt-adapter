@@ -118,6 +118,30 @@
       "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a888f4ce_fd79b0e1",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000455
+      },
+      "writtenOn": "2019-10-24T18:54:42Z",
+      "side": 1,
+      "message": "Fair enough, but if I am going to add more locking to protect other maps, I want to test how adding that lock affects the processes use that map. Does it make sense to create another task for that and address it separately?",
+      "parentUuid": "3dfabf76_46d65160",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
