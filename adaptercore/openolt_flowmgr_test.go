@@ -22,8 +22,8 @@ import (
 
 	"github.com/opencord/voltha-protos/go/voltha"
 
-	fu "github.com/opencord/voltha-go/rw_core/utils"
 	"github.com/opencord/voltha-lib-go/pkg/db/model"
+	fu "github.com/opencord/voltha-lib-go/pkg/flows"
 	"github.com/opencord/voltha-lib-go/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/pkg/techprofile"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"

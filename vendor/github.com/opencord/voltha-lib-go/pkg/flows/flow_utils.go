@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package utils
+package flows
 
 import (
 	"bytes"
@@ -472,6 +472,20 @@ func GetMeterId(flow *ofp.OfpFlowStats) uint32 {
 		}
 	}
 	return 0
+}
+
+func GetVlanVid(flow *ofp.OfpFlowStats) *uint32 {
+	if flow == nil {
+		return nil
+	}
+	for _, field := range GetOfbFields(flow) {
+		if field.Type == VLAN_VID {
+			ret := field.GetVlanVid()
+			return &ret
+		}
+	}
+	// Dont return 0 if the field is missing as vlan id value 0 has meaning and cannot be overloaded as "not found"
+	return nil
 }
 
 func GetTunnelId(flow *ofp.OfpFlowStats) uint64 {

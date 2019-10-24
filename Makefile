@@ -53,7 +53,7 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
-.PHONY: docker-build local-protos local-voltha
+.PHONY: docker-build local-protos local-lib-go
 
 # This should to be the first and default target in this Makefile
 help:
@@ -71,7 +71,7 @@ help:
 	@echo "lint-sanity       : Run the Go language sanity tests (vet)"
 	@echo "lint-style        : Verify the Go standard format of the source"
 	@echo "local-protos      : Copies a local verison of the VOLTHA protos into the vendor directory"
-	@echo "local-voltha      : Copies a local version of the VOTLHA dependencies into the vendor directory"
+	@echo "local-lib-go      : Copies a local version of the VOTLHA dependencies into the vendor directory"
 	@echo "sca               : Runs various SCA through golangci-lint tool"
 	@echo "test              : Run unit tests, if any"
 	@echo
@@ -86,19 +86,18 @@ ifdef LOCAL_PROTOS
 	rm -rf vendor/github.com/opencord/voltha-protos/go/vendor
 endif
 
-local-voltha:
-ifdef LOCAL_VOLTHA
-	rm -rf vendor/github.com/opencord/voltha-go
-	mkdir -p vendor/github.com/opencord/voltha-go/
-	cp -rf ${LOCAL_VOLTHA} vendor/github.com/opencord/
-	rm -rf vendor/github.com/opencord/voltha-go/vendor
+## Local Development Helpers
+local-lib-go:
+ifdef LOCAL_LIB_GO
+	mkdir -p vendor/github.com/opencord/voltha-lib-go/pkg
+	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/pkg/
 endif
 
 ## Docker targets
 
 build: docker-build
 
-docker-build: local-protos local-voltha
+docker-build: local-protos local-lib-go
 	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 
 docker-push:

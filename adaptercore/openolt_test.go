@@ -29,8 +29,8 @@ import (
 	"sync"
 	"testing"
 
-	fu "github.com/opencord/voltha-go/rw_core/utils"
 	com "github.com/opencord/voltha-lib-go/pkg/adapters/common"
+	fu "github.com/opencord/voltha-lib-go/pkg/flows"
 	"github.com/opencord/voltha-lib-go/pkg/kafka"
 	ic "github.com/opencord/voltha-protos/go/inter_container"
 	"github.com/opencord/voltha-protos/go/openflow_13"

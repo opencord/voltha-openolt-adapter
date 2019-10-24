@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/flows"
 	"github.com/opencord/voltha-lib-go/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/pkg/techprofile"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
@@ -1331,12 +1331,12 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	   Flow Metadata carries Tech-Profile (TP) ID and is mandatory in all
 	   subscriber related flows.
 	*/
-	metadata := utils.GetMetadataFromWriteMetadataAction(flow)
+	metadata := flows.GetMetadataFromWriteMetadataAction(flow)
 	if metadata == 0 {
 		log.Error("Metadata is not present in flow which is mandatory")
 		return
 	}
-	TpID := utils.GetTechProfileIDFromWriteMetaData(metadata)
+	TpID := flows.GetTechProfileIDFromWriteMetaData(metadata)
 	kvstoreTpID := f.resourceMgr.GetTechProfileIDForOnu(intfID, onuID, uniID)
 	if kvstoreTpID == 0 {
 		log.Debugf("tpid-not-present-in-kvstore, using tp id %d from flow metadata", TpID)
@@ -1346,10 +1346,10 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	}
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
 	if IsUpstream(actionInfo[Output].(uint32)) {
-		UsMeterID = utils.GetMeterIdFromFlow(flow)
+		UsMeterID = flows.GetMeterIdFromFlow(flow)
 		log.Debugw("Upstream-flow-meter-id", log.Fields{"UsMeterID": UsMeterID})
 	} else {
-		DsMeterID = utils.GetMeterIdFromFlow(flow)
+		DsMeterID = flows.GetMeterIdFromFlow(flow)
 		log.Debugw("Downstream-flow-meter-id", log.Fields{"DsMeterID": DsMeterID})
 
 	}
@@ -1652,38 +1652,38 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 }
 
 func formulateClassifierInfoFromFlow(classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) {
-	for _, field := range utils.GetOfbFields(flow) {
-		if field.Type == utils.ETH_TYPE {
+	for _, field := range flows.GetOfbFields(flow) {
+		if field.Type == flows.ETH_TYPE {
 			classifierInfo[EthType] = field.GetEthType()
 			log.Debug("field-type-eth-type", log.Fields{"classifierInfo[ETH_TYPE]": classifierInfo[EthType].(uint32)})
-		} else if field.Type == utils.IP_PROTO {
+		} else if field.Type == flows.IP_PROTO {
 			classifierInfo[IPProto] = field.GetIpProto()
 			log.Debug("field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
-		} else if field.Type == utils.IN_PORT {
+		} else if field.Type == flows.IN_PORT {
 			classifierInfo[InPort] = field.GetPort()
 			log.Debug("field-type-in-port", log.Fields{"classifierInfo[IN_PORT]": classifierInfo[InPort].(uint32)})
-		} else if field.Type == utils.VLAN_VID {
+		} else if field.Type == flows.VLAN_VID {
 			classifierInfo[VlanVid] = field.GetVlanVid()
 			log.Debug("field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
-		} else if field.Type == utils.VLAN_PCP {
+		} else if field.Type == flows.VLAN_PCP {
 			classifierInfo[VlanPcp] = field.GetVlanPcp()
 			log.Debug("field-type-vlan-pcp", log.Fields{"classifierInfo[VLAN_PCP]": classifierInfo[VlanPcp].(uint32)})
-		} else if field.Type == utils.UDP_DST {
+		} else if field.Type == flows.UDP_DST {
 			classifierInfo[UDPDst] = field.GetUdpDst()
 			log.Debug("field-type-udp-dst", log.Fields{"classifierInfo[UDP_DST]": classifierInfo[UDPDst].(uint32)})
-		} else if field.Type == utils.UDP_SRC {
+		} else if field.Type == flows.UDP_SRC {
 			classifierInfo[UDPSrc] = field.GetUdpSrc()
 			log.Debug("field-type-udp-src", log.Fields{"classifierInfo[UDP_SRC]": classifierInfo[UDPSrc].(uint32)})
-		} else if field.Type == utils.IPV4_DST {
+		} else if field.Type == flows.IPV4_DST {
 			classifierInfo[Ipv4Dst] = field.GetIpv4Dst()
 			log.Debug("field-type-ipv4-dst", log.Fields{"classifierInfo[IPV4_DST]": classifierInfo[Ipv4Dst].(uint32)})
-		} else if field.Type == utils.IPV4_SRC {
+		} else if field.Type == flows.IPV4_SRC {
 			classifierInfo[Ipv4Src] = field.GetIpv4Src()
 			log.Debug("field-type-ipv4-src", log.Fields{"classifierInfo[IPV4_SRC]": classifierInfo[Ipv4Src].(uint32)})
-		} else if field.Type == utils.METADATA {
+		} else if field.Type == flows.METADATA {
 			classifierInfo[Metadata] = field.GetTableMetadata()
 			log.Debug("field-type-metadata", log.Fields{"classifierInfo[Metadata]": classifierInfo[Metadata].(uint64)})
-		} else if field.Type == utils.TUNNEL_ID {
+		} else if field.Type == flows.TUNNEL_ID {
 			classifierInfo[TunnelID] = field.GetTunnelId()
 			log.Debug("field-type-tunnelId", log.Fields{"classifierInfo[TUNNEL_ID]": classifierInfo[TunnelID].(uint64)})
 		} else {
@@ -1694,8 +1694,8 @@ func formulateClassifierInfoFromFlow(classifierInfo map[string]interface{}, flow
 }
 
 func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
-	for _, action := range utils.GetActions(flow) {
-		if action.Type == utils.OUTPUT {
+	for _, action := range flows.GetActions(flow) {
+		if action.Type == flows.OUTPUT {
 			if out := action.GetOutput(); out != nil {
 				actionInfo[Output] = out.GetPort()
 				log.Debugw("action-type-output", log.Fields{"out_port": actionInfo[Output].(uint32)})
@@ -1703,10 +1703,10 @@ func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface
 				log.Error("Invalid output port in action")
 				return errors.New("invalid output port in action")
 			}
-		} else if action.Type == utils.POP_VLAN {
+		} else if action.Type == flows.POP_VLAN {
 			actionInfo[PopVlan] = true
 			log.Debugw("action-type-pop-vlan", log.Fields{"in_port": classifierInfo[InPort].(uint32)})
-		} else if action.Type == utils.PUSH_VLAN {
+		} else if action.Type == flows.PUSH_VLAN {
 			if out := action.GetPush(); out != nil {
 				if tpid := out.GetEthertype(); tpid != 0x8100 {
 					log.Errorw("Invalid ethertype in push action", log.Fields{"ethertype": actionInfo[PushVlan].(int32)})
@@ -1717,7 +1717,7 @@ func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface
 						log.Fields{"push_tpid": actionInfo[TPID].(uint32), "in_port": classifierInfo[InPort].(uint32)})
 				}
 			}
-		} else if action.Type == utils.SET_FIELD {
+		} else if action.Type == flows.SET_FIELD {
 			if out := action.GetSetField(); out != nil {
 				if field := out.GetField(); field != nil {
 					if ofClass := field.GetOxmClass(); ofClass != ofp.OfpOxmClass_OFPXMC_OPENFLOW_BASIC {
@@ -1752,7 +1752,7 @@ func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]
 		log.Debug("Controller bound trap flows, getting inport from tunnelid")
 		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
 		if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
-			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
 				log.Debugw("upstream pon-to-controller-flow,inport-in-tunnelid", log.Fields{"newInPort": classifierInfo[InPort].(uint32), "outPort": actionInfo[Output].(uint32)})
 			} else {
@@ -1764,7 +1764,7 @@ func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]
 		log.Debug("Non-Controller flows, getting uniport from tunnelid")
 		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
 		if portType := IntfIDToPortTypeName(actionInfo[Output].(uint32)); portType == voltha.Port_PON_OLT {
-			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				actionInfo[Output] = uniPort
 				log.Debugw("downstream-nni-to-pon-port-flow, outport-in-tunnelid", log.Fields{"newOutPort": actionInfo[Output].(uint32), "outPort": actionInfo[Output].(uint32)})
 			} else {
@@ -1773,7 +1773,7 @@ func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]
 			}
 			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
 		} else if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
-			if uniPort := utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
 				log.Debugw("upstream-pon-to-nni-port-flow, inport-in-tunnelid", log.Fields{"newInPort": actionInfo[Output].(uint32),
 					"outport": actionInfo[Output].(uint32)})
