@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/opencord/voltha-lib-go/pkg/log"
+	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 )
 
 // DeviceState OLT Device state

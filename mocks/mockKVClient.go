@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/opencord/voltha-lib-go/pkg/log"
+	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 
-	"github.com/opencord/voltha-lib-go/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	openolt "github.com/opencord/voltha-protos/go/openolt"
 )
