@@ -22,6 +22,30 @@
       "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d94a6e3_1446967b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000455
+      },
+      "writtenOn": "2019-10-24T18:19:13Z",
+      "side": 1,
+      "message": "This function is called as a result of flows being added. Currently flows aren\u0027t added concurrently (no use of goroutines) so it isn\u0027t a risk in the code currently. I imagine it could be an issue later if we change this.",
+      "parentUuid": "9b0204f1_337a7f00",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
