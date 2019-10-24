@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"testing"
 
-	fu "github.com/opencord/voltha-go/rw_core/utils"
+	fu "github.com/opencord/voltha-lib-go/pkg/flows"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
 )

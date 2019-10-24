@@ -19,7 +19,7 @@ package adaptercore
 
 import (
 	"errors"
-	"github.com/opencord/voltha-go/rw_core/utils"
+	"github.com/opencord/voltha-lib-go/pkg/flows"
 	"github.com/opencord/voltha-lib-go/pkg/log"
 	ofp "github.com/opencord/voltha-protos/go/openflow_13"
 	"github.com/opencord/voltha-protos/go/voltha"
@@ -186,29 +186,29 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	var ethType uint32
 
 	if flowDirection == "upstream" {
-		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, field := range utils.GetOfbFields(flow) {
-				if field.GetType() == utils.IN_PORT {
+		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
+			for _, field := range flows.GetOfbFields(flow) {
+				if field.GetType() == flows.IN_PORT {
 					uniPortNo = field.GetPort()
 					break
 				}
 			}
 		}
 	} else if flowDirection == "downstream" {
-		if uniPortNo = utils.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, field := range utils.GetOfbFields(flow) {
-				if field.GetType() == utils.METADATA {
-					for _, action := range utils.GetActions(flow) {
-						if action.Type == utils.OUTPUT {
+		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
+			for _, field := range flows.GetOfbFields(flow) {
+				if field.GetType() == flows.METADATA {
+					for _, action := range flows.GetActions(flow) {
+						if action.Type == flows.OUTPUT {
 							if out := action.GetOutput(); out != nil {
 								uniPortNo = out.GetPort()
 							}
 							break
 						}
 					}
-				} else if field.GetType() == utils.IN_PORT {
+				} else if field.GetType() == flows.IN_PORT {
 					inPort = field.GetPort()
-				} else if field.GetType() == utils.ETH_TYPE {
+				} else if field.GetType() == flows.ETH_TYPE {
 					ethType = field.GetEthType()
 				}
 			}
