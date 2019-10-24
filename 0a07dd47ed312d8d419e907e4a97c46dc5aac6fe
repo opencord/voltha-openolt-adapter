@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b0204f1_337a7f00",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-10-24T17:59:19Z",
+      "side": 1,
+      "message": "do we need to worry about protecting this update concurrently? or are all updates to onuGemPortIds also protected by the same mutex?",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
