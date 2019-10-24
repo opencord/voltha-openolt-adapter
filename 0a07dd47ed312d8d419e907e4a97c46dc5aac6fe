@@ -94,6 +94,30 @@
       "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3dfabf76_46d65160",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-10-24T18:44:38Z",
+      "side": 1,
+      "message": "might be interesting to run with go race checking on. i think if it is theoretically possible and we know it, we likely want to address it before it becomes too real in production.\n\nthis may mean we use the same onuIdsLock mutex or a different one, or we organize the code so that we can guarantee that updates are serialized (i.e. using channels or something)",
+      "parentUuid": "41a1b286_a2bab819",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
