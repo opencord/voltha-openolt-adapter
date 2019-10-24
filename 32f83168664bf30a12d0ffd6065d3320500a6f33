@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6954edc5_0d5640b1",
+        "filename": "go.mod",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-10-24T18:03:19Z",
+      "side": 1,
+      "message": "Will update this and resubmit after https://gerrit.opencord.org/#/c/15936/ is merged.",
+      "range": {
+        "startLine": 10,
+        "startChar": 1,
+        "endLine": 10,
+        "endChar": 69
+      },
+      "revId": "32f83168664bf30a12d0ffd6065d3320500a6f33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
