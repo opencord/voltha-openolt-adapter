@@ -142,6 +142,30 @@
       "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc49fb40_1273999b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-10-24T19:01:28Z",
+      "side": 1,
+      "message": "yes, i think that make sense.",
+      "parentUuid": "a888f4ce_fd79b0e1",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
