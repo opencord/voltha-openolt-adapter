@@ -70,6 +70,30 @@
       "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41a1b286_a2bab819",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1410,
+      "author": {
+        "id": 1000455
+      },
+      "writtenOn": "2019-10-24T18:34:23Z",
+      "side": 1,
+      "message": "This happens over kafka. It does seem like it could theoretically happen depending on how the upstream sends flows, but even when I have added 70 subscribers (and hence their flows) at once from onos, that has not happened. \nMaybe we need to add a lock, but in practice concurrent map writes are pretty easy to detect and fix. Do we want to add locks preemptively here?",
+      "parentUuid": "ee8217bb_5cc1914e",
+      "range": {
+        "startLine": 1410,
+        "startChar": 0,
+        "endLine": 1410,
+        "endChar": 38
+      },
+      "revId": "0a07dd47ed312d8d419e907e4a97c46dc5aac6fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
