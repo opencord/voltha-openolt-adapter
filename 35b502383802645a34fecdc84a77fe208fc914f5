@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "120e2369_c93dd0ea",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1289,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-25T17:26:00Z",
+      "side": 1,
+      "message": "I think there is a mistake here. I have not tested this by the way. Assume this is the last gemport of the tech-profile, as per this logic it looks like you free that and return without cleaning up queues and scheduler. \nAnyway, let me think about this and submit a patch over the weekend. I will try to satisfy AT\u0026T, DT and TT workflow.",
+      "revId": "35b502383802645a34fecdc84a77fe208fc914f5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
