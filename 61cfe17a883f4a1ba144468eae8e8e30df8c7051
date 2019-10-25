@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f930d46a_5d712832",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-25T10:13:03Z",
+      "side": 1,
+      "message": "This should named flowsUsedBytGemPort (because gemPort is the Key and flow_ids is the value) and not other way round..",
+      "revId": "61cfe17a883f4a1ba144468eae8e8e30df8c7051",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b3963e64_ddf23c75",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-25T10:13:03Z",
+      "side": 1,
+      "message": "This comment is not related to your patch. But, I think the flow for DhcpTrapOnNNi flow removal handler also need to be put here .\nThe flow that gets added from addDHCPTrapFlowOnNNI should have a removal handler here.",
+      "revId": "61cfe17a883f4a1ba144468eae8e8e30df8c7051",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40560844_eda969c0",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1302,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-10-25T10:13:03Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you return here?",
+      "revId": "61cfe17a883f4a1ba144468eae8e8e30df8c7051",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
