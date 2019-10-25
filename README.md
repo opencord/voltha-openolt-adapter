@@ -1,4 +1,4 @@
-# How to Build the Golang based OpenOLT Adapter 
+# How to Build the Golang based OpenOLT Adapter
 
 ## Working with Go Dependencies
 This project uses Go Modules https://github.com/golang/go/wiki/Modules to manage
@@ -11,19 +11,19 @@ go mod verify
 go mod vendor
 ```
 
-## Building with a Local Copy of `voltha-protos` or `voltha-go`
-If you want to build/test using a local copy or `voltha-protos` or `voltha-go`
+## Building with a Local Copy of `voltha-protos` or `voltha-lib-go`
+If you want to build/test using a local copy or `voltha-protos` or `voltha-lib-go`
 this can be accomplished by using the environment variables `LOCAL_PROTOS` and
-`LOCAL_VOLTHA`. These environment variables should be set to the filesystem
+`LOCAL_LIB_GO`. These environment variables should be set to the filesystem
 path where the local source is located, e.g.
 
 ```bash
 LOCAL\_PROTOS=$HOME/src/voltha-protos
-LOCAL\_VOLTHA=$HOME/src/voltha-go
+LOCAL\_LIB\_GO=$HOME/src/voltha-lib-go
 ```
 
 When these environment variables are set the vendored versions of these packages
 will be removed from the `vendor` directory and replaced by coping the files from
-the specificed locattions to the `vendor` directory. *NOTE:* _this means that 
-the files in the `vendor` directory are no longer what is in the `git` repository 
+the specificed locattions to the `vendor` directory. *NOTE:* _this means that
+the files in the `vendor` directory are no longer what is in the `git` repository
 and it will take manual `git` intervention to put the original files back._
