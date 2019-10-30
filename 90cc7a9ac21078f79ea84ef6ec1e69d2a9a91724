@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42c298ba_98e6ace7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-30T19:08:40Z",
+      "side": 1,
+      "message": "why does a channel write to stop the collector routine need to be a goroutine? No need. Either just send true to channel or add it as a defer block to run after this:\ndefer func() {\n    dh.stopCollector \u003c- true\n} ()",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "482889bf_23fb3dee",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-30T19:08:40Z",
+      "side": 1,
+      "message": "Should this be \"|\" (bitwise or instead of xor?)",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c4776e7_40b8bf41",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1000015
+      },
+      "writtenOn": "2019-10-30T19:08:40Z",
+      "side": 1,
+      "message": "same. bitwise or (\"|\") over xor?",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
