@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7121fa7f_218ad7a3",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1123,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2019-10-30T09:30:04Z",
+      "side": 1,
+      "message": "is it necessary to have check here as we have it in caller func(line 1159) already ?",
+      "revId": "b5b154c7447bf0d0cf2174923abbe368d10c7f00",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
