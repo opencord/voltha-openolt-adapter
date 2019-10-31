@@ -74,8 +74,9 @@ type DeviceHandler struct {
 	flowMgr       *OpenOltFlowMgr
 	eventMgr      *OpenOltEventMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
-	discOnus      map[string]bool
-	onus          map[string]*OnuDevice
+
+	discOnus      sync.Map
+	onus          sync.Map
 	nniIntfID     int
 	portStats     *OpenOltStatisticsMgr
 	metrics       *pmmetrics.PmMetrics
@@ -130,10 +131,10 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.device = cloned
 	dh.openOLT = adapter
 	dh.exitChannel = make(chan int, 1)
-	dh.discOnus = make(map[string]bool)
 	dh.lockDevice = sync.RWMutex{}
-	dh.onus = make(map[string]*OnuDevice)
-	// The nniIntfID is initialized to -1 (invalid) and set to right value
+
+	// The nniIntfID is initialized to -1 (
+	// invalid) and set to right value
 	// when the first IntfOperInd with status as "up" is received for
 	// any one of the available NNI port on the OLT device.
 	dh.nniIntfID = -1
@@ -441,7 +442,7 @@ func (dh *DeviceHandler) doStateDown() error {
 	}
 	/* Discovered ONUs entries need to be cleared , since after OLT
 	   is up, it starts sending discovery indications again*/
-	dh.discOnus = make(map[string]bool)
+	dh.discOnus = sync.Map{}
 	log.Debugw("do-state-down-end", log.Fields{"deviceID": device.Id})
 	return nil
 }
@@ -678,7 +679,9 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 	var proxyDeviceID string
 
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
-	if onuInCache, ok := dh.onus[onuKey]; !ok {
+
+	if onuInCache, ok := dh.onus.Load(onuKey); !ok {
+
 		log.Debugw("omci indication for a device not in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
 		ponPort := IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 		kwargs := make(map[string]interface{})
@@ -694,13 +697,14 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 		deviceID = onuDevice.Id
 		proxyDeviceID = onuDevice.ProxyAddress.DeviceId
 		//if not exist in cache, then add to cache.
-		dh.onus[onuKey] = NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID)
+		dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID))
 	} else {
+
 		//found in cache
 		log.Debugw("omci indication for a device in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
-		deviceType = onuInCache.deviceType
-		deviceID = onuInCache.deviceID
-		proxyDeviceID = onuInCache.proxyDeviceID
+		deviceType = onuInCache.(*OnuDevice).deviceType
+		deviceID = onuInCache.(*OnuDevice).deviceID
+		proxyDeviceID = onuInCache.(*OnuDevice).proxyDeviceID
 	}
 
 	omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
@@ -806,16 +810,20 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 	parentPortNo := IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	log.Debugw("new-discovery-indication", log.Fields{"sn": sn})
-	dh.lockDevice.Lock()
-	if _, ok := dh.discOnus[sn]; ok {
-		dh.lockDevice.Unlock()
+
+	if _, ok := dh.discOnus.Load(sn); ok {
+
 		log.Debugw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
 		return
 	}
 
-	dh.discOnus[sn] = true
-	log.Debugw("new-discovery-indications-list", log.Fields{"discOnus": dh.discOnus})
-	dh.lockDevice.Unlock()
+	dh.discOnus.Store(sn, true)
+	var discOnusList []interface{}
+	dh.discOnus.Range(func(key interface{}, value interface{}) bool {
+		discOnusList = append(discOnusList, key)
+		return true
+	})
+	log.Debugw("new-discovery-indications-list", log.Fields{"discOnus": discOnusList})
 
 	kwargs := make(map[string]interface{})
 	if sn != "" {
@@ -857,10 +865,9 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 		"intfId": onuDiscInd.GetIntfId()})
 	onuKey := dh.formOnuKey(onuDiscInd.GetIntfId(), onuID)
 
-	dh.lockDevice.Lock()
-	dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
-	log.Debugw("new-onu-device-discovered", log.Fields{"onu": dh.onus[onuKey]})
-	dh.lockDevice.Unlock()
+	dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId))
+	onu, _ := dh.onus.Load(onuKey)
+	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onu.(*OnuDevice)})
 
 	err = dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
 	if err != nil {
@@ -886,11 +893,14 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 	log.Debugw("ONU indication key create", log.Fields{"onuId": onuInd.OnuId,
 		"intfId": onuInd.GetIntfId()})
 	onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.OnuId)
-	if onuInCache, ok := dh.onus[onuKey]; ok {
+
+	if onuInCache, ok := dh.onus.Load(onuKey); ok {
+
 		//If ONU id is discovered before then use GetDevice to get onuDevice because it is cheaper.
 		foundInCache = true
-		onuDevice, _ = dh.coreProxy.GetDevice(nil, dh.device.Id, onuInCache.deviceID)
+		onuDevice, _ = dh.coreProxy.GetDevice(nil, dh.device.Id, onuInCache.(*OnuDevice).deviceID)
 	} else {
+
 		//If ONU not found in adapter cache then we have to use GetChildDevice to get onuDevice
 		if serialNumber != "" {
 			kwargs["serial_number"] = serialNumber
@@ -900,7 +910,6 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 		}
 		onuDevice, _ = dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 	}
-
 	if onuDevice != nil {
 		if onuDevice.ParentPortNo != ponPort {
 			//log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": intfIDFromPortNo(onuDevice.ParentPortNo), "currentIntfId": onuInd.GetIntfId()})
@@ -912,9 +921,9 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 		}
 		if !foundInCache {
 			onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.GetOnuId())
-			dh.lockDevice.Lock()
-			dh.onus[onuKey] = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
-			dh.lockDevice.Unlock()
+
+			dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId))
+
 		}
 		dh.updateOnuStates(onuDevice, onuInd, foundInCache)
 
@@ -1028,12 +1037,11 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 // AddUniPortToOnu adds the uni port to the onu device
 func (dh *DeviceHandler) AddUniPortToOnu(intfID, onuID, uniPort uint32) {
 	onuKey := dh.formOnuKey(intfID, onuID)
-	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
-	if onuDevice, ok := dh.onus[onuKey]; ok {
+
+	if onuDevice, ok := dh.onus.Load(onuKey); ok {
 		// add it to the uniPort map for the onu device
-		if _, ok = onuDevice.uniPorts[uniPort]; !ok {
-			onuDevice.uniPorts[uniPort] = struct{}{}
+		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
+			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
 			log.Debugw("adding-uni-port", log.Fields{"port": uniPort, "intfID": intfID, "onuId": onuID})
 		}
 	}
@@ -1087,10 +1095,11 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 	log.Debugw("olt-disabled", log.Fields{"deviceID": device.Id})
 	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
 	UNREACHABLE state which needs to be configured again*/
-	dh.lockDevice.Lock()
-	dh.discOnus = make(map[string]bool)
-	dh.onus = make(map[string]*OnuDevice)
-	dh.lockDevice.Unlock()
+
+	dh.discOnus = sync.Map{}
+	//dh.onus = make(map[string]*OnuDevice)
+	dh.onus = sync.Map{}
+
 	go dh.notifyChildDevices()
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to disable
@@ -1217,9 +1226,12 @@ func (dh *DeviceHandler) clearNNIData() error {
 	/* Free ONU IDs for each pon port
 	   intfIDToONUIds is a map of intf-id: [onu-ids]*/
 	intfIDToONUIds := make(map[uint32][]uint32)
-	for _, onu := range dh.onus {
-		intfIDToONUIds[onu.intfID] = append(intfIDToONUIds[onu.intfID], onu.onuID)
-	}
+	dh.onus.Range(func(key interface{}, value interface{}) bool {
+		onu, _ := dh.onus.Load(key)
+		intfIDToONUIds[onu.(*OnuDevice).intfID] = append(intfIDToONUIds[onu.(*OnuDevice).intfID], onu.(*OnuDevice).onuID)
+		return true
+	})
+
 	for intfID, onuIds := range intfIDToONUIds {
 		dh.resourceMgr.FreeonuID(intfID, onuIds)
 	}
@@ -1241,11 +1253,14 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	   other pon resources like alloc_id and gemport_id
 	*/
 	if dh.resourceMgr != nil {
-		for _, onu := range dh.onus {
-			if err := dh.clearUNIData(onu); err != nil {
+		dh.onus.Range(func(key interface{}, value interface{}) bool {
+			onu, _ := dh.onus.Load(key)
+			if err := dh.clearUNIData(onu.(*OnuDevice)); err != nil {
 				log.Debugw("Failed to clear data for onu", log.Fields{"onu-device": onu})
 			}
-		}
+			return true
+		})
+
 		/* Clear the flows from KV store associated with NNI port.
 		   There are mostly trap rules from NNI port (like LLDP)
 		*/
@@ -1258,9 +1273,11 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	}
 
 	/*Delete ONU map for the device*/
-	for onu := range dh.onus {
-		delete(dh.onus, onu)
-	}
+	dh.onus.Range(func(key interface{}, value interface{}) bool {
+		dh.onus.Delete(key)
+		return true
+	})
+
 	log.Debug("Removed-device-from-Resource-manager-KV-store")
 	// Stop the Stats collector
 	dh.stopCollector <- true

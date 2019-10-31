@@ -18,6 +18,7 @@
 package adaptercore
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -28,11 +29,11 @@ import (
 func mockEventMgr() *OpenOltEventMgr {
 	ep := &mocks.MockEventProxy{}
 	dh := &DeviceHandler{}
-	dh.onus = make(map[string]*OnuDevice)
-	dh.onus[dh.formOnuKey(1, 1)] = &OnuDevice{deviceID: "TEST_ONU",
+	dh.onus = sync.Map{}
+	dh.onus.Store(dh.formOnuKey(1, 1), &OnuDevice{deviceID: "TEST_ONU",
 		deviceType:   "ONU",
 		serialNumber: "TEST_ONU_123",
-		onuID:        1, intfID: 1}
+		onuID:        1, intfID: 1})
 	return NewEventMgr(ep, dh)
 }
 func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
