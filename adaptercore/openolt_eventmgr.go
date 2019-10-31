@@ -19,6 +19,7 @@ package adaptercore
 
 import (
 	"fmt"
+
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	oop "github.com/opencord/voltha-protos/v2/go/openolt"
@@ -186,8 +187,9 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 	context := make(map[string]string)
 	/* Populating event context */
 	serialNumber = ""
-	if onu, ok := em.handler.onus[em.handler.formOnuKey(dgi.IntfId, dgi.OnuId)]; ok {
-		serialNumber = onu.serialNumber
+	onu := em.handler.formOnuKey(dgi.IntfId, dgi.OnuId)
+	if onu, ok := em.handler.onus.Load(onu); ok {
+		serialNumber = onu.(*OnuDevice).serialNumber
 	}
 	context["serial-number"] = serialNumber
 	context["intf-id"] = string(dgi.IntfId)

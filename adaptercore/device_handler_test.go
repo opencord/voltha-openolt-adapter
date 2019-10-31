@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -596,8 +597,10 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
 	dh3 := newMockDeviceHandler()
-	dh3.onus = map[string]*OnuDevice{"onu1": NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1"),
-		"onu2": NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2")}
+	dh3.onus = sync.Map{}
+	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1"))
+	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2"))
+
 	type args struct {
 		indication *oop.Indication
 	}
@@ -960,7 +963,9 @@ func TestDeviceHandler_GetOfpPortInfo(t *testing.T) {
 func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 
 	dh1 := newMockDeviceHandler()
-	dh1.discOnus = map[string]bool{"onu1": true, "onu2": false}
+	dh1.discOnus = sync.Map{}
+	dh1.discOnus.Store("onu1", true)
+	dh1.discOnus.Store("onu2", false)
 	dh2 := negativeDeviceHandler()
 	type args struct {
 		onuDiscInd *oop.OnuDiscIndication
