@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d2765af0_87fd0dbd",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-10-31T05:55:02Z",
+      "side": 1,
+      "message": "Earlier I created the channel without buffer size which cased the issue with blocking state. Now i have created with proper size for the channel and it works now.",
+      "parentUuid": "42c298ba_98e6ace7",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "482889bf_23fb3dee",
         "filename": "adaptercore/olt_platform.go",
         "patchSetId": 20
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "b447627d_37176d62",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-10-31T05:55:02Z",
+      "side": 1,
+      "message": "We are trying to decode from portnumber to Interface ID so it needs to be xor operation, if it was (or) operation then it will be Interface ID to Portnumber",
+      "parentUuid": "482889bf_23fb3dee",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c4776e7_40b8bf41",
         "filename": "adaptercore/olt_platform.go",
         "patchSetId": 20
@@ -47,6 +83,24 @@
       "writtenOn": "2019-10-30T19:08:40Z",
       "side": 1,
       "message": "same. bitwise or (\"|\") over xor?",
+      "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de4242d8_6227f33d",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-10-31T05:55:02Z",
+      "side": 1,
+      "message": "if we do | operation insted of xor we wont get the desired output while converting from portnumber to InterfaceID",
+      "parentUuid": "6c4776e7_40b8bf41",
       "revId": "90cc7a9ac21078f79ea84ef6ec1e69d2a9a91724",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
