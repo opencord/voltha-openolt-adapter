@@ -621,7 +621,9 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 	var proxyDeviceID string
 
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
+	dh.lockDevice.Lock()
 	if onuInCache, ok := dh.onus[onuKey]; !ok {
+		dh.lockDevice.Unlock()
 		log.Debugw("omci indication for a device not in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
 		ponPort := IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 		kwargs := make(map[string]interface{})
@@ -639,6 +641,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 		//if not exist in cache, then add to cache.
 		dh.onus[onuKey] = NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID)
 	} else {
+		dh.lockDevice.Unlock()
 		//found in cache
 		log.Debugw("omci indication for a device in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
 		deviceType = onuInCache.deviceType
@@ -829,11 +832,14 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 	log.Debugw("ONU indication key create", log.Fields{"onuId": onuInd.OnuId,
 		"intfId": onuInd.GetIntfId()})
 	onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.OnuId)
+	dh.lockDevice.Lock()
 	if onuInCache, ok := dh.onus[onuKey]; ok {
+		dh.lockDevice.Unlock()
 		//If ONU id is discovered before then use GetDevice to get onuDevice because it is cheaper.
 		foundInCache = true
 		onuDevice, _ = dh.coreProxy.GetDevice(nil, dh.device.Id, onuInCache.deviceID)
 	} else {
+		dh.lockDevice.Unlock()
 		//If ONU not found in adapter cache then we have to use GetChildDevice to get onuDevice
 		if serialNumber != "" {
 			kwargs["serial_number"] = serialNumber
@@ -843,7 +849,6 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 		}
 		onuDevice, _ = dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 	}
-
 	if onuDevice != nil {
 		if onuDevice.ParentPortNo != ponPort {
 			//log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{"previousIntfId": intfIDFromPortNo(onuDevice.ParentPortNo), "currentIntfId": onuInd.GetIntfId()})
