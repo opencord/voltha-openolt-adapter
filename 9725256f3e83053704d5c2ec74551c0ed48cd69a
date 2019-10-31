@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "565c3892_c3e3b1ac",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 657,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-10-31T18:00:10Z",
+      "side": 1,
+      "message": "We keep the lock too long  for not-in-cache case. There is a Kafka messaging    there. We can change map with sync.Map for concurrently modified maps.",
+      "range": {
+        "startLine": 657,
+        "startChar": 4,
+        "endLine": 657,
+        "endChar": 14
+      },
+      "revId": "9725256f3e83053704d5c2ec74551c0ed48cd69a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
