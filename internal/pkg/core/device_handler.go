@@ -21,13 +21,14 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"io"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 
 	"google.golang.org/grpc/codes"
 
@@ -499,7 +500,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, "", voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
 		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
@@ -524,7 +525,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
 	dh.device = cloned
 
-	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err)
 	}
 
@@ -591,7 +592,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
 		dh.device = cloned
-		if er := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); er != nil {
+		if er := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); er != nil {
 			olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
@@ -935,6 +936,9 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: hexPkt}
 	}
 
+	if dh.Client == nil || dh.Client.OmciMsgOut == nil {
+		return nil
+	}
 	_, err := dh.Client.OmciMsgOut(context.Background(), omciMessage)
 	if err != nil {
 		return olterrors.NewErrCommunication("omci-send-failed", log.Fields{
@@ -1074,7 +1078,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	dh.onus.Store(onuKey, onuDev)
 	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev, "sn": sn})
 
-	if err = dh.coreProxy.DeviceStateUpdate(ctx, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED); err != nil {
+	if err = dh.coreProxy.DeviceStateUpdate(ctx, onuDevice.Id, dh.device.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED); err != nil {
 		return olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
 			"device-id":     onuDevice.Id,
 			"serial-number": sn}, err)
@@ -1435,7 +1439,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	cloned.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = cloned
 
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
@@ -1541,7 +1545,7 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	cloned := proto.Clone(device).(*voltha.Device)
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
 	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
@@ -1774,7 +1778,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 	}
 
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
-		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, "", voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
 			olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, voltha.OperStatus_UNKNOWN); err != nil {

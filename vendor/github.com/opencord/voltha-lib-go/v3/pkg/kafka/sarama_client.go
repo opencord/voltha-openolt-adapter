@@ -831,7 +831,7 @@ func (sc *SaramaClient) clearTopicFromConsumerChannelMap(topic Topic) error {
 func (sc *SaramaClient) createPublisher() error {
 	// This Creates the publisher
 	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.Partitioner = sarama.NewHashPartitioner
 	config.Producer.Flush.Frequency = time.Duration(sc.producerFlushFrequency)
 	config.Producer.Flush.Messages = sc.producerFlushMessages
 	config.Producer.Flush.MaxMessages = sc.producerFlushMaxmessages

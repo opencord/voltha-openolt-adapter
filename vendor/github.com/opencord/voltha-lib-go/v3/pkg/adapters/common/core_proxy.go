@@ -200,7 +200,7 @@ func (ap *CoreProxy) DeleteAllPorts(ctx context.Context, deviceId string) error 
 	return unPackResponse(rpc, deviceId, success, result)
 }
 
-func (ap *CoreProxy) DeviceStateUpdate(ctx context.Context, deviceId string,
+func (ap *CoreProxy) DeviceStateUpdate(ctx context.Context, deviceId string, parentDeviceId string,
 	connStatus voltha.ConnectStatus_Types, operStatus voltha.OperStatus_Types) error {
 	log.Debugw("DeviceStateUpdate", log.Fields{"deviceId": deviceId})
 	rpc := "DeviceStateUpdate"
@@ -225,8 +225,12 @@ func (ap *CoreProxy) DeviceStateUpdate(ctx context.Context, deviceId string,
 		Value: cStatus,
 	}
 	// Use a device specific topic as we are the only adaptercore handling requests for this device
+	key := deviceId
+	if parentDeviceId != "" {
+		key = parentDeviceId
+	}
 	replyToTopic := ap.getAdapterTopic()
-	success, result := ap.kafkaICProxy.InvokeRPC(context.Background(), rpc, &toTopic, &replyToTopic, true, deviceId, args...)
+	success, result := ap.kafkaICProxy.InvokeRPC(context.Background(), rpc, &toTopic, &replyToTopic, true, key, args...)
 	logger.Debugw("DeviceStateUpdate-response", log.Fields{"deviceId": deviceId, "success": success})
 	return unPackResponse(rpc, deviceId, success, result)
 }
