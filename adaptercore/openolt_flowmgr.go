@@ -551,7 +551,8 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniI
 
 	/* Already this info available classifier? */
 	downlinkAction[PopVlan] = true
-	dlClVid, ok := downlinkClassifier[VlanVid].(int)
+	// vlan_vid is a uint32.  must be type asserted as such or conversion fails
+	dlClVid, ok := downlinkClassifier[VlanVid].(uint32)
 	if ok {
 		downlinkAction[VlanVid] = dlClVid & 0xfff
 	} else {
