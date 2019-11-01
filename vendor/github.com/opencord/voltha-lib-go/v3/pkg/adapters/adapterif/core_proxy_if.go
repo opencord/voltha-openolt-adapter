@@ -34,7 +34,7 @@ type CoreProxy interface {
 	PortCreated(ctx context.Context, deviceID string, port *voltha.Port) error
 	PortsStateUpdate(ctx context.Context, deviceID string, operStatus voltha.OperStatus_Types) error
 	DeleteAllPorts(ctx context.Context, deviceID string) error
-	DeviceStateUpdate(ctx context.Context, deviceID string,
+	DeviceStateUpdate(ctx context.Context, deviceID string, parentDeviceID string,
 		connStatus voltha.ConnectStatus_Types, operStatus voltha.OperStatus_Types) error
 
 	DevicePMConfigUpdate(ctx context.Context, pmConfigs *voltha.PmConfigs) error

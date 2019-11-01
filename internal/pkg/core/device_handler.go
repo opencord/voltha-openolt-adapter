@@ -455,7 +455,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, "", voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
 		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
@@ -485,7 +485,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	cloned.ConnectStatus = common.ConnectStatus_UNREACHABLE
 	dh.device = cloned
 
-	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err).Log()
 	}
 
@@ -552,7 +552,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
 		dh.device = cloned
-		if er := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); er != nil {
+		if er := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); er != nil {
 			olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
@@ -995,7 +995,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	dh.onus.Store(onuKey, onuDev)
 	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev, "sn": sn})
 
-	if err = dh.coreProxy.DeviceStateUpdate(ctx, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED); err != nil {
+	if err = dh.coreProxy.DeviceStateUpdate(ctx, onuDevice.Id, dh.device.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED); err != nil {
 		return olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
 			"device-id":     onuDevice.Id,
 			"serial-number": sn}, err).Log()
@@ -1331,7 +1331,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	cloned.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = cloned
 
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
@@ -1484,7 +1484,7 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	cloned := proto.Clone(device).(*voltha.Device)
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
 	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
@@ -1644,7 +1644,7 @@ func startHeartbeatCheck(dh *DeviceHandler) {
 
 						log.Debug("We got hearbeat after the timeout expired, changing the states")
 						go dh.notifyChildDevices("up")
-						if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
+						if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, "", voltha.ConnectStatus_REACHABLE,
 							voltha.OperStatus_ACTIVE); err != nil {
 							log.Errorw("Failed to update device state", log.Fields{"deviceID": dh.device.Id, "error": err})
 						}
@@ -1664,7 +1664,7 @@ func startHeartbeatCheck(dh *DeviceHandler) {
 func (dh *DeviceHandler) updateStateUnreachable() {
 
 	go dh.notifyChildDevices("unreachable")
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, "", voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
 		olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 	}
 }
