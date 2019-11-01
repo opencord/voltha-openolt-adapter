@@ -16,6 +16,24 @@
       "revId": "b5b154c7447bf0d0cf2174923abbe368d10c7f00",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4333aa1d_ae6ba815",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1123,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-11-01T21:32:47Z",
+      "side": 1,
+      "message": "If you want this function testable and prevent others from doing the same mistake again, I think it\u0027s still necessary.",
+      "parentUuid": "7121fa7f_218ad7a3",
+      "revId": "b5b154c7447bf0d0cf2174923abbe368d10c7f00",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
