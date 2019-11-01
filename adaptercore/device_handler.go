@@ -367,7 +367,7 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp() error {
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.coreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, voltha.ConnectStatus_REACHABLE,
+	if err := dh.coreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, "", voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
 		log.Errorw("Failed to update device with OLT UP indication", log.Fields{"deviceID": dh.device.Id, "error": err})
 		return err
@@ -400,7 +400,7 @@ func (dh *DeviceHandler) doStateDown() error {
 	cloned.ConnectStatus = common.ConnectStatus_UNREACHABLE
 	dh.device = cloned
 
-	if er := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); er != nil {
+	if er := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); er != nil {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": er})
 		return er
 	}
@@ -466,7 +466,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
 		dh.device = cloned
-		if er := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); er != nil {
+		if er := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); er != nil {
 			log.Errorw("error-updating-device-state", log.Fields{"deviceID": dh.device.Id, "error": er})
 		}
 
@@ -805,7 +805,7 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 	log.Debugw("new-onu-device-discovered", log.Fields{"onu": dh.onus[onuKey]})
 	dh.lockDevice.Unlock()
 
-	err = dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
+	err = dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, dh.device.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
 	if err != nil {
 		log.Errorw("failed to update device state", log.Fields{"DeviceID": onuDevice.Id, "err": err})
 		return
@@ -1098,7 +1098,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	cloned.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = cloned
 
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
 		return err
 	}
@@ -1204,7 +1204,7 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	cloned := proto.Clone(device).(*voltha.Device)
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
 	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, "", cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
 		return err
 	}

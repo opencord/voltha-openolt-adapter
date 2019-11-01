@@ -180,6 +180,7 @@ func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
 		return kafka.NewSaramaClient(
 			kafka.Host(host),
 			kafka.Port(port),
+			kafka.ConsumerType(kafka.GroupCustomer),
 			kafka.ProducerReturnOnErrors(true),
 			kafka.ProducerReturnOnSuccess(true),
 			kafka.ProducerMaxRetries(6),
