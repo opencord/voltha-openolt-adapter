@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a15896d8_3e1a1481",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 642,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-04T16:53:06Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we add lock+unlock before and after this line also?",
+      "range": {
+        "startLine": 642,
+        "startChar": 0,
+        "endLine": 642,
+        "endChar": 124
+      },
+      "revId": "96fefc88ab9a15a8cc664872ce2cf5e2eade10a7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
