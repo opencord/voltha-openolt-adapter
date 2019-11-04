@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
-	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	"github.com/opencord/voltha-protos/go/voltha"
+	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 func TestMkUniPortNum(t *testing.T) {

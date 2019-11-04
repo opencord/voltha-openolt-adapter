@@ -38,8 +38,8 @@ import (
 	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
 	"github.com/opencord/voltha-openolt-adapter/config"
 	"github.com/opencord/voltha-openolt-adapter/config/version"
-	ic "github.com/opencord/voltha-protos/go/inter_container"
-	"github.com/opencord/voltha-protos/go/voltha"
+	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 type adapter struct {

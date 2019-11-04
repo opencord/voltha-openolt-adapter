@@ -22,8 +22,8 @@ import (
 	"errors"
 	"io"
 
-	openolt "github.com/opencord/voltha-protos/go/openolt"
-	tech_profile "github.com/opencord/voltha-protos/go/tech_profile"
+	openolt "github.com/opencord/voltha-protos/v2/go/openolt"
+	tech_profile "github.com/opencord/voltha-protos/v2/go/tech_profile"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

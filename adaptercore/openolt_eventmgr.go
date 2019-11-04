@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	oop "github.com/opencord/voltha-protos/go/openolt"
-	"github.com/opencord/voltha-protos/go/voltha"
+	oop "github.com/opencord/voltha-protos/v2/go/openolt"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 const (

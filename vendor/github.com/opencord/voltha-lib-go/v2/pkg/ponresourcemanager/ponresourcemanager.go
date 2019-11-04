@@ -102,6 +102,10 @@ const (
 	//Format: <device_id>/<(pon_intf_id, onu_id)>/flow_id_info/<flow_id>
 	FLOW_ID_INFO_PATH = "{%s}/{%s}/flow_id_info/{%d}"
 
+	//path on the kvstore to store onugem info map
+	//format: <device-id>/onu_gem_info/<intfid>
+	ONU_GEM_INFO_PATH = "{%s}/onu_gem_info/{%d}" // onu_gem/<(intfid)>
+
 	//Constants for internal usage.
 	PON_INTF_ID     = "pon_intf_id"
 	START_IDX       = "start_idx"
@@ -1177,4 +1181,70 @@ func ToString(value interface{}) (string, error) {
 	default:
 		return "", fmt.Errorf("unexpected-type-%T", t)
 	}
+}
+
+func (PONRMgr *PONResourceManager) AddOnuGemInfo(intfID uint32, onuGemData interface{}) error {
+	/*
+	   Update onugem info map,
+	   :param pon_intf_id: reference of PON interface id
+	   :param onuegmdata: onugem info map
+	*/
+	var Value []byte
+	var err error
+	Path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfID)
+	Value, err = json.Marshal(onuGemData)
+	if err != nil {
+		log.Error("failed to Marshal")
+		return err
+	}
+
+	if err = PONRMgr.KVStore.Put(Path, Value); err != nil {
+		log.Errorf("Failed to update resource %s", Path)
+		return err
+	}
+	return err
+}
+
+func (PONRMgr *PONResourceManager) GetOnuGemInfo(IntfId uint32, onuGemInfo interface{}) error {
+	/*
+	  Get onugeminfo map from kvstore
+	  :param intfid: refremce pon intfid
+	  :param onuGemInfo: onugem info to return from kv strore.
+	*/
+	var Val []byte
+
+	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, IntfId)
+	value, err := PONRMgr.KVStore.Get(path)
+	if err != nil {
+		log.Errorw("Failed to get from kv store", log.Fields{"path": path})
+		return err
+	} else if value == nil {
+		log.Debug("No onuinfo for path", log.Fields{"path": path})
+		return nil // returning nil as this could happen if there are no onus for the interface yet
+	}
+	if Val, err = kvstore.ToByte(value.Value); err != nil {
+		log.Error("Failed to convert to byte array")
+		return err
+	}
+
+	if err = json.Unmarshal(Val, &onuGemInfo); err != nil {
+		log.Error("Failed to unmarshall")
+		return err
+	}
+	log.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemInfo})
+	return err
+}
+
+func (PONRMgr *PONResourceManager) DelOnuGemInfoForIntf(intfId uint32) error {
+	/*
+	   delete onugem info for an interface from kvstore
+	   :param intfid: refremce pon intfid
+	*/
+
+	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfId)
+	if err := PONRMgr.KVStore.Delete(path); err != nil {
+		log.Errorf("Falied to remove resource %s", path)
+		return err
+	}
+	return nil
 }

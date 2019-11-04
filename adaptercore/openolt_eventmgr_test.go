@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	oop "github.com/opencord/voltha-protos/go/openolt"
+	oop "github.com/opencord/voltha-protos/v2/go/openolt"
 )
 
 func mockEventMgr() *OpenOltEventMgr {

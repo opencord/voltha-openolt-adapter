@@ -17,7 +17,7 @@
 package pmmetrics
 
 import (
-	"github.com/opencord/voltha-protos/go/voltha"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 // PmMetrics structure holds metric and device info

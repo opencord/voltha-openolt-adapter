@@ -27,8 +27,8 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	openolt "github.com/opencord/voltha-protos/go/openolt"
+	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
+	openolt "github.com/opencord/voltha-protos/v2/go/openolt"
 )
 
 const (

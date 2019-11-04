@@ -32,11 +32,11 @@ import (
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	ic "github.com/opencord/voltha-protos/go/inter_container"
-	of "github.com/opencord/voltha-protos/go/openflow_13"
-	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	oop "github.com/opencord/voltha-protos/go/openolt"
-	"github.com/opencord/voltha-protos/go/voltha"
+	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
+	of "github.com/opencord/voltha-protos/v2/go/openflow_13"
+	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/v2/go/openolt"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 func init() {

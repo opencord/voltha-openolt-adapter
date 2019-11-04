@@ -28,8 +28,8 @@ import (
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
-	ofp "github.com/opencord/voltha-protos/go/openflow_13"
-	"github.com/opencord/voltha-protos/go/openolt"
+	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
+	"github.com/opencord/voltha-protos/v2/go/openolt"
 )
 
 const (
