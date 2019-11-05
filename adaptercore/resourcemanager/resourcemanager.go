@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
@@ -52,10 +52,10 @@ type FlowInfo struct {
 
 // OpenOltResourceMgr holds resource related information as provided below for each field
 type OpenOltResourceMgr struct {
-	DeviceID    string         // OLT device id
-	HostAndPort string         // Host and port of the kv store to connect to
-	Args        string         // args
-	KVStore     *model.Backend // backend kv store connection handle
+	DeviceID    string      // OLT device id
+	HostAndPort string      // Host and port of the kv store to connect to
+	Args        string      // args
+	KVStore     *db.Backend // backend kv store connection handle
 	DeviceType  string
 	Host        string              // Host ip of the kv store
 	Port        int                 // port of the kv store
@@ -76,7 +76,7 @@ func newKVClient(storeType string, address string, timeout uint32) (kvstore.Clie
 }
 
 // SetKVClient sets the KV client and return a kv backend
-func SetKVClient(backend string, Host string, Port int, DeviceID string) *model.Backend {
+func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Backend {
 	addr := Host + ":" + strconv.Itoa(Port)
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
@@ -85,7 +85,7 @@ func SetKVClient(backend string, Host string, Port int, DeviceID string) *model.
 		log.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
 	}
-	kvbackend := &model.Backend{
+	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  backend,
 		Host:       Host,
