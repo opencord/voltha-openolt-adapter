@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"strconv"
 
-	bitmap "github.com/boljen/go-bitmap"
+	"github.com/boljen/go-bitmap"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
 )
@@ -128,7 +128,7 @@ type PONResourceManager struct {
 	Host           string // host ip of the KV store
 	Port           int    // port number for the KV store
 	OLTModel       string
-	KVStore        *model.Backend
+	KVStore        *db.Backend
 	TechProfileMgr tp.TechProfileIf // create object of *tp.TechProfileMgr
 
 	// Below attribute, pon_resource_ranges, should be initialized
@@ -151,7 +151,7 @@ func newKVClient(storeType string, address string, timeout int) (kvstore.Client,
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func SetKVClient(Technology string, Backend string, Host string, Port int) *model.Backend {
+func SetKVClient(Technology string, Backend string, Host string, Port int) *db.Backend {
 	addr := Host + ":" + strconv.Itoa(Port)
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
@@ -160,7 +160,7 @@ func SetKVClient(Technology string, Backend string, Host string, Port int) *mode
 		log.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
 	}
-	kvbackend := &model.Backend{
+	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  Backend,
 		Host:       Host,

@@ -17,12 +17,12 @@
 package techprofile
 
 import (
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	tp_pb "github.com/opencord/voltha-protos/v2/go/tech_profile"
 )
 
 type TechProfileIf interface {
-	SetKVClient() *model.Backend
+	SetKVClient() *db.Backend
 	GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string
 	GetTPInstanceFromKVStore(techProfiletblID uint32, path string) (*TechProfile, error)
 	CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) *TechProfile

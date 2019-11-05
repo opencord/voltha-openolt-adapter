@@ -23,7 +23,7 @@ import (
 
 	"github.com/opencord/voltha-protos/v2/go/voltha"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
@@ -54,7 +54,7 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 	}
 	rsrMgr := resourcemanager.NewResourceMgr("olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
 	for key := range rsrMgr.ResourceMgrs {
-		rsrMgr.ResourceMgrs[key].KVStore = &model.Backend{}
+		rsrMgr.ResourceMgrs[key].KVStore = &db.Backend{}
 		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}
 		rsrMgr.ResourceMgrs[key].TechProfileMgr = mocks.MockTechProfile{TpID: key}
 	}
@@ -65,7 +65,7 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	rsrMgr := newMockResourceMgr()
 	dh := newMockDeviceHandler()
 
-	rsrMgr.KVStore = &model.Backend{}
+	rsrMgr.KVStore = &db.Backend{}
 	rsrMgr.KVStore.Client = &mocks.MockKVClient{}
 
 	dh.resourceMgr = rsrMgr

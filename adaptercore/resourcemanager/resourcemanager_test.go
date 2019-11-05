@@ -26,8 +26,8 @@ package resourcemanager
 import (
 	"encoding/json"
 	"errors"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
@@ -68,7 +68,7 @@ type fields struct {
 	DeviceID     string
 	HostAndPort  string
 	Args         string
-	KVStore      *model.Backend
+	KVStore      *db.Backend
 	DeviceType   string
 	Host         string
 	Port         int
@@ -83,7 +83,7 @@ type MockResKVClient struct {
 // getResMgr mocks OpenOltResourceMgr struct.
 func getResMgr() *fields {
 	var resMgr fields
-	resMgr.KVStore = &model.Backend{
+	resMgr.KVStore = &db.Backend{
 		Client: &MockResKVClient{},
 	}
 	resMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
@@ -104,7 +104,7 @@ func getResMgr() *fields {
 	ponMgr := &ponrmgr.PONResourceManager{
 		DeviceID: "onu-1",
 		IntfIDs:  []uint32{1, 2},
-		KVStore: &model.Backend{
+		KVStore: &db.Backend{
 			Client: &MockResKVClient{},
 		},
 		PonResourceRanges: ranges,
@@ -116,12 +116,12 @@ func getResMgr() *fields {
 }
 
 // List function implemented for KVClient.
-func (kvclient *MockResKVClient) List(key string, timeout int, lock ...bool) (map[string]*kvstore.KVPair, error) {
+func (kvclient *MockResKVClient) List(key string, timeout int) (map[string]*kvstore.KVPair, error) {
 	return nil, errors.New("key didn't find")
 }
 
 // Get mock function implementation for KVClient
-func (kvclient *MockResKVClient) Get(key string, timeout int, lock ...bool) (*kvstore.KVPair, error) {
+func (kvclient *MockResKVClient) Get(key string, timeout int) (*kvstore.KVPair, error) {
 	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		if strings.Contains(key, MeterConfig) {
@@ -169,7 +169,7 @@ func (kvclient *MockResKVClient) Get(key string, timeout int, lock ...bool) (*kv
 }
 
 // Put mock function implementation for KVClient
-func (kvclient *MockResKVClient) Put(key string, value interface{}, timeout int, lock ...bool) error {
+func (kvclient *MockResKVClient) Put(key string, value interface{}, timeout int) error {
 	if key != "" {
 		return nil
 	}
@@ -177,7 +177,7 @@ func (kvclient *MockResKVClient) Put(key string, value interface{}, timeout int,
 }
 
 // Delete mock function implementation for KVClient
-func (kvclient *MockResKVClient) Delete(key string, timeout int, lock ...bool) error {
+func (kvclient *MockResKVClient) Delete(key string, timeout int) error {
 	return nil
 }
 
@@ -874,10 +874,10 @@ func TestSetKVClient(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *model.Backend
+		want *db.Backend
 	}{
-		{"setKVClient-1", args{"consul", "1.1.1.1", 1, "olt1"}, &model.Backend{}},
-		{"setKVClient-1", args{"etcd", "2.2.2.2", 2, "olt2"}, &model.Backend{}},
+		{"setKVClient-1", args{"consul", "1.1.1.1", 1, "olt1"}, &db.Backend{}},
+		{"setKVClient-1", args{"etcd", "2.2.2.2", 2, "olt2"}, &db.Backend{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -18,7 +18,7 @@
 package mocks
 
 import (
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
 	tp_pb "github.com/opencord/voltha-protos/v2/go/tech_profile"
@@ -30,8 +30,8 @@ type MockTechProfile struct {
 }
 
 // SetKVClient to mock tefhprofile SetKVClient method
-func (m MockTechProfile) SetKVClient() *model.Backend {
-	return &model.Backend{Client: &MockKVClient{}}
+func (m MockTechProfile) SetKVClient() *db.Backend {
+	return &db.Backend{Client: &MockKVClient{}}
 }
 
 // GetTechProfileInstanceKVPath to mock tefhprofile GetTechProfileInstanceKVPath method
