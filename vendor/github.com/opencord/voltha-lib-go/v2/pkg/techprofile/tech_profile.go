@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp_pb "github.com/opencord/voltha-protos/v2/go/tech_profile"
 )
@@ -226,7 +226,7 @@ type TechProfile struct {
 	DownstreamGemPortAttributeList []iGemPortAttribute `json:"downstream_gem_port_attribute_list"`
 }
 
-func (t *TechProfileMgr) SetKVClient() *model.Backend {
+func (t *TechProfileMgr) SetKVClient() *db.Backend {
 	addr := t.config.KVStoreHost + ":" + strconv.Itoa(t.config.KVStorePort)
 	kvClient, err := newKVClient(t.config.KVStoreType, addr, t.config.KVStoreTimeout)
 	if err != nil {
@@ -238,7 +238,7 @@ func (t *TechProfileMgr) SetKVClient() *model.Backend {
 			})
 		return nil
 	}
-	return &model.Backend{
+	return &db.Backend{
 		Client:     kvClient,
 		StoreType:  t.config.KVStoreType,
 		Host:       t.config.KVStoreHost,

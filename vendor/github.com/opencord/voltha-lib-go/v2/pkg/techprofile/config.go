@@ -16,7 +16,7 @@
 package techprofile
 
 import (
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/model"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 )
 
 // tech profile default constants
@@ -83,7 +83,7 @@ type TechProfileFlags struct {
 	KVStorePort          int
 	KVStoreType          string
 	KVStoreTimeout       int
-	KVBackend            *model.Backend
+	KVBackend            *db.Backend
 	TPKVPathPrefix       string
 	TPFileKVPath         string
 	TPInstanceKVPath     string

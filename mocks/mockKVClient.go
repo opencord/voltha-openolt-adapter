@@ -53,7 +53,7 @@ type MockKVClient struct {
 }
 
 // List mock function implementation for KVClient
-func (kvclient *MockKVClient) List(key string, timeout int, lock ...bool) (map[string]*kvstore.KVPair, error) {
+func (kvclient *MockKVClient) List(key string, timeout int) (map[string]*kvstore.KVPair, error) {
 	if key != "" {
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
@@ -63,7 +63,7 @@ func (kvclient *MockKVClient) List(key string, timeout int, lock ...bool) (map[s
 }
 
 // Get mock function implementation for KVClient
-func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvstore.KVPair, error) {
+func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, error) {
 	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		log.Debug("Warning Key Not Blank")
@@ -155,7 +155,7 @@ func (kvclient *MockKVClient) Get(key string, timeout int, lock ...bool) (*kvsto
 }
 
 // Put mock function implementation for KVClient
-func (kvclient *MockKVClient) Put(key string, value interface{}, timeout int, lock ...bool) error {
+func (kvclient *MockKVClient) Put(key string, value interface{}, timeout int) error {
 	if key != "" {
 
 		return nil
@@ -164,7 +164,7 @@ func (kvclient *MockKVClient) Put(key string, value interface{}, timeout int, lo
 }
 
 // Delete mock function implementation for KVClient
-func (kvclient *MockKVClient) Delete(key string, timeout int, lock ...bool) error {
+func (kvclient *MockKVClient) Delete(key string, timeout int) error {
 	if key == "" {
 		return errors.New("key didn't find")
 	}
