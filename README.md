@@ -1,7 +1,7 @@
 # How to Build the Golang based OpenOLT Adapter
 
 ## Working with Go Dependencies
-This project uses Go Modules https://github.com/golang/go/wiki/Modules to manage
+This project uses Go Modules (https://github.com/golang/go/wiki/Modules) to manage
 dependencies. As a local best pratice this project also vendors the dependencies.
 If you need to update dependencies please follow the Go Modules best practices
 and also perform the following steps before committing a patch:
