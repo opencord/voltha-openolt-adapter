@@ -385,6 +385,17 @@ func (dh *DeviceHandler) doStateUp() error {
 	return nil
 }
 
+func (dh *DeviceHandler) calcSerialHashPartition(serialNumber string) string {
+    serial_num := serialNumber[9:12]
+    log.Debugw("InterAdapter-calcpartition", log.Fields{"Serial": serial_num})
+    pon,_ := strconv.ParseInt(string(serial_num[0]),16,64)
+    onuId,_ := strconv.ParseInt(serial_num[1:3],16,64)
+    num := pon*64 + onuId
+    ret := strconv.Itoa(int(num % 4))
+    log.Debugw("InterAdapter-calpartition",log.Fields{"pon": pon, "onu": onuId, "num": num, "ret": ret})
+    return ret
+
+}
 // doStateDown handle the olt down indication
 func (dh *DeviceHandler) doStateDown() error {
 	dh.lockDevice.Lock()
@@ -427,7 +438,7 @@ func (dh *DeviceHandler) doStateDown() error {
 		onuInd := oop.OnuIndication{}
 		onuInd.OperState = "down"
 		er := dh.AdapterProxy.SendInterAdapterMessage(context.TODO(), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "", dh.calcSerialHashPartition(onuDevice.SerialNumber))
 		if er != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
@@ -671,6 +682,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 	var deviceType string
 	var deviceID string
 	var proxyDeviceID string
+    var serialNumber string
 
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
 
@@ -690,6 +702,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 		deviceType = onuDevice.Type
 		deviceID = onuDevice.Id
 		proxyDeviceID = onuDevice.ProxyAddress.DeviceId
+        serialNumber = onuDevice.SerialNumber
 		//if not exist in cache, then add to cache.
 		dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID))
 	} else {
@@ -698,12 +711,13 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) {
 		deviceType = onuInCache.(*OnuDevice).deviceType
 		deviceID = onuInCache.(*OnuDevice).deviceID
 		proxyDeviceID = onuInCache.(*OnuDevice).proxyDeviceID
+        serialNumber = onuInCache.(*OnuDevice).serialNumber
 	}
 
 	omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
 	if sendErr := dh.AdapterProxy.SendInterAdapterMessage(context.Background(), omciMsg,
 		ic.InterAdapterMessageType_OMCI_REQUEST, dh.deviceType, deviceType,
-		deviceID, proxyDeviceID, ""); sendErr != nil {
+		deviceID, proxyDeviceID, "", dh.calcSerialHashPartition(serialNumber)); sendErr != nil {
 		log.Errorw("send omci request error", log.Fields{"fromAdapter": dh.deviceType, "toAdapter": deviceType, "onuID": deviceID, "proxyDeviceID": proxyDeviceID, "error": sendErr})
 		return
 	}
@@ -826,10 +840,10 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 		//This is the first time ONU discovered. Create an OnuID for it.
 		ponintfid := onuDiscInd.GetIntfId()
 		dh.lockDevice.Lock()
-		onuID, err = dh.resourceMgr.GetONUID(ponintfid)
+        onuID, err = dh.resourceMgr.GetONUID(ponintfid)
 		dh.lockDevice.Unlock()
 		if err != nil {
-			log.Errorw("failed to fetch onuID from resource manager", log.Fields{"pon-intf-id": ponintfid, "err": err})
+		log.Errorw("failed to fetch onuID from resource manager", log.Fields{"pon-intf-id": ponintfid, "err": err})
 			return
 		}
 		if onuDevice, err = dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
@@ -922,14 +936,14 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) {
 }
 
 func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication, foundInCache bool) {
-	log.Debugw("onu-indication-for-state", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
+    log.Debugw("onu-indication-for-state", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState, "ProxyAddress": onuDevice.ProxyAddress})
 	dh.updateOnuAdminState(onuInd)
 	// operState
 	if onuInd.OperState == "down" {
 		log.Debugw("sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(context.TODO(), onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+        "openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "", dh.calcSerialHashPartition(onuDevice.SerialNumber))
 		if err != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})
@@ -943,7 +957,7 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 		log.Debugw("sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(context.TODO(), onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "", dh.calcSerialHashPartition(onuDevice.SerialNumber))
 		if err != nil {
 			log.Errorw("Failed to send inter-adapter-message", log.Fields{"OnuInd": onuInd,
 				"From Adapter": "openolt", "DevieType": onuDevice.Type, "DeviceID": onuDevice.Id})

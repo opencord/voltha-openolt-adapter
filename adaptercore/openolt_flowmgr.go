@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync"
+    "strconv"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
@@ -1458,6 +1459,17 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	f.divideAndAddFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
 }
 
+func (f *OpenOltFlowMgr) calcSerialHashPartition(device *voltha.Device) string {
+    serial_num := device.SerialNumber[9:12]
+    log.Debugw("InterAdapter-calcpartition", log.Fields{"Serial": serial_num})
+    pon,_ := strconv.ParseInt(string(serial_num[0]),16,64)
+    onuId,_ := strconv.ParseInt(serial_num[1:3],16,64)
+    num := pon*64 + onuId
+    ret := strconv.Itoa(int(num % 4))
+    log.Debugw("InterAdapter-calpartition",log.Fields{"pon": pon, "onu": onuId, "num": num, "ret": ret})
+    return ret
+}
+
 //sendTPDownloadMsgToChild send payload
 func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, uniID uint32, uni string, TpID uint32) error {
 
@@ -1477,7 +1489,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 		f.deviceHandler.deviceType,
 		onuDevice.Type,
 		onuDevice.Id,
-		onuDevice.ProxyAddress.DeviceId, "")
+		onuDevice.ProxyAddress.DeviceId, "", f.calcSerialHashPartition(onuDevice))
 	if sendErr != nil {
 		log.Errorw("send techprofile-download request error", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
 			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
