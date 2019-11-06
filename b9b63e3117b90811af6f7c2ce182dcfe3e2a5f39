@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e0422f_48516789",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-11-06T18:56:15Z",
+      "side": 1,
+      "message": "why the change from uint32 to int32 here and other places?",
+      "range": {
+        "startLine": 422,
+        "startChar": 73,
+        "endLine": 422,
+        "endChar": 78
+      },
+      "revId": "b9b63e3117b90811af6f7c2ce182dcfe3e2a5f39",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
