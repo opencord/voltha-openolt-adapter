@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "037f487c_f823319a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1208,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-11-06T04:09:10Z",
+      "side": 1,
+      "message": "Sorry, I got added to this review yesterday. Shouldn\u0027t you return from here?",
+      "revId": "89ff40c1deef1add3b166787c57b14dd02226c94",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
