@@ -1,7 +1,7 @@
 # How to Build the Golang based OpenOLT Adapter
 
 ## Working with Go Dependencies
-This project uses Go Modules https://github.com/golang/go/wiki/Modules to manage
+This project uses Go Modules (https://github.com/golang/go/wiki/Modules) to manage
 dependencies. As a local best pratice this project also vendors the dependencies.
 If you need to update dependencies please follow the Go Modules best practices
 and also perform the following steps before committing a patch:
@@ -12,7 +12,7 @@ go mod vendor
 ```
 
 ## Building with a Local Copy of `voltha-protos` or `voltha-lib-go`
-If you want to build/test using a local copy or `voltha-protos` or `voltha-lib-go`
+If you want to build/test using a local copy of `voltha-protos` or `voltha-lib-go`
 this can be accomplished by using the environment variables `LOCAL_PROTOS` and
 `LOCAL_LIB_GO`. These environment variables should be set to the filesystem
 path where the local source is located, e.g.
