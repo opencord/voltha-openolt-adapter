@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "2b159236_0a587500",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-08T10:55:42Z",
+      "side": 1,
+      "message": "Addressed using sync.map, which provides lock and unlock behavior with itself. \nFor Benchmark of regular map and sync.map, https://medium.com/@deckarep/the-new-kid-in-town-gos-sync-map-de24a6bf7c2c",
+      "parentUuid": "e86c4e78_21147bb5",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "01693eda_e7001048",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 7
@@ -48,6 +66,30 @@
       "writtenOn": "2019-11-07T17:27:03Z",
       "side": 1,
       "message": "this will need the write lock.",
+      "range": {
+        "startLine": 699,
+        "startChar": 2,
+        "endLine": 699,
+        "endChar": 32
+      },
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ec73fa5_143d42c3",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 699,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-08T10:55:42Z",
+      "side": 1,
+      "message": "Addressed using sync.map, which provides lock and unlock behavior with itself. \nFor Benchmark of regular map and sync.map, https://medium.com/@deckarep/the-new-kid-in-town-gos-sync-map-de24a6bf7c2c",
+      "parentUuid": "01693eda_e7001048",
       "range": {
         "startLine": 699,
         "startChar": 2,
@@ -95,6 +137,24 @@
     },
     {
       "key": {
+        "uuid": "d5f8ebc5_e78255ce",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 892,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-08T10:55:42Z",
+      "side": 1,
+      "message": "changed the logic with sync.map",
+      "parentUuid": "7df81429_a6ee4854",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf785ca6_a920dc79",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 7
@@ -106,6 +166,24 @@
       "writtenOn": "2019-11-08T04:49:54Z",
       "side": 1,
       "message": "Rlock and RUnlock?",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f9fcacc2_9769bd32",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1036,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-08T10:55:42Z",
+      "side": 1,
+      "message": "Updated with sync.map",
+      "parentUuid": "bf785ca6_a920dc79",
       "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
