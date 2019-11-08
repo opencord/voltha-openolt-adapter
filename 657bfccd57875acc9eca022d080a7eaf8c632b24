@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e86c4e78_21147bb5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-11-08T04:49:54Z",
+      "side": 1,
+      "message": "I meant \u0027you are NOT doing any write here..\u0027",
+      "parentUuid": "01777e1c_932eb77a",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "01693eda_e7001048",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 7
@@ -53,6 +71,41 @@
       "writtenOn": "2019-11-07T16:40:41Z",
       "side": 1,
       "message": "Why don\u0027t you use RLock and RUnlock.. you are doing any writes here.",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7df81429_a6ee4854",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 892,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-11-08T04:49:54Z",
+      "side": 1,
+      "message": "I meant, you are NOT doing any write here",
+      "parentUuid": "fbc32145_9faf1a1e",
+      "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bf785ca6_a920dc79",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1036,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-11-08T04:49:54Z",
+      "side": 1,
+      "message": "Rlock and RUnlock?",
       "revId": "657bfccd57875acc9eca022d080a7eaf8c632b24",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
