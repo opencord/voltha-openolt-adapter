@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "329a8b34_c998ae22",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-08T06:38:09Z",
+      "side": 1,
+      "message": "it is not needed, will delete it",
+      "parentUuid": "bc67fd07_3d37161b",
+      "revId": "bc33edec17299758670f8071078826de7b26c75f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d48c739b_9c9a3a46",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2019-11-07T14:15:37Z",
       "side": 1,
       "message": "Can this consistent with how tuples are grouped together. For example in all other places is groups as {%d,%d,%d}",
+      "range": {
+        "startLine": 48,
+        "startChar": 33,
+        "endLine": 48,
+        "endChar": 47
+      },
+      "revId": "bc33edec17299758670f8071078826de7b26c75f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b198e03_e7e879db",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-08T06:38:09Z",
+      "side": 1,
+      "message": "fixed.",
+      "parentUuid": "d48c739b_9c9a3a46",
       "range": {
         "startLine": 48,
         "startChar": 33,
