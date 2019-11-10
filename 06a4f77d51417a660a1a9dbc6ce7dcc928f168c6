@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0761f18d_7c0dec6a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-10T06:52:32Z",
+      "side": 1,
+      "message": "Why don\u0027t we initialize the maps here?",
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8aff19d_cd2029ec",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-10T06:52:32Z",
+      "side": 1,
+      "message": "we probably do the same thing for onus map too.",
+      "range": {
+        "startLine": 445,
+        "startChar": 1,
+        "endLine": 445,
+        "endChar": 25
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b319996_fb56731d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-10T06:52:32Z",
+      "side": 1,
+      "message": "If this was for tests to debug and see the result, please remove it from the code.",
+      "range": {
+        "startLine": 821,
+        "startChar": 0,
+        "endLine": 826,
+        "endChar": 83
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "96e646b1_e48162f9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-10T06:52:32Z",
+      "side": 1,
+      "message": "If this Load is again for debuging please remove it. Instead you can do:\nonu \u003d NewOnuDevice(....)\ndh.onus.Store(onuKey, onu)\nlog.Debugw(...)",
+      "range": {
+        "startLine": 869,
+        "startChar": 0,
+        "endLine": 870,
+        "endChar": 77
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
