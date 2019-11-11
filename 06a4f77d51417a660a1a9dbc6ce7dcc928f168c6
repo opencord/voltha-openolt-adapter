@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a9ce23d9_e6c92713",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-11T13:13:05Z",
+      "side": 1,
+      "message": "sync.maps does auto initialization",
+      "parentUuid": "0761f18d_7c0dec6a",
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8aff19d_cd2029ec",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 8
@@ -65,6 +83,30 @@
     },
     {
       "key": {
+        "uuid": "b2f089ab_0f013d24",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-11T13:13:05Z",
+      "side": 1,
+      "message": "This will help while log level is set to Debug mode. This will show contents in list",
+      "parentUuid": "6b319996_fb56731d",
+      "range": {
+        "startLine": 821,
+        "startChar": 0,
+        "endLine": 826,
+        "endChar": 83
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96e646b1_e48162f9",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 8
@@ -76,6 +118,30 @@
       "writtenOn": "2019-11-10T06:52:32Z",
       "side": 1,
       "message": "If this Load is again for debuging please remove it. Instead you can do:\nonu \u003d NewOnuDevice(....)\ndh.onus.Store(onuKey, onu)\nlog.Debugw(...)",
+      "range": {
+        "startLine": 869,
+        "startChar": 0,
+        "endLine": 870,
+        "endChar": 77
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e42dacd_72198e8e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-11T13:13:05Z",
+      "side": 1,
+      "message": "Sure, this will reduce cost. thanks",
+      "parentUuid": "96e646b1_e48162f9",
       "range": {
         "startLine": 869,
         "startChar": 0,
