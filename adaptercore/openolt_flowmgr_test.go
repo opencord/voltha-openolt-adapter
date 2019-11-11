@@ -62,29 +62,36 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 }
 
 func newMockFlowmgr() *OpenOltFlowMgr {
-	rMgr := newMockResourceMgr()
+	rsrMgr := newMockResourceMgr()
 	dh := newMockDeviceHandler()
 
-	rMgr.KVStore = &db.Backend{}
-	rMgr.KVStore.Client = &mocks.MockKVClient{}
+	rsrMgr.KVStore = &db.Backend{}
+	rsrMgr.KVStore.Client = &mocks.MockKVClient{}
 
-	dh.resourceMgr = rMgr
-	flwMgr := NewFlowManager(dh, rMgr)
+	dh.resourceMgr = rsrMgr
+	flwMgr := NewFlowManager(dh, rsrMgr)
+	onuIds := make(map[onuIDKey]onuInfo)
+	onuIds[onuIDKey{intfID: 1, onuID: 1}] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
+	onuIds[onuIDKey{intfID: 2, onuID: 2}] = onuInfo{intfID: 2, onuID: 2, serialNumber: "2"}
+	flwMgr.onuIds = onuIds
 
-	onuGemInfo1 := make([]rsrcMgr.OnuGemInfo, 2)
-	onuGemInfo2 := make([]rsrcMgr.OnuGemInfo, 2)
-	onuGemInfo1[0] = rsrcMgr.OnuGemInfo{OnuID: 1, SerialNumber: "1", IntfID: 1, GemPorts: []uint32{1}}
-	onuGemInfo2[1] = rsrcMgr.OnuGemInfo{OnuID: 2, SerialNumber: "2", IntfID: 2, GemPorts: []uint32{2}}
-	flwMgr.onuGemInfo[1] = onuGemInfo1
-	flwMgr.onuGemInfo[2] = onuGemInfo2
+	onuSerialNumbers := make(map[string]onuInfo)
+	onuSerialNumbers["1"] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
+	onuSerialNumbers["2"] = onuInfo{intfID: 2, onuID: 1, serialNumber: "2"}
+	flwMgr.onuSerialNumbers = onuSerialNumbers
 
-	packetInGemPort := make(map[rsrcMgr.PacketInInfoKey]uint32)
-	packetInGemPort[rsrcMgr.PacketInInfoKey{IntfID: 1, OnuID: 1, LogicalPort: 1}] = 1
-	packetInGemPort[rsrcMgr.PacketInInfoKey{IntfID: 2, OnuID: 2, LogicalPort: 2}] = 2
+	onuGemPortIds := make(map[gemPortKey]onuInfo)
+	onuGemPortIds[gemPortKey{intfID: 1, gemPort: 1}] = onuInfo{intfID: 1, onuID: 1, serialNumber: "1"}
+	onuGemPortIds[gemPortKey{intfID: 2, gemPort: 2}] = onuInfo{intfID: 2, onuID: 2, serialNumber: "2"}
+	flwMgr.onuGemPortIds = onuGemPortIds
+
+	packetInGemPort := make(map[packetInInfoKey]uint32)
+	packetInGemPort[packetInInfoKey{intfID: 1, onuID: 1, logicalPort: 1}] = 1
+	packetInGemPort[packetInInfoKey{intfID: 2, onuID: 2, logicalPort: 2}] = 2
 
 	flwMgr.packetInGemPort = packetInGemPort
-	tps := make([]tp.TechProfileIf, len(rMgr.ResourceMgrs))
-	for key := range rMgr.ResourceMgrs {
+	tps := make([]tp.TechProfileIf, len(rsrMgr.ResourceMgrs))
+	for key := range rsrMgr.ResourceMgrs {
 		tps[key] = mocks.MockTechProfile{TpID: key}
 	}
 	flwMgr.techprofile = tps
@@ -216,6 +223,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}
 	ofpstats := fu.MkFlowStat(fa)
 	ofpstats.Cookie = ofpstats.Id
+	flowMgr.storedDeviceFlows = append(flowMgr.storedDeviceFlows, *ofpstats)
 	lldpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
@@ -747,9 +755,14 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 
 	type fields struct {
-		techprofile   []tp.TechProfileIf
-		deviceHandler *DeviceHandler
-		resourceMgr   *rsrcMgr.OpenOltResourceMgr
+		techprofile       []tp.TechProfileIf
+		deviceHandler     *DeviceHandler
+		resourceMgr       *rsrcMgr.OpenOltResourceMgr
+		onuIds            map[onuIDKey]onuInfo
+		onuSerialNumbers  map[string]onuInfo
+		onuGemPortIds     map[gemPortKey]onuInfo
+		packetInGemPort   map[packetInInfoKey]uint32
+		storedDeviceFlows []ofp.OfpFlowStats
 	}
 	type args struct {
 		args           map[string]uint32

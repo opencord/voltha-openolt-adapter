@@ -428,8 +428,8 @@ func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 
 	type args struct {
 		PONIntfID uint32
-		ONUID     int32
-		UNIID     int32
+		ONUID     uint32
+		UNIID     uint32
 	}
 	tests := []struct {
 		name   string
@@ -477,8 +477,8 @@ func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 
 	type args struct {
 		ponIntfID       uint32
-		ONUID           int32
-		uniID           int32
+		ONUID           uint32
+		uniID           uint32
 		gemportID       uint32
 		flowStoreCookie uint64
 		flowCategory    string
@@ -625,8 +625,8 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 func TestOpenOltResourceMgr_IsFlowCookieOnKVStore(t *testing.T) {
 	type args struct {
 		ponIntfID       uint32
-		onuID           int32
-		uniID           int32
+		onuID           uint32
+		uniID           uint32
 		flowStoreCookie uint64
 	}
 	tests := []struct {
@@ -907,7 +907,6 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 				}},
 			1,
 			"HSIA_FLOW",
-			2000,
 		},
 		{
 			&openolt.Flow{
@@ -915,7 +914,6 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 			},
 			1,
 			"EAPOL",
-			3000,
 		},
 	}
 	tests := []struct {
