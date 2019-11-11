@@ -107,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "be07cd8c_8f14b79e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-11T18:01:43Z",
+      "side": 1,
+      "message": "But we cannot  go through the whole map at each onuDiscIndication for debug purposes. It costs too much. The Range goes through the map even it is not in Debug mod.",
+      "parentUuid": "b2f089ab_0f013d24",
+      "range": {
+        "startLine": 821,
+        "startChar": 0,
+        "endLine": 826,
+        "endChar": 83
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96e646b1_e48162f9",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 8
