@@ -34,4 +34,5 @@ type TechProfileIf interface {
 		ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler
 	GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) []*tp_pb.TrafficQueue
 	GetGemportIDForPbit(tp *TechProfile, Dir tp_pb.Direction, pbit uint32) uint32
+	FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []TechProfile
 }
