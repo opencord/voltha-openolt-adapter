@@ -80,10 +80,10 @@ help:
 
 local-protos:
 ifdef LOCAL_PROTOS
-	rm -rf vendor/github.com/opencord/voltha-protos/go
-	mkdir -p vendor/github.com/opencord/voltha-protos/go
-	cp -r ${LOCAL_PROTOS}/go/* vendor/github.com/opencord/voltha-protos/go
-	rm -rf vendor/github.com/opencord/voltha-protos/go/vendor
+	rm -rf vendor/github.com/opencord/voltha-protos/v2/go
+	mkdir -p vendor/github.com/opencord/voltha-protos/v2/go
+	cp -r ${LOCAL_PROTOS}/go/* vendor/github.com/opencord/voltha-protos/v2/go
+	rm -rf vendor/github.com/opencord/voltha-protos/v2/go/vendor
 endif
 
 ## Local Development Helpers
