@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "093bb25c_1868a98f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-11-13T06:09:01Z",
+      "side": 1,
+      "message": "Yes even if its not debug that part goes into computation all the time, Sure agreed its too costly, will remove this part.",
+      "parentUuid": "be07cd8c_8f14b79e",
+      "range": {
+        "startLine": 821,
+        "startChar": 0,
+        "endLine": 826,
+        "endChar": 83
+      },
+      "revId": "06a4f77d51417a660a1a9dbc6ce7dcc928f168c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96e646b1_e48162f9",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 8
