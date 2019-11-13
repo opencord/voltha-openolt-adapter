@@ -16,6 +16,24 @@
       "revId": "0e3fccd3c898d4c05c7dca4080397ca276d30172",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6f1ba67_7d7c7c23",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-11-13T12:03:19Z",
+      "side": 1,
+      "message": "Yes the same though kept on bugging me, as to the need of this constant cos the ResourceManager works without any such constants.\n\nBut then I gave the benefit of the doubt to the existing code :) assuming that there would be some need to define it as such. Didn\u0027t dig any further.",
+      "parentUuid": "512f8c53_2e55957b",
+      "revId": "0e3fccd3c898d4c05c7dca4080397ca276d30172",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
