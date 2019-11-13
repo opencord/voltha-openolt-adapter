@@ -18,6 +18,8 @@ package main
 import (
 	"context"
 	"errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"testing"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
@@ -215,4 +217,12 @@ func (kc *mockKafkaClient) Send(msg interface{}, topic *kafka.Topic, keys ...str
 		return nil
 	}
 	return errors.New("invalid topic")
+}
+
+func (kc *mockKafkaClient) SendLiveness() error {
+	return status.Error(codes.Unimplemented, "SendLiveness")
+}
+
+func (kc *mockKafkaClient) EnableLivenessChannel(enable bool) chan bool {
+	return nil
 }
