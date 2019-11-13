@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "512f8c53_2e55957b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-11-13T11:51:36Z",
+      "side": 1,
+      "message": "I looked in the code and the only place this is used is in openolt_flowmgr.go\n\nflowMgr.techprofile \u003d make([]tp.TechProfileIf, MaxPonPorts)\n\n\nIdeally we should do away with this constant and use the pon_ports that is coming in DeviceInfo message from the agent.",
+      "revId": "0e3fccd3c898d4c05c7dca4080397ca276d30172",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
