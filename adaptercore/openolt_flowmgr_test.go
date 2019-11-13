@@ -95,7 +95,7 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	// flowMgr := newMockFlowmgr()
 
 	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
-		ProfileType: "pt1", NumGemPorts: 1, NumTconts: 1, Version: 1,
+		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
 		InstanceCtrl: tp.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
 	tprofile.UsScheduler.Direction = "UPSTREAM"
@@ -157,7 +157,7 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 
 	// flowMgr := newMockFlowmgr()
 	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
-		ProfileType: "pt1", NumGemPorts: 1, NumTconts: 1, Version: 1,
+		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
 		InstanceCtrl: tp.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
 	tprofile.UsScheduler.Direction = "UPSTREAM"
@@ -739,7 +739,6 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		ProfileType:          "Mock",
 		Version:              1,
 		NumGemPorts:          4,
-		NumTconts:            1,
 		InstanceCtrl: tp.InstanceControl{
 			Onu: "1",
 			Uni: "16",

@@ -56,7 +56,6 @@ func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPort
 		ProfileType:                    "mock",
 		Version:                        0,
 		NumGemPorts:                    2,
-		NumTconts:                      1,
 		UpstreamGemPortAttributeList:   nil,
 		DownstreamGemPortAttributeList: nil,
 	}
