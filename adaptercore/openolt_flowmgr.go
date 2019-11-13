@@ -134,8 +134,6 @@ const (
 	VlanPCPMask = 0xFF
 	//VlanvIDMask constant
 	VlanvIDMask = 0xFFF
-	//MaxPonPorts constant
-	MaxPonPorts = 16
 	//IntfID constant
 	IntfID = "intfId"
 	//OnuID constant
@@ -167,7 +165,7 @@ type schedQueue struct {
 
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
 type OpenOltFlowMgr struct {
-	techprofile        []tp.TechProfileIf
+	techprofile        map[uint32]tp.TechProfileIf
 	deviceHandler      *DeviceHandler
 	resourceMgr        *rsrcMgr.OpenOltResourceMgr
 	onuIdsLock         sync.RWMutex
@@ -186,7 +184,7 @@ func NewFlowManager(dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr) *OpenOl
 
 	flowMgr.deviceHandler = dh
 	flowMgr.resourceMgr = rMgr
-	flowMgr.techprofile = make([]tp.TechProfileIf, MaxPonPorts)
+	flowMgr.techprofile = make(map[uint32]tp.TechProfileIf)
 	if err = flowMgr.populateTechProfilePerPonPort(); err != nil {
 		log.Error("Error while populating tech profile mgr\n")
 		return nil
