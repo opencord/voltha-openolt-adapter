@@ -20,6 +20,7 @@ package adaptercore
 import (
 	"context"
 	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1561,7 +1562,11 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(packetIn *openoltpb2.PacketI
 	} else if packetIn.IntfType == "nni" {
 		logicalPortNum = IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
-	log.Debugw("Retrieved logicalport from  packet-in", log.Fields{"logicalPortNum": logicalPortNum, "IntfType": packetIn.IntfType})
+	log.Debugw("Retrieved logicalport from  packet-in", log.Fields{
+		"logicalPortNum": logicalPortNum,
+		"IntfType":       packetIn.IntfType,
+		"packet":         hex.EncodeToString(packetIn.Pkt),
+	})
 	return logicalPortNum, nil
 }
 

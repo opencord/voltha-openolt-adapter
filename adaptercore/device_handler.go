@@ -1013,12 +1013,20 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) *voltha.Device
 // For this, it calls SendPacketIn of the core-proxy which uses a device specific topic to send the request.
 // The adapter handling the device creates a device specific topic
 func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []byte) {
-	log.Debugw("SendPacketInToCore", log.Fields{"port": logicalPort, "packetPayload": packetPayload})
+	log.Debugw("send-packet-in-to-core", log.Fields{
+		"port":   logicalPort,
+		"packet": hex.EncodeToString(packetPayload),
+	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPort, packetPayload); err != nil {
-		log.Errorw("Error sending packetin to core", log.Fields{"error": err})
+		log.Errorw("Error sending packetin to core", log.Fields{
+			"error":  err,
+			"packet": hex.EncodeToString(packetPayload),
+		})
 		return
 	}
-	log.Debug("Sent packet-in to core successfully")
+	log.Debugw("Sent packet-in to core successfully", log.Fields{
+		"packet": hex.EncodeToString(packetPayload),
+	})
 }
 
 // AddUniPortToOnu adds the uni port to the onu device
@@ -1312,24 +1320,42 @@ func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 }
 
 func (dh *DeviceHandler) handlePacketIndication(packetIn *oop.PacketIndication) {
-	log.Debugw("Received packet-in", log.Fields{"packet-indication": *packetIn})
+	log.Debugw("Received packet-in", log.Fields{
+		"packet-indication": *packetIn,
+		"packet":            hex.EncodeToString(packetIn.Pkt),
+	})
 	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(packetIn)
 	if err != nil {
-		log.Errorw("Error getting logical port from packet-in", log.Fields{"error": err})
+		log.Errorw("Error getting logical port from packet-in", log.Fields{
+			"error":  err,
+			"packet": hex.EncodeToString(packetIn.Pkt),
+		})
 		return
 	}
-	log.Debugw("sending packet-in to core", log.Fields{"logicalPortNum": logicalPortNum, "packet": *packetIn})
+	log.Debugw("sending packet-in to core", log.Fields{
+		"logicalPortNum": logicalPortNum,
+		"packet":         hex.EncodeToString(packetIn.Pkt),
+	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
-		log.Errorw("Error sending packet-in to core", log.Fields{"error": err})
+		log.Errorw("Error sending packet-in to core", log.Fields{
+			"error":  err,
+			"packet": hex.EncodeToString(packetIn.Pkt),
+		})
 		return
 	}
-	log.Debug("Success sending packet-in to core!")
+	log.Debugw("Success sending packet-in to core!", log.Fields{
+		"packet": hex.EncodeToString(packetIn.Pkt),
+	})
 }
 
 // PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
 func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) error {
-	log.Debugw("incoming-packet-out", log.Fields{"deviceID": dh.deviceID, "egress_port_no": egressPortNo,
-		"pkt-length": len(packet.Data), "packetData": hex.EncodeToString(packet.Data)})
+	log.Debugw("incoming-packet-out", log.Fields{
+		"deviceID":       dh.deviceID,
+		"egress_port_no": egressPortNo,
+		"pkt-length":     len(packet.Data),
+		"packet":         hex.EncodeToString(packet.Data),
+	})
 
 	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
 	if egressPortType == voltha.Port_ETHERNET_UNI {
@@ -1352,29 +1378,50 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 			// In this case the openolt agent will receive the gemPortID as 0.
 			// The agent tries to retrieve the gemPortID in this case.
 			// This may not always succeed at the agent and packetOut may fail.
-			log.Error("failed-to-retrieve-gemport-id-for-packet-out")
+			log.Errorw("failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
+				"packet": hex.EncodeToString(packet.Data),
+			})
 		}
 
 		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
 
-		log.Debugw("sending-packet-to-onu", log.Fields{"egress_port_no": egressPortNo, "IntfId": intfID, "onuID": onuID,
-			"uniID": uniID, "gemPortID": gemPortID, "packet": hex.EncodeToString(packet.Data)})
+		log.Debugw("sending-packet-to-onu", log.Fields{
+			"egress_port_no": egressPortNo,
+			"IntfId":         intfID,
+			"onuID":          onuID,
+			"uniID":          uniID,
+			"gemPortID":      gemPortID,
+			"packet":         hex.EncodeToString(packet.Data),
+		})
 
 		if _, err := dh.Client.OnuPacketOut(context.Background(), &onuPkt); err != nil {
-			log.Errorw("Error while sending packet-out to ONU", log.Fields{"error": err})
+			log.Errorw("Error while sending packet-out to ONU", log.Fields{
+				"error":  err,
+				"packet": hex.EncodeToString(packet.Data),
+			})
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
 		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
 
-		log.Debugw("sending-packet-to-nni", log.Fields{"uplink_pkt": uplinkPkt, "packet": hex.EncodeToString(packet.Data)})
+		log.Debugw("sending-packet-to-nni", log.Fields{
+			"uplink_pkt": uplinkPkt,
+			"packet":     hex.EncodeToString(packet.Data),
+		})
 
 		if _, err := dh.Client.UplinkPacketOut(context.Background(), &uplinkPkt); err != nil {
-			log.Errorw("Error while sending packet-out to NNI", log.Fields{"error": err})
+			log.Errorw("Error while sending packet-out to NNI", log.Fields{
+				"error":  err,
+				"packet": hex.EncodeToString(packet.Data),
+			})
 			return err
 		}
 	} else {
-		log.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{"egress_port_no": egressPortNo, "egressPortType": egressPortType})
+		log.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{
+			"egress_port_no": egressPortNo,
+			"egressPortType": egressPortType,
+			"packet":         hex.EncodeToString(packet.Data),
+		})
 	}
 	return nil
 }
