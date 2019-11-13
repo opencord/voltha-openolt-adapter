@@ -56,7 +56,6 @@ func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPort
 		ProfileType:                    "mock",
 		Version:                        0,
 		NumGemPorts:                    2,
-		NumTconts:                      1,
 		UpstreamGemPortAttributeList:   nil,
 		DownstreamGemPortAttributeList: nil,
 	}
@@ -100,4 +99,9 @@ func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Directio
 // GetGemportIDForPbit to mock tefhprofile GetGemportIDForPbit method
 func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
 	return 0
+}
+
+// FindAllTpInstances to mock techprofile FindAllTpInstances method
+func (m MockTechProfile) FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []tp.TechProfile {
+	return nil
 }

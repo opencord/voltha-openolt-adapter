@@ -90,12 +90,10 @@ type TechProfileFlags struct {
 	DefaultTPName        string
 	TPVersion            int
 	NumGemPorts          uint32
-	NumTconts            uint32
 	DefaultPbits         []string
 	LogLevel             int
 	DefaultTechProfileID uint32
 	DefaultNumGemPorts   uint32
-	DefaultNumTconts     uint32
 }
 
 func NewTechProfileFlags(KVStoreType string, KVStoreHost string, KVStorePort int) *TechProfileFlags {
@@ -113,7 +111,6 @@ func NewTechProfileFlags(KVStoreType string, KVStoreHost string, KVStorePort int
 		TPInstanceKVPath:     defaultTPInstanceKVPath,
 		DefaultTechProfileID: DEFAULT_TECH_PROFILE_TABLE_ID,
 		DefaultNumGemPorts:   defaultGemportsCount,
-		DefaultNumTconts:     defaultNumTconts,
 		DefaultPbits:         []string{defaultPbits},
 		LogLevel:             defaultLogLevel,
 	}
