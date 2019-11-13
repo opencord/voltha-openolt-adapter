@@ -135,7 +135,7 @@ const (
 	//VlanvIDMask constant
 	VlanvIDMask = 0xFFF
 	//MaxPonPorts constant
-	MaxPonPorts = 16
+	MaxPonPorts = 64
 	//IntfID constant
 	IntfID = "intfId"
 	//OnuID constant
