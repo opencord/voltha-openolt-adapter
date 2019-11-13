@@ -943,7 +943,9 @@ func (f *OpenOltFlowMgr) DeleteTechProfileInstances(intfID uint32, onuID uint32,
 	for _, tpID := range tpIDList {
 		if err := f.DeleteTechProfileInstance(intfID, onuID, uniID, uniPortName, tpID); err != nil {
 			log.Debugw("Failed-to-delete-tp-instance-from-kv-store", log.Fields{"tp-id": tpID, "uni-port-name": uniPortName})
-			return err
+			//return err
+			// We should continue to delete tech-profile instances for other TP IDs
+			continue
 		}
 	}
 	return nil
@@ -1273,7 +1275,7 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			f.resourceMgr.FreeGemPortID(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
 			f.onuIdsLock.Unlock()
 
-			ok, _ := f.isTechProfileUsedByAnotherGem(Intf, uint32(onuID), uint32(uniID), techprofileInst, uint32(gemPortID))
+			ok, _ := f.isTechProfileUsedByAnotherGem(Intf, uint32(onuID), uint32(uniID), tpID, techprofileInst, uint32(gemPortID))
 			if !ok {
 				f.resourceMgr.RemoveTechProfileIDForOnu(Intf, uint32(onuID), uint32(uniID), tpID)
 				f.RemoveSchedulerQueues(schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
@@ -1797,13 +1799,35 @@ func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) bool {
 	return false
 }
 
-func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uint32, uniID uint32, tpInst *tp.TechProfile, gemPortID uint32) (bool, uint32) {
+func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uint32, uniID uint32, tpID uint32, tpInst *tp.TechProfile, gemPortID uint32) (bool, uint32) {
 	currentGemPorts := f.resourceMgr.GetCurrentGEMPortIDsForOnu(ponIntf, onuID, uniID)
 	tpGemPorts := tpInst.UpstreamGemPortAttributeList
 	for _, currentGemPort := range currentGemPorts {
 		for _, tpGemPort := range tpGemPorts {
 			if (currentGemPort == tpGemPort.GemportID) && (currentGemPort != gemPortID) {
 				return true, currentGemPort
+			}
+		}
+	}
+	if tpInst.InstanceCtrl.Onu == "single-instance" {
+		// The TP information for the given TP ID, PON ID, ONU ID, UNI ID should be removed.
+		f.resourceMgr.RemoveTechProfileIDForOnu(ponIntf, uint32(onuID), uint32(uniID), tpID)
+		f.DeleteTechProfileInstance(ponIntf, uint32(onuID), uint32(uniID), "", tpID)
+
+		// Although we cleaned up TP Instance for the given (PON ID, ONU ID, UNI ID), the TP might
+		// still be used on other uni ports.
+		// So, we need to check and make sure that no other gem port is referring to the given TP ID
+		// on any other uni port.
+		tpInstances := f.techprofile[ponIntf].FindAllTpInstances(tpID, ponIntf, onuID)
+		for i := 0; i < len(tpInstances); i++ {
+			tpI := tpInstances[i]
+			tpGemPorts := tpI.UpstreamGemPortAttributeList
+			for _, currentGemPort := range currentGemPorts {
+				for _, tpGemPort := range tpGemPorts {
+					if (currentGemPort == tpGemPort.GemportID) && (currentGemPort != gemPortID) {
+						return true, currentGemPort
+					}
+				}
 			}
 		}
 	}
