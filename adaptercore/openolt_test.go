@@ -745,9 +745,9 @@ func TestOpenOLT_Stop(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Suppress_alarm(t *testing.T) {
+func TestOpenOLT_Suppress_event(t *testing.T) {
 	type args struct {
-		filter *voltha.AlarmFilter
+		filter *voltha.EventFilter
 	}
 	tests := []struct {
 		name    string
@@ -755,24 +755,24 @@ func TestOpenOLT_Suppress_alarm(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"suppress_alarm-1", &fields{}, args{}, errors.New("unImplemented")},
-		{"suppress_alarm-2", &fields{}, args{}, errors.New("unImplemented")},
-		{"suppress_alarm-3", &fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_event-1", &fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_event-2", &fields{}, args{}, errors.New("unImplemented")},
+		{"suppress_event-3", &fields{}, args{}, errors.New("unImplemented")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Suppress_alarm(tt.args.filter); (err != nil) &&
+			if err := oo.Suppress_event(tt.args.filter); (err != nil) &&
 				(reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
-				t.Errorf("Suppress_alarm() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Suppress_event() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Unsuppress_alarm(t *testing.T) {
+func TestOpenOLT_Unsuppress_event(t *testing.T) {
 	type args struct {
-		filter *voltha.AlarmFilter
+		filter *voltha.EventFilter
 	}
 	tests := []struct {
 		name    string
@@ -780,16 +780,16 @@ func TestOpenOLT_Unsuppress_alarm(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"unsupress_alarm-1", &fields{}, args{}, errors.New("unImplemented")},
-		{"unsupress_alarm-2", &fields{}, args{}, errors.New("unImplemented")},
-		{"unsupress_alarm-3", &fields{}, args{}, errors.New("unImplemented")},
+		{"unsupress_event-1", &fields{}, args{}, errors.New("unImplemented")},
+		{"unsupress_event-2", &fields{}, args{}, errors.New("unImplemented")},
+		{"unsupress_event-3", &fields{}, args{}, errors.New("unImplemented")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Unsuppress_alarm(tt.args.filter); (err != nil) &&
+			if err := oo.Unsuppress_event(tt.args.filter); (err != nil) &&
 				(reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
-				t.Errorf("Unsuppress_alarm() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Unsuppress_event() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
