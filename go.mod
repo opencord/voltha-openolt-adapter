@@ -1,14 +1,13 @@
 module github.com/opencord/voltha-openolt-adapter
 
-go 1.12
+go 1.13
 
 require (
-	github.com/gogo/protobuf v1.3.0
+	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
-	github.com/onsi/ginkgo v1.8.0 // indirect
-	github.com/onsi/gomega v1.5.0 // indirect
-	github.com/opencord/voltha-lib-go/v2 v2.2.17
-	github.com/opencord/voltha-protos/v2 v2.0.1
+	github.com/opencord/voltha-lib-go/v2 v2.2.18
+	github.com/opencord/voltha-protos/v2 v2.1.0
+	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2 // indirect
 	go.etcd.io/etcd v0.0.0-20190930204107-236ac2a90522
-	google.golang.org/grpc v1.24.0
+	google.golang.org/grpc v1.25.1
 )
