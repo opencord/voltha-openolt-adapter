@@ -22,7 +22,7 @@ github.com/eapache/go-resiliency/breaker
 github.com/eapache/go-xerial-snappy
 # github.com/eapache/queue v1.1.0
 github.com/eapache/queue
-# github.com/gogo/protobuf v1.3.0
+# github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
@@ -59,7 +59,7 @@ github.com/jcmturner/gofork/x/crypto/pbkdf2
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/opencord/voltha-lib-go/v2 v2.2.17
+# github.com/opencord/voltha-lib-go/v2 v2.2.18
 github.com/opencord/voltha-lib-go/v2/pkg/adapters
 github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/v2/pkg/adapters/common
@@ -72,7 +72,7 @@ github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics
 github.com/opencord/voltha-lib-go/v2/pkg/techprofile
 github.com/opencord/voltha-lib-go/v2/pkg/db
 github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager
-# github.com/opencord/voltha-protos/v2 v2.0.1
+# github.com/opencord/voltha-protos/v2 v2.1.0
 github.com/opencord/voltha-protos/v2/go/inter_container
 github.com/opencord/voltha-protos/v2/go/voltha
 github.com/opencord/voltha-protos/v2/go/common
@@ -140,12 +140,14 @@ golang.org/x/text/transform
 # google.golang.org/genproto v0.0.0-20190927181202-20e1ac93f88c
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.24.0
+# google.golang.org/grpc v1.25.1
 google.golang.org/grpc
 google.golang.org/grpc/codes
 google.golang.org/grpc/status
 google.golang.org/grpc/metadata
+google.golang.org/grpc/backoff
 google.golang.org/grpc/balancer
+google.golang.org/grpc/balancer/base
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/connectivity
 google.golang.org/grpc/credentials
@@ -156,24 +158,26 @@ google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
 google.golang.org/grpc/internal/balancerload
 google.golang.org/grpc/internal/binarylog
+google.golang.org/grpc/internal/buffer
 google.golang.org/grpc/internal/channelz
 google.golang.org/grpc/internal/envconfig
 google.golang.org/grpc/internal/grpcrand
 google.golang.org/grpc/internal/grpcsync
+google.golang.org/grpc/internal/resolver/dns
+google.golang.org/grpc/internal/resolver/passthrough
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/naming
 google.golang.org/grpc/peer
 google.golang.org/grpc/resolver
-google.golang.org/grpc/resolver/dns
-google.golang.org/grpc/resolver/passthrough
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/tap
-google.golang.org/grpc/balancer/base
 google.golang.org/grpc/credentials/internal
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/internal/syscall
+google.golang.org/grpc/resolver/dns
+google.golang.org/grpc/resolver/passthrough
 # gopkg.in/jcmturner/aescts.v1 v1.0.1
 gopkg.in/jcmturner/aescts.v1
 # gopkg.in/jcmturner/dnsutils.v1 v1.0.1
