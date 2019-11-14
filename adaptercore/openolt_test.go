@@ -747,7 +747,7 @@ func TestOpenOLT_Stop(t *testing.T) {
 
 func TestOpenOLT_Suppress_alarm(t *testing.T) {
 	type args struct {
-		filter *voltha.AlarmFilter
+		filter *voltha.EventFilter
 	}
 	tests := []struct {
 		name    string
@@ -772,7 +772,7 @@ func TestOpenOLT_Suppress_alarm(t *testing.T) {
 
 func TestOpenOLT_Unsuppress_alarm(t *testing.T) {
 	type args struct {
-		filter *voltha.AlarmFilter
+		filter *voltha.EventFilter
 	}
 	tests := []struct {
 		name    string
