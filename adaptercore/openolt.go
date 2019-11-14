@@ -302,13 +302,13 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 	return errors.New("device-handler-not-set")
 }
 
-//Suppress_alarm unimplemented
-func (oo *OpenOLT) Suppress_alarm(filter *voltha.AlarmFilter) error {
+//Suppress_event unimplemented
+func (oo *OpenOLT) Suppress_event(filter *voltha.EventFilter) error {
 	return errors.New("unImplemented")
 }
 
-//Unsuppress_alarm  unimplemented
-func (oo *OpenOLT) Unsuppress_alarm(filter *voltha.AlarmFilter) error {
+//Unsuppress_event  unimplemented
+func (oo *OpenOLT) Unsuppress_event(filter *voltha.EventFilter) error {
 	return errors.New("unImplemented")
 }
 
