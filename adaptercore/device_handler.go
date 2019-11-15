@@ -1361,6 +1361,14 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 	if egressPortType == voltha.Port_ETHERNET_UNI {
 		outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
 		innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
+		if outerEthType == 0x8942 || outerEthType == 0x88cc {
+			// Do not packet-out lldp packets on uni port.
+			// ONOS has no clue about uni/nni ports, it just packets out on all
+			// available ports on the Logical Switch. It should not be interested
+			// in the UNI links.
+			log.Debug("dropping-lldp-packet-out-on-uni")
+			return nil
+		}
 		if outerEthType == 0x88a8 || outerEthType == 0x8100 {
 			if innerEthType == 0x8100 {
 				// q-in-q 802.1ad or 802.1q double tagged packet.
