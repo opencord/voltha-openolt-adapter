@@ -1225,7 +1225,11 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 	gemPortID int32, flowID uint32, flowDirection string,
 	portNum uint32, updatedFlows []rsrcMgr.FlowInfo) error {
 
-	tpID := getTpIDFromFlow(flow)
+	tpID, err := getTpIDFromFlow(flow)
+	if err != nil {
+		log.Error("metadata-is-not-present-invalid-flow-to-process", log.Fields{"pon": Intf, "onuID": onuID, "uniID": uniID})
+		return err
+	}
 
 	if len(updatedFlows) >= 0 {
 		// There are still flows referencing the same flow_id.
@@ -1432,8 +1436,11 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	f.deviceHandler.AddUniPortToOnu(intfID, onuID, portNo)
 	f.resourceMgr.AddUniPortToOnuInfo(intfID, onuID, portNo)
 
-	TpID := getTpIDFromFlow(flow)
-
+	TpID, err := getTpIDFromFlow(flow)
+	if err != nil {
+		log.Error("metadata-is-not-present-invalid-flow-to-process", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
+		return
+	}
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
 	if IsUpstream(actionInfo[Output].(uint32)) {
 		UsMeterID = flows.GetMeterIdFromFlow(flow)
@@ -1951,7 +1958,7 @@ func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]
 	return nil
 }
 
-func getTpIDFromFlow(flow *ofp.OfpFlowStats) uint32 {
+func getTpIDFromFlow(flow *ofp.OfpFlowStats) (uint32, error) {
 	/*     Metadata 8 bytes:
 		   Most Significant 2 Bytes = Inner VLAN
 		   Next 2 Bytes = Tech Profile ID(TPID)
@@ -1961,11 +1968,11 @@ func getTpIDFromFlow(flow *ofp.OfpFlowStats) uint32 {
 	*/
 	metadata := flows.GetMetadataFromWriteMetadataAction(flow)
 	if metadata == 0 {
-		log.Error("Metadata is not present in flow which is mandatory")
-		return 0
+		log.Error("metadata-is-not-present-in-flow-which-is-mandatory")
+		return 0, errors.New("metadata-is-not-present-in-flow-which-is-mandatory")
 	}
 	TpID := flows.GetTechProfileIDFromWriteMetaData(metadata)
-	return uint32(TpID)
+	return uint32(TpID), nil
 }
 
 func appendUnique(slice []uint32, item uint32) []uint32 {
