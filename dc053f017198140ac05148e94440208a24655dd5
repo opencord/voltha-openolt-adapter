@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d57a45e_5c265b3c",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1435,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-11-15T18:38:56Z",
+      "side": 1,
+      "message": "The same function is called in clearFlowFromResourceManager function? Do we need to check that call for an error case? And I believe this function should return an err object for better handling. Zero value might not mean an error all the time and the readability is poor.",
+      "range": {
+        "startLine": 1435,
+        "startChar": 9,
+        "endLine": 1435,
+        "endChar": 24
+      },
+      "revId": "dc053f017198140ac05148e94440208a24655dd5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ad90b7bf_aa675101",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1437,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2019-11-15T18:38:56Z",
+      "side": 1,
+      "message": "The error log should give a clue about which flow is erroneous. \"pon\": intfID, \"onuID\": onuID, \"uniID\": uniID should be logged.",
+      "revId": "dc053f017198140ac05148e94440208a24655dd5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
