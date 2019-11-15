@@ -1433,6 +1433,10 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	f.resourceMgr.AddUniPortToOnuInfo(intfID, onuID, portNo)
 
 	TpID := getTpIDFromFlow(flow)
+	if TpID == 0 {
+		log.Error("metadata-is-not-present-invalid-flow-to-process")
+		return
+	}
 
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
 	if IsUpstream(actionInfo[Output].(uint32)) {
