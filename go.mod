@@ -10,5 +10,6 @@ require (
 	github.com/opencord/voltha-lib-go/v2 v2.2.13
 	github.com/opencord/voltha-protos/v2 v2.0.1
 	go.etcd.io/etcd v0.0.0-20190930204107-236ac2a90522
+	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/grpc v1.24.0
 )
