@@ -72,7 +72,7 @@ github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics
 github.com/opencord/voltha-lib-go/v2/pkg/techprofile
 github.com/opencord/voltha-lib-go/v2/pkg/db
 github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager
-# github.com/opencord/voltha-protos/v2 v2.1.0
+# github.com/opencord/voltha-protos/v2 v2.1.1
 github.com/opencord/voltha-protos/v2/go/inter_container
 github.com/opencord/voltha-protos/v2/go/voltha
 github.com/opencord/voltha-protos/v2/go/common
