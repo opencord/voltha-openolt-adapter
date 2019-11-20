@@ -1220,6 +1220,56 @@ func (f *OpenOltFlowMgr) decodeStoredID(id uint64) (uint64, string) {
 	return id, Downstream
 }
 
+func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(intfID uint32, onuID uint32, uniID uint32, gemPortId uint32, tpPath string) error {
+	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
+	if err != nil {
+		log.Errorw("error-fetching-child-device-from-core", log.Fields{"onuId": onuID})
+		return err
+	}
+
+	delGemPortMsg := &ic.InterAdapterDeleteGemPortMessage{UniId: uniID, TpPath: tpPath, GemPortId: gemPortId}
+	log.Debugw("sending-gem-port-delete-to-openonu-adapter", log.Fields{"msg": *delGemPortMsg})
+	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+		delGemPortMsg,
+		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
+		f.deviceHandler.deviceType,
+		onuDevice.Type,
+		onuDevice.Id,
+		onuDevice.ProxyAddress.DeviceId, ""); sendErr != nil {
+		log.Errorw("failure-sending-del-gem-port-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
+			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
+		return sendErr
+	}
+	log.Debugw("success-sending-del-gem-port-to-onu-adapter", log.Fields{"msg": delGemPortMsg})
+	return nil
+}
+
+func (f *OpenOltFlowMgr) sendDeleteTcontToChild(intfID uint32, onuID uint32, uniID uint32, allocId uint32, tpPath string) error {
+	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
+	if err != nil {
+		log.Errorw("error-fetching-child-device-from-core", log.Fields{"onuId": onuID})
+		return err
+	}
+
+	delTcontMsg := &ic.InterAdapterDeleteTcontMessage{UniId: uniID, TpPath: tpPath, AllocId: allocId}
+	log.Debugw("sending-tcont-delete-to-openonu-adapter", log.Fields{"msg": *delTcontMsg})
+	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+		delTcontMsg,
+		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
+		f.deviceHandler.deviceType,
+		onuDevice.Type,
+		onuDevice.Id,
+		onuDevice.ProxyAddress.DeviceId, ""); sendErr != nil {
+		log.Errorw("failure-sending-del-tcont-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
+			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId})
+		return sendErr
+	}
+	log.Debugw("success-sending-del-tcont-to-onu-adapter", log.Fields{"msg": delTcontMsg})
+	return nil
+}
+
 //clearResources clears pon resources in kv store and the device
 func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onuID int32, uniID int32,
 	gemPortID int32, flowID uint32, flowDirection string,
@@ -1282,6 +1332,11 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			f.resourceMgr.DeleteFlowIDsForGem(Intf, uint32(gemPortID))
 			f.resourceMgr.FreeGemPortID(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
 			f.onuIdsLock.Unlock()
+			// Delete the gem port on the ONU.
+			if err := f.sendDeleteGemPortToChild(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID), tpPath); err != nil {
+				log.Errorw("error-processing-delete-gem-port-towards-onu",
+					log.Fields{"err": err, "pon": Intf, "onuID": onuID, "uniID": uniID, "gemPortId": gemPortID})
+			}
 
 			ok, _ := f.isTechProfileUsedByAnotherGem(Intf, uint32(onuID), uint32(uniID), tpID, techprofileInst, uint32(gemPortID))
 			if !ok {
@@ -1290,7 +1345,11 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 				f.RemoveSchedulerQueues(schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
 				f.DeleteTechProfileInstance(Intf, uint32(onuID), uint32(uniID), "", tpID)
 				f.resourceMgr.FreeAllocID(Intf, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocID)
-				// TODO: Send a "Delete TechProfile" message to ONU to do its own clean up on ONU OMCI stack
+				// Delete the TCONT on the ONU.
+				if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.UsScheduler.AllocID), tpPath); err != nil {
+					log.Errorw("error-processing-delete-tcont-towards-onu",
+						log.Fields{"pon": Intf, "onuID": onuID, "uniID": uniID, "allocId": techprofileInst.UsScheduler.AllocID})
+				}
 			}
 		}
 	}
@@ -1834,15 +1893,14 @@ func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uin
 		// So, we need to check and make sure that no other gem port is referring to the given TP ID
 		// on any other uni port.
 		tpInstances := f.techprofile[ponIntf].FindAllTpInstances(tpID, ponIntf, onuID)
+		log.Debugw("got single instance tp instances", log.Fields{"tpInstances": tpInstances})
 		for i := 0; i < len(tpInstances); i++ {
 			tpI := tpInstances[i]
 			tpGemPorts := tpI.UpstreamGemPortAttributeList
-			for _, currentGemPort := range currentGemPorts {
-				for _, tpGemPort := range tpGemPorts {
-					if (currentGemPort == tpGemPort.GemportID) && (currentGemPort != gemPortID) {
-						log.Debugw("tech-profile-is-in-use-by-gem", log.Fields{"gemPort": currentGemPort})
-						return true, currentGemPort
-					}
+			for _, tpGemPort := range tpGemPorts {
+				if tpGemPort.GemportID != gemPortID {
+					log.Debugw("single-instance-tp-is-in-use-by-gem", log.Fields{"gemPort": tpGemPort.GemportID})
+					return true, tpGemPort.GemportID
 				}
 			}
 		}
