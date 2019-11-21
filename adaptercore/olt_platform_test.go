@@ -39,10 +39,10 @@ func TestMkUniPortNum(t *testing.T) {
 		want uint32
 	}{
 		// TODO: Add test cases.
-		{"MkUniPortNum-1", args{1, 1, 1}, ((1 * 2048) + (1 * 16) + 1)},
-		{"MkUniPortNum-2", args{4, 5, 6}, ((4 * 2048) + (5 * 16) + 6)},
+		{"MkUniPortNum-1", args{1, 1, 1}, ((1 * 4096) + (1 * 16) + 1)},
+		{"MkUniPortNum-2", args{4, 5, 6}, ((4 * 4096) + (5 * 16) + 6)},
 		// Negative test cases to cover the log.warn
-		{"MkUniPortNum-3", args{4, 130, 6}, ((4 * 2048) + (130 * 16) + 6)},
+		{"MkUniPortNum-3", args{4, 130, 6}, ((4 * 4096) + (130 * 16) + 6)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -65,8 +65,8 @@ func TestOnuIDFromPortNum(t *testing.T) {
 		want uint32
 	}{
 		// TODO: Add test cases.
-		{"OnuIDFromPortNum-1", args{portNum: 8096}, ((8096 / 16) & 127)},
-		{"OnuIDFromPortNum-2", args{portNum: 9095}, ((9095 / 16) & 127)},
+		{"OnuIDFromPortNum-1", args{portNum: 8096}, ((8096 / 16) & 255)},
+		{"OnuIDFromPortNum-2", args{portNum: 9095}, ((9095 / 16) & 255)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -89,9 +89,9 @@ func TestIntfIDFromUniPortNum(t *testing.T) {
 		want uint32
 	}{
 		// TODO: Add test cases.
-		{"IntfIDFromUniPortNum-1", args{portNum: 8096}, ((8096 / 2048) & 15)},
+		{"IntfIDFromUniPortNum-1", args{portNum: 8096}, ((8096 / 4096) & 15)},
 		// Negative Testcase
-		{"IntfIDFromUniPortNum-2", args{portNum: 1024}, ((1024 / 2048) & 15)},
+		{"IntfIDFromUniPortNum-2", args{portNum: 1024}, ((1024 / 4096) & 15)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -140,7 +140,7 @@ func TestIntfIDToPortNo(t *testing.T) {
 		want uint32
 	}{
 		// TODO: Add test cases.
-		{"IntfIDToPortNo-1", args{intfID: 120, intfType: voltha.Port_ETHERNET_NNI}, (uint32(math.Pow(2, 16)) + 120)},
+		{"IntfIDToPortNo-1", args{intfID: 120, intfType: voltha.Port_ETHERNET_NNI}, (uint32(math.Pow(2, 20)) + 120)},
 		{"IntfIDToPortNo-2", args{intfID: 1024, intfType: voltha.Port_ETHERNET_UNI}, 0},
 		{"IntfIDToPortNo-3", args{intfID: 456, intfType: voltha.Port_PON_OLT}, (uint32(2*math.Pow(2, 28)) + 456)},
 		{"IntfIDToPortNo-4", args{intfID: 28, intfType: voltha.Port_PON_ONU}, 0},
@@ -198,7 +198,7 @@ func TestIntfIDToPortTypeName(t *testing.T) {
 		want voltha.Port_PortType
 	}{
 		// TODO: Add test cases.
-		{"IntfIDToPortTypeName-1", args{intfID: 65536}, voltha.Port_ETHERNET_NNI},
+		{"IntfIDToPortTypeName-1", args{intfID: 1048576}, voltha.Port_ETHERNET_NNI},
 		{"IntfIDToPortTypeName-2", args{intfID: 1000}, voltha.Port_ETHERNET_UNI},
 		{"IntfIDToPortTypeName-2", args{intfID: input}, voltha.Port_PON_OLT},
 	}
@@ -225,8 +225,8 @@ func TestExtractAccessFromFlow(t *testing.T) {
 		uniID  uint32
 	}{
 		// TODO: Add test cases.
-		{"ExtractAccessFromFlow-1", args{inPort: 100, outPort: 65536}, 100, 0, 6, 4},
-		{"ExtractAccessFromFlow-1", args{inPort: 65536, outPort: 10}, 10, 0, 0, 10},
+		{"ExtractAccessFromFlow-1", args{inPort: 100, outPort: 1048576}, 100, 0, 6, 4},
+		{"ExtractAccessFromFlow-2", args{inPort: 1048576, outPort: 10}, 10, 0, 0, 10},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -259,10 +259,9 @@ func TestIsUpstream(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"TestIsUpstream-1", args{outPort: 65533}, true},
-		{"TestIsUpstream-2", args{outPort: 65536}, true},
-		{"TestIsUpstream-3", args{outPort: 65537}, true},
-		{"TestIsUpstream-4", args{outPort: 65538}, true},
-		{"TestIsUpstream-5", args{outPort: 65539}, true},
+		{"TestIsUpstream-2", args{outPort: 1048576}, true},
+		{"TestIsUpstream-3", args{outPort: 1048577}, true},
+		{"TestIsUpstream-4", args{outPort: 1048578}, true},
 		{"TestIsUpstream-6", args{outPort: 1000}, false},
 	}
 	for _, tt := range tests {

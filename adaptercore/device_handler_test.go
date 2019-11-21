@@ -189,7 +189,19 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}}
 	dh.transitionMap = &TransitionMap{}
 	dh.portStats = &OpenOltStatisticsMgr{}
-	dh.metrics = &pmmetrics.PmMetrics{}
+
+	var pmNames = []string{
+		"rx_bytes",
+		"rx_packets",
+		"rx_mcast_packets",
+		"rx_bcast_packets",
+		"tx_bytes",
+		"tx_packets",
+		"tx_mcast_packets",
+		"tx_bcast_packets",
+	}
+
+	dh.metrics = pmmetrics.NewPmMetrics(device.Id, pmmetrics.Frequency(2), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	return dh
 }
 
@@ -1071,7 +1083,7 @@ func Test_startCollector(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go func() {
-				time.Sleep(2 * time.Minute)
+				time.Sleep(66 * time.Second) // startCollector inside waits for 1 min, so we stop it after 6 secs of running
 				tt.args.dh.stopCollector <- true
 			}()
 			startCollector(tt.args.dh)
