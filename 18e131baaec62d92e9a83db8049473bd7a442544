@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e531a245_8d94241d",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-21T16:43:06Z",
+      "side": 1,
+      "message": "This is not fix 0 now. YOu may think to change it to \"uni_id\"",
+      "range": {
+        "startLine": 61,
+        "startChar": 35,
+        "endLine": 61,
+        "endChar": 37
+      },
+      "revId": "18e131baaec62d92e9a83db8049473bd7a442544",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6017822a_87d6bf0d",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-11-21T16:43:06Z",
+      "side": 1,
+      "message": "Do you mind to change the onu_id bit count to 8? So we can support up to 256 splits.",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 14
+      },
+      "revId": "18e131baaec62d92e9a83db8049473bd7a442544",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
