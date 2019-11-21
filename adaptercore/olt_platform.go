@@ -19,6 +19,7 @@ package adaptercore
 
 import (
 	"errors"
+
 	"github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
@@ -26,6 +27,10 @@ import (
 )
 
 /*=====================================================================
+
+@TODO: Looks like this Flow id concept below is not used anywhere
+       Propose to remove the below documentation of Flow Id on confirmation
+       of the same
 
 Flow id
 
@@ -51,19 +56,19 @@ Logical (OF) UNI port number
 
     OpenFlow port number corresponding to PON UNI
 
-     15       11              4      0
+     19       11              4      0
     +--+--------+--------------+------+
     |0 | pon id |    onu id    |   0  |
     +--+--------+--------------+------+
 
-    pon id = 4 bits = 16 PON ports
+    pon id = 8 bits = 256 PON ports
     onu id = 7 bits = 128 ONUs per PON port
 
 Logical (OF) NNI port number
 
-    OpenFlow port number corresponding to PON UNI
+    OpenFlow port number corresponding to PON NNI
 
-     16                             0
+     19                             0
     +--+----------------------------+
     |1 |                    intf_id |
     +--+----------------------------+
@@ -75,14 +80,34 @@ PON OLT (OF) port number
 
     OpenFlow port number corresponding to PON OLT ports
 
-     31    28                                 0
+     31     28                                 0
     +--------+------------------------~~~------+
     |  0x2   |          pon intf id            |
     +--------+------------------------~~~------+
 */
 
-//MaxOnusPerPon value
-var MaxOnusPerPon = 128
+const (
+	// Number of bits for the physical UNI of the ONUs
+	bitsForUniID = 4
+	// Number of bits for the ONU ID
+	bitsForONUID = 7
+	// Number of bits for PON ID
+	bitsForPONID = 8
+	// Number of bits to differentiate between UNI and NNI Logical Port
+	bitsForUNINNIDiff = 1
+	//MaxOnusPerPon is Max number of ONUs on any PON port
+	MaxOnusPerPon = (1 << bitsForONUID)
+	//MaxPonsPerOlt is Max number of PON ports on any OLT
+	MaxPonsPerOlt = (1 << bitsForPONID)
+	//MaxUnisPerOnu is the Max number of UNI ports on any ONU
+	MaxUnisPerOnu = (1 << bitsForUniID)
+	//Bit position where the differentiation bit is located
+	nniUniDiffPos = (bitsForUniID + bitsForONUID + bitsForPONID)
+	//Bit position where the marker for PON port type of OF port is present
+	ponIntfMarkerPos = 28
+	//Value of marker used to distinguish PON port type of OF port
+	ponIntfMarkerValue = 0x2
+)
 
 //MinUpstreamPortID value
 var MinUpstreamPortID = 0xfffd
@@ -98,31 +123,31 @@ func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
 	if limit > MaxOnusPerPon {
 		log.Warn("Warning: exceeded the MAX ONUS per PON")
 	}
-	return (intfID << 11) | (onuID << 4) | uniID
+	return (intfID << (bitsForUniID + bitsForONUID)) | (onuID << bitsForUniID) | uniID
 }
 
 //OnuIDFromPortNum returns ONUID derived from portNumber
 func OnuIDFromPortNum(portNum uint32) uint32 {
-	return (portNum >> 4) & 127
+	return (portNum >> bitsForUniID) & (MaxOnusPerPon - 1)
 }
 
 //IntfIDFromUniPortNum returns IntfID derived from portNum
 func IntfIDFromUniPortNum(portNum uint32) uint32 {
-	return (portNum >> 11) & 15
+	return (portNum >> (bitsForUniID + bitsForONUID)) & (MaxPonsPerOlt - 1)
 }
 
 //UniIDFromPortNum return UniID derived from portNum
 func UniIDFromPortNum(portNum uint32) uint32 {
-	return (portNum) & 0xF
+	return (portNum) & (MaxUnisPerOnu - 1)
 }
 
 //IntfIDToPortNo returns portId derived from intftype, intfId and portType
 func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
 	if (intfType) == voltha.Port_ETHERNET_NNI {
-		return (1 << 16) | intfID
+		return (1 << nniUniDiffPos) | intfID
 	}
 	if (intfType) == voltha.Port_PON_OLT {
-		return (2 << 28) | intfID
+		return (ponIntfMarkerValue << ponIntfMarkerPos) | intfID
 	}
 	return 0
 }
@@ -130,10 +155,10 @@ func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
 //PortNoToIntfID returns portnumber derived from interfaceID
 func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 	if (intfType) == voltha.Port_ETHERNET_NNI {
-		return (1 << 16) ^ portno
+		return (1 << nniUniDiffPos) ^ portno
 	}
 	if (intfType) == voltha.Port_PON_OLT {
-		return (2 << 28) ^ portno
+		return (ponIntfMarkerValue << ponIntfMarkerPos) ^ portno
 	}
 	return 0
 }
@@ -145,10 +170,10 @@ func IntfIDFromNniPortNum(portNum uint32) uint32 {
 
 //IntfIDToPortTypeName returns port type derived from the intfId
 func IntfIDToPortTypeName(intfID uint32) voltha.Port_PortType {
-	if ((2 << 28) ^ intfID) < 16 {
+	if ((ponIntfMarkerValue << ponIntfMarkerPos) ^ intfID) < MaxPonsPerOlt {
 		return voltha.Port_PON_OLT
 	}
-	if (intfID & (1 << 16)) == (1 << 16) {
+	if (intfID & (1 << nniUniDiffPos)) == (1 << nniUniDiffPos) {
 		return voltha.Port_ETHERNET_NNI
 	}
 	return voltha.Port_ETHERNET_UNI
@@ -169,7 +194,7 @@ func IsUpstream(outPort uint32) bool {
 			return true
 		}
 	}
-	return (outPort & (1 << 16)) == (1 << 16)
+	return (outPort & (1 << nniUniDiffPos)) == (1 << nniUniDiffPos)
 }
 
 //IsControllerBoundFlow returns true/false
@@ -184,7 +209,7 @@ func IsControllerBoundFlow(outPort uint32) bool {
 
 //OnuIDFromUniPortNum returns onuId from give portNum information.
 func OnuIDFromUniPortNum(portNum uint32) uint32 {
-	return (portNum >> 4) & 0x7F
+	return (portNum >> bitsForUniID) & (MaxOnusPerPon - 1)
 }
 
 //FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID, uniID, inPort and ethType
