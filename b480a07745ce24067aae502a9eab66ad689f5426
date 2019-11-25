@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e22fbf8a_a536f1a6",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2075,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-25T16:39:47Z",
+      "side": 1,
+      "message": "consider loadFlowIDListForGem.\n\n(For is better understood than Per, and the L in List should be capitalized.)",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4de078bb_e9f28d26",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-25T16:39:47Z",
+      "side": 1,
+      "message": "For consistency, use lowercase for variables.",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d736ecaa_7ab7cb8a",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-25T16:39:47Z",
+      "side": 1,
+      "message": "if error !\u003d nil, assume value is valid.  (i.e. - shouldn\u0027t need to check for nil here)",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd1f8ff4_7926fb51",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1281,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-25T16:39:47Z",
+      "side": 1,
+      "message": "In this and the previous function, the \"marshal \u0026 write to kv\" part is identical, consider adding a helper function.\n\n(Open question: Would it be worthwhile to add PutJson() and GetJson() functions to the kv library?)",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a2fcce6c_3bb53d3b",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-25T16:39:47Z",
+      "side": 1,
+      "message": "The entire code for this function is repeated in both UpdateFlowIDsPerGem and DeleteFlowIDsForGem.\n\nJust call this function from each to avoid duplicating code.",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
