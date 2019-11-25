@@ -202,6 +202,8 @@ func NewFlowManager(dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr) *OpenOl
 		if flowMgr.onuGemInfo[idx], err = rMgr.GetOnuGemInfo(idx); err != nil {
 			log.Error("Failed to load onu gem info cache")
 		}
+		//Load flowID list per gem map per interface from the kvstore.
+		flowMgr.loadFlowIDlistPerGem(idx)
 	}
 	flowMgr.lockCache = sync.RWMutex{}
 	log.Info("Initialization of  flow manager success!!")
@@ -231,6 +233,8 @@ func (f *OpenOltFlowMgr) registerFlow(flowFromCore *ofp.OfpFlowStats, deviceFlow
 	}
 	flowIDList = appendUnique(flowIDList, deviceFlow.FlowId)
 	f.flowsUsedByGemPort[gemPK] = flowIDList
+	// update the flowids for a gem to the KVstore
+	f.resourceMgr.UpdateFlowIDsPerGem(uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowIDList)
 }
 
 func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32,
@@ -1258,7 +1262,10 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 				for i, flowIDinMap := range flowIDs {
 					if flowIDinMap == flowID {
 						flowIDs = append(flowIDs[:i], flowIDs[i+1:]...)
+						// everytime flowsUsedByGemPort cache is updated the same should be updated
+						// in kv store by calling UpdateFlowIDsPerGem
 						f.flowsUsedByGemPort[gemPK] = flowIDs
+						f.resourceMgr.UpdateFlowIDsPerGem(Intf, uint32(gemPortID), flowIDs)
 						break
 					}
 				}
@@ -1271,8 +1278,10 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			// But it is anyway eventually  removed later when the TechProfile is freed, so not a big issue for now.
 			f.resourceMgr.RemoveGEMportPonportToOnuMapOnKVStore(uint32(gemPortID), Intf)
 			f.onuIdsLock.Lock()
+			//everytime an entry is deleted from flowsUsedByGemPort cache, the same should be updated in kv as well
+			// by calling DeleteFlowIDsForGem
 			delete(f.flowsUsedByGemPort, gemPK)
-			//delete(f.onuGemPortIds, gemPK)
+			f.resourceMgr.DeleteFlowIDsForGem(Intf, uint32(gemPortID))
 			f.resourceMgr.FreeGemPortID(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
 			f.onuIdsLock.Unlock()
 
@@ -2061,4 +2070,17 @@ func (f *OpenOltFlowMgr) AddUniPortToOnuInfo(intfID uint32, onuID uint32, portNu
 		}
 	}
 	f.resourceMgr.AddUniPortToOnuInfo(intfID, onuID, portNum)
+}
+
+func (f *OpenOltFlowMgr) loadFlowIDlistPerGem(intf uint32) {
+	flowIDsList, err := f.resourceMgr.GetFlowIDsGemMapPerInterface(intf)
+	if err != nil {
+		log.Error("Failed to get flowid list per gem", log.Fields{"intf": intf})
+		return
+	}
+	for gem, FlowIDs := range flowIDsList {
+		gemPK := gemPortKey{intf, uint32(gem)}
+		f.flowsUsedByGemPort[gemPK] = FlowIDs
+	}
+	return
 }
