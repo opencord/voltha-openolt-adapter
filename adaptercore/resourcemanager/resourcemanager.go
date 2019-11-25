@@ -46,6 +46,8 @@ const (
 	// OnuPacketINPath path on the kvstore to store packetin gemport,which will be used for packetin, pcketout
 	//format: onu_packetin/<intfid>,<onuid>,<logicalport>
 	OnuPacketINPath = "onu_packetin/{%d,%d,%d}"
+	//FlowIDsPerGem flowids_per_gem/<intfid>
+	FlowIDsPerGem = "flowids_per_gem/{%d}"
 )
 
 // FlowInfo holds the flow information
@@ -1206,4 +1208,100 @@ func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore() error {
 		return err
 	}
 	return nil
+}
+
+//UpdateFlowIDsPerGem updates flow id per gemport
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsPerGem(intf uint32, gem uint32, flowIDs []uint32) error {
+	flowsPerGem := make(map[uint32][]uint32)
+	var Val []byte
+
+	path := fmt.Sprintf(FlowIDsPerGem, intf)
+
+	value, err := RsrcMgr.KVStore.Get(path)
+	if err != nil {
+		log.Error("failed to get data from kv store")
+		return err
+	}
+	if value != nil {
+		if Val, err = kvstore.ToByte(value.Value); err != nil {
+			log.Error("Failed to convert to byte array")
+			return err
+		}
+		if err = json.Unmarshal(Val, &flowsPerGem); err != nil {
+			log.Error("Failed to unmarshall")
+			return err
+		}
+	}
+
+	flowsPerGem[gem] = flowIDs
+	Val, err = json.Marshal(flowsPerGem)
+	if err != nil {
+		log.Error("Failed to marshal data")
+	}
+	if err = RsrcMgr.KVStore.Put(path, Val); err != nil {
+		log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Val})
+		return err
+	}
+	log.Debugw("added flowid list per gem  to kv successfully", log.Fields{"path": path, "flowidlist": flowsPerGem[gem]})
+	return nil
+}
+
+//DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
+func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(intf uint32, gem uint32) {
+	path := fmt.Sprintf(FlowIDsPerGem, intf)
+	flowsPerGem := make(map[uint32][]uint32)
+	var Val []byte
+
+	value, err := RsrcMgr.KVStore.Get(path)
+	if err != nil {
+		log.Error("failed to get data from kv store")
+		return
+	}
+	if value != nil {
+		if Val, err = kvstore.ToByte(value.Value); err != nil {
+			log.Error("Failed to convert to byte array")
+			return
+		}
+		if err = json.Unmarshal(Val, &flowsPerGem); err != nil {
+			log.Error("Failed to unmarshall")
+			return
+		}
+	}
+	// once we get the flows per gem map from kv , just delete the gem entry from the map
+	delete(flowsPerGem, gem)
+	// once gem entry is deleted update the kv store.
+	Val, err = json.Marshal(flowsPerGem)
+	if err != nil {
+		log.Error("Failed to marshal data")
+		return
+	}
+	if err = RsrcMgr.KVStore.Put(path, Val); err != nil {
+		log.Errorw("Failed to put to kvstore", log.Fields{"path": path, "value": Val})
+		return
+	}
+	return
+}
+
+//GetFlowIDsGemMapPerInterface gets flowids per gemport and interface
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapPerInterface(intf uint32) (map[uint32][]uint32, error) {
+	path := fmt.Sprintf(FlowIDsPerGem, intf)
+	flowsPerGem := make(map[uint32][]uint32)
+	var Val []byte
+
+	value, err := RsrcMgr.KVStore.Get(path)
+	if err != nil {
+		log.Error("failed to get data from kv store")
+		return nil, err
+	}
+	if value != nil {
+		if Val, err = kvstore.ToByte(value.Value); err != nil {
+			log.Error("Failed to convert to byte array")
+			return nil, err
+		}
+		if err = json.Unmarshal(Val, &flowsPerGem); err != nil {
+			log.Error("Failed to unmarshall")
+			return nil, err
+		}
+	}
+	return flowsPerGem, err
 }
