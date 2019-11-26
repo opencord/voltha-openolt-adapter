@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd986da1_0a83661e",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1223,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-26T19:52:32Z",
+      "side": 1,
+      "message": "if err \u003d\u003d nil, assume returned value is valid (unnecessary check?)",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f78c16a1_447ed57d",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1249,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-26T19:52:32Z",
+      "side": 1,
+      "message": "if err\u003d\u003dnil, assume returned value is valid (unnecessary check?)",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a60bf23_b179c5f7",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1279,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-26T19:52:32Z",
+      "side": 1,
+      "message": "if err \u003d\u003d nil, assume value is valid (no need to check value!\u003dnil)",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b32dc9d9_2645e902",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1289,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-26T19:52:32Z",
+      "side": 1,
+      "message": "err is always nil by this point.  Return flowsForGem, nil for better readability (minor thing).",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
