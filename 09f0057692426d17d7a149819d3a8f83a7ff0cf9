@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f12b9d0_7de73292",
+        "filename": "adaptercore/device_handler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1086,
+      "author": {
+        "id": 1000011
+      },
+      "writtenOn": "2019-11-26T19:12:46Z",
+      "side": 1,
+      "message": "66 or 6?",
+      "range": {
+        "startLine": 1086,
+        "startChar": 15,
+        "endLine": 1086,
+        "endChar": 112
+      },
+      "revId": "09f0057692426d17d7a149819d3a8f83a7ff0cf9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
