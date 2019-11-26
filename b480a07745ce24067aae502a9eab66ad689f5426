@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "2fd9ae10_6fad9813",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-26T19:04:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4de078bb_e9f28d26",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d736ecaa_7ab7cb8a",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 1
@@ -47,6 +65,24 @@
       "writtenOn": "2019-11-25T16:39:47Z",
       "side": 1,
       "message": "if error !\u003d nil, assume value is valid.  (i.e. - shouldn\u0027t need to check for nil here)",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce3ccf32_b476e82c",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-26T19:04:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d736ecaa_7ab7cb8a",
       "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "1f95d699_e04ba427",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1281,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-26T19:04:43Z",
+      "side": 1,
+      "message": "yes, better if we had a putjson and getjson. this would mean changes to all functions using kv. i could raise a minor defect and make changes there if thats ok",
+      "parentUuid": "cd1f8ff4_7926fb51",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a2fcce6c_3bb53d3b",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 1
@@ -81,6 +135,24 @@
       "writtenOn": "2019-11-25T16:39:47Z",
       "side": 1,
       "message": "The entire code for this function is repeated in both UpdateFlowIDsPerGem and DeleteFlowIDsForGem.\n\nJust call this function from each to avoid duplicating code.",
+      "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a705ae58_6acc516e",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1286,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-26T19:04:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2fcce6c_3bb53d3b",
       "revId": "b480a07745ce24067aae502a9eab66ad689f5426",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
