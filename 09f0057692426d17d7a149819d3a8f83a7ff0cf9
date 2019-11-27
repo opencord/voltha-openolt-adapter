@@ -22,6 +22,30 @@
       "revId": "09f0057692426d17d7a149819d3a8f83a7ff0cf9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0733d8f1_c9fbb072",
+        "filename": "adaptercore/device_handler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1086,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-11-27T12:28:54Z",
+      "side": 1,
+      "message": "The 66 here, takes care of the 60 seconds that startCollector internally has. So effectively the actual collection happens for 66-60 \u003d 6 secs.",
+      "parentUuid": "0f12b9d0_7de73292",
+      "range": {
+        "startLine": 1086,
+        "startChar": 15,
+        "endLine": 1086,
+        "endChar": 112
+      },
+      "revId": "09f0057692426d17d7a149819d3a8f83a7ff0cf9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
