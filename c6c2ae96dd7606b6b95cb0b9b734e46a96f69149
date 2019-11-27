@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e08f08df_3927f1db",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "shall we continue to next pon if failed ? \n\nAlso shall we check if no onu present on the pon if err!\u003d nil and skip and continue to next pon ?",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3fcf5079_04c431bc",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2078,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "We can print err code wherever failed",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4a84f9e_bfef5724",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "we should return error if marshaling failed",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66a65e97_dc5777b6",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "Should we check if key exist in map before delete ?",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adaf9fd4_6f1dda45",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "we can print err code as well , wherever failed",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "19a4499a_4c4848d7",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1271,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-27T17:03:29Z",
+      "side": 1,
+      "message": "should we do make() before passing to unmarshal?",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
