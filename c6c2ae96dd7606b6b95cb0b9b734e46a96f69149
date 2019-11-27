@@ -70,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "829b70b9_cf3b0271",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-27T17:27:29Z",
+      "side": 1,
+      "message": "No need, deleting a non-existent key is a no-op.",
+      "parentUuid": "66a65e97_dc5777b6",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adaf9fd4_6f1dda45",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 4
