@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "11baf1ce_78b68de1",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1223,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-27T06:05:48Z",
+      "side": 1,
+      "message": "will need this as will have to init the map if nil.",
+      "parentUuid": "fd986da1_0a83661e",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f78c16a1_447ed57d",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2019-11-26T19:52:32Z",
       "side": 1,
       "message": "if err\u003d\u003dnil, assume returned value is valid (unnecessary check?)",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c49b1d2_ae0c4085",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1249,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-27T06:05:48Z",
+      "side": 1,
+      "message": "if flowsForGem is nil here then something is wrong and hence the check is needed to log error and return",
+      "parentUuid": "f78c16a1_447ed57d",
       "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "b14594be_1592c995",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1279,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-27T06:05:48Z",
+      "side": 1,
+      "message": "value !\u003d nil check is needed , if value is nil we are accessing value in the next set of statements which would crash.",
+      "parentUuid": "2a60bf23_b179c5f7",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b32dc9d9_2645e902",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 3
@@ -64,6 +118,24 @@
       "writtenOn": "2019-11-26T19:52:32Z",
       "side": 1,
       "message": "err is always nil by this point.  Return flowsForGem, nil for better readability (minor thing).",
+      "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b15e5cf_65ccf79a",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1289,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-27T06:05:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b32dc9d9_2645e902",
       "revId": "d5e4ada8990b86426cd9eb1b0a2ce1a93e26e370",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
