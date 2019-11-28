@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ae711819_958bc8ad",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "yes, it is the cache we are trying to load",
+      "parentUuid": "e08f08df_3927f1db",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3fcf5079_04c431bc",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "8709e43c_277655b8",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2078,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3fcf5079_04c431bc",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4a84f9e_bfef5724",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2019-11-27T17:03:29Z",
       "side": 1,
       "message": "we should return error if marshaling failed",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "609baecf_1f07d38e",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4a84f9e_bfef5724",
       "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -88,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "ef40d14d_321e93ec",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "not required",
+      "parentUuid": "66a65e97_dc5777b6",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adaf9fd4_6f1dda45",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 4
@@ -105,6 +177,24 @@
     },
     {
       "key": {
+        "uuid": "0517d17e_a9479699",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "adaf9fd4_6f1dda45",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "19a4499a_4c4848d7",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 4
@@ -116,6 +206,24 @@
       "writtenOn": "2019-11-27T17:03:29Z",
       "side": 1,
       "message": "should we do make() before passing to unmarshal?",
+      "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fd07d43f_043ec886",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1271,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-28T06:13:40Z",
+      "side": 1,
+      "message": "Unmarshall will do it for us",
+      "parentUuid": "19a4499a_4c4848d7",
       "revId": "c6c2ae96dd7606b6b95cb0b9b734e46a96f69149",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
