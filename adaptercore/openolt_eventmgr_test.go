@@ -62,6 +62,8 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMissStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMicErrorStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMicErrorStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LofiStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LofiStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LosStatus: "on"}}}}},
 
@@ -107,6 +109,11 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuTiwiInd{OnuTiwiInd: &oop.OnuTransmissionInterferenceWarning{IntfId: 1, OnuId: 3, Status: "on", Drift: 100}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuTiwiInd{OnuTiwiInd: &oop.OnuTransmissionInterferenceWarning{IntfId: 1, OnuId: 3}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuTiwiInd{OnuTiwiInd: &oop.OnuTransmissionInterferenceWarning{IntfId: 1, OnuId: 3}}}}},
+
+		// AlarmIndication_onuLossOfKeySyncInd
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuLossOfSyncFailInd{OnuLossOfSyncFailInd: &oop.OnuLossOfKeySyncFailureIndication{IntfId: 1, OnuId: 3, Status: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuLossOfSyncFailInd{OnuLossOfSyncFailInd: &oop.OnuLossOfKeySyncFailureIndication{IntfId: 1, OnuId: 3, Status: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
