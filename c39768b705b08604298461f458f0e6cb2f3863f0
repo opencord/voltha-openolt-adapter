@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d30b8af_18cde4fc",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-28T20:20:11Z",
+      "side": 1,
+      "message": "Can use `if err :\u003d foo(); err !\u003d nil {` form, to save a line \u0026 declare the error in a more local scope.",
+      "revId": "c39768b705b08604298461f458f0e6cb2f3863f0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "940e2768_fede5643",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1261,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-28T20:20:11Z",
+      "side": 1,
+      "message": "Again, can use `if err :\u003d foo(); err !\u003d nil{` form.",
+      "revId": "c39768b705b08604298461f458f0e6cb2f3863f0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
