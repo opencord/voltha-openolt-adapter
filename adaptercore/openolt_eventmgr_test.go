@@ -62,6 +62,8 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMissStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMicErrorStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LopcMicErrorStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LofiStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LofiStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LosStatus: "on"}}}}},
 
