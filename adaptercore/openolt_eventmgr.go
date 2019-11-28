@@ -19,6 +19,7 @@ package adaptercore
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
@@ -43,6 +44,8 @@ const (
 	onuProcessingErrorEvent = "ONU_PROCESSING_ERROR"
 	onuTiwiEvent            = "ONU_TRANSMISSION_WARNING"
 	onuLossOmciEvent        = "ONU_LOSS_OF_OMCI_CHANNEL"
+	onuLossOfKeySyncEvent   = "ONU_LOSS_OF_KEY_SYNC"
+	onuLossOfFrameEvent     = "ONU_LOSS_OF_FRAME"
 )
 
 const (
@@ -57,6 +60,13 @@ const (
 	processing    = voltha.EventCategory_PROCESSING
 	environment   = voltha.EventCategory_ENVIRONMENT
 	communication = voltha.EventCategory_COMMUNICATION
+)
+
+const (
+	ON   = "on"    // string "on" is represented as const keyword ON which is used for status check
+	OFF  = "off"   // string "off" is represented as const keyword OFF which is used for status check
+	UP   = "up"    // string "up" is represented as const keyword UP which is used for operation state
+	DOWN = "down"  // string "down" is represented as const keyword DOWN which is used for operation state
 )
 
 // OpenOltEventMgr struct contains
@@ -115,6 +125,12 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuTiwiInd:
 		log.Infow("Received onu transmission warning indication ", log.Fields{"alarm_ind": alarmInd})
 		log.Infow("Not implemented yet", log.Fields{"alarm_ind": "Onu-Transmission-indication"})
+	case *oop.AlarmIndication_OnuLossOfSyncFailInd:
+		log.Infow("Received onu Loss of Sync Fail indication ", log.Fields{"alarm_ind": alarmInd})
+		em.onuLossOfSyncIndication(alarmInd.GetOnuLossOfSyncFailInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuItuPonStatsInd:
+		log.Infow("Received onu Itu Pon Stats indication ", log.Fields{"alarm_ind": alarmInd})
+		log.Infow("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
 	default:
 		log.Errorw("Received unknown indication type", log.Fields{"alarm_ind": alarmInd})
 
@@ -126,13 +142,13 @@ func (em *OpenOltEventMgr) oltUpDownIndication(oltIndication *oop.OltIndication,
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["oper-state"] = string(oltIndication.OperState)
+	context["oper-state"] = oltIndication.OperState
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if oltIndication.OperState == "down" {
+	if oltIndication.OperState == DOWN {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "RAISE_EVENT")
-	} else if oltIndication.OperState == "up" {
+	} else if oltIndication.OperState == UP {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "CLEAR_EVENT")
 	}
 	/* Send event to KAFKA */
@@ -147,8 +163,8 @@ func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["onu-id"] = string(OnuID)
-	context["intf-id"] = string(onuDisc.IntfId)
+	context["onu-id"] = strconv.FormatUint(uint64(OnuID), 10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuDisc.IntfId), 10)
 	context["serial-number"] = serialNumber
 	/* Populating device event body */
 	de.Context = context
@@ -165,11 +181,11 @@ func (em *OpenOltEventMgr) oltLosIndication(oltLos *oop.LosIndication, deviceID 
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(oltLos.IntfId)
+	context["intf-id"] = strconv.FormatUint(uint64(oltLos.IntfId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if oltLos.Status == "on" {
+	if oltLos.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltLosEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltLosEvent, "CLEAR_EVENT")
@@ -192,12 +208,12 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 		serialNumber = onu.(*OnuDevice).serialNumber
 	}
 	context["serial-number"] = serialNumber
-	context["intf-id"] = string(dgi.IntfId)
-	context["onu-id"] = string(dgi.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(dgi.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(dgi.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if dgi.Status == "on" {
+	if dgi.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "CLEAR_EVENT")
@@ -213,27 +229,31 @@ func (em *OpenOltEventMgr) onuAlarmIndication(onuAlarm *oop.OnuAlarmIndication, 
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(onuAlarm.IntfId)
-	context["onu-id"] = string(onuAlarm.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(onuAlarm.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(onuAlarm.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if onuAlarm.LosStatus == "on" {
+	if onuAlarm.LosStatus == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "RAISE_EVENT")
-	} else if onuAlarm.LosStatus == "off" {
+	} else if onuAlarm.LosStatus == OFF {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LobStatus == "on" {
+	} else if onuAlarm.LobStatus == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLobEvent, "RAISE_EVENT")
-	} else if onuAlarm.LobStatus == "off" {
+	} else if onuAlarm.LobStatus == OFF {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLobEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LopcMissStatus == "on" {
+	} else if onuAlarm.LopcMissStatus == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLopcMissEvent, "RAISE_EVENT")
-	} else if onuAlarm.LopcMissStatus == "off" {
+	} else if onuAlarm.LopcMissStatus == OFF {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLopcMissEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LopcMicErrorStatus == "on" {
+	} else if onuAlarm.LopcMicErrorStatus == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLopcMicErrorEvent, "RAISE_EVENT")
-	} else if onuAlarm.LopcMicErrorStatus == "off" {
+	} else if onuAlarm.LopcMicErrorStatus == OFF {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLopcMicErrorEvent, "CLEAR_EVENT")
+	} else if onuAlarm.LofiStatus == ON {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "RAISE_EVENT")
+	} else if onuAlarm.LofiStatus == OFF {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "CLEAR_EVENT")
 	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, onu, raisedTs); err != nil {
@@ -246,8 +266,8 @@ func (em *OpenOltEventMgr) onuActivationFailIndication(oaf *oop.OnuActivationFai
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(oaf.IntfId)
-	context["onu-id"] = string(oaf.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(oaf.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(oaf.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
@@ -263,12 +283,12 @@ func (em *OpenOltEventMgr) onuLossOmciIndication(onuLossOmci *oop.OnuLossOfOmciC
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(onuLossOmci.IntfId)
-	context["onu-id"] = string(onuLossOmci.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(onuLossOmci.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(onuLossOmci.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if onuLossOmci.Status == "on" {
+	if onuLossOmci.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOmciEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOmciEvent, "CLEAR_EVENT")
@@ -284,14 +304,14 @@ func (em *OpenOltEventMgr) onuDriftOfWindowIndication(onuDriftWindow *oop.OnuDri
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(onuDriftWindow.IntfId)
-	context["onu-id"] = string(onuDriftWindow.OnuId)
-	context["drift"] = string(onuDriftWindow.OnuId)
-	context["new-eqd"] = string(onuDriftWindow.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(onuDriftWindow.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), 10)
+	context["drift"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), 10)
+	context["new-eqd"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if onuDriftWindow.Status == "on" {
+	if onuDriftWindow.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDriftOfWindowEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDriftOfWindowEvent, "CLEAR_EVENT")
@@ -307,12 +327,12 @@ func (em *OpenOltEventMgr) onuSignalDegradeIndication(onuSignalDegrade *oop.OnuS
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["intf-id"] = string(onuSignalDegrade.IntfId)
-	context["onu-id"] = string(onuSignalDegrade.OnuId)
+	context["intf-id"] = strconv.FormatUint(uint64(onuSignalDegrade.IntfId), 10)
+	context["onu-id"] = strconv.FormatUint(uint64(onuSignalDegrade.OnuId), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if onuSignalDegrade.Status == "on" {
+	if onuSignalDegrade.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuSignalDegradeEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuSignalDegradeEvent, "CLEAR_EVENT")
@@ -328,13 +348,13 @@ func (em *OpenOltEventMgr) onuSignalsFailIndication(onuSignalsFail *oop.OnuSigna
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context["onu-id"] = string(onuSignalsFail.OnuId)
-	context["intf-id"] = string(onuSignalsFail.IntfId)
-	context["inverse-bit-error-rate"] = string(onuSignalsFail.InverseBitErrorRate)
+	context["onu-id"] = strconv.FormatUint(uint64(onuSignalsFail.OnuId), 10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuSignalsFail.IntfId), 10)
+	context["inverse-bit-error-rate"] = strconv.FormatUint(uint64(onuSignalsFail.InverseBitErrorRate), 10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if onuSignalsFail.Status == "on" {
+	if onuSignalsFail.Status == ON {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuSignalsFailEvent, "RAISE_EVENT")
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuSignalsFailEvent, "CLEAR_EVENT")
@@ -344,4 +364,26 @@ func (em *OpenOltEventMgr) onuSignalsFailIndication(onuSignalsFail *oop.OnuSigna
 		log.Errorw("Failed to send ONU signals fail event", log.Fields{"onu-id": onuSignalsFail.OnuId, "intf-id": onuSignalsFail.IntfId})
 	}
 	log.Infow("ONU signals fail event sent to KAFKA", log.Fields{"onu-id": onuSignalsFail.OnuId, "intf-id": onuSignalsFail.IntfId})
+}
+
+func (em *OpenOltEventMgr) onuLossOfSyncIndication(onuLOKI *oop.OnuLossOfKeySyncFailureIndication, deviceID string, raisedTs int64) {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	context["onu-id"] = strconv.FormatUint(uint64(onuLOKI.OnuId), 10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuLOKI.IntfId), 10)
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	if onuLOKI.Status == ON {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfKeySyncEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfKeySyncEvent, "CLEAR_EVENT")
+	}
+
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, security, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send onu loss of key sync event", log.Fields{"onu-id": onuLOKI.OnuId, "intf-id": onuLOKI.IntfId})
+	}
+	log.Infow("Onu loss of key sync event sent to kafka", log.Fields{"onu-id": onuLOKI.OnuId, "intf-id": onuLOKI.IntfId})
 }
