@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b38dcc7_63d0e2f1",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1330,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-28T05:16:03Z",
+      "side": 1,
+      "message": "Can this message be sent on go routine ?",
+      "revId": "ae5259fcc37d725b2214dafae4347247a7660e37",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5daa4916_3e4c70ca",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1343,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-11-28T05:16:03Z",
+      "side": 1,
+      "message": "Can this message be sent on go routine ?",
+      "revId": "ae5259fcc37d725b2214dafae4347247a7660e37",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
