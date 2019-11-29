@@ -1120,6 +1120,18 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 			//  dh.flowMgr.RemoveFlow(flow)
 		}
 	}
+
+	if groups != nil {
+		for _, group := range groups.ToAdd.Items {
+			dh.flowMgr.AddGroup(group)
+		}
+		for _, group := range groups.ToUpdate.Items {
+			dh.flowMgr.ModifyGroup(group)
+		}
+		if len(groups.ToRemove.Items) != 0 {
+			log.Debug("Group delete operation is not supported for now")
+		}
+	}
 	log.Debug("UpdateFlowsIncrementally done successfully")
 	return nil
 }
