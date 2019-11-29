@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dde8fba5_bb5a1c15",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T06:39:57Z",
+      "side": 1,
+      "message": "why this change",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0afab5bb_706288f9",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T06:39:57Z",
+      "side": 1,
+      "message": "why this change",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aeb05ad_a1c46aa6",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T06:39:57Z",
+      "side": 1,
+      "message": "why change to sprintf ?",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bfb20c93_1d2702d9",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T06:39:57Z",
+      "side": 1,
+      "message": "use sentence case in all the debugs/errors",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cb1fe1ec_cdef35bc",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T06:39:57Z",
+      "side": 1,
+      "message": "same as above comment",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
