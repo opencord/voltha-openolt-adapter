@@ -27,6 +27,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
+	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
 	openolt "github.com/opencord/voltha-protos/v2/go/openolt"
 )
@@ -46,6 +47,10 @@ const (
 	GemportIDs = "gemport_ids"
 	// AllocIDs to extract alloc_ids
 	AllocIDs = "alloc_ids"
+	//FlowGroup flow_groups/<flow_group_id>
+	FlowGroup = "flow_groups"
+	//FlowGroupCached flow_groups_cached/<flow_group_id>
+	FlowGroupCached = "flow_groups_cached"
 )
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -147,11 +152,40 @@ func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, err
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+		if strings.Contains(key, FlowGroup) || strings.Contains(key, FlowGroupCached) {
+			log.Debug("Error Error Error Key:", FlowGroup)
+			groupInfo := resourcemanager.GroupInfo{
+				GroupID:  2,
+				OutPorts: []uint32{1},
+			}
+			str, _ := json.Marshal(&groupInfo)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
 		return maps[key], nil
 	}
 	return nil, errors.New("key didn't find")
+}
+
+func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
+	groupDesc := ofp.OfpGroupDesc{
+		Type:    ofp.OfpGroupType_OFPGT_ALL,
+		GroupId: groupID,
+	}
+	groupEntry := ofp.OfpGroupEntry{
+		Desc: &groupDesc,
+	}
+	var acts []*ofp.OfpAction
+	for i := 0; i < len(outPorts); i++ {
+		acts = append(acts, fu.Output(outPorts[i]))
+	}
+	bucket := ofp.OfpBucket{
+		Actions: acts,
+	}
+	groupDesc.Buckets = []*ofp.OfpBucket{&bucket}
+	return &groupEntry
 }
 
 // Put mock function implementation for KVClient
