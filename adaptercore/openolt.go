@@ -24,13 +24,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
-	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/config"
-	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
-	"github.com/opencord/voltha-protos/v2/go/openflow_13"
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
+	"github.com/opencord/voltha-protos/v3/go/openflow_13"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 //OpenOLT structure holds the OLT information

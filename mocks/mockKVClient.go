@@ -23,12 +23,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	openolt "github.com/opencord/voltha-protos/v2/go/openolt"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
+	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	openolt "github.com/opencord/voltha-protos/v3/go/openolt"
 )
 
 const (
@@ -46,6 +46,10 @@ const (
 	GemportIDs = "gemport_ids"
 	// AllocIDs to extract alloc_ids
 	AllocIDs = "alloc_ids"
+	//FlowGroup flow_groups/<flow_group_id>
+	FlowGroup = "flow_groups"
+	//FlowGroupCached flow_groups_cached/<flow_group_id>
+	FlowGroupCached = "flow_groups_cached"
 )
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -131,6 +135,7 @@ func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, err
 				{
 					Flow:            &openolt.Flow{FlowId: 1, OnuId: 1, UniId: 1, GemportId: 1},
 					FlowStoreCookie: uint64(48132224281636694),
+					LogicalFlowID:   1,
 				},
 			}
 			log.Debug("Error Error Error Key:", FlowIDs)
@@ -147,6 +152,16 @@ func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, err
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+		if strings.Contains(key, FlowGroup) || strings.Contains(key, FlowGroupCached) {
+			log.Debug("Error Error Error Key:", FlowGroup)
+			groupInfo := resourcemanager.GroupInfo{
+				GroupID:  2,
+				OutPorts: []uint32{1},
+			}
+			str, _ := json.Marshal(&groupInfo)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
 		return maps[key], nil
