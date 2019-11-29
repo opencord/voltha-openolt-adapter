@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37d1ea63_927dca17",
+        "filename": "go.mod",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-11-29T18:02:36Z",
+      "side": 1,
+      "message": "Leave go version as 1.12 unless all components are updated (Should keep in sync across Jenkins \u0026 docker builds.)",
+      "revId": "fb231d55d61db5576dabae49b0e3ca6edde80991",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
