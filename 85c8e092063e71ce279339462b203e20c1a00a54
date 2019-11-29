@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "739c9f42_9222c4e1",
+        "filename": "adaptercore/openolt_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 767,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-11-29T11:30:38Z",
+      "side": 1,
+      "message": "change alarm to event in the error log",
+      "revId": "85c8e092063e71ce279339462b203e20c1a00a54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
