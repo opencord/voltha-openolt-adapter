@@ -443,6 +443,21 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		},
 		KV: kw6,
 	}
+	//multicast flow
+	fa11 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65536),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanVid(660),             //vlan
+			fu.Metadata_ofp(uint64(66)), //inner vlan
+			fu.EthType(0x800),           //ipv4
+			fu.Ipv4Dst(3809869825),      //227.22.0.1
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Group(1),
+		},
+		KV: kw6,
+	}
 	ofpstats := fu.MkFlowStat(fa)
 	ofpstats2 := fu.MkFlowStat(fa2)
 	ofpstats3 := fu.MkFlowStat(fa3)
@@ -454,6 +469,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	ofpstats9 := fu.MkFlowStat(fa9)
 	ofpstats10 := fu.MkFlowStat(fa10)
 	igmpstats := fu.MkFlowStat(igmpFa)
+	ofpstats11 := fu.MkFlowStat(fa11)
 
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
@@ -482,6 +498,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		{"AddFlow", args{flow: igmpstats, flowMetadata: flowMetadata}},
 		//{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
 		//ofpstats10
+		{"AddFlow", args{flow: ofpstats11, flowMetadata: flowMetadata}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -854,4 +871,24 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni)
 		})
 	}
+}
+
+func TestOpenOltFlowMgr_AddModifyGroup(t *testing.T) {
+	groupDesc := voltha.OfpGroupDesc{
+		Type:    ofp.OfpGroupType_OFPGT_ALL,
+		GroupId: 1,
+	}
+	groupEntry := ofp.OfpGroupEntry{
+		Desc: &groupDesc,
+	}
+	//create group
+	flowMgr.AddGroup(&groupEntry)
+
+	acts := []*ofp.OfpAction{fu.Output(2)}
+	bucket := ofp.OfpBucket{
+		Actions: acts,
+	}
+	groupDesc.Buckets = []*ofp.OfpBucket{&bucket}
+	//add bucket to the group
+	flowMgr.ModifyGroup(&groupEntry)
 }

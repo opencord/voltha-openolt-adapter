@@ -222,3 +222,8 @@ func (mock *mockOpenoltEnableIndicationClient) SendMsg(m interface{}) error {
 func (mock *mockOpenoltEnableIndicationClient) RecvMsg(m interface{}) error {
 	return nil
 }
+
+// PerformGroupOperation mocks the PerformGroupOperation function of Openoltclient.
+func (ooc *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	return &openolt.Empty{}, nil
+}
