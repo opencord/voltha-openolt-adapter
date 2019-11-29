@@ -20,7 +20,7 @@ package mocks
 import (
 	"errors"
 
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 // MockEventProxy for mocking EventProxyIntf
@@ -28,8 +28,8 @@ type MockEventProxy struct {
 }
 
 // SendDeviceEvent mocks the SendDeviceEvent function
-func (me *MockEventProxy) SendDeviceEvent(deviceEvent *voltha.DeviceEvent, category voltha.EventCategory_EventCategory,
-	subCategory voltha.EventSubCategory_EventSubCategory, raisedTs int64) error {
+func (me *MockEventProxy) SendDeviceEvent(deviceEvent *voltha.DeviceEvent, category voltha.EventCategory_Types,
+	subCategory voltha.EventSubCategory_Types, raisedTs int64) error {
 	if raisedTs == 0 {
 		return errors.New("raisedTS cannot be zero")
 	}
@@ -37,8 +37,8 @@ func (me *MockEventProxy) SendDeviceEvent(deviceEvent *voltha.DeviceEvent, categ
 }
 
 // SendKpiEvent mocks the SendKpiEvent function
-func (me *MockEventProxy) SendKpiEvent(id string, deviceEvent *voltha.KpiEvent2, category voltha.EventCategory_EventCategory,
-	subCategory voltha.EventSubCategory_EventSubCategory, raisedTs int64) error {
+func (me *MockEventProxy) SendKpiEvent(id string, deviceEvent *voltha.KpiEvent2, category voltha.EventCategory_Types,
+	subCategory voltha.EventSubCategory_Types, raisedTs int64) error {
 	if raisedTs == 0 {
 		return errors.New("raisedTS cannot be zero")
 	}

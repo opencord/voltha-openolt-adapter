@@ -22,11 +22,11 @@ import (
 	"google.golang.org/grpc/status"
 	"testing"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/config"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	ca "github.com/opencord/voltha-protos/v2/go/inter_container"
+	ca "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"go.etcd.io/etcd/pkg/mock/mockserver"
 )
 
