@@ -21,19 +21,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	tp "github.com/opencord/voltha-lib-go/v3/pkg/techprofile"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	"github.com/opencord/voltha-protos/v2/go/openolt"
-	openoltpb2 "github.com/opencord/voltha-protos/v2/go/openolt"
-	tp_pb "github.com/opencord/voltha-protos/v2/go/tech_profile"
+	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	"github.com/opencord/voltha-protos/v3/go/openolt"
+	openoltpb2 "github.com/opencord/voltha-protos/v3/go/openolt"
+	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
 )
 
 var flowMgr *OpenOltFlowMgr
@@ -88,6 +88,13 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 		tps[key] = mocks.MockTechProfile{TpID: key}
 	}
 	flwMgr.techprofile = tps
+
+	interface2mcastQeueuMap := make(map[uint32]*queueInfoBrief)
+	interface2mcastQeueuMap[0] = &queueInfoBrief{
+		gemPortID:       4000,
+		servicePriority: 3,
+	}
+	flwMgr.interfaceToMcastQueueMap = interface2mcastQeueuMap
 	return flwMgr
 }
 
@@ -244,6 +251,23 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}
 	dhcpofpstats := fu.MkFlowStat(dhcpFa)
 	//dhcpofpstats.Cookie = dhcpofpstats.Id
+
+	//multicast flow
+	multicastFa := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65536),
+			fu.VlanVid(660),             //vlan
+			fu.Metadata_ofp(uint64(66)), //inner vlan
+			fu.EthType(0x800),           //ipv4
+			fu.Ipv4Dst(3809869825),      //227.22.0.1
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Group(1),
+		},
+	}
+	multicastOfpStats := fu.MkFlowStat(multicastFa)
+	multicastOfpStats.Id = 1
+
 	type args struct {
 		flow *ofp.OfpFlowStats
 	}
@@ -255,6 +279,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		{"RemoveFlow", args{flow: ofpstats}},
 		{"RemoveFlow", args{flow: lldpofpstats}},
 		{"RemoveFlow", args{flow: dhcpofpstats}},
+		{"RemoveFlow", args{flow: multicastOfpStats}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -443,6 +468,20 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		},
 		KV: kw6,
 	}
+	//multicast flow
+	fa11 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65536),
+			fu.VlanVid(660),             //vlan
+			fu.Metadata_ofp(uint64(66)), //inner vlan
+			fu.EthType(0x800),           //ipv4
+			fu.Ipv4Dst(3809869825),      //227.22.0.1
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Group(1),
+		},
+		KV: kw6,
+	}
 	ofpstats := fu.MkFlowStat(fa)
 	ofpstats2 := fu.MkFlowStat(fa2)
 	ofpstats3 := fu.MkFlowStat(fa3)
@@ -454,6 +493,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	ofpstats9 := fu.MkFlowStat(fa9)
 	ofpstats10 := fu.MkFlowStat(fa10)
 	igmpstats := fu.MkFlowStat(igmpFa)
+	ofpstats11 := fu.MkFlowStat(fa11)
 
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
@@ -482,6 +522,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		{"AddFlow", args{flow: igmpstats, flowMetadata: flowMetadata}},
 		//{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
 		//ofpstats10
+		{"AddFlow", args{flow: ofpstats11, flowMetadata: flowMetadata}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -854,4 +895,31 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni)
 		})
 	}
+}
+
+func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
+	//create group
+	group := newGroup(2, []uint32{1})
+	flowMgr.AddGroup(group)
+
+	//create multicast flow
+	multicastFlowArgs := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(65536),
+			fu.VlanVid(660),             //vlan
+			fu.Metadata_ofp(uint64(66)), //inner vlan
+			fu.EthType(0x800),           //ipv4
+			fu.Ipv4Dst(3809869825),      //227.22.0.1
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Group(1),
+		},
+	}
+	ofpStats := fu.MkFlowStat(multicastFlowArgs)
+	flowMgr.AddFlow(ofpStats, &voltha.FlowMetadata{})
+
+	//add bucket to the group
+	group = newGroup(2, []uint32{1, 2})
+
+	flowMgr.ModifyGroup(group)
 }
