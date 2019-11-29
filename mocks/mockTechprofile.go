@@ -105,3 +105,8 @@ func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direc
 func (m MockTechProfile) FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []tp.TechProfile {
 	return []tp.TechProfile{}
 }
+
+// GetTrafficQueues to mock techprofile GetTrafficQueues method
+func (m MockTechProfile) GetMulticastTrafficQueues(tp *tp.TechProfile) []*tp_pb.TrafficQueue {
+	return []*tp_pb.TrafficQueue{{}}
+}
