@@ -22,8 +22,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 // MockCoreProxy mocks the CoreProxy interface
@@ -82,7 +82,7 @@ func (mcp *MockCoreProxy) PortCreated(ctx context.Context, deviceID string, port
 }
 
 // PortsStateUpdate implements mock PortsStateUpdate
-func (mcp *MockCoreProxy) PortsStateUpdate(ctx context.Context, deviceID string, operStatus voltha.OperStatus_OperStatus) error {
+func (mcp *MockCoreProxy) PortsStateUpdate(ctx context.Context, deviceID string, operStatus voltha.OperStatus_Types) error {
 	if deviceID == "" {
 		return errors.New("no Device")
 	}
@@ -99,7 +99,7 @@ func (mcp *MockCoreProxy) DeleteAllPorts(ctx context.Context, deviceID string) e
 
 // DeviceStateUpdate implements mock DeviceStateUpdate
 func (mcp *MockCoreProxy) DeviceStateUpdate(ctx context.Context, deviceID string,
-	connStatus voltha.ConnectStatus_ConnectStatus, operStatus voltha.OperStatus_OperStatus) error {
+	connStatus voltha.ConnectStatus_Types, operStatus voltha.OperStatus_Types) error {
 	if deviceID == "" {
 		return errors.New("no Device id")
 	}
@@ -209,6 +209,6 @@ func (mcp *MockCoreProxy) DevicePMConfigUpdate(ctx context.Context, pmConfigs *v
 
 // PortStateUpdate implements mock PortStateUpdate
 func (mcp *MockCoreProxy) PortStateUpdate(ctx context.Context, deviceID string, pType voltha.Port_PortType, portNo uint32,
-	operStatus voltha.OperStatus_OperStatus) error {
+	operStatus voltha.OperStatus_Types) error {
 	return nil
 }
