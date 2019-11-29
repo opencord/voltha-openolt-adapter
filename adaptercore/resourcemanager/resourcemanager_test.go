@@ -26,12 +26,13 @@ package resourcemanager
 import (
 	"encoding/json"
 	"errors"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
-	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	"github.com/opencord/voltha-protos/v2/go/openolt"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
+	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
+	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -161,6 +162,19 @@ func (kvclient *MockResKVClient) Get(key string, timeout int) (*kvstore.KVPair, 
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+		if strings.Contains(key, McastQueuesForIntf) {
+			log.Debug("Error Error Error Key:", McastQueuesForIntf)
+			mcastQueues := make(map[uint32][]uint32)
+			mcastQueues[10] = []uint32{4000, 0}
+			str, _ := json.Marshal(mcastQueues)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		if strings.Contains(key, "flow_groups") && !strings.Contains(key, "1000") {
+			groupInfo := GroupInfo{GroupID: 2, OutPorts: []uint32{2}}
+			str, _ := json.Marshal(groupInfo)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
 		return maps[key], nil
@@ -968,6 +982,144 @@ func Test_newKVClient(t *testing.T) {
 				return
 			}
 
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_AddMcastQueueForIntf(t *testing.T) {
+	type args struct {
+		intf            uint32
+		gem             uint32
+		servicePriority uint32
+	}
+	tests := []struct {
+		name   string
+		args   args
+		fields *fields
+	}{
+		{"AddMcastQueueForIntf-1", args{0, 4000, 0}, getResMgr()},
+		{"AddMcastQueueForIntf-2", args{1, 4000, 1}, getResMgr()},
+		{"AddMcastQueueForIntf-3", args{2, 4000, 2}, getResMgr()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			err := RsrcMgr.AddMcastQueueForIntf(tt.args.intf, tt.args.gem, tt.args.servicePriority)
+			if err != nil {
+				t.Errorf("%s got err= %s wants nil", tt.name, err)
+				return
+			}
+		})
+	}
+}
+
+func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
+	groupDesc := ofp.OfpGroupDesc{
+		Type:    ofp.OfpGroupType_OFPGT_ALL,
+		GroupId: groupID,
+	}
+	groupEntry := ofp.OfpGroupEntry{
+		Desc: &groupDesc,
+	}
+	var acts []*ofp.OfpAction
+	for i := 0; i < len(outPorts); i++ {
+		acts = append(acts, fu.Output(outPorts[i]))
+	}
+	bucket := ofp.OfpBucket{
+		Actions: acts,
+	}
+	groupDesc.Buckets = []*ofp.OfpBucket{&bucket}
+	return &groupEntry
+}
+
+func TestOpenOltResourceMgr_AddFlowGroupToKVStore(t *testing.T) {
+	type args struct {
+		group  *ofp.OfpGroupEntry
+		cached bool
+	}
+	//create group 1
+	group1 := newGroup(1, []uint32{1})
+	//create group 2
+	group2 := newGroup(2, []uint32{2})
+	//define test set
+	tests := []struct {
+		name   string
+		args   args
+		fields *fields
+	}{
+		{"AddFlowGroupToKVStore-1", args{group1, true}, getResMgr()},
+		{"AddFlowGroupToKVStore-2", args{group2, false}, getResMgr()},
+	}
+	//execute tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			err := RsrcMgr.AddFlowGroupToKVStore(tt.args.group, tt.args.cached)
+			if err != nil {
+				t.Errorf("%s got err= %s wants nil", tt.name, err)
+				return
+			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_RemoveFlowGroupFromKVStore(t *testing.T) {
+	type args struct {
+		groupID uint32
+		cached  bool
+	}
+	//define test set
+	tests := []struct {
+		name   string
+		args   args
+		fields *fields
+	}{
+		{"RemoveFlowGroupFromKVStore-1", args{1, true}, getResMgr()},
+		{"RemoveFlowGroupFromKVStore-2", args{2, false}, getResMgr()},
+	}
+	//execute tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			success := RsrcMgr.RemoveFlowGroupFromKVStore(tt.args.groupID, tt.args.cached)
+			if !success {
+				t.Errorf("%s got false but wants true", tt.name)
+				return
+			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_GetFlowGroupFromKVStore(t *testing.T) {
+	type args struct {
+		groupID uint32
+		cached  bool
+	}
+	//define test set
+	tests := []struct {
+		name   string
+		args   args
+		fields *fields
+	}{
+		{"GetFlowGroupFromKVStore-1", args{1, true}, getResMgr()},
+		{"GetFlowGroupFromKVStore-2", args{2, false}, getResMgr()},
+		{"GetFlowGroupFromKVStore-3", args{1000, false}, getResMgr()},
+	}
+	//execute tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			exists, groupInfo, err := RsrcMgr.GetFlowGroupFromKVStore(tt.args.groupID, tt.args.cached)
+			if err != nil {
+				t.Errorf("%s got error but wants nil error", tt.name)
+				return
+			} else if exists && (groupInfo.GroupID == 0) {
+				t.Errorf("%s got true and nil group info but expected not nil group info", tt.name)
+				return
+			} else if tt.args.groupID == 3 && exists {
+				t.Errorf("%s got true but wants false", tt.name)
+				return
+			}
 		})
 	}
 }
