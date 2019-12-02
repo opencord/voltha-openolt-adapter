@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ee60803_687f68b1",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ec41cc0_86b8d056",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1231,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize logs",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c091815_4148932d",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1239,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dda9ffb2_08a9ac09",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1244,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize logs",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f05c7b43_abc8376a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1251,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09f82429_2c734911",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1256,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "84a0cf34_d5421992",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1269,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize logs",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5eb87035_180ed85e",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1337,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "690edc39_fcb8efce",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1350,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize errors",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eea44028_ddd73a86",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1902,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-02T14:36:31Z",
+      "side": 1,
+      "message": "don\u0027t dasherize logs",
+      "revId": "ddda73af67400528fa219779b7b904364f345816",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
