@@ -160,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "17b7d9ec_5bc3e7f5",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-04T10:03:24Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "60462308_36d64fc6",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb1fe1ec_cdef35bc",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 1
@@ -207,6 +225,24 @@
       "side": 1,
       "message": "https://github.com/golang/go/wiki/CodeReviewComments#error-strings",
       "parentUuid": "46444e8b_1bfd86a4",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e7d333c_b5883776",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-04T10:03:24Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "50133c69_0eb531a1",
       "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
