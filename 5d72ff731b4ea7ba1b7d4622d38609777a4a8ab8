@@ -142,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "60462308_36d64fc6",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-04T05:37:24Z",
+      "side": 1,
+      "message": "I had comment on another review of mine about the golang way of printing error strings or any debug logs for that matter in golang. Please see here https://github.com/golang/go/wiki/CodeReviewComments#error-strings . The gist is all the words should be in small case, unless it is a proper noun. Anyway read the contents on the link for more details.",
+      "parentUuid": "71d88a7a_0513dfbb",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb1fe1ec_cdef35bc",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 1
@@ -171,6 +189,24 @@
       "side": 1,
       "message": "sure addressed",
       "parentUuid": "cb1fe1ec_cdef35bc",
+      "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50133c69_0eb531a1",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-04T05:37:24Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#error-strings",
+      "parentUuid": "46444e8b_1bfd86a4",
       "revId": "5d72ff731b4ea7ba1b7d4622d38609777a4a8ab8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
