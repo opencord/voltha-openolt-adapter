@@ -16,6 +16,24 @@
       "revId": "78446428f96714e3b35b4481c02fc52c9c22fe07",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "87ccfa43_a3fb7653",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-05T13:15:46Z",
+      "side": 1,
+      "message": "It seems this problem exists at all other places too in this file. Do you mind fix it other places too?",
+      "parentUuid": "af2c4518_69d13a7e",
+      "revId": "78446428f96714e3b35b4481c02fc52c9c22fe07",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
