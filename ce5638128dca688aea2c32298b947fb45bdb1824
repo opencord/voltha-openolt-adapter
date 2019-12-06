@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a7ea470_2047f459",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-06T09:01:48Z",
+      "side": 1,
+      "message": "handle the error",
+      "revId": "ce5638128dca688aea2c32298b947fb45bdb1824",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
