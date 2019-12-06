@@ -46,6 +46,7 @@ const (
 	onuLossOmciEvent        = "ONU_LOSS_OF_OMCI_CHANNEL"
 	onuLossOfKeySyncEvent   = "ONU_LOSS_OF_KEY_SYNC"
 	onuLossOfFrameEvent     = "ONU_LOSS_OF_FRAME"
+	onuLossOfPloamEvent     = "ONU_LOSS_OF_PLOAM"
 )
 
 const (
@@ -270,6 +271,10 @@ func (em *OpenOltEventMgr) onuAlarmIndication(onuAlarm *oop.OnuAlarmIndication, 
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "RAISE_EVENT")
 	} else if onuAlarm.LofiStatus == statusCheckOff {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "CLEAR_EVENT")
+	} else if onuAlarm.LoamiStatus == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfPloamEvent, "RAISE_EVENT")
+	} else if onuAlarm.LoamiStatus == statusCheckOff {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfPloamEvent, "CLEAR_EVENT")
 	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, onu, raisedTs); err != nil {
