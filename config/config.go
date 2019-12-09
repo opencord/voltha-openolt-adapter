@@ -22,52 +22,57 @@ import (
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"os"
+	"time"
 )
 
 // Open OLT default constants
 const (
-	EtcdStoreName             = "etcd"
-	defaultInstanceid         = "openOlt001"
-	defaultKafkaadapterhost   = "127.0.0.1"
-	defaultKafkaadapterport   = 9092
-	defaultKafkaclusterhost   = "127.0.0.1"
-	defaultKafkaclusterport   = 9094
-	defaultKvstoretype        = EtcdStoreName
-	defaultKvstoretimeout     = 5 //in seconds
-	defaultKvstorehost        = "127.0.0.1"
-	defaultKvstoreport        = 2379 // Consul = 8500; Etcd = 2379
-	defaultLoglevel           = 0
-	defaultBanner             = false
-	defaultDisplayVersionOnly = false
-	defaultTopic              = "openolt"
-	defaultCoretopic          = "rwcore"
-	defaultEventtopic         = "voltha.events"
-	defaultOnunumber          = 1
-	defaultProbeHost          = ""
-	defaultProbePort          = 8080
+	EtcdStoreName               = "etcd"
+	defaultInstanceid           = "openOlt001"
+	defaultKafkaadapterhost     = "127.0.0.1"
+	defaultKafkaadapterport     = 9092
+	defaultKafkaclusterhost     = "127.0.0.1"
+	defaultKafkaclusterport     = 9094
+	defaultKvstoretype          = EtcdStoreName
+	defaultKvstoretimeout       = 5 //in seconds
+	defaultKvstorehost          = "127.0.0.1"
+	defaultKvstoreport          = 2379 // Consul = 8500; Etcd = 2379
+	defaultLoglevel             = 0
+	defaultBanner               = false
+	defaultDisplayVersionOnly   = false
+	defaultTopic                = "openolt"
+	defaultCoretopic            = "rwcore"
+	defaultEventtopic           = "voltha.events"
+	defaultOnunumber            = 1
+	defaultProbeHost            = ""
+	defaultProbePort            = 8080
+	defaultLiveProbeInterval    = 60 * time.Second
+	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	InstanceID         string
-	KafkaAdapterHost   string
-	KafkaAdapterPort   int
-	KafkaClusterHost   string
-	KafkaClusterPort   int
-	KVStoreType        string
-	KVStoreTimeout     int // in seconds
-	KVStoreHost        string
-	KVStorePort        int
-	Topic              string
-	CoreTopic          string
-	EventTopic         string
-	LogLevel           int
-	OnuNumber          int
-	Banner             bool
-	DisplayVersionOnly bool
-	ProbeHost          string
-	ProbePort          int
+	InstanceID           string
+	KafkaAdapterHost     string
+	KafkaAdapterPort     int
+	KafkaClusterHost     string
+	KafkaClusterPort     int
+	KVStoreType          string
+	KVStoreTimeout       int // in seconds
+	KVStoreHost          string
+	KVStorePort          int
+	Topic                string
+	CoreTopic            string
+	EventTopic           string
+	LogLevel             int
+	OnuNumber            int
+	Banner               bool
+	DisplayVersionOnly   bool
+	ProbeHost            string
+	ProbePort            int
+	LiveProbeInterval    time.Duration
+	NotLiveProbeInterval time.Duration
 }
 
 func init() {
@@ -77,24 +82,26 @@ func init() {
 // NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:         defaultInstanceid,
-		KafkaAdapterHost:   defaultKafkaadapterhost,
-		KafkaAdapterPort:   defaultKafkaadapterport,
-		KafkaClusterHost:   defaultKafkaclusterhost,
-		KafkaClusterPort:   defaultKafkaclusterport,
-		KVStoreType:        defaultKvstoretype,
-		KVStoreTimeout:     defaultKvstoretimeout,
-		KVStoreHost:        defaultKvstorehost,
-		KVStorePort:        defaultKvstoreport,
-		Topic:              defaultTopic,
-		CoreTopic:          defaultCoretopic,
-		EventTopic:         defaultEventtopic,
-		LogLevel:           defaultLoglevel,
-		OnuNumber:          defaultOnunumber,
-		Banner:             defaultBanner,
-		DisplayVersionOnly: defaultDisplayVersionOnly,
-		ProbeHost:          defaultProbeHost,
-		ProbePort:          defaultProbePort,
+		InstanceID:           defaultInstanceid,
+		KafkaAdapterHost:     defaultKafkaadapterhost,
+		KafkaAdapterPort:     defaultKafkaadapterport,
+		KafkaClusterHost:     defaultKafkaclusterhost,
+		KafkaClusterPort:     defaultKafkaclusterport,
+		KVStoreType:          defaultKvstoretype,
+		KVStoreTimeout:       defaultKvstoretimeout,
+		KVStoreHost:          defaultKvstorehost,
+		KVStorePort:          defaultKvstoreport,
+		Topic:                defaultTopic,
+		CoreTopic:            defaultCoretopic,
+		EventTopic:           defaultEventtopic,
+		LogLevel:             defaultLoglevel,
+		OnuNumber:            defaultOnunumber,
+		Banner:               defaultBanner,
+		DisplayVersionOnly:   defaultDisplayVersionOnly,
+		ProbeHost:            defaultProbeHost,
+		ProbePort:            defaultProbePort,
+		LiveProbeInterval:    defaultLiveProbeInterval,
+		NotLiveProbeInterval: defaultNotLiveProbeInterval,
 	}
 	return &adapterFlags
 }
@@ -152,6 +159,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("The port on which to listen to answer liveness and readiness probe queries over HTTP.")
 	flag.IntVar(&(so.ProbePort), "probe_port", defaultProbePort, help)
+
+	help = fmt.Sprintf("The number of seconds between liveness probes while in a live state")
+	flag.DurationVar(&(so.LiveProbeInterval), "live_probe_interval", defaultLiveProbeInterval, help)
+
+	help = fmt.Sprintf("The number of seconds between liveness probes while in a not live state")
+	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
 	flag.Parse()
 
