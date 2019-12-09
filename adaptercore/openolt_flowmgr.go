@@ -311,6 +311,12 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
 		SchedCfg = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 	}
+
+	if SchedCfg == nil {
+		log.Debugf("Unable to get Scheduler config for intf %d, direction %s", sq.intfID, sq.direction)
+		return errors.New("unable-to-get-scheduler-config-while-creating-queues")
+	}
+
 	var meterConfig *ofp.OfpMeterConfig
 	if sq.flowMetadata != nil {
 		for _, meter := range sq.flowMetadata.Meters {
@@ -341,6 +347,12 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
 
+	trafficQueues := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+	if trafficQueues == nil {
+		log.Errorw("Unable to construct traffic queue configuration", log.Fields{"intfID": sq.intfID, "direction": sq.direction})
+		return errors.New("Unable to construct traffic queue configuration")
+	}
+
 	log.Debugw("Sending Traffic scheduler create to device", log.Fields{"Direction": Direction, "TrafficScheds": TrafficSched})
 	if _, err := f.deviceHandler.Client.CreateTrafficSchedulers(context.Background(), &tp_pb.TrafficSchedulers{
 		IntfId: sq.intfID, OnuId: sq.onuID,
@@ -349,9 +361,9 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 		log.Errorw("Failed to create traffic schedulers", log.Fields{"error": err})
 		return err
 	}
+
 	// On receiving the CreateTrafficQueues request, the driver should create corresponding
 	// downstream queues.
-	trafficQueues := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
 	log.Debugw("Sending Traffic Queues create to device", log.Fields{"Direction": Direction, "TrafficQueues": trafficQueues})
 	if _, err := f.deviceHandler.Client.CreateTrafficQueues(context.Background(),
 		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
@@ -387,6 +399,11 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
 		SchedCfg = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 		Direction = "downstream"
+	}
+
+	if SchedCfg == nil {
+		log.Debugf("Unable to get Scheduler config for intf %d, direction %s", sq.intfID, sq.direction)
+		return errors.New("unable-to-get-scheduler-config-while-removing-queues")
 	}
 
 	KVStoreMeter, err := f.resourceMgr.GetMeterIDForOnu(Direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
