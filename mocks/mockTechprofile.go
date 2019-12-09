@@ -48,7 +48,7 @@ func (m MockTechProfile) GetTPInstanceFromKVStore(techProfiletblID uint32, path 
 }
 
 // CreateTechProfInstance to mock techprofile CreateTechProfInstance method
-func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfID uint32) *tp.TechProfile {
+func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfID uint32) (*tp.TechProfile, error) {
 
 	return &tp.TechProfile{
 		Name:                           "mock-tech-profile",
@@ -58,7 +58,7 @@ func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPort
 		NumGemPorts:                    2,
 		UpstreamGemPortAttributeList:   nil,
 		DownstreamGemPortAttributeList: nil,
-	}
+	}, nil
 
 }
 
@@ -74,14 +74,14 @@ func (m MockTechProfile) GetprotoBufParamValue(paramType string, paramKey string
 }
 
 // GetUsScheduler to mock techprofile GetUsScheduler method
-func (m MockTechProfile) GetUsScheduler(tpInstance *tp.TechProfile) *tp_pb.SchedulerConfig {
-	return &tp_pb.SchedulerConfig{}
+func (m MockTechProfile) GetUsScheduler(tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
+	return &tp_pb.SchedulerConfig{}, nil
 
 }
 
 // GetDsScheduler to mock techprofile GetDsScheduler method
-func (m MockTechProfile) GetDsScheduler(tpInstance *tp.TechProfile) *tp_pb.SchedulerConfig {
-	return &tp_pb.SchedulerConfig{}
+func (m MockTechProfile) GetDsScheduler(tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
+	return &tp_pb.SchedulerConfig{}, nil
 }
 
 // GetTrafficScheduler to mock techprofile GetTrafficScheduler method
@@ -92,8 +92,8 @@ func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp.TechProfile, SchedCf
 }
 
 // GetTrafficQueues to mock techprofile GetTrafficQueues method
-func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Direction) []*tp_pb.TrafficQueue {
-	return []*tp_pb.TrafficQueue{{}}
+func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
+	return []*tp_pb.TrafficQueue{{}}, nil
 }
 
 // GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method

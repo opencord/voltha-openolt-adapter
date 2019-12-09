@@ -332,12 +332,20 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 		log.Errorw("Dynamic meter update not supported", log.Fields{"KvStoreMeterId": KvStoreMeter.MeterId, "MeterID-in-flow": sq.meterID})
 		return errors.New("invalid-meter-id-in-flow")
 	}
+
 	log.Debugw("Meter-does-not-exist-Creating-new", log.Fields{"MeterID": sq.meterID, "Direction": Direction})
+
 	if sq.direction == tp_pb.Direction_UPSTREAM {
-		SchedCfg = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		SchedCfg = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 	}
+
+	if err != nil {
+		log.Errorf("Unable to get Scheduler config for intf %d, direction %s", sq.intfID, sq.direction)
+		return err
+	}
+
 	var meterConfig *ofp.OfpMeterConfig
 	if sq.flowMetadata != nil {
 		for _, meter := range sq.flowMetadata.Meters {
@@ -368,23 +376,8 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
 
-	log.Debugw("Sending Traffic scheduler create to device", log.Fields{"Direction": Direction, "TrafficScheds": TrafficSched})
-	if _, err := f.deviceHandler.Client.CreateTrafficSchedulers(context.Background(), &tp_pb.TrafficSchedulers{
-		IntfId: sq.intfID, OnuId: sq.onuID,
-		UniId: sq.uniID, PortNo: sq.uniPort,
-		TrafficScheds: TrafficSched}); err != nil {
-		log.Errorw("Failed to create traffic schedulers", log.Fields{"error": err})
-		return err
-	}
-	// On receiving the CreateTrafficQueues request, the driver should create corresponding
-	// downstream queues.
-	trafficQueues := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
-	log.Debugw("Sending Traffic Queues create to device", log.Fields{"Direction": Direction, "TrafficQueues": trafficQueues})
-	if _, err := f.deviceHandler.Client.CreateTrafficQueues(context.Background(),
-		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
-			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficQueues: trafficQueues}); err != nil {
-		log.Errorw("Failed to create traffic queues in device", log.Fields{"error": err})
+	if err := f.pushSchedulerQueuesToDevice(sq, TrafficShaping, TrafficSched); err != nil {
+		log.Errorw("Failed to push traffic scheduler and queues to device", log.Fields{"intfID": sq.intfID, "direction": sq.direction})
 		return err
 	}
 
@@ -400,6 +393,38 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 	return nil
 }
 
+func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShaping *tp_pb.TrafficShapingInfo, TrafficSched []*tp_pb.TrafficScheduler) error {
+
+	trafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+
+	if err != nil {
+		log.Errorw("Unable to construct traffic queue configuration", log.Fields{"intfID": sq.intfID, "direction": sq.direction})
+		return err
+	}
+
+	log.Debugw("Sending Traffic scheduler create to device", log.Fields{"Direction": sq.direction, "TrafficScheds": TrafficSched})
+	if _, err := f.deviceHandler.Client.CreateTrafficSchedulers(context.Background(), &tp_pb.TrafficSchedulers{
+		IntfId: sq.intfID, OnuId: sq.onuID,
+		UniId: sq.uniID, PortNo: sq.uniPort,
+		TrafficScheds: TrafficSched}); err != nil {
+		log.Errorw("Failed to create traffic schedulers", log.Fields{"error": err})
+		return err
+	}
+
+	// On receiving the CreateTrafficQueues request, the driver should create corresponding
+	// downstream queues.
+	log.Debugw("Sending Traffic Queues create to device", log.Fields{"Direction": sq.direction, "TrafficQueues": trafficQueues})
+	if _, err := f.deviceHandler.Client.CreateTrafficQueues(context.Background(),
+		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+			UniId: sq.uniID, PortNo: sq.uniPort,
+			TrafficQueues: trafficQueues}); err != nil {
+		log.Errorw("Failed to create traffic queues in device", log.Fields{"error": err})
+		return err
+	}
+
+	return nil
+}
+
 // RemoveSchedulerQueues removes the traffic schedulers from the device based on the given scheduler configuration and traffic shaping info
 func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 
@@ -409,11 +434,16 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 	log.Debugw("Removing schedulers and Queues in OLT", log.Fields{"Direction": sq.direction, "IntfID": sq.intfID,
 		"OnuID": sq.onuID, "UniID": sq.uniID, "UniPort": sq.uniPort})
 	if sq.direction == tp_pb.Direction_UPSTREAM {
-		SchedCfg = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
 		Direction = "upstream"
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		SchedCfg = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 		Direction = "downstream"
+	}
+
+	if err != nil {
+		log.Errorf("Unable to get Scheduler config for intf %d, direction %s", sq.intfID, sq.direction)
+		return err
 	}
 
 	KVStoreMeter, err := f.resourceMgr.GetMeterIDForOnu(Direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
@@ -435,7 +465,12 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
-	TrafficQueues := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+
+	TrafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+	if err != nil {
+		log.Errorw("Unable to construct traffic queue configuration", log.Fields{"intfID": sq.intfID, "direction": sq.direction})
+		return err
+	}
 
 	if _, err = f.deviceHandler.Client.RemoveTrafficQueues(context.Background(),
 		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
@@ -473,6 +508,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID 
 	var allgemPortIDs []uint32
 	var gemPortIDs []uint32
 	tpInstanceExists := false
+	var err error
 
 	allocIDs = f.resourceMgr.GetCurrentAllocIDsForOnu(intfID, onuID, uniID)
 	allgemPortIDs = f.resourceMgr.GetCurrentGEMPortIDsForOnu(intfID, onuID, uniID)
@@ -485,10 +521,10 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID 
 	techProfileInstance, _ := f.techprofile[intfID].GetTPInstanceFromKVStore(TpID, tpPath)
 	if techProfileInstance == nil {
 		log.Infow("tp-instance-not-found--creating-new", log.Fields{"path": tpPath})
-		techProfileInstance = f.techprofile[intfID].CreateTechProfInstance(TpID, uni, intfID)
-		if techProfileInstance == nil {
+		techProfileInstance, err = f.techprofile[intfID].CreateTechProfInstance(TpID, uni, intfID)
+		if err != nil {
 			// This should not happen, something wrong in KV backend transaction
-			log.Error("tp-instance-create-failed")
+			log.Errorw("tp-instance-create-failed", log.Fields{"error": err, "tpID": TpID})
 			return 0, nil, nil
 		}
 		f.resourceMgr.UpdateTechProfileIDForOnu(intfID, onuID, uniID, TpID)
