@@ -92,8 +92,8 @@ func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp.TechProfile, SchedCf
 }
 
 // GetTrafficQueues to mock techprofile GetTrafficQueues method
-func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Direction) []*tp_pb.TrafficQueue {
-	return []*tp_pb.TrafficQueue{{}}
+func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
+	return []*tp_pb.TrafficQueue{{}}, nil
 }
 
 // GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method
