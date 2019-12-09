@@ -246,7 +246,7 @@ func InitializeDeviceResourceRangeAndPool(ponRMgr *ponrmgr.PONResourceManager, g
 	   or is broader than the device, the device's information will
 	   dictate the range limits
 	*/
-	log.Debugf("Using device info to init pon resource ranges for tech", ponRMgr.Technology)
+	log.Debugw("Using device info to init pon resource ranges", log.Fields{"Tech": ponRMgr.Technology})
 
 	ONUIDStart := devInfo.OnuIdStart
 	ONUIDEnd := devInfo.OnuIdEnd

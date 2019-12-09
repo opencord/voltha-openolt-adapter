@@ -25,14 +25,14 @@ type TechProfileIf interface {
 	SetKVClient() *db.Backend
 	GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string
 	GetTPInstanceFromKVStore(techProfiletblID uint32, path string) (*TechProfile, error)
-	CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) *TechProfile
+	CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) (*TechProfile, error)
 	DeleteTechProfileInstance(techProfiletblID uint32, uniPortName string) error
 	GetprotoBufParamValue(paramType string, paramKey string) int32
-	GetUsScheduler(tpInstance *TechProfile) *tp_pb.SchedulerConfig
-	GetDsScheduler(tpInstance *TechProfile) *tp_pb.SchedulerConfig
+	GetUsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
+	GetDsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
 	GetTrafficScheduler(tpInstance *TechProfile, SchedCfg *tp_pb.SchedulerConfig,
 		ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler
-	GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) []*tp_pb.TrafficQueue
+	GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
 	GetGemportIDForPbit(tp *TechProfile, Dir tp_pb.Direction, pbit uint32) uint32
 	FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []TechProfile
 }
