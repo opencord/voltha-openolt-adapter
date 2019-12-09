@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e9e66f16_23426187",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-12-09T18:03:12Z",
+      "side": 1,
+      "message": "actually once the onu/omci patches are merged, this can be removed.  this was needed literally for jenkins or the small window of time no onu is merged.",
+      "parentUuid": "9aa7652e_7a7fd933",
+      "range": {
+        "startLine": 773,
+        "startChar": 1,
+        "endLine": 773,
+        "endChar": 9
+      },
+      "revId": "383b71ebab261b1de345e0fddde0a6dd701399b5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b410e781_7b315432",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2019-12-09T17:59:07Z",
       "side": 1,
       "message": "The old try it method. There isn\u0027t a header or version or something that says \"this is binary\" v. \"this is text\"? i suspect the older messages are sufficiently \"not hex\" so that there are no false positives?",
+      "range": {
+        "startLine": 773,
+        "startChar": 0,
+        "endLine": 778,
+        "endChar": 2
+      },
+      "revId": "383b71ebab261b1de345e0fddde0a6dd701399b5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61269609_fb8d31da",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-12-09T18:03:12Z",
+      "side": 1,
+      "message": "we could actually write code to try to parse the omci, but given the short amount of time this check needs to be here, it didnt seem worth it.",
+      "parentUuid": "b410e781_7b315432",
       "range": {
         "startLine": 773,
         "startChar": 0,
