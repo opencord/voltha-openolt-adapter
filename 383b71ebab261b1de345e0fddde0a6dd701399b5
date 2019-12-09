@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7652e_7a7fd933",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-12-09T17:59:07Z",
+      "side": 1,
+      "message": "When do you anticipate this, or rather, what is the gate?",
+      "range": {
+        "startLine": 773,
+        "startChar": 1,
+        "endLine": 773,
+        "endChar": 9
+      },
+      "revId": "383b71ebab261b1de345e0fddde0a6dd701399b5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b410e781_7b315432",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2019-12-09T17:59:07Z",
+      "side": 1,
+      "message": "The old try it method. There isn\u0027t a header or version or something that says \"this is binary\" v. \"this is text\"? i suspect the older messages are sufficiently \"not hex\" so that there are no false positives?",
+      "range": {
+        "startLine": 773,
+        "startChar": 0,
+        "endLine": 778,
+        "endChar": 2
+      },
+      "revId": "383b71ebab261b1de345e0fddde0a6dd701399b5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
