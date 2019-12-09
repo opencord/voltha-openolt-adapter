@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"os"
+	"time"
 )
 
 // Open OLT default constants
@@ -45,6 +46,8 @@ const (
 	defaultOnunumber          = 1
 	defaultProbeHost          = ""
 	defaultProbePort          = 8080
+	defaultLiveProbeInterval    = 60 * time.Second
+	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -68,6 +71,8 @@ type AdapterFlags struct {
 	DisplayVersionOnly bool
 	ProbeHost          string
 	ProbePort          int
+	LiveProbeInterval    time.Duration
+	NotLiveProbeInterval time.Duration
 }
 
 func init() {
@@ -95,6 +100,8 @@ func NewAdapterFlags() *AdapterFlags {
 		DisplayVersionOnly: defaultDisplayVersionOnly,
 		ProbeHost:          defaultProbeHost,
 		ProbePort:          defaultProbePort,
+		LiveProbeInterval:    defaultLiveProbeInterval,
+		NotLiveProbeInterval: defaultNotLiveProbeInterval,
 	}
 	return &adapterFlags
 }
@@ -152,6 +159,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("The port on which to listen to answer liveness and readiness probe queries over HTTP.")
 	flag.IntVar(&(so.ProbePort), "probe_port", defaultProbePort, help)
+
+	help = fmt.Sprintf("The number of seconds between liveness probes while in a live state")
+	flag.DurationVar(&(so.LiveProbeInterval), "live_probe_interval", defaultLiveProbeInterval, help)
+
+	help = fmt.Sprintf("The number of seconds between liveness probes while in a not live state")
+	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
 	flag.Parse()
 
