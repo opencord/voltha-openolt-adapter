@@ -259,5 +259,9 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
 
+	log.Debugw("flow extract info result",
+		log.Fields{"uniPortNo": uniPortNo, "ponIntf": ponIntf,
+			"onuID": onuID, "uniID": uniID, "inPort": inPort, "ethType": ethType})
+
 	return uniPortNo, ponIntf, onuID, uniID, inPort, ethType, nil
 }
