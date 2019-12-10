@@ -226,10 +226,16 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 			for _, field := range flows.GetOfbFields(flow) {
 				if field.GetType() == flows.IN_PORT {
 					uniPortNo = field.GetPort()
-					break
 				}
 			}
 		}
+		for _, field := range flows.GetOfbFields(flow) {
+			if field.GetType() == flows.ETH_TYPE {
+				log.Info("setting ethtype", log.Fields{"ethType": field.GetEthType()})
+				ethType = field.GetEthType()
+			}
+		}
+
 	} else if flowDirection == "downstream" {
 		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
 			for _, field := range flows.GetOfbFields(flow) {
@@ -258,6 +264,10 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
+
+	log.Debugw("flow extract info result",
+		log.Fields{"uniPortNo": uniPortNo, "ponIntf": ponIntf,
+			"onuID": onuID, "uniID": uniID, "inPort": inPort, "ethType": ethType})
 
 	return uniPortNo, ponIntf, onuID, uniID, inPort, ethType, nil
 }
