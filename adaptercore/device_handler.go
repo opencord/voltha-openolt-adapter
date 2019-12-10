@@ -1061,13 +1061,14 @@ func (dh *DeviceHandler) AddUniPortToOnu(intfID, onuID, uniPort uint32) {
 func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	log.Debugw("Received-incremental-flowupdate-in-device-handler", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
 	if flows != nil {
-		for _, flow := range flows.ToAdd.Items {
-			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
-			dh.flowMgr.AddFlow(flow, flowMetadata)
-		}
 		for _, flow := range flows.ToRemove.Items {
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
 			dh.flowMgr.RemoveFlow(flow)
+		}
+
+		for _, flow := range flows.ToAdd.Items {
+			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
+			dh.flowMgr.AddFlow(flow, flowMetadata)
 		}
 	}
 	if groups != nil && flows != nil {

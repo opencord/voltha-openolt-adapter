@@ -3,6 +3,7 @@ module github.com/opencord/voltha-openolt-adapter
 go 1.12
 
 require (
+	github.com/EagleChen/mapmutex v0.0.0-20180418073615-e1a5ae258d8d
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/opencord/voltha-lib-go/v2 v2.2.20
