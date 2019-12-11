@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ce888e6_a4a35dc9",
+        "filename": "config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-11T06:51:57Z",
+      "side": 1,
+      "message": "rephrase the help statements , this one and above one",
+      "revId": "15c61e7507c4ad4a06f768a768eb7021faf2df12",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
