@@ -853,6 +853,9 @@ func (dh *DeviceHandler) onuDiscIndication(onuDiscInd *oop.OnuDiscIndication, sn
 			log.Errorw("Create onu error",
 				log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
 					"onuID": onuID, "sn": sn, "error": err})
+			// If the ChildDeviceDetected call fails the ONU will send a new onuDiscoveryIndication
+			// and we need to handle that, so don't mark it has discovered
+			dh.discOnus.Delete(sn)
 			return
 		}
 		log.Debugw("onu-child-device-added", log.Fields{"onuDevice": onuDevice})
