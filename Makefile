@@ -149,7 +149,7 @@ lint-mod:
 	@[[ `git ls-files --exclude-standard --others go.mod go.sum vendor` == "" ]] || (echo "ERROR: Untracked files detected after running go mod tidy / go mod vendor" && echo "`git status`" && exit 1)
 	@echo "Vendor check OK."
 
-lint: lint-style lint-sanity lint-mod lint-dockerfile
+lint: local-lib-go lint-style lint-sanity lint-mod lint-dockerfile
 
 test:
 	@mkdir -p ./tests/results
