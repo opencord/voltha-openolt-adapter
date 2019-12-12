@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1f2761b_db7250b2",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1073,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2019-12-12T09:06:09Z",
+      "side": 1,
+      "message": "what is the purpose we are trying to process flows to remove again ?",
+      "revId": "12295d2a62b7383ce7f28b86976150b806ba27db",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
