@@ -226,3 +226,7 @@ func (kc *mockKafkaClient) SendLiveness() error {
 func (kc *mockKafkaClient) EnableLivenessChannel(enable bool) chan bool {
 	return nil
 }
+
+func (kc *mockKafkaClient) EnableHealthinessChannel(enable bool) chan bool {
+	return nil
+}
