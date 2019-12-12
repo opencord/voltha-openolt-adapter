@@ -22,6 +22,30 @@
       "revId": "3963ee809ec6cbe738e607fcb6f14822d5157d63",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0fd32396_400e2aa5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2019-12-12T23:29:49Z",
+      "side": 1,
+      "message": "There is a corner case here (that is not really corner). When I tried that with 100 ONUs the \"GetChildDevice\" always fails (times out) so the device is never created.",
+      "parentUuid": "0d588ed2_8c1e0e74",
+      "range": {
+        "startLine": 840,
+        "startChar": 24,
+        "endLine": 840,
+        "endChar": 34
+      },
+      "revId": "3963ee809ec6cbe738e607fcb6f14822d5157d63",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
