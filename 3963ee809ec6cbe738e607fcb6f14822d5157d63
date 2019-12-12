@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d588ed2_8c1e0e74",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-12-12T22:56:44Z",
+      "side": 1,
+      "message": "Agreed based on slack conversation.  An error on GetChildDevice call should not try to create a new device. \n\nA not found child device is ok to create.",
+      "range": {
+        "startLine": 840,
+        "startChar": 24,
+        "endLine": 840,
+        "endChar": 34
+      },
+      "revId": "3963ee809ec6cbe738e607fcb6f14822d5157d63",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
