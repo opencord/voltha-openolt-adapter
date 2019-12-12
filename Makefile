@@ -143,7 +143,7 @@ lint-mod:
 	@[[ `git ls-files --exclude-standard --others go.mod go.sum vendor` == "" ]] || (echo "ERROR: Untracked files detected after running go mod tidy / go mod vendor" && echo "`git status`" && exit 1)
 	@echo "Vendor check OK."
 
-lint: lint-style lint-sanity lint-mod
+lint: local-lib-go local-protos lint-style lint-sanity lint-mod
 
 __GOPATH=$(shell go env GOPATH)
 

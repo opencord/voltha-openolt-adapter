@@ -228,3 +228,7 @@ func (kc *mockKafkaClient) EnableLivenessChannel(enable bool) chan bool {
 func (kc *mockKafkaClient) EnableHealthinessChannel(enable bool) chan bool {
 	return nil
 }
+
+func (kc *mockKafkaClient) SubscribeForMetadata(func(fromTopic string, timestamp int64)) {
+	return
+}
