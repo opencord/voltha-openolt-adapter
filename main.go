@@ -58,7 +58,7 @@ type adapter struct {
 }
 
 func init() {
-	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
+	_, _ = log.AddPackage(log.CONSOLE, log.DebugLevel, nil)
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
@@ -451,8 +451,6 @@ func main() {
 	if err := log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
-
-	log.SetPackageLogLevel("github.com/opencord/voltha-lib-go/v3/pkg/adapters/common", log.DebugLevel)
 
 	defer log.CleanUp()
 

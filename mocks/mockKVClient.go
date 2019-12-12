@@ -241,7 +241,8 @@ func (kvclient *MockKVClient) ReleaseLock(lockName string) error {
 }
 
 // IsConnectionUp mock function implementation for KVClient
-func (kvclient *MockKVClient) IsConnectionUp(ctx context.Context) bool { // timeout in second
+func (kvclient *MockKVClient) IsConnectionUp(ctx context.Context) bool {
+	// timeout in second
 	t, _ := ctx.Deadline()
 	if t.Second()-time.Now().Second() < 1 {
 		return false
