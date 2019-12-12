@@ -46,6 +46,30 @@
       "revId": "3963ee809ec6cbe738e607fcb6f14822d5157d63",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "582f87d2_63dcaf6e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2019-12-12T23:33:36Z",
+      "side": 1,
+      "message": "On the other side, not having that causes the ONU to be adopted multiple times (not sure what that implies though)",
+      "parentUuid": "0fd32396_400e2aa5",
+      "range": {
+        "startLine": 840,
+        "startChar": 24,
+        "endLine": 840,
+        "endChar": 34
+      },
+      "revId": "3963ee809ec6cbe738e607fcb6f14822d5157d63",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
