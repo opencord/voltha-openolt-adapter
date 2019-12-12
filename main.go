@@ -201,13 +201,22 @@ and update the status in the probe.
 */
 func (a *adapter) checkKafkaReadiness(ctx context.Context) {
 	livelinessChannel := a.kafkaClient.EnableLivenessChannel(true)
+	healthinessChannel := a.kafkaClient.EnableHealthinessChannel(true)
 	timeout := a.config.LiveProbeInterval
+	failed := false
 	for {
 		timeoutTimer := time.NewTimer(timeout)
 
 		select {
+		case healthiness := <-healthinessChannel:
+			if !healthiness {
+				probe.UpdateStatusFromContext(ctx, "message-bus", probe.ServiceStatusFailed)
+				failed = true
+			}
 		case liveliness := <-livelinessChannel:
-			if !liveliness {
+			if failed {
+				// we have failed, don't overwrite a failed status with a live or unready status
+			} else if !liveliness {
 				// kafka not reachable or down, updating the status to not ready state
 				probe.UpdateStatusFromContext(ctx, "message-bus", probe.ServiceStatusNotReady)
 				timeout = a.config.NotLiveProbeInterval
