@@ -60,6 +60,17 @@ type transactionChannel struct {
 	ch    chan *ic.InterContainerMessage
 }
 
+type InterContainerProxyIf interface {
+	Start() error
+	Stop()
+	DeviceDiscovered(deviceId string, deviceType string, parentId string, publisher string) error
+	InvokeRPC(ctx context.Context, rpc string, toTopic *Topic, replyToTopic *Topic, waitForResponse bool, key string, kvArgs ...*KVArg) (bool, *any.Any)
+	SubscribeWithRequestHandlerInterface(topic Topic, handler interface{}) error
+	SubscribeWithDefaultRequestHandler(topic Topic, initialOffset int64) error
+	UnSubscribeFromRequestHandler(topic Topic) error
+	DeleteTopic(topic Topic) error
+}
+
 // InterContainerProxy represents the messaging proxy
 type InterContainerProxy struct {
 	kafkaHost                      string
@@ -125,7 +136,7 @@ func MsgClient(client Client) InterContainerProxyOption {
 	}
 }
 
-func NewInterContainerProxy(opts ...InterContainerProxyOption) (*InterContainerProxy, error) {
+func newInterContainerProxy(opts ...InterContainerProxyOption) (*InterContainerProxy, error) {
 	proxy := &InterContainerProxy{
 		kafkaHost: DefaultKafkaHost,
 		kafkaPort: DefaultKafkaPort,
@@ -141,6 +152,10 @@ func NewInterContainerProxy(opts ...InterContainerProxyOption) (*InterContainerP
 	proxy.lockTopicResponseChannelMap = sync.RWMutex{}
 
 	return proxy, nil
+}
+
+func NewInterContainerProxy(opts ...InterContainerProxyOption) (*InterContainerProxy, error) {
+	return newInterContainerProxy(opts...)
 }
 
 func (kp *InterContainerProxy) Start() error {
@@ -180,6 +195,10 @@ func (kp *InterContainerProxy) Stop() {
 	//kp.deleteAllTopicRequestHandlerChannelMap()
 	//kp.deleteAllTopicResponseChannelMap()
 	//kp.deleteAllTransactionIdToChannelMap()
+}
+
+func (kp *InterContainerProxy) GetDefaultTopic() *Topic {
+	return kp.DefaultTopic
 }
 
 // DeviceDiscovered publish the discovered device onto the kafka messaging bus
@@ -288,12 +307,14 @@ func (kp *InterContainerProxy) InvokeRPC(ctx context.Context, rpc string, toTopi
 			var err error
 			if responseBody, err = decodeResponse(msg); err != nil {
 				logger.Errorw("decode-response-error", log.Fields{"error": err})
+				// FIXME we should return something
 			}
 			return responseBody.Success, responseBody.Result
 		case <-ctx.Done():
 			logger.Debugw("context-cancelled", log.Fields{"rpc": rpc, "ctx": ctx.Err()})
 			//	 pack the error as proto any type
-			protoError := &ic.Error{Reason: ctx.Err().Error()}
+			protoError := &ic.Error{Reason: ctx.Err().Error(), Code: ic.ErrorCode_DEADLINE_EXCEEDED}
+
 			var marshalledArg *any.Any
 			if marshalledArg, err = ptypes.MarshalAny(protoError); err != nil {
 				return false, nil // Should never happen
@@ -302,7 +323,8 @@ func (kp *InterContainerProxy) InvokeRPC(ctx context.Context, rpc string, toTopi
 		case <-childCtx.Done():
 			logger.Debugw("context-cancelled", log.Fields{"rpc": rpc, "ctx": childCtx.Err()})
 			//	 pack the error as proto any type
-			protoError := &ic.Error{Reason: childCtx.Err().Error()}
+			protoError := &ic.Error{Reason: childCtx.Err().Error(), Code: ic.ErrorCode_DEADLINE_EXCEEDED}
+
 			var marshalledArg *any.Any
 			if marshalledArg, err = ptypes.MarshalAny(protoError); err != nil {
 				return false, nil // Should never happen
@@ -520,7 +542,7 @@ func encodeDefaultFailedResponse(request *ic.InterContainerMessage) *ic.InterCon
 		Type:      ic.MessageType_RESPONSE,
 		FromTopic: request.Header.ToTopic,
 		ToTopic:   request.Header.FromTopic,
-		Timestamp: time.Now().Unix(),
+		Timestamp: time.Now().UnixNano(),
 	}
 	responseBody := &ic.InterContainerResponseBody{
 		Success: false,
