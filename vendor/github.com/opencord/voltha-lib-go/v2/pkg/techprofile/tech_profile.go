@@ -334,22 +334,26 @@ func (t *TechProfileMgr) getTPFromKVStore(techProfiletblID uint32) *DefaultTechP
 	if kvresult != nil {
 		/* Backend will return Value in string format,needs to be converted to []byte before unmarshal*/
 		if value, err := kvstore.ToByte(kvresult.Value); err == nil {
-			if err = json.Unmarshal(value, &kvtechprofile); err == nil {
-				log.Debugw("Success fetched techprofile from KV store", log.Fields{"techProfiletblID": techProfiletblID, "value": kvtechprofile})
-				return &kvtechprofile
+			if err = json.Unmarshal(value, &kvtechprofile); err != nil {
+				log.Errorw("Error unmarshaling techprofile fetched from KV store", log.Fields{"techProfiletblID": techProfiletblID, "error": err, "techprofile_json": value})
+				return nil
 			}
+
+			log.Debugw("Success fetched techprofile from KV store", log.Fields{"techProfiletblID": techProfiletblID, "value": kvtechprofile})
+			return &kvtechprofile
 		}
 	}
 	return nil
 }
-func (t *TechProfileMgr) CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) *TechProfile {
+
+func (t *TechProfileMgr) CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) (*TechProfile, error) {
 	var tpInstance *TechProfile
 	log.Infow("creating-tp-instance", log.Fields{"tableid": techProfiletblID, "uni": uniPortName, "intId": intfId})
 
 	// Make sure the uniPortName is as per format pon-{[0-9]+}/onu-{[0-9]+}/uni-{[0-9]+}
 	if !uniPortNameFormat.Match([]byte(uniPortName)) {
 		log.Errorw("uni-port-name-not-confirming-to-format", log.Fields{"uniPortName": uniPortName})
-		return nil
+		return nil, errors.New("uni-port-name-not-confirming-to-format")
 	}
 
 	tp := t.getTPFromKVStore(techProfiletblID)
@@ -367,15 +371,15 @@ func (t *TechProfileMgr) CreateTechProfInstance(techProfiletblID uint32, uniPort
 	tpInstancePath := t.GetTechProfileInstanceKVPath(techProfiletblID, uniPortName)
 	if tpInstance = t.allocateTPInstance(uniPortName, tp, intfId, tpInstancePath); tpInstance == nil {
 		log.Error("tp-intance-allocation-failed")
-		return nil
+		return nil, errors.New("tp-intance-allocation-failed")
 	}
 	if err := t.addTechProfInstanceToKVStore(techProfiletblID, uniPortName, tpInstance); err != nil {
-		log.Errorw("error-adding-tp-to-kv-store ", log.Fields{"tableid": techProfiletblID, "uni": uniPortName})
-		return nil
+		log.Errorw("error-adding-tp-to-kv-store", log.Fields{"tableid": techProfiletblID, "uni": uniPortName})
+		return nil, errors.New("error-adding-tp-to-kv-store")
 	}
 	log.Infow("tp-added-to-kv-store-successfully",
 		log.Fields{"tpid": techProfiletblID, "uni": uniPortName, "intfId": intfId})
-	return tpInstance
+	return tpInstance, nil
 }
 
 func (t *TechProfileMgr) DeleteTechProfileInstance(techProfiletblID uint32, uniPortName string) error {
@@ -605,46 +609,51 @@ func (t *TechProfileMgr) GetprotoBufParamValue(paramType string, paramKey string
 	return result
 }
 
-func (t *TechProfileMgr) GetUsScheduler(tpInstance *TechProfile) *tp_pb.SchedulerConfig {
+func (t *TechProfileMgr) GetUsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error) {
 	dir := tp_pb.Direction(t.GetprotoBufParamValue("direction", tpInstance.UsScheduler.Direction))
 	if dir == -1 {
-		log.Fatal("Error in getting Proto for direction for upstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for direction %s for upstream scheduler", tpInstance.UsScheduler.Direction)
+		return nil, fmt.Errorf("unable to get proto id for direction %s for upstream scheduler", tpInstance.UsScheduler.Direction)
 	}
+
 	bw := tp_pb.AdditionalBW(t.GetprotoBufParamValue("additional_bw", tpInstance.UsScheduler.AdditionalBw))
 	if bw == -1 {
-		log.Fatal("Error in getting Proto for bandwidth for upstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for bandwidth %s for upstream scheduler", tpInstance.UsScheduler.AdditionalBw)
+		return nil, fmt.Errorf("unable to get proto id for bandwidth %s for upstream scheduler", tpInstance.UsScheduler.AdditionalBw)
 	}
+
 	policy := tp_pb.SchedulingPolicy(t.GetprotoBufParamValue("sched_policy", tpInstance.UsScheduler.QSchedPolicy))
 	if policy == -1 {
-		log.Fatal("Error in getting Proto for scheduling policy for upstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for scheduling policy %s for upstream scheduler", tpInstance.UsScheduler.QSchedPolicy)
+		return nil, fmt.Errorf("unable to get proto id for scheduling policy %s for upstream scheduler", tpInstance.UsScheduler.QSchedPolicy)
 	}
+
 	return &tp_pb.SchedulerConfig{
 		Direction:    dir,
 		AdditionalBw: bw,
 		Priority:     tpInstance.UsScheduler.Priority,
 		Weight:       tpInstance.UsScheduler.Weight,
-		SchedPolicy:  policy}
+		SchedPolicy:  policy}, nil
 }
 
-func (t *TechProfileMgr) GetDsScheduler(tpInstance *TechProfile) *tp_pb.SchedulerConfig {
+func (t *TechProfileMgr) GetDsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error) {
 
 	dir := tp_pb.Direction(t.GetprotoBufParamValue("direction", tpInstance.DsScheduler.Direction))
 	if dir == -1 {
-		log.Fatal("Error in getting Proto for direction for downstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for direction %s for downstream scheduler", tpInstance.DsScheduler.Direction)
+		return nil, fmt.Errorf("unable to get proto id for direction %s for downstream scheduler", tpInstance.DsScheduler.Direction)
 	}
+
 	bw := tp_pb.AdditionalBW(t.GetprotoBufParamValue("additional_bw", tpInstance.DsScheduler.AdditionalBw))
 	if bw == -1 {
-		log.Fatal("Error in getting Proto for bandwidth for downstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for bandwidth %s for downstream scheduler", tpInstance.DsScheduler.AdditionalBw)
+		return nil, fmt.Errorf("unable to get proto id for bandwidth %s for downstream scheduler", tpInstance.DsScheduler.AdditionalBw)
 	}
+
 	policy := tp_pb.SchedulingPolicy(t.GetprotoBufParamValue("sched_policy", tpInstance.DsScheduler.QSchedPolicy))
 	if policy == -1 {
-		log.Fatal("Error in getting Proto for scheduling policy for downstream scheduler")
-		return nil
+		log.Errorf("Error in getting proto id for scheduling policy %s for downstream scheduler", tpInstance.DsScheduler.QSchedPolicy)
+		return nil, fmt.Errorf("unable to get proto id for scheduling policy %s for downstream scheduler", tpInstance.DsScheduler.QSchedPolicy)
 	}
 
 	return &tp_pb.SchedulerConfig{
@@ -652,7 +661,7 @@ func (t *TechProfileMgr) GetDsScheduler(tpInstance *TechProfile) *tp_pb.Schedule
 		AdditionalBw: bw,
 		Priority:     tpInstance.DsScheduler.Priority,
 		Weight:       tpInstance.DsScheduler.Weight,
-		SchedPolicy:  policy}
+		SchedPolicy:  policy}, nil
 }
 
 func (t *TechProfileMgr) GetTrafficScheduler(tpInstance *TechProfile, SchedCfg *tp_pb.SchedulerConfig,
@@ -667,7 +676,7 @@ func (t *TechProfileMgr) GetTrafficScheduler(tpInstance *TechProfile, SchedCfg *
 	return tSched
 }
 
-func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) []*tp_pb.TrafficQueue {
+func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
 
 	var encryp bool
 	if Dir == tp_pb.Direction_UPSTREAM {
@@ -680,19 +689,32 @@ func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction
 			} else {
 				encryp = false
 			}
+
+			schedPolicy := tpm.GetprotoBufParamValue("sched_policy", tp.UpstreamGemPortAttributeList[Count].SchedulingPolicy)
+			if schedPolicy == -1 {
+				log.Errorf("Error in getting Proto Id for scheduling policy %s for Upstream Gem Port %d", tp.UpstreamGemPortAttributeList[Count].SchedulingPolicy, Count)
+				return nil, fmt.Errorf("upstream gem port traffic queue creation failed due to unrecognized scheduling policy %s", tp.UpstreamGemPortAttributeList[Count].SchedulingPolicy)
+			}
+
+			discardPolicy := tpm.GetprotoBufParamValue("discard_policy", tp.UpstreamGemPortAttributeList[Count].DiscardPolicy)
+			if discardPolicy == -1 {
+				log.Errorf("Error in getting Proto Id for discard policy %s for Upstream Gem Port %d", tp.UpstreamGemPortAttributeList[Count].DiscardPolicy, Count)
+				return nil, fmt.Errorf("upstream gem port traffic queue creation failed due to unrecognized discard policy %s", tp.UpstreamGemPortAttributeList[Count].DiscardPolicy)
+			}
+
 			GemPorts = append(GemPorts, &tp_pb.TrafficQueue{
 				Direction:     tp_pb.Direction(tpm.GetprotoBufParamValue("direction", tp.UsScheduler.Direction)),
 				GemportId:     tp.UpstreamGemPortAttributeList[Count].GemportID,
 				PbitMap:       tp.UpstreamGemPortAttributeList[Count].PbitMap,
 				AesEncryption: encryp,
-				SchedPolicy:   tp_pb.SchedulingPolicy(tpm.GetprotoBufParamValue("sched_policy", tp.UpstreamGemPortAttributeList[Count].SchedulingPolicy)),
+				SchedPolicy:   tp_pb.SchedulingPolicy(schedPolicy),
 				Priority:      tp.UpstreamGemPortAttributeList[Count].PriorityQueue,
 				Weight:        tp.UpstreamGemPortAttributeList[Count].Weight,
-				DiscardPolicy: tp_pb.DiscardPolicy(tpm.GetprotoBufParamValue("discard_policy", tp.UpstreamGemPortAttributeList[Count].DiscardPolicy)),
+				DiscardPolicy: tp_pb.DiscardPolicy(discardPolicy),
 			})
 		}
 		log.Debugw("Upstream Traffic queue list ", log.Fields{"queuelist": GemPorts})
-		return GemPorts
+		return GemPorts, nil
 	} else if Dir == tp_pb.Direction_DOWNSTREAM {
 		//downstream GEM ports
 		NumGemPorts := len(tp.DownstreamGemPortAttributeList)
@@ -703,25 +725,40 @@ func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction
 			} else {
 				encryp = false
 			}
+
+			schedPolicy := tpm.GetprotoBufParamValue("sched_policy", tp.DownstreamGemPortAttributeList[Count].SchedulingPolicy)
+			if schedPolicy == -1 {
+				log.Errorf("Error in getting Proto Id for scheduling policy %s for Downstream Gem Port %d", tp.DownstreamGemPortAttributeList[Count].SchedulingPolicy, Count)
+				return nil, fmt.Errorf("downstream gem port traffic queue creation failed due to unrecognized scheduling policy %s", tp.DownstreamGemPortAttributeList[Count].SchedulingPolicy)
+			}
+
+			discardPolicy := tpm.GetprotoBufParamValue("discard_policy", tp.DownstreamGemPortAttributeList[Count].DiscardPolicy)
+			if discardPolicy == -1 {
+				log.Errorf("Error in getting Proto Id for discard policy %s for Downstream Gem Port %d", tp.DownstreamGemPortAttributeList[Count].DiscardPolicy, Count)
+				return nil, fmt.Errorf("downstream gem port traffic queue creation failed due to unrecognized discard policy %s", tp.DownstreamGemPortAttributeList[Count].DiscardPolicy)
+			}
+
 			GemPorts = append(GemPorts, &tp_pb.TrafficQueue{
 				Direction:     tp_pb.Direction(tpm.GetprotoBufParamValue("direction", tp.DsScheduler.Direction)),
 				GemportId:     tp.DownstreamGemPortAttributeList[Count].GemportID,
 				PbitMap:       tp.DownstreamGemPortAttributeList[Count].PbitMap,
 				AesEncryption: encryp,
-				SchedPolicy:   tp_pb.SchedulingPolicy(tpm.GetprotoBufParamValue("sched_policy", tp.DownstreamGemPortAttributeList[Count].SchedulingPolicy)),
+				SchedPolicy:   tp_pb.SchedulingPolicy(schedPolicy),
 				Priority:      tp.DownstreamGemPortAttributeList[Count].PriorityQueue,
 				Weight:        tp.DownstreamGemPortAttributeList[Count].Weight,
-				DiscardPolicy: tp_pb.DiscardPolicy(tpm.GetprotoBufParamValue("discard_policy", tp.DownstreamGemPortAttributeList[Count].DiscardPolicy)),
+				DiscardPolicy: tp_pb.DiscardPolicy(discardPolicy),
 			})
 		}
 		log.Debugw("Downstream Traffic queue list ", log.Fields{"queuelist": GemPorts})
-		return GemPorts
+		return GemPorts, nil
 	}
-	return nil
+
+	log.Errorf("Unsupported direction %s used for generating Traffic Queue list", Dir)
+	return nil, fmt.Errorf("downstream gem port traffic queue creation failed due to unsupported direction %s", Dir)
 }
 
 func (tpm *TechProfileMgr) GetUsTrafficScheduler(tp *TechProfile) *tp_pb.TrafficScheduler {
-	UsScheduler := tpm.GetUsScheduler(tp)
+	UsScheduler, _ := tpm.GetUsScheduler(tp)
 
 	return &tp_pb.TrafficScheduler{Direction: UsScheduler.Direction,
 		AllocId:   tp.UsScheduler.AllocID,
