@@ -878,48 +878,77 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		return
 	}
 
-	onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
+	onuDevice, err := dh.coreProxy.GetChildDevice(ctx, dh.device.Id, kwargs)
 	var onuID uint32
-	if onuDevice == nil || err != nil {
-		//This is the first time ONU discovered. Create an OnuID for it.
-		ponintfid := onuDiscInd.GetIntfId()
-		dh.lockDevice.Lock()
-		onuID, err = dh.resourceMgr.GetONUID(ctx, ponintfid)
-		dh.lockDevice.Unlock()
-		if err != nil {
-			log.Errorw("failed to fetch onuID from resource manager", log.Fields{"pon-intf-id": ponintfid, "err": err})
-			return
-		}
-		if onuDevice, err = dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
-			"", int(channelID),
-			string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); onuDevice == nil {
-			log.Errorw("Create onu error",
-				log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
-					"onuID": onuID, "sn": sn, "error": err})
-			return
-		}
-		log.Debugw("onu-child-device-added", log.Fields{"onuDevice": onuDevice})
 
-	} else {
+	// in case something goes wrong
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.NotFound: // GetChildDevices does not returns this status yet, but it should be smarter
+			case codes.Internal:
+				// this is where we are dealing with a new ONU
+				ponintfid := onuDiscInd.GetIntfId()
+				dh.lockDevice.Lock()
+				onuID, err = dh.resourceMgr.GetONUID(ctx, ponintfid)
+				dh.lockDevice.Unlock()
+
+				if err != nil {
+					log.Errorw("failed to fetch onuID from resource manager", log.Fields{"pon-intf-id": ponintfid, "err": err})
+					// if we can't create a new ONU ID then we'll need to process this ONU again when it comes back
+					dh.discOnus.Delete(sn)
+					return
+				}
+
+				if onuDevice, err = dh.coreProxy.ChildDeviceDetected(context.TODO(), dh.device.Id, int(parentPortNo),
+					"", int(channelID),
+					string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); onuDevice == nil {
+					log.Errorw("Create onu error",
+						log.Fields{"parent_id": dh.device.Id, "ponPort": onuDiscInd.GetIntfId(),
+							"onuID": onuID, "sn": sn, "error": err})
+					// If the ChildDeviceDetected call fails the ONU will send a new onuDiscoveryIndication
+					// and we need to handle that, so don't mark it has discovered
+					dh.discOnus.Delete(sn)
+					dh.resourceMgr.FreeonuID(ctx, ponintfid, []uint32{onuID})
+					return
+				}
+				log.Debugw("onu-child-device-added", log.Fields{"onuDevice": onuDevice, "sn": sn})
+			case codes.DeadlineExceeded:
+				// in case of timeout, just clean up the cache, the ONU will send a new OnuDiscIndication
+				dh.discOnus.Delete(sn)
+				return
+			}
+		} else {
+			log.Errorw("not able to parse returned error", log.Fields{"onuID": onuID, "sn": sn, "err": err})
+			// something went wrong, we don't know what but we should retry
+			dh.discOnus.Delete(sn)
+			return
+		}
+	}
+	if onuDevice != nil {
 		//ONU already discovered before. Use the same OnuID.
 		onuID = onuDevice.ProxyAddress.OnuId
+	} else {
+		log.Errorw("get-child-device-did-not-return-onu-or-error", log.Fields{"onuID": onuID, "sn": sn, "err": err})
+		return
 	}
+
 	//Insert the ONU into cache to use in OnuIndication.
 	//TODO: Do we need to remove this from the cache on ONU change, or wait for overwritten on next discovery.
 	log.Debugw("ONU discovery indication key create", log.Fields{"onuID": onuID,
-		"intfId": onuDiscInd.GetIntfId()})
+		"intfId": onuDiscInd.GetIntfId(), "sn": sn})
 	onuKey := dh.formOnuKey(onuDiscInd.GetIntfId(), onuID)
 
 	onuDev := NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
 	dh.onus.Store(onuKey, onuDev)
-	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev})
+	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev, "sn": sn})
 
 	err = dh.coreProxy.DeviceStateUpdate(context.TODO(), onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED)
 	if err != nil {
-		log.Errorw("failed to update device state", log.Fields{"DeviceID": onuDevice.Id, "err": err})
+		log.Errorw("failed to update device state", log.Fields{"DeviceID": onuDevice.Id, "sn": sn, "err": err})
 		return
 	}
-	log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id})
+	log.Debugw("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id, "sn": sn})
 	//TODO: We put this sleep here to prevent the race between state update and onuIndication
 	//In onuIndication the operStatus of device is checked. If it is still not updated in KV store
 	//then the initialisation fails.

@@ -124,7 +124,7 @@ func TestTransitionMap_Handle(t *testing.T) {
 				currentDeviceState: tt.fields.currentDeviceState,
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+			defer cancel()
 			tMap.Handle(ctx, tt.args.trigger)
 		})
 	}

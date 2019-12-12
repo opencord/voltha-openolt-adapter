@@ -48,7 +48,7 @@ type adapter struct {
 	iAdapter         adapters.IAdapter
 	kafkaClient      kafka.Client
 	kvClient         kvstore.Client
-	kip              *kafka.InterContainerProxy
+	kip              kafka.InterContainerProxy
 	coreProxy        adapterif.CoreProxy
 	adapterProxy     adapterif.AdapterProxy
 	eventProxy       adapterif.EventProxy
@@ -300,11 +300,11 @@ func (a *adapter) setKVClient() error {
 	return nil
 }
 
-func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (*kafka.InterContainerProxy, error) {
+func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (kafka.InterContainerProxy, error) {
 	log.Infow("starting-intercontainer-messaging-proxy", log.Fields{"host": a.config.KafkaAdapterHost,
 		"port": a.config.KafkaAdapterPort, "topic": a.config.Topic})
 	var err error
-	var kip *kafka.InterContainerProxy
+	var kip kafka.InterContainerProxy
 	if kip, err = kafka.NewInterContainerProxy(
 		kafka.InterContainerHost(a.config.KafkaAdapterHost),
 		kafka.InterContainerPort(a.config.KafkaAdapterPort),
@@ -332,7 +332,7 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (*k
 	return kip, nil
 }
 
-func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy,
+func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProxy,
 	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
 	cfg *config.AdapterFlags) (*ac.OpenOLT, error) {
 	log.Info("starting-open-olt")
