@@ -58,7 +58,7 @@ type adapter struct {
 }
 
 func init() {
-	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
+	_, _ = log.AddPackage(log.CONSOLE, log.DebugLevel, nil)
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
