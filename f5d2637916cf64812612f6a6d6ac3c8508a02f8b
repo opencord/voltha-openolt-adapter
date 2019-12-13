@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c4aab9a_edeb8e62",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-13T04:35:49Z",
+      "side": 1,
+      "message": "We should delete onu sn from discOnus map here",
+      "revId": "f5d2637916cf64812612f6a6d6ac3c8508a02f8b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "15e78951_a992b551",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 877,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-13T04:35:49Z",
+      "side": 1,
+      "message": "Should this be log.Errorw",
+      "revId": "f5d2637916cf64812612f6a6d6ac3c8508a02f8b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
