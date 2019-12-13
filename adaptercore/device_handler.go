@@ -31,6 +31,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 
+	backoff "github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
@@ -278,10 +279,27 @@ func (dh *DeviceHandler) readIndications() {
 		dh.lockDevice.Unlock()
 	}
 
+	// Create an exponential backoff around re-enabling indications. The
+	// maximum elapsed time for the back off is set to 0 so that we will
+	// continue to retry. The max interval defaults to 1m, but is set
+	// here for code clarity
+	indicationBackoff := backoff.NewExponentialBackOff()
+	indicationBackoff.MaxElapsedTime = 0
+	indicationBackoff.MaxInterval = 1 * time.Minute
 	for {
 		indication, err := indications.Recv()
 		if err == io.EOF {
 			log.Infow("EOF for  indications", log.Fields{"err": err})
+			// Use an exponential back off to prevent getting into a tight loop
+			duration := indicationBackoff.NextBackOff()
+			if duration == backoff.Stop {
+				// If we reach a maxium then warn and reset the backoff
+				// timer and keep attempting.
+				log.Warnw("Maxium indication backoff reached, resetting backoff timer",
+					log.Fields{"max_indication_backoff": indicationBackoff.MaxElapsedTime})
+				indicationBackoff.Reset()
+			}
+			time.Sleep(indicationBackoff.NextBackOff())
 			indications, err = dh.Client.EnableIndication(context.Background(), new(oop.Empty))
 			if err != nil {
 				log.Errorw("Failed to read indications", log.Fields{"err": err})
@@ -299,6 +317,8 @@ func (dh *DeviceHandler) readIndications() {
 			dh.transitionMap.Handle(DeviceInit)
 			break
 		}
+		// Reset backoff if we have a successful receive
+		indicationBackoff.Reset()
 		dh.lockDevice.RLock()
 		adminState := dh.adminState
 		dh.lockDevice.RUnlock()
