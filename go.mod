@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/opencord/voltha-lib-go/v2 v2.2.22
 	github.com/opencord/voltha-protos/v2 v2.1.2
+	github.com/pkg/errors v0.8.1
 	go.etcd.io/etcd v0.0.0-20190930204107-236ac2a90522
 	google.golang.org/grpc v1.25.1
 )
