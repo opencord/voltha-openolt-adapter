@@ -31,7 +31,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 
-	backoff "github.com/cenkalti/backoff/v3"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
@@ -363,7 +363,9 @@ func (dh *DeviceHandler) handleOltIndication(oltIndication *oop.OltIndication) {
 		dh.transitionMap.Handle(DeviceDownInd)
 	}
 	// Send or clear Alarm
-	dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs)
+	if err := dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs); err != nil {
+		log.Errorw("Failed to send olt indication", log.Fields{"error": err, "oltIndication": oltIndication})
+	}
 }
 
 func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
@@ -379,7 +381,9 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 		intfOperInd := indication.GetIntfOperInd()
 		if intfOperInd.GetType() == "nni" {
 			go dh.addPort(intfOperInd.GetIntfId(), voltha.Port_ETHERNET_NNI, intfOperInd.GetOperState())
-			dh.resourceMgr.AddNNIToKVStore(intfOperInd.GetIntfId())
+			if err := dh.resourceMgr.AddNNIToKVStore(intfOperInd.GetIntfId()); err != nil {
+				log.Errorw("Failed to add nni to kv store", log.Fields{"error": err})
+			}
 		} else if intfOperInd.GetType() == "pon" {
 			// TODO: Check what needs to be handled here for When PON PORT down, ONU will be down
 			// Handle pon port update
@@ -840,7 +844,9 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 
 func (dh *DeviceHandler) activateONU(intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) {
 	log.Debugw("activate-onu", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum, "serialNumber": serialNumber})
-	dh.flowMgr.UpdateOnuInfo(intfID, uint32(onuID), serialNumber)
+	if err := dh.flowMgr.UpdateOnuInfo(intfID, uint32(onuID), serialNumber); err != nil {
+		log.Errorw("Failed to send update onu info", log.Fields{"error": err, "onuId": onuID})
+	}
 	// TODO: need resource manager
 	var pir uint32 = 1000000
 	Onu := oop.Onu{IntfId: intfID, OnuId: uint32(onuID), SerialNumber: serialNum, Pir: pir}
@@ -1106,12 +1112,16 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(device *voltha.Device, flows *
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
-			dh.flowMgr.RemoveFlow(flow)
+			if err := dh.flowMgr.RemoveFlow(flow); err != nil {
+				log.Errorw("Failed to remove the flow", log.Fields{"error": err})
+			}
 		}
 
 		for _, flow := range flows.ToAdd.Items {
 			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
-			dh.flowMgr.AddFlow(flow, flowMetadata)
+			if err := dh.flowMgr.AddFlow(flow, flowMetadata); err != nil {
+				log.Errorw("Failed to add flow", log.Fields{"error": err})
+			}
 		}
 	}
 	if groups != nil && flows != nil {
@@ -1246,7 +1256,7 @@ func (dh *DeviceHandler) clearUNIData(onu *rsrcMgr.OnuGemInfo) error {
 	var uniID uint32
 	var err error
 	for _, port := range onu.UniPorts {
-		uniID = UniIDFromPortNum(uint32(port))
+		uniID = UniIDFromPortNum(port)
 		log.Debugw("clearing-resource-data-for-uni-port", log.Fields{"port": port, "uniID": uniID})
 		/* Delete tech-profile instance from the KV store */
 		if err = dh.flowMgr.DeleteTechProfileInstances(onu.IntfID, onu.OnuID, uniID, onu.SerialNumber); err != nil {
@@ -1273,7 +1283,7 @@ func (dh *DeviceHandler) clearUNIData(onu *rsrcMgr.OnuGemInfo) error {
 			log.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		log.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
-		if err = dh.resourceMgr.DelGemPortPktIn(onu.IntfID, onu.OnuID, uint32(port)); err != nil {
+		if err = dh.resourceMgr.DelGemPortPktIn(onu.IntfID, onu.OnuID, port); err != nil {
 			log.Debugw("Failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
 		}
 	}
@@ -1295,10 +1305,10 @@ func (dh *DeviceHandler) clearNNIData() error {
 	}
 	log.Debugw("NNI are ", log.Fields{"nni": nni})
 	for _, nniIntfID := range nni {
-		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(uint32(nniIntfID), int32(nniOnuID), int32(nniUniID))
+		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(nniIntfID, int32(nniOnuID), int32(nniUniID))
 		log.Debugw("Current flow ids for nni", log.Fields{"flow-ids": flowIDs})
 		for _, flowID := range flowIDs {
-			dh.resourceMgr.FreeFlowID(uint32(nniIntfID), -1, -1, uint32(flowID))
+			dh.resourceMgr.FreeFlowID(nniIntfID, -1, -1, flowID)
 		}
 		dh.resourceMgr.RemoveResourceMap(nniIntfID, int32(nniOnuID), int32(nniUniID))
 	}
@@ -1361,7 +1371,11 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 		}
 
 		/* Clear the resource pool for each PON port in the background */
-		go dh.resourceMgr.Delete()
+		go func() {
+			if err := dh.resourceMgr.Delete(); err != nil {
+				log.Errorw("Failed to clear the resources from resource manager", log.Fields{"error": err})
+			}
+		}()
 	}
 
 	/*Delete ONU map for the device*/
@@ -1495,7 +1509,14 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
+		nniIntfID, err := IntfIDFromNniPortNum(uint32(egressPortNo))
+		if err != nil {
+			log.Errorw("Error while sending packet-out to NNI", log.Fields{
+				"error": err,
+			})
+			return err
+		}
+		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
 		log.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,
@@ -1548,6 +1569,7 @@ func startHeartbeatCheck(dh *DeviceHandler) {
 						go dh.notifyChildDevices("up")
 						if err := dh.coreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, voltha.ConnectStatus_REACHABLE,
 							voltha.OperStatus_ACTIVE); err != nil {
+
 							log.Errorw("Failed to update device state", log.Fields{"deviceID": dh.device.Id, "error": err})
 						}
 					}
@@ -1568,6 +1590,5 @@ func (dh *DeviceHandler) updateStateUnreachable() {
 	go dh.notifyChildDevices("unreachable")
 	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": dh.device.Id, "error": err})
-		return
 	}
 }
