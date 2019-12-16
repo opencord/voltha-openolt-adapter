@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c76e93cd_6b6c3101",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-12-16T18:45:48Z",
+      "side": 1,
+      "message": "should we rename this to minNniIntPortNum ? Also, would 1\u003c\u003c20 be clearer than 1048576 ?",
+      "range": {
+        "startLine": 111,
+        "startChar": 1,
+        "endLine": 111,
+        "endChar": 24
+      },
+      "revId": "e667a0b205769c8088d16bdb0d68627e38b9b148",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
