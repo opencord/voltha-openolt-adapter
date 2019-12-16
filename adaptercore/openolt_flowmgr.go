@@ -36,7 +36,7 @@ import (
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	openoltpb2 "github.com/opencord/voltha-protos/v3/go/openolt"
-	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
+	tppb "github.com/opencord/voltha-protos/v3/go/tech_profile"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 
 	//deepcopy "github.com/getlantern/deepcopy"
@@ -67,7 +67,7 @@ const (
 	IPProtoDhcp = 17
 
 	//IPProtoIgmp flow category
-	IPProtoIgmp = 2
+	//IPProtoIgmp = 2
 
 	//EapEthType eapethtype value
 	EapEthType = 0x888e
@@ -188,7 +188,7 @@ type tpLockKey struct {
 }
 
 type schedQueue struct {
-	direction    tp_pb.Direction
+	direction    tppb.Direction
 	intfID       uint32
 	onuID        uint32
 	uniID        uint32
@@ -253,7 +253,7 @@ func NewFlowManager(dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr) *OpenOl
 	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//load interface to multicast queue map from kv store
 	flowMgr.loadInterfaceToMulticastQueueMap()
-	log.Info("Initialization of  flow manager success!!")
+	log.Info("Initialization of flow manager success!!")
 	return &flowMgr
 }
 
@@ -273,7 +273,7 @@ func (f *OpenOltFlowMgr) generateStoredFlowID(flowID uint32, direction string) (
 	}
 }
 
-func (f *OpenOltFlowMgr) registerFlow(flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) {
+func (f *OpenOltFlowMgr) registerFlow(flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) error {
 	log.Debug("Registering Flow for Device ", log.Fields{"flow": flowFromCore},
 		log.Fields{"device": f.deviceHandler.deviceID})
 	gemPK := gemPortKey{uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId)}
@@ -284,15 +284,20 @@ func (f *OpenOltFlowMgr) registerFlow(flowFromCore *ofp.OfpFlowStats, deviceFlow
 	flowIDList = appendUnique(flowIDList, deviceFlow.FlowId)
 	f.flowsUsedByGemPort[gemPK] = flowIDList
 	// update the flowids for a gem to the KVstore
-	f.resourceMgr.UpdateFlowIDsForGem(uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowIDList)
+	if err := f.resourceMgr.UpdateFlowIDsForGem(uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowIDList); err != nil {
+		log.Errorw("Failed to update flow ids for gem", log.Fields{"error": err})
+		return err
+	}
+	return nil
 }
 
 func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32,
 	classifierInfo map[string]interface{}, actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpID uint32,
-	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) {
+	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) error {
 	var allocID uint32
 	var gemPorts []uint32
 	var TpInst *tp.TechProfile
+	var err error
 
 	log.Infow("Dividing flow", log.Fields{"intfId": intfID, "onuId": onuID, "uniId": uniID, "portNo": portNo,
 		"classifier": classifierInfo, "action": actionInfo, "UsMeterID": UsMeterID, "DsMeterID": DsMeterID, "TpID": TpID})
@@ -301,7 +306,7 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 	// TODO: properly deal with NNI flows
 	if onuID <= 0 {
 		log.Errorw("No onu id for flow", log.Fields{"portNo": portNo, "classifer": classifierInfo, "action": actionInfo})
-		return
+		return errors.New("no onu id found for flow")
 	}
 
 	uni := getUniPortPath(intfID, int32(onuID), int32(uniID))
@@ -309,11 +314,11 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 
 	tpLockMapKey := tpLockKey{intfID, onuID, uniID}
 	if f.perUserFlowHandleLock.TryLock(tpLockMapKey) {
-		allocID, gemPorts, TpInst = f.createTcontGemports(intfID, onuID, uniID, uni, portNo, TpID, UsMeterID, DsMeterID, flowMetadata)
+		allocID, gemPorts, TpInst, err = f.createTcontGemports(intfID, onuID, uniID, uni, portNo, TpID, UsMeterID, DsMeterID, flowMetadata)
 		if allocID == 0 || gemPorts == nil || TpInst == nil {
-			log.Error("alloc-id-gem-ports-tp-unavailable")
+			log.Errorw("alloc-id-gem-ports-tp-unavailable", log.Fields{"error": err})
 			f.perUserFlowHandleLock.Unlock(tpLockMapKey)
-			return
+			return errors.New("tech profile is unavailable for gem port")
 		}
 		args := make(map[string]uint32)
 		args[IntfID] = intfID
@@ -325,13 +330,18 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(intfID uint32, onuID uint32, uniID uin
 		/* Flows can be added specific to gemport if p-bits are received.
 		 * If no pbit mentioned then adding flows for all gemports
 		 */
-		f.checkAndAddFlow(args, classifierInfo, actionInfo, flow, TpInst, gemPorts, TpID, uni)
+		if err := f.checkAndAddFlow(args, classifierInfo, actionInfo, flow, TpInst, gemPorts, TpID, uni); err != nil {
+			log.Errorw("Failed to add flow", log.Fields{"gemPorts": gemPorts, "uni": uni, "error": err})
+			f.perUserFlowHandleLock.Unlock(tpLockMapKey)
+			return err
+		}
 		f.perUserFlowHandleLock.Unlock(tpLockMapKey)
 	} else {
 		log.Errorw("failed to acquire per user flow handle lock",
 			log.Fields{"intfId": intfID, "onuId": onuID, "uniId": uniID})
-		return
+		return errors.New("failed to handle lock for user flow")
 	}
+	return nil
 }
 
 // CreateSchedulerQueues creates traffic schedulers on the device with the given scheduler configuration and traffic shaping info
@@ -351,7 +361,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 	 * in the given direction.
 	 */
 
-	var SchedCfg *tp_pb.SchedulerConfig
+	var SchedCfg *tppb.SchedulerConfig
 	KvStoreMeter, err := f.resourceMgr.GetMeterIDForOnu(Direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
 	if err != nil {
 		log.Error("Failed to get meter for intf %d, onuid %d, uniid %d", sq.intfID, sq.onuID, sq.uniID)
@@ -368,9 +378,9 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 
 	log.Debugw("Meter-does-not-exist-Creating-new", log.Fields{"MeterID": sq.meterID, "Direction": Direction})
 
-	if sq.direction == tp_pb.Direction_UPSTREAM {
+	if sq.direction == tppb.Direction_UPSTREAM {
 		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	} else if sq.direction == tppb.Direction_DOWNSTREAM {
 		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 	}
 
@@ -405,9 +415,9 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 	ebs := meterConfig.Bands[1].BurstSize
 	pir := cir + eir
 	pbs := cbs + ebs
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+	TrafficShaping := &tppb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched := []*tppb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
 
 	if err := f.pushSchedulerQueuesToDevice(sq, TrafficShaping, TrafficSched); err != nil {
 		log.Errorw("Failed to push traffic scheduler and queues to device", log.Fields{"intfID": sq.intfID, "direction": sq.direction})
@@ -426,7 +436,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(sq schedQueue) error {
 	return nil
 }
 
-func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShaping *tp_pb.TrafficShapingInfo, TrafficSched []*tp_pb.TrafficScheduler) error {
+func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShaping *tppb.TrafficShapingInfo, TrafficSched []*tppb.TrafficScheduler) error {
 
 	trafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
 
@@ -436,7 +446,7 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShapi
 	}
 
 	log.Debugw("Sending Traffic scheduler create to device", log.Fields{"Direction": sq.direction, "TrafficScheds": TrafficSched})
-	if _, err := f.deviceHandler.Client.CreateTrafficSchedulers(context.Background(), &tp_pb.TrafficSchedulers{
+	if _, err := f.deviceHandler.Client.CreateTrafficSchedulers(context.Background(), &tppb.TrafficSchedulers{
 		IntfId: sq.intfID, OnuId: sq.onuID,
 		UniId: sq.uniID, PortNo: sq.uniPort,
 		TrafficScheds: TrafficSched}); err != nil {
@@ -448,14 +458,14 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShapi
 	// downstream queues.
 	log.Debugw("Sending Traffic Queues create to device", log.Fields{"Direction": sq.direction, "TrafficQueues": trafficQueues})
 	if _, err := f.deviceHandler.Client.CreateTrafficQueues(context.Background(),
-		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+		&tppb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
 			UniId: sq.uniID, PortNo: sq.uniPort,
 			TrafficQueues: trafficQueues}); err != nil {
 		log.Errorw("Failed to create traffic queues in device", log.Fields{"error": err})
 		return err
 	}
 
-	if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	if sq.direction == tppb.Direction_DOWNSTREAM {
 		multicastTrafficQueues := f.techprofile[sq.intfID].GetMulticastTrafficQueues(sq.tpInst)
 		if len(multicastTrafficQueues) > 0 {
 			if _, present := f.interfaceToMcastQueueMap[sq.intfID]; !present {
@@ -468,9 +478,11 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShapi
 					servicePriority: multicastQueuePerPonPort.Priority,
 				}
 				//also store the queue info in kv store
-				f.resourceMgr.AddMcastQueueForIntf(sq.intfID,
+				if err := f.resourceMgr.AddMcastQueueForIntf(sq.intfID,
 					multicastQueuePerPonPort.GemportId,
-					multicastQueuePerPonPort.Priority)
+					multicastQueuePerPonPort.Priority); err != nil {
+					log.Errorw("Failed to add multicast queue for pon interface", log.Fields{"gemID": multicastQueuePerPonPort.GemportId})
+				}
 			}
 		}
 	}
@@ -481,14 +493,14 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(sq schedQueue, TrafficShapi
 func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 
 	var Direction string
-	var SchedCfg *tp_pb.SchedulerConfig
+	var SchedCfg *tppb.SchedulerConfig
 	var err error
 	log.Debugw("Removing schedulers and Queues in OLT", log.Fields{"Direction": sq.direction, "IntfID": sq.intfID,
 		"OnuID": sq.onuID, "UniID": sq.uniID, "UniPort": sq.uniPort})
-	if sq.direction == tp_pb.Direction_UPSTREAM {
+	if sq.direction == tppb.Direction_UPSTREAM {
 		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
 		Direction = "upstream"
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	} else if sq.direction == tppb.Direction_DOWNSTREAM {
 		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
 		Direction = "downstream"
 	}
@@ -514,9 +526,9 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 	pir := cir + eir
 	pbs := cbs + ebs
 
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+	TrafficShaping := &tppb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched := []*tppb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
 
 	TrafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
 	if err != nil {
@@ -525,14 +537,14 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 	}
 
 	if _, err = f.deviceHandler.Client.RemoveTrafficQueues(context.Background(),
-		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+		&tppb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
 			UniId: sq.uniID, PortNo: sq.uniPort,
 			TrafficQueues: TrafficQueues}); err != nil {
 		log.Errorw("Failed to remove traffic queues", log.Fields{"error": err})
 		return err
 	}
 	log.Debug("Removed traffic queues successfully")
-	if _, err = f.deviceHandler.Client.RemoveTrafficSchedulers(context.Background(), &tp_pb.TrafficSchedulers{
+	if _, err = f.deviceHandler.Client.RemoveTrafficSchedulers(context.Background(), &tppb.TrafficSchedulers{
 		IntfId: sq.intfID, OnuId: sq.onuID,
 		UniId: sq.uniID, PortNo: sq.uniPort,
 		TrafficScheds: TrafficSched}); err != nil {
@@ -555,15 +567,14 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(sq schedQueue) error {
 }
 
 // This function allocates tconts and GEM ports for an ONU
-func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, *tp.TechProfile) {
-	var allocIDs []uint32
-	var allgemPortIDs []uint32
+func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, *tp.TechProfile, error) {
+
 	var gemPortIDs []uint32
 	tpInstanceExists := false
 	var err error
 
-	allocIDs = f.resourceMgr.GetCurrentAllocIDsForOnu(intfID, onuID, uniID)
-	allgemPortIDs = f.resourceMgr.GetCurrentGEMPortIDsForOnu(intfID, onuID, uniID)
+	allocIDs := f.resourceMgr.GetCurrentAllocIDsForOnu(intfID, onuID, uniID)
+	allgemPortIDs := f.resourceMgr.GetCurrentGEMPortIDsForOnu(intfID, onuID, uniID)
 
 	tpPath := f.getTPpath(intfID, uni, TpID)
 
@@ -577,27 +588,30 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID 
 		if err != nil {
 			// This should not happen, something wrong in KV backend transaction
 			log.Errorw("tp-instance-create-failed", log.Fields{"error": err, "tpID": TpID})
-			return 0, nil, nil
+			return 0, nil, nil, err
 		}
-		f.resourceMgr.UpdateTechProfileIDForOnu(intfID, onuID, uniID, TpID)
+		if err := f.resourceMgr.UpdateTechProfileIDForOnu(intfID, onuID, uniID, TpID); err != nil {
+			log.Errorw("Failed to update tech profile id for onu", log.Fields{"error": err, "onuID": onuID, "uniID": uniID})
+			return 0, nil, nil, err
+		}
 	} else {
 		log.Debugw("Tech-profile-instance-already-exist-for-given port-name", log.Fields{"uni": uni})
 		tpInstanceExists = true
 	}
 	if UsMeterID != 0 {
-		sq := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
+		sq := schedQueue{direction: tppb.Direction_UPSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
 			uniPort: uniPort, tpInst: techProfileInstance, meterID: UsMeterID, flowMetadata: flowMetadata}
 		if err := f.CreateSchedulerQueues(sq); err != nil {
 			log.Errorw("CreateSchedulerQueues Failed-upstream", log.Fields{"error": err, "meterID": UsMeterID})
-			return 0, nil, nil
+			return 0, nil, nil, err
 		}
 	}
 	if DsMeterID != 0 {
-		sq := schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
+		sq := schedQueue{direction: tppb.Direction_DOWNSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
 			uniPort: uniPort, tpInst: techProfileInstance, meterID: DsMeterID, flowMetadata: flowMetadata}
 		if err := f.CreateSchedulerQueues(sq); err != nil {
 			log.Errorw("CreateSchedulerQueues Failed-downstream", log.Fields{"error": err, "meterID": DsMeterID})
-			return 0, nil, nil
+			return 0, nil, nil, err
 		}
 	}
 
@@ -607,7 +621,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID 
 	}
 
 	if tpInstanceExists {
-		return allocID, gemPortIDs, techProfileInstance
+		return allocID, gemPortIDs, techProfileInstance, nil
 	}
 
 	allocIDs = appendUnique(allocIDs, allocID)
@@ -617,35 +631,44 @@ func (f *OpenOltFlowMgr) createTcontGemports(intfID uint32, onuID uint32, uniID 
 
 	log.Debugw("Allocated Tcont and GEM ports", log.Fields{"allocIDs": allocIDs, "gemports": allgemPortIDs})
 	// Send Tconts and GEM ports to KV store
-	f.storeTcontsGEMPortsIntoKVStore(intfID, onuID, uniID, allocIDs, allgemPortIDs)
-	return allocID, gemPortIDs, techProfileInstance
+	if err := f.storeTcontsGEMPortsIntoKVStore(intfID, onuID, uniID, allocIDs, allgemPortIDs); err != nil {
+		log.Errorw("Failed to store the tconts and gem ports", log.Fields{"error": err})
+		return 0, nil, nil, err
+	}
+	return allocID, gemPortIDs, techProfileInstance, nil
 }
 
-func (f *OpenOltFlowMgr) storeTcontsGEMPortsIntoKVStore(intfID uint32, onuID uint32, uniID uint32, allocID []uint32, gemPortIDs []uint32) {
+func (f *OpenOltFlowMgr) storeTcontsGEMPortsIntoKVStore(intfID uint32, onuID uint32, uniID uint32, allocID []uint32, gemPortIDs []uint32) error {
 
 	log.Debugw("Storing allocated Tconts and GEM ports into KV store",
 		log.Fields{"intfId": intfID, "onuId": onuID, "uniId": uniID, "allocID": allocID, "gemPortIDs": gemPortIDs})
 	/* Update the allocated alloc_id and gem_port_id for the ONU/UNI to KV store  */
 	if err := f.resourceMgr.UpdateAllocIdsForOnu(intfID, onuID, uniID, allocID); err != nil {
 		log.Error("Errow while uploading allocID to KV store")
+		return err
 	}
 	if err := f.resourceMgr.UpdateGEMPortIDsForOnu(intfID, onuID, uniID, gemPortIDs); err != nil {
 		log.Error("Errow while uploading GEMports to KV store")
+		return err
 	}
 	if err := f.resourceMgr.UpdateGEMportsPonportToOnuMapOnKVStore(gemPortIDs, intfID, onuID, uniID); err != nil {
 		log.Error("Errow while uploading gemtopon map to KV store")
+		return err
 	}
 	log.Debug("Stored tconts and GEM into KV store successfully")
 	for _, gemPort := range gemPortIDs {
-		f.addGemPortToOnuInfoMap(intfID, onuID, gemPort)
+		if err := f.addGemPortToOnuInfoMap(intfID, onuID, gemPort); err != nil {
+			log.Errorw("Failed to add gem port to onu info map", log.Fields{"error": err, "gemport": gemPort, "onuID": onuID})
+		}
 	}
+	return nil
 }
 
 func (f *OpenOltFlowMgr) populateTechProfilePerPonPort() error {
 	var tpCount int
 	for _, techRange := range f.resourceMgr.DevInfo.Ranges {
 		for _, intfID := range techRange.IntfIds {
-			f.techprofile[intfID] = f.resourceMgr.ResourceMgrs[uint32(intfID)].TechProfileMgr
+			f.techprofile[intfID] = f.resourceMgr.ResourceMgrs[intfID].TechProfileMgr
 			tpCount++
 			log.Debugw("Init tech profile done", log.Fields{"intfID": intfID})
 		}
@@ -664,31 +687,42 @@ func (f *OpenOltFlowMgr) populateTechProfilePerPonPort() error {
 func (f *OpenOltFlowMgr) addUpstreamDataFlow(intfID uint32, onuID uint32, uniID uint32,
 	portNo uint32, uplinkClassifier map[string]interface{},
 	uplinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32) {
+	allocID uint32, gemportID uint32) error {
 	uplinkClassifier[PacketTagType] = SingleTag
 	log.Debugw("Adding upstream data flow", log.Fields{"uplinkClassifier": uplinkClassifier, "uplinkAction": uplinkAction})
-	f.addHSIAFlow(intfID, onuID, uniID, portNo, uplinkClassifier, uplinkAction,
-		Upstream, logicalFlow, allocID, gemportID)
+	if err := f.addHSIAFlow(intfID, onuID, uniID, portNo, uplinkClassifier, uplinkAction,
+		Upstream, logicalFlow, allocID, gemportID); err != nil {
+		log.Errorw("Failed to add upstream hsia flows", log.Fields{"error": err})
+		return err
+	}
 	/* TODO: Install Secondary EAP on the subscriber vlan */
+	return nil
 }
 
 func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniID uint32,
 	portNo uint32, downlinkClassifier map[string]interface{},
 	downlinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32) {
+	allocID uint32, gemportID uint32) error {
 	downlinkClassifier[PacketTagType] = DoubleTag
 	log.Debugw("Adding downstream data flow", log.Fields{"downlinkClassifier": downlinkClassifier,
 		"downlinkAction": downlinkAction})
 	// Ignore Downlink trap flow given by core, cannot do anything with this flow */
 	if vlan, exists := downlinkClassifier[VlanVid]; exists {
-		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) { //private VLAN given by core
+		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) {
+			//private VLAN given by core
 			if metadata, exists := downlinkClassifier[Metadata]; exists { // inport is filled in metadata by core
 				if uint32(metadata.(uint64)) == MkUniPortNum(intfID, onuID, uniID) {
 					log.Infow("Ignoring DL trap device flow from core", log.Fields{"flow": logicalFlow})
-					return
+					return nil
 				}
+			} else {
+				log.Errorw("Failed to get the metadata from the downlink classifier", log.Fields{"metadata": Metadata, "downClassifier": downlinkClassifier})
+				return errors.New("failed to get the metadata info from the downlink classifier")
 			}
 		}
+	} else {
+		log.Errorw("Failed to get the vlanid from the downlink classifier", log.Fields{"metadata": Metadata, "downClassifier": downlinkClassifier})
+		return errors.New("failed to get the vlanid info from the downlink classifier")
 	}
 
 	/* Already this info available classifier? */
@@ -699,16 +733,20 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(intfID uint32, onuID uint32, uniI
 		downlinkAction[VlanVid] = dlClVid & 0xfff
 	} else {
 		log.Error("dl-classifier-vid-type-conversion-failed")
-		return
+		return errors.New("dl-classifier-vid-type-conversion-failed")
 	}
 
-	f.addHSIAFlow(intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
-		Downstream, logicalFlow, allocID, gemportID)
+	if err := f.addHSIAFlow(intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
+		Downstream, logicalFlow, allocID, gemportID); err != nil {
+		log.Errorw("Failed to add downstream hsia flows", log.Fields{"error": err})
+		return err
+	}
+	return nil
 }
 
 func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
 	action map[string]interface{}, direction string, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemPortID uint32) {
+	allocID uint32, gemPortID uint32) error {
 	var networkIntfID uint32
 	/* One of the OLT platform (Broadcom BAL) requires that symmetric
 	   flows require the same flow_id to be used across UL and DL.
@@ -726,31 +764,31 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, 
 		log.Debugw("Found pbit in the flow", log.Fields{"VlanPbit": vlanPbit})
 	}
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(intfID), int32(onuID), int32(uniID), flowStoreCookie); present {
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(intfID, int32(onuID), int32(uniID), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
-		return
+		return nil
 	}
 	flowID, err := f.resourceMgr.GetFlowID(intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, HsiaFlow, vlanPbit)
 	if err != nil {
 		log.Errorw("Flow id unavailable for HSIA flow", log.Fields{"direction": direction})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	var actionProto *openoltpb2.Action
 	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for hsia flow")
-		return
+		return errors.New("classifier field is empty")
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(action); actionProto == nil {
 		log.Errorw("Error in making action protobuf for hsia flow", log.Fields{"direction": direction})
-		return
+		return err
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
 	networkIntfID, err = getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 	flow := openoltpb2.Flow{AccessIntfId: int32(intfID),
 		OnuId:         int32(onuID),
@@ -765,7 +803,7 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, 
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(logicalFlow, &flow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &flow); ok {
 		log.Debug("HSIA flow added to device successfully", log.Fields{"direction": direction})
 		flowsToKVStore := f.getUpdatedFlowInfo(&flow, flowStoreCookie, HsiaFlow, flowID, logicalFlow.Id)
 		if err := f.updateFlowInfoToKVStore(flow.AccessIntfId,
@@ -773,12 +811,16 @@ func (f *OpenOltFlowMgr) addHSIAFlow(intfID uint32, onuID uint32, uniID uint32, 
 			flow.UniId,
 			flow.FlowId /*flowCategory,*/, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading HSIA  flow into KV store", log.Fields{"flow": flow, "direction": direction, "error": err})
-			return
+			return err
 		}
+	} else {
+		log.Errorw("Failed to add hsia flow to device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
+	return nil
 }
 
-func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) {
+func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) error {
 
 	var dhcpFlow openoltpb2.Flow
 	var actionProto *openoltpb2.Action
@@ -787,7 +829,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 	networkIntfID, err := getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 
 	// Clear the action map
@@ -802,28 +844,28 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 	delete(classifier, VlanVid)
 
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(intfID), int32(onuID), int32(uniID), flowStoreCookie); present {
-		log.Debug("Flow-exists--not-re-adding")
-		return
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(intfID, int32(onuID), int32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists-not-re-adding")
+		return nil
 	}
 
 	flowID, err = f.resourceMgr.GetFlowID(intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, DhcpFlow, 0 /*classifier[VLAN_PCP].(uint32)*/)
 
 	if err != nil {
 		log.Errorw("flowId unavailable for UL DHCP", log.Fields{"intfId": intfID, "onuId": onuID, "flowStoreCookie": flowStoreCookie})
-		return
+		return err
 	}
 
 	log.Debugw("Creating UL DHCP flow", log.Fields{"ul_classifier": classifier, "ul_action": action, "uplinkFlowId": flowID})
 
 	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for ul flow")
-		return
+		return errors.New("classifier field is empty")
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(action); actionProto == nil {
 		log.Error("Error in making action protobuf for ul flow")
-		return
+		return errors.New("action field is empty")
 	}
 
 	dhcpFlow = openoltpb2.Flow{AccessIntfId: int32(intfID),
@@ -840,7 +882,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 
-	if ok := f.addFlowToDevice(logicalFlow, &dhcpFlow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &dhcpFlow); ok {
 		log.Debug("DHCP UL flow added to device successfully")
 		flowsToKVStore := f.getUpdatedFlowInfo(&dhcpFlow, flowStoreCookie, "DHCP", flowID, logicalFlow.Id)
 		if err := f.updateFlowInfoToKVStore(dhcpFlow.AccessIntfId,
@@ -848,31 +890,37 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(intfID uint32, onuID uint32, uniID uint
 			dhcpFlow.UniId,
 			dhcpFlow.FlowId, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading DHCP UL flow into KV store", log.Fields{"flow": dhcpFlow, "error": err})
-			return
+			return err
 		}
+	} else {
+		log.Errorw("failed to add dhcp ul flow to device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
 
-	return
+	return nil
 }
 
 //addIGMPTrapFlow creates IGMP trap-to-host flow
 func (f *OpenOltFlowMgr) addIGMPTrapFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) {
-	f.addUpstreamTrapFlow(intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, IgmpFlow)
+	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) error {
+	if err := f.addUpstreamTrapFlow(intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, IgmpFlow); err != nil {
+		log.Errorw("Failed to add upstream trap flow", log.Fields{"gemport": gemPortID})
+		return err
+	}
+	return nil
 }
 
 //addUpstreamTrapFlow creates a trap-to-host flow
 func (f *OpenOltFlowMgr) addUpstreamTrapFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, flowType string) {
+	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, flowType string) error {
 
-	var flow openoltpb2.Flow
 	var actionProto *openoltpb2.Action
 	var classifierProto *openoltpb2.Classifier
 
 	networkIntfID, err := getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 
 	// Clear the action map
@@ -885,31 +933,31 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(intfID uint32, onuID uint32, uniID 
 	delete(classifier, VlanVid)
 
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkIntfID), int32(onuID), int32(uniID), flowStoreCookie); present {
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(networkIntfID, int32(onuID), int32(uniID), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
-		return
+		return nil
 	}
 
 	flowID, err := f.resourceMgr.GetFlowID(intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, flowType, 0, 0 /*classifier[VLAN_PCP].(uint32)*/)
 
 	if err != nil {
 		log.Errorw("flowId unavailable for upstream trap flow", log.Fields{"intfId": intfID, "onuId": onuID, "flowStoreCookie": flowStoreCookie, "flowType": flowType})
-		return
+		return err
 	}
 
 	log.Debugw("Creating upstream trap flow", log.Fields{"ul_classifier": classifier, "ul_action": action, "uplinkFlowId": flowID, "flowType": flowType})
 
 	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for ul flow")
-		return
+		return errors.New("classifier field is empty")
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(action); actionProto == nil {
 		log.Error("Error in making action protobuf for ul flow")
-		return
+		return errors.New("action field is empty")
 	}
 
-	flow = openoltpb2.Flow{AccessIntfId: int32(intfID),
+	flow := openoltpb2.Flow{AccessIntfId: int32(intfID),
 		OnuId:         int32(onuID),
 		UniId:         int32(uniID),
 		FlowId:        flowID,
@@ -923,7 +971,7 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(intfID uint32, onuID uint32, uniID 
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 
-	if ok := f.addFlowToDevice(logicalFlow, &flow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &flow); ok {
 		log.Debugf("%s UL flow added to device successfully", flowType)
 
 		flowsToKVStore := f.getUpdatedFlowInfo(&flow, flowStoreCookie, flowType, flowID, logicalFlow.Id)
@@ -932,15 +980,17 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(intfID uint32, onuID uint32, uniID 
 			flow.UniId,
 			flow.FlowId, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading UL flow into KV store", log.Fields{"flow": flow, "error": err})
-			return
+			return err
 		}
+	} else {
+		log.Errorw("Failed to add ul flows to device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
-
-	return
+	return nil
 }
 
 // Add EAPOL flow to  device with mac, vlanId as classifier for upstream and downstream
-func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, vlanID uint32, classifier map[string]interface{}, action map[string]interface{}) {
+func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32, portNo uint32, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, vlanID uint32, classifier map[string]interface{}, action map[string]interface{}) error {
 	log.Debugw("Adding EAPOL to device", log.Fields{"intfId": intfID, "onuId": onuID, "portNo": portNo, "allocId": allocID, "gemPortId": gemPortID, "vlanId": vlanID, "flow": logicalFlow})
 
 	uplinkClassifier := make(map[string]interface{})
@@ -956,15 +1006,15 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 	// Fill action
 	uplinkAction[TrapToHost] = true
 	flowStoreCookie := getFlowStoreCookie(uplinkClassifier, gemPortID)
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(intfID), int32(onuID), int32(uniID), flowStoreCookie); present {
-		log.Debug("Flow-exists--not-re-adding")
-		return
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(intfID, int32(onuID), int32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists-not-re-adding")
+		return nil
 	}
 	//Add Uplink EAPOL Flow
 	uplinkFlowID, err := f.resourceMgr.GetFlowID(intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, "", 0)
 	if err != nil {
 		log.Errorw("flowId unavailable for UL EAPOL", log.Fields{"intfId": intfID, "onuId": onuID, "flowStoreCookie": flowStoreCookie})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	var actionProto *openoltpb2.Action
@@ -972,18 +1022,18 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 
 	if classifierProto = makeOpenOltClassifierField(uplinkClassifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for ul flow")
-		return
+		return err
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(uplinkAction); actionProto == nil {
 		log.Error("Error in making action protobuf for ul flow")
-		return
+		return err
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
 	networkIntfID, err = getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 
 	upstreamFlow = openoltpb2.Flow{AccessIntfId: int32(intfID),
@@ -999,7 +1049,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(logicalFlow, &upstreamFlow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &upstreamFlow); ok {
 		log.Debug("EAPOL UL flow added to device successfully")
 		flowCategory := "EAPOL"
 		flowsToKVStore := f.getUpdatedFlowInfo(&upstreamFlow, flowStoreCookie, flowCategory, uplinkFlowID, logicalFlow.Id)
@@ -1010,11 +1060,15 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(intfID uint32, onuID uint32, uniID uint32,
 			/* lowCategory, */
 			flowsToKVStore); err != nil {
 			log.Errorw("Error uploading EAPOL UL flow into KV store", log.Fields{"flow": upstreamFlow, "error": err})
-			return
+			return err
 		}
+	} else {
+		log.Errorw("Failed to add eapol ul flow to device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
 
 	log.Debugw("Added EAPOL flows to device successfully", log.Fields{"flow": logicalFlow})
+	return nil
 }
 
 func makeOpenOltClassifierField(classifierInfo map[string]interface{}) *openoltpb2.Classifier {
@@ -1121,7 +1175,7 @@ func getFlowStoreCookie(classifier map[string]interface{}, gemPortID uint32) uin
 	var err error
 	// TODO: Do we need to marshall ??
 	if jsonData, err = json.Marshal(classifier); err != nil {
-		log.Error("Failed to encode classifier")
+		log.Errorw("Failed to encode classifier", log.Fields{"error": err, "classifier": classifier})
 		return 0
 	}
 	flowString = string(jsonData)
@@ -1138,7 +1192,7 @@ func getFlowStoreCookie(classifier map[string]interface{}, gemPortID uint32) uin
 }
 
 func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openoltpb2.Flow, flowStoreCookie uint64, flowCategory string, deviceFlowID uint32, logicalFlowID uint64) *[]rsrcMgr.FlowInfo {
-	var flows = []rsrcMgr.FlowInfo{{Flow: flow, FlowCategory: flowCategory, FlowStoreCookie: flowStoreCookie, LogicalFlowID: logicalFlowID}}
+	var flowsInfo = []rsrcMgr.FlowInfo{{Flow: flow, FlowCategory: flowCategory, FlowStoreCookie: flowStoreCookie, LogicalFlowID: logicalFlowID}}
 	var intfID uint32
 	/* For flows which trap out of the NNI, the AccessIntfId is invalid
 	   (set to -1). In such cases, we need to refer to the NetworkIntfId .
@@ -1155,10 +1209,10 @@ func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openoltpb2.Flow, flowStoreCook
 		//for _, f := range *existingFlows {
 		//	flows = append(flows, f)
 		//}
-		flows = append(flows, *existingFlows...)
+		flowsInfo = append(flowsInfo, *existingFlows...)
 	}
-	log.Debugw("Updated flows for given flowID and onuid", log.Fields{"updatedflow": flows, "flowid": flow.FlowId, "onu": flow.OnuId})
-	return &flows
+	log.Debugw("Updated flows for given flowID and onuid", log.Fields{"updatedflow": flowsInfo, "flowid": flow.FlowId, "onu": flow.OnuId})
+	return &flowsInfo
 }
 
 //func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]rsrcMgr.FlowInfo {
@@ -1194,7 +1248,7 @@ func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(intfID int32, onuID int32, uniI
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) bool {
+func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) (bool, error) {
 
 	var intfID uint32
 	/* For flows which trap out of the NNI, the AccessIntfId is invalid
@@ -1213,60 +1267,44 @@ func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFl
 	st, _ := status.FromError(err)
 	if st.Code() == codes.AlreadyExists {
 		log.Debug("Flow already exists", log.Fields{"err": err, "deviceFlow": deviceFlow})
-		return true
+		return true, err
 	}
 
 	if err != nil {
 		log.Errorw("Failed to Add flow to device", log.Fields{"err": err, "deviceFlow": deviceFlow})
 		f.resourceMgr.FreeFlowID(intfID, deviceFlow.OnuId, deviceFlow.UniId, deviceFlow.FlowId)
-		return false
+		return false, err
 	}
+
 	if deviceFlow.GemportId != -1 {
 		// No need to register the flow if it is a trap on nni flow.
-		f.registerFlow(logicalFlow, deviceFlow)
+		if errRegFlow := f.registerFlow(logicalFlow, deviceFlow); errRegFlow != nil {
+			log.Errorw("Failed to register flow", log.Fields{"error": errRegFlow, "logicalFlow": logicalFlow, "deviceFlow": deviceFlow})
+			return false, errRegFlow
+		}
 	}
 	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
-	return true
+	return true, nil
 }
 
-func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) bool {
+func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) (bool, error) {
 	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
 	_, err := f.deviceHandler.Client.FlowRemove(context.Background(), deviceFlow)
 	if err != nil {
 		if f.deviceHandler.device.ConnectStatus == common.ConnectStatus_UNREACHABLE {
 			log.Warnw("Can not remove flow from device since it's unreachable", log.Fields{"err": err, "deviceFlow": deviceFlow})
 			//Assume the flow is removed
-			return true
+			return true, err
 		}
 		log.Errorw("Failed to Remove flow from device", log.Fields{"err": err, "deviceFlow": deviceFlow})
-		return false
+		return false, err
 
 	}
 	log.Debugw("Flow removed from device successfully ", log.Fields{"flow": *deviceFlow})
-	return true
+	return true, err
 }
 
-/*func register_flow(deviceFlow *openolt_pb2.Flow, logicalFlow *ofp.OfpFlowStats){
- //update core flows_proxy : flows_proxy.update('/', flows)
-}
-
-func generateStoredId(flowId uint32, direction string)uint32{
-
-	if direction == Upstream{
-		log.Debug("Upstream flow shifting flowid")
-		return ((0x1 << 15) | flowId)
-	}else if direction == Downstream{
-		log.Debug("Downstream flow not shifting flowid")
-		return flowId
-	}else{
-		log.Errorw("Unrecognized direction",log.Fields{"direction": direction})
-		return flowId
-	}
-}
-
-*/
-
-func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
+func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) error {
 
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
@@ -1291,28 +1329,32 @@ func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
 	var uniID = -1
 	var gemPortID = -1
 
-	var networkInterfaceID = IntfIDFromNniPortNum(portNo)
-	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
-		log.Debug("Flow-exists--not-re-adding")
-		return
+	var networkInterfaceID, err = IntfIDFromNniPortNum(portNo)
+	if err != nil {
+		log.Error("Failed to get the network interface id", log.Fields{"error": err, "portnum": portNo})
+		return err
 	}
-	flowID, err := f.resourceMgr.GetFlowID(uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
+	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(networkInterfaceID, int32(onuID), int32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists--not-re-adding")
+		return nil
+	}
+	flowID, err := f.resourceMgr.GetFlowID(networkInterfaceID, int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
 
 	if err != nil {
 		log.Errorw("Flow id unavailable for LLDP traponNNI flow", log.Fields{"error": err})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	var actionProto *openoltpb2.Action
 	if classifierProto = makeOpenOltClassifierField(classifierInfo); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for  LLDP trap on nni flow")
-		return
+		return err
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(actionInfo); actionProto == nil {
 		log.Error("Error in making action protobuf for LLDP trap on nni flow")
-		return
+		return errors.New("failed to create protobuf for action field")
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
 
@@ -1328,7 +1370,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
 		Priority:      int32(flow.Priority),
 		Cookie:        flow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(flow, &downstreamflow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(flow, &downstreamflow); ok {
 		log.Debug("LLDP trap on NNI flow added to device successfully")
 		flowsToKVStore := f.getUpdatedFlowInfo(&downstreamflow, flowStoreCookie, "", flowID, flow.Id)
 		if err := f.updateFlowInfoToKVStore(int32(networkInterfaceID),
@@ -1337,8 +1379,11 @@ func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
 			flowID, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading LLDP flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
 		}
+	} else {
+		log.Errorw("Failed to add flow to device", log.Fields{"error": errAddFlow, "flow": flow})
+		return errAddFlow
 	}
-	return
+	return nil
 }
 
 func getUniPortPath(intfID uint32, onuID int32, uniID int32) string {
@@ -1356,11 +1401,6 @@ func (f *OpenOltFlowMgr) getOnuChildDevice(intfID uint32, onuID uint32) (*voltha
 	}
 	log.Debugw("Successfully received child device from core", log.Fields{"child_device": *onuDevice})
 	return onuDevice, nil
-}
-
-func findNextFlow(flow *ofp.OfpFlowStats) *ofp.OfpFlowStats {
-	log.Info("unimplemented flow : %v", flow)
-	return nil
 }
 
 func (f *OpenOltFlowMgr) clearFlowsAndSchedulerForLogicalPort(childDevice *voltha.Device, logicalPort *voltha.LogicalPort) {
@@ -1402,7 +1442,7 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(intfID uint32, onuID uint32, u
 func (f *OpenOltFlowMgr) sendDeleteTcontToChild(intfID uint32, onuID uint32, uniID uint32, allocID uint32, tpPath string) error {
 	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
 	if err != nil {
-		log.Errorw("error fetching child device from core", log.Fields{"onuId": onuID})
+		log.Errorw("error fetching child device from core", log.Fields{"onuId": onuID, "error": err})
 		return err
 	}
 
@@ -1472,6 +1512,7 @@ func (f *OpenOltFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32
 }
 
 //clearResources clears pon resources in kv store and the device
+// nolint: gocyclo
 func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onuID int32, uniID int32,
 	gemPortID int32, flowID uint32, flowDirection string,
 	portNum uint32, updatedFlows []rsrcMgr.FlowInfo) error {
@@ -1487,7 +1528,10 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 		// So the flow should not be freed yet.
 		// For ex: Case of HSIA where same flow is shared
 		// between DS and US.
-		f.updateFlowInfoToKVStore(int32(Intf), int32(onuID), int32(uniID), flowID, &updatedFlows)
+		if err := f.updateFlowInfoToKVStore(int32(Intf), onuID, uniID, flowID, &updatedFlows); err != nil {
+			log.Errorw("Failed to update flow information to kv store", log.Fields{"error": err, "onuID": onuID, "flowID": flowID})
+			return err
+		}
 		if len(updatedFlows) == 0 {
 			// Do this for subscriber flows only (not trap from NNI flows)
 			if onuID != -1 && uniID != -1 {
@@ -1507,7 +1551,7 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			}
 
 			log.Debugw("Releasing flow Id to resource manager", log.Fields{"Intf": Intf, "onuId": onuID, "uniId": uniID, "flowId": flowID})
-			f.resourceMgr.FreeFlowID(Intf, int32(onuID), int32(uniID), flowID)
+			f.resourceMgr.FreeFlowID(Intf, onuID, uniID, flowID)
 
 			uni := getUniPortPath(Intf, onuID, uniID)
 			tpPath := f.getTPpath(Intf, uni, tpID)
@@ -1531,7 +1575,10 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 						// everytime flowsUsedByGemPort cache is updated the same should be updated
 						// in kv store by calling UpdateFlowIDsForGem
 						f.flowsUsedByGemPort[gemPK] = flowIDs
-						f.resourceMgr.UpdateFlowIDsForGem(Intf, uint32(gemPortID), flowIDs)
+						if flowErr := f.resourceMgr.UpdateFlowIDsForGem(Intf, uint32(gemPortID), flowIDs); flowErr != nil {
+							log.Errorw("Failed to update flow ids for gem", log.Fields{"error": flowErr, "gemportID": gemPortID, "flowIDs": flowIDs})
+							return err
+						}
 						break
 					}
 				}
@@ -1552,20 +1599,35 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			f.resourceMgr.FreeGemPortID(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
 			f.onuIdsLock.Unlock()
 			// Delete the gem port on the ONU.
-			if err := f.sendDeleteGemPortToChild(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID), tpPath); err != nil {
+			if delGemErr := f.sendDeleteGemPortToChild(Intf, uint32(onuID), uint32(uniID), uint32(gemPortID), tpPath); delGemErr != nil {
 				log.Errorw("error processing delete gem-port towards onu",
-					log.Fields{"err": err, "pon": Intf, "onuID": onuID, "uniID": uniID, "gemPortId": gemPortID})
+					log.Fields{"err": delGemErr, "pon": Intf, "onuID": onuID, "uniID": uniID, "gemPortId": gemPortID})
 			}
 
-			ok, _ := f.isTechProfileUsedByAnotherGem(Intf, uint32(onuID), uint32(uniID), tpID, techprofileInst, uint32(gemPortID))
+			ok, _, err := f.isTechProfileUsedByAnotherGem(Intf, uint32(onuID), uint32(uniID), tpID, techprofileInst, uint32(gemPortID))
+			if err != nil {
+				log.Errorw("Failed to validate tech profile used by another gem", log.Fields{"onuID": onuID, "error": err})
+			}
 			if !ok {
-				f.resourceMgr.RemoveTechProfileIDForOnu(Intf, uint32(onuID), uint32(uniID), tpID)
-				f.RemoveSchedulerQueues(schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
-				f.RemoveSchedulerQueues(schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
-				f.DeleteTechProfileInstance(Intf, uint32(onuID), uint32(uniID), "", tpID)
+				if err := f.resourceMgr.RemoveTechProfileIDForOnu(Intf, uint32(onuID), uint32(uniID), tpID); err != nil {
+					log.Errorw("Failed to remove tech profile id for onu", log.Fields{"error": err, "onuID": onuID, "uniID": uniID, "tpID": tpID})
+					return err
+				}
+				if err := f.RemoveSchedulerQueues(schedQueue{direction: tppb.Direction_UPSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst}); err != nil {
+					log.Errorw("Failed to remove scheduler queues", log.Fields{"error": err, "onuID": onuID, "uniID": uniID, "direction": tppb.Direction_UPSTREAM})
+					return err
+				}
+				if err := f.RemoveSchedulerQueues(schedQueue{direction: tppb.Direction_DOWNSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst}); err != nil {
+					log.Errorw("Failed to remove scheduler queues", log.Fields{"error": err, "onuID": onuID, "uniID": uniID, "direction": tppb.Direction_DOWNSTREAM})
+					return err
+				}
+				if err := f.DeleteTechProfileInstance(Intf, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+					log.Errorw("Failed to delete tech profile instance", log.Fields{"error": err, "onuID": onuID})
+					return err
+				}
 				f.resourceMgr.FreeAllocID(Intf, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocID)
 				// Delete the TCONT on the ONU.
-				if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.UsScheduler.AllocID), tpPath); err != nil {
+				if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocID, tpPath); err != nil {
 					log.Errorw("error processing delete tcont towards onu",
 						log.Fields{"pon": Intf, "onuID": onuID, "uniID": uniID, "allocId": techprofileInst.UsScheduler.AllocID})
 				}
@@ -1575,13 +1637,17 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 	return nil
 }
 
-func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, flowDirection string) {
+// nolint: gocyclo
+func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, flowDirection string) error {
 
 	log.Debugw("clearFlowFromResourceManager", log.Fields{"flowDirection": flowDirection, "flow": *flow})
 
 	if flowDirection == Multicast {
-		f.clearMulticastFlowFromResourceManager(flow)
-		return
+		if err := f.clearMulticastFlowFromResourceManager(flow); err != nil {
+			log.Errorw("Failed to clear multicast floe from resource manager", log.Fields{"error": err, "flow": flow})
+			return err
+		}
+		return nil
 	}
 
 	var updatedFlows []rsrcMgr.FlowInfo
@@ -1591,8 +1657,8 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 
 	portNum, Intf, onu, uni, inPort, ethType, err := FlowExtractInfo(flow, flowDirection)
 	if err != nil {
-		log.Error(err)
-		return
+		log.Errorw("Failed to extract information from flow", log.Fields{"error": err, "flow": flow})
+		return err
 	}
 
 	onuID = int32(onu)
@@ -1611,7 +1677,11 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 		onuID = -1
 		uniID = -1
 		log.Debug("Trap on nni flow set oni, uni to -1")
-		Intf = IntfIDFromNniPortNum(inPort)
+		Intf, err = IntfIDFromNniPortNum(inPort)
+		if err != nil {
+			log.Errorw("Failed to get interface id", log.Fields{"error": err, "port": inPort})
+			return err
+		}
 	}
 	flowIds := f.resourceMgr.GetCurrentFlowIDsForOnu(Intf, onuID, uniID)
 	for _, flowID = range flowIds {
@@ -1619,7 +1689,7 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 		if flowInfo == nil {
 			log.Debugw("No FlowInfo found found in KV store",
 				log.Fields{"Intf": Intf, "onuID": onuID, "uniID": uniID, "flowID": flowID})
-			return
+			return nil
 		}
 		updatedFlows = nil
 		for _, flow := range *flowInfo {
@@ -1630,7 +1700,7 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 			if flow.Id == storedFlow.LogicalFlowID {
 				removeFlowMessage := openoltpb2.Flow{FlowId: storedFlow.Flow.FlowId, FlowType: storedFlow.Flow.FlowType}
 				log.Debugw("Flow to be deleted", log.Fields{"flow": storedFlow})
-				if ok := f.removeFlowFromDevice(&removeFlowMessage); ok {
+				if ok, err := f.removeFlowFromDevice(&removeFlowMessage); ok {
 					log.Debug("Flow removed from device successfully")
 					//Remove the Flow from FlowInfo
 					updatedFlows = append(updatedFlows[:i], updatedFlows[i+1:]...)
@@ -1638,30 +1708,35 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 						flowID, flowDirection, portNum, updatedFlows)
 					if err != nil {
 						log.Error("Failed to clear resources for flow", log.Fields{"flow": storedFlow})
-						return
+						return err
 					}
 				} else {
 					log.Error("Failed to remove flow from device")
-					return
+					return err
 				}
 			}
 		}
 	}
+	return nil
 }
 
 //clearMulticastFlowFromResourceManager  removes a multicast flow from the KV store and
 // clears resources reserved for this multicast flow
-func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(flow *ofp.OfpFlowStats) {
+func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(flow *ofp.OfpFlowStats) error {
 	classifierInfo := make(map[string]interface{})
-	formulateClassifierInfoFromFlow(classifierInfo, flow)
-	inPort, err := f.getInPortOfMulticastFlow(classifierInfo)
+	var errNniPort, errMcFlow error
+	var networkInterfaceID, inPort uint32
 
-	if err != nil {
-		log.Warnw("No inPort found. Cannot release resources of the multicast flow.", log.Fields{"flowId:": flow.Id})
-		return
+	formulateClassifierInfoFromFlow(classifierInfo, flow)
+	if inPort, errMcFlow = f.getInPortOfMulticastFlow(classifierInfo); errMcFlow != nil {
+		log.Warnw("No inPort found. Cannot release resources of the multicast flow.", log.Fields{"flowId:": flow.Id, "error": errMcFlow})
+		return errMcFlow
 	}
 
-	networkInterfaceID := IntfIDFromNniPortNum(inPort)
+	if networkInterfaceID, errNniPort = IntfIDFromNniPortNum(inPort); errNniPort != nil {
+		log.Errorw("Failed to add interface from nni port number", log.Fields{"inPort": inPort, "error": errNniPort})
+		return errNniPort
+	}
 	var onuID = int32(NoneOnuID)
 	var uniID = int32(NoneUniID)
 	var flowID uint32
@@ -1685,27 +1760,28 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(flow *ofp.OfpFlow
 				removeFlowMessage := openoltpb2.Flow{FlowId: storedFlow.Flow.FlowId, FlowType: storedFlow.Flow.FlowType}
 				log.Debugw("Multicast flow to be deleted", log.Fields{"flow": storedFlow})
 				//remove from device
-				if ok := f.removeFlowFromDevice(&removeFlowMessage); !ok {
+				if ok, errRemFlw := f.removeFlowFromDevice(&removeFlowMessage); !ok {
 					log.Errorw("Failed to remove multicast flow from device", log.Fields{"flowId": flow.Id})
-					return
+					return errRemFlw
 				}
 				log.Debugw("Multicast flow removed from device successfully", log.Fields{"flowId": flow.Id})
 				//Remove the Flow from FlowInfo
 				updatedFlows = append(updatedFlows[:i], updatedFlows[i+1:]...)
 				if err := f.updateFlowInfoToKVStore(int32(networkInterfaceID), NoneOnuID, NoneUniID, flowID, &updatedFlows); err != nil {
 					log.Error("Failed to delete multicast flow from the KV store", log.Fields{"flow": storedFlow, "err": err})
-					return
+					return err
 				}
 				//release flow id
 				log.Debugw("Releasing multicast flow id", log.Fields{"flowId": flowID, "interfaceID": networkInterfaceID})
-				f.resourceMgr.FreeFlowID(uint32(networkInterfaceID), NoneOnuID, NoneUniID, flowID)
+				f.resourceMgr.FreeFlowID(networkInterfaceID, NoneOnuID, NoneUniID, flowID)
 			}
 		}
 	}
+	return nil
 }
 
 //RemoveFlow removes the flow from the device
-func (f *OpenOltFlowMgr) RemoveFlow(flow *ofp.OfpFlowStats) {
+func (f *OpenOltFlowMgr) RemoveFlow(flow *ofp.OfpFlowStats) error {
 	log.Debugw("Removing Flow", log.Fields{"flow": flow})
 	var direction string
 	actionInfo := make(map[string]interface{})
@@ -1717,7 +1793,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(flow *ofp.OfpFlowStats) {
 				log.Debugw("action-type-output", log.Fields{"out_port": actionInfo[Output].(uint32)})
 			} else {
 				log.Error("Invalid output port in action")
-				return
+				return errors.New("invalid output port in action")
 			}
 		}
 	}
@@ -1729,9 +1805,13 @@ func (f *OpenOltFlowMgr) RemoveFlow(flow *ofp.OfpFlowStats) {
 	} else {
 		direction = Downstream
 	}
-	f.clearFlowFromResourceManager(flow, direction) //TODO: Take care of the limitations
 
-	return
+	if err := f.clearFlowFromResourceManager(flow, direction); err != nil {
+		log.Errorw("Failed to clear flow from resource manager", log.Fields{"error": err, "flow": flow, "direction": direction})
+		return err
+	} //TODO: Take care of the limitations
+
+	return nil
 }
 
 func (f *OpenOltFlowMgr) waitForFlowDeletesToCompleteForOnu(ctx context.Context, intfID uint32, onuID uint32,
@@ -1755,13 +1835,9 @@ func (f *OpenOltFlowMgr) waitForFlowDeletesToCompleteForOnu(ctx context.Context,
 //isIgmpTrapDownstreamFlow return true if the flow is a downsteam IGMP trap-to-host flow; false otherwise
 func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 	if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_ETHERNET_NNI {
-		if ethType, ok := classifierInfo[EthType]; ok {
-			if ethType.(uint32) == IPv4EthType {
-				if ipProto, ok := classifierInfo[IPProto]; ok {
-					if ipProto.(uint32) == IgmpProto {
-						return true
-					}
-				}
+		if ethType, ok := classifierInfo[EthType]; ok && ethType.(uint32) == IPv4EthType {
+			if ipProto, ok := classifierInfo[IPProto]; ok && ipProto.(uint32) == IgmpProto {
+				return true
 			}
 		}
 	}
@@ -1770,7 +1846,7 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 
 // AddFlow add flow to device
 // nolint: gocyclo
-func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) {
+func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) error {
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
 	var UsMeterID uint32
@@ -1783,47 +1859,61 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
-		return
+		return err
 	}
 
 	if flows.HasGroup(flow) {
 		// handle multicast flow
-		f.handleFlowWithGroup(actionInfo, classifierInfo, flow)
-		return
+		if errFlGr := f.handleFlowWithGroup(actionInfo, classifierInfo, flow); errFlGr != nil {
+			log.Errorw("Failed to handle flow with group", log.Fields{"error": errFlGr})
+		}
+		return nil
+	}
+
+	if flows.HasGroup(flow) {
+		// handle multicast flow
+		if errFlowGrp := f.handleFlowWithGroup(actionInfo, classifierInfo, flow); errFlowGrp != nil {
+			log.Errorw("Failed to handle flow with group", log.Fields{"error": errFlowGrp, "flow": flow, "actionInfo": actionInfo, "classifierInfo": classifierInfo})
+		}
+		return nil
 	}
 
 	/* Controller bound trap flows */
 	err = formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo, flow)
 	if err != nil {
 		// error if any, already logged in the called function
-		return
+		return err
 	}
 
 	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[Output]})
 	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
 
-	if ethType, ok := classifierInfo[EthType]; ok {
-		if ethType.(uint32) == LldpEthType {
-			log.Info("Adding LLDP flow")
-			f.addLLDPFlow(flow, portNo)
-			return
+	if ethType, ok := classifierInfo[EthType]; ok && ethType.(uint32) == LldpEthType {
+		log.Info("Adding LLDP flow")
+		if errLldpFlow := f.addLLDPFlow(flow, portNo); errLldpFlow != nil {
+			log.Errorw("Failed to add LLDP Flow", log.Fields{"error": errLldpFlow})
+			return errLldpFlow
 		}
+		return nil
+
 	}
-	if ipProto, ok := classifierInfo[IPProto]; ok {
-		if ipProto.(uint32) == IPProtoDhcp {
-			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
-				if udpSrc.(uint32) == uint32(67) || udpSrc.(uint32) == uint32(546) {
-					log.Debug("trap-dhcp-from-nni-flow")
-					f.addDHCPTrapFlowOnNNI(flow, classifierInfo, portNo)
-					return
-				}
+	if ipProto, ok := classifierInfo[IPProto]; ok && ipProto.(uint32) == IPProtoDhcp {
+		if udpSrc, ok := classifierInfo[UDPSrc]; ok && (udpSrc.(uint32) == uint32(67) || udpSrc.(uint32) == uint32(546)) {
+			log.Debug("trap-dhcp-from-nni-flow")
+			if errDhcpTrap := f.addDHCPTrapFlowOnNNI(flow, classifierInfo, portNo); errDhcpTrap != nil {
+				log.Errorw("Failed to add dhcp trap flows on nni", log.Fields{"error": errDhcpTrap, "flow": flow, "portno": portNo})
+				return errDhcpTrap
 			}
+			return nil
 		}
 	}
 	if isIgmpTrapDownstreamFlow(classifierInfo) {
 		log.Debug("trap-igmp-from-nni-flow")
-		f.addIgmpTrapFlowOnNNI(flow, classifierInfo, portNo)
-		return
+		if errIgmpTrap := f.addIgmpTrapFlowOnNNI(flow, classifierInfo, portNo); errIgmpTrap != nil {
+			log.Errorw("Failed to add igmp trap flows on nni", log.Fields{"error": errIgmpTrap, "flow": flow, "portNo": portNo})
+			return errIgmpTrap
+		}
+		return nil
 	}
 
 	f.deviceHandler.AddUniPortToOnu(intfID, onuID, portNo)
@@ -1832,7 +1922,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	TpID, err := getTpIDFromFlow(flow)
 	if err != nil {
 		log.Error("metadata-is-not-present-invalid-flow-to-process", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
-		return
+		return err
 	}
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
 	if IsUpstream(actionInfo[Output].(uint32)) {
@@ -1847,7 +1937,10 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	pnFlDelKey := pendingFlowDeleteKey{intfID, onuID, uniID}
 	if _, ok := f.pendingFlowDelete.Load(pnFlDelKey); !ok {
 		log.Debugw("no pending flows found, going ahead with flow install", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
-		f.divideAndAddFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
+		if err := f.divideAndAddFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, TpID, UsMeterID, DsMeterID, flowMetadata); err != nil {
+			log.Errorw("divide and add flow failed", log.Fields{"onuID": onuID, "uniID": uniID, "portNo": portNo, "error": err})
+			return err
+		}
 	} else {
 		ctx := context.Background()
 		ctx, cancel := context.WithCancel(ctx)
@@ -1857,23 +1950,26 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 		select {
 		case <-pendingFlowDelComplete:
 			log.Debugw("all pending flow deletes completed", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
-			f.divideAndAddFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
+			if err := f.divideAndAddFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, TpID, UsMeterID, DsMeterID, flowMetadata); err != nil {
+				log.Errorw("divide and add flow failed", log.Fields{"error": err, "onuID": onuID, "uniID": uniID})
+			}
 
 		case <-time.After(10 * time.Second):
 			log.Errorw("pending flow deletes not completed after timeout", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
 		}
 	}
+	return nil
 }
 
 // handleFlowWithGroup adds multicast flow to the device.
-func (f *OpenOltFlowMgr) handleFlowWithGroup(actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) {
+func (f *OpenOltFlowMgr) handleFlowWithGroup(actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
 	classifierInfo[PacketTagType] = DoubleTag
 	log.Debugw("add-multicast-flow", log.Fields{"classifierInfo": classifierInfo, "actionInfo": actionInfo})
 
 	inPort, err := f.getInPortOfMulticastFlow(classifierInfo)
 	if err != nil {
 		log.Warnw("No inPort found. Ignoring multicast flow.", log.Fields{"flowId:": flow.Id})
-		return
+		return err
 	}
 	//replace ipDst with ethDst
 	if ipv4Dst, ok := classifierInfo[Ipv4Dst]; ok &&
@@ -1889,23 +1985,27 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(actionInfo, classifierInfo map[stri
 	var onuID = NoneOnuID
 	var uniID = NoneUniID
 	var gemPortID = NoneGemPortID
+	var errNni error
+	var networkInterfaceID uint32
 
-	networkInterfaceID := IntfIDFromNniPortNum(inPort)
+	if networkInterfaceID, errNni = IntfIDFromNniPortNum(inPort); errNni != nil {
+		log.Errorw("Failed to get network interface id", log.Fields{"error": errNni})
+	}
 
 	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(networkInterfaceID, int32(onuID), int32(uniID), flowStoreCookie); present {
 		log.Debugw("multicast-flow-exists--not-re-adding", log.Fields{"classifierInfo": classifierInfo})
-		return
+		return nil
 	}
-	flowID, err := f.resourceMgr.GetFlowID(uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0, 0)
+	flowID, err := f.resourceMgr.GetFlowID(networkInterfaceID, int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0, 0)
 	if err != nil {
 		log.Errorw("Flow id unavailable for multicast flow", log.Fields{"error": err})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	if classifierProto = makeOpenOltClassifierField(classifierInfo); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for multicast flow")
-		return
+		return errors.New("error in making classifier protobuf for multicast flow")
 	}
 	groupID := actionInfo[GroupID].(uint32)
 	multicastFlow := openoltpb2.Flow{
@@ -1917,7 +2017,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(actionInfo, classifierInfo map[stri
 		Priority:      int32(flow.Priority),
 		Cookie:        flow.Cookie}
 
-	if ok := f.addFlowToDevice(flow, &multicastFlow); ok {
+	if ok, errAddFl := f.addFlowToDevice(flow, &multicastFlow); ok {
 		log.Debug("multicast flow added to device successfully")
 		//get cached group
 		group, _, err := f.GetFlowGroupFromKVStore(groupID, true)
@@ -1936,8 +2036,11 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(actionInfo, classifierInfo map[stri
 			flowID, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading multicast flow into KV store", log.Fields{"flow": multicastFlow, "error": err})
 		}
+	} else {
+		log.Errorw("Failed to add flow to device", log.Fields{"error": errAddFl, "multicastFlow": multicastFlow})
+		return errAddFl
 	}
-	return
+	return nil
 }
 
 //getInPortOfMulticastFlow return inPort criterion if exists; returns NNI interface of the device otherwise
@@ -2173,7 +2276,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 }
 
 //UpdateOnuInfo function adds onu info to cache and kvstore
-func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum string) {
+func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum string) error {
 
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
@@ -2181,13 +2284,14 @@ func (f *OpenOltFlowMgr) UpdateOnuInfo(intfID uint32, onuID uint32, serialNum st
 	f.onuGemInfo[intfID] = append(f.onuGemInfo[intfID], onu)
 	if err := f.resourceMgr.AddOnuInfo(intfID, onu); err != nil {
 		log.Errorw("failed to add onu info", log.Fields{"onu": onu})
-		return
+		return err
 	}
 	log.Debugw("Updated onuinfo", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum})
+	return nil
 }
 
 //addGemPortToOnuInfoMap function adds GEMport to ONU map
-func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gemPort uint32) {
+func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gemPort uint32) error {
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
 	onugem := f.onuGemInfo[intfID]
@@ -2199,18 +2303,18 @@ func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(intfID uint32, onuID uint32, gem
 				if gem == gemPort {
 					log.Debugw("Gem already in cache, no need to update cache and kv store",
 						log.Fields{"gem": gemPort})
-					return
+					return nil
 				}
 			}
 			onugem[idx].GemPorts = append(onugem[idx].GemPorts, gemPort)
 			f.onuGemInfo[intfID] = onugem
 		}
 	}
-	err := f.resourceMgr.AddGemToOnuGemInfo(intfID, onuID, gemPort)
-	if err != nil {
+	if err := f.resourceMgr.AddGemToOnuGemInfo(intfID, onuID, gemPort); err != nil {
 		log.Errorw("Failed to add gem to onu", log.Fields{"intfId": intfID, "onuId": onuID, "gemPort": gemPort})
-		return
+		return err
 	}
+	return nil
 }
 
 // This function Lookup maps  by serialNumber or (intfId, gemPort)
@@ -2270,25 +2374,23 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(packetIn *openoltpb2.PacketI
 func (f *OpenOltFlowMgr) GetPacketOutGemPortID(intfID uint32, onuID uint32, portNum uint32) (uint32, error) {
 	var gemPortID uint32
 	var err error
+	var ok bool
 
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
 	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum}
 
-	gemPortID, ok := f.packetInGemPort[pktInkey]
-	if ok {
+	if gemPortID, ok = f.packetInGemPort[pktInkey]; ok {
 		log.Debugw("Found gemport for pktin key", log.Fields{"pktinkey": pktInkey, "gem": gemPortID})
 		return gemPortID, err
 	}
 	//If gem is not found in cache try to get it from kv store, if found in kv store, update the cache and return.
 	gemPortID, err = f.resourceMgr.GetGemPortFromOnuPktIn(intfID, onuID, portNum)
-	if err == nil {
-		if gemPortID != 0 {
-			f.packetInGemPort[pktInkey] = gemPortID
-			log.Debugw("Found gem port from kv store and updating cache with gemport",
-				log.Fields{"pktinkey": pktInkey, "gem": gemPortID})
-			return gemPortID, nil
-		}
+	if err == nil && gemPortID != 0 {
+		f.packetInGemPort[pktInkey] = gemPortID
+		log.Debugw("Found gem port from kv store and updating cache with gemport",
+			log.Fields{"pktinkey": pktInkey, "gem": gemPortID})
+		return gemPortID, nil
 	}
 	log.Errorw("Failed to get gemport", log.Fields{"pktinkey": pktInkey, "gem": gemPortID})
 	return uint32(0), err
@@ -2296,37 +2398,41 @@ func (f *OpenOltFlowMgr) GetPacketOutGemPortID(intfID uint32, onuID uint32, port
 
 func installFlowOnAllGemports(
 	f1 func(intfId uint32, onuId uint32, uniId uint32,
-		portNo uint32, classifier map[string]interface{}, action map[string]interface{},
-		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32),
+	portNo uint32, classifier map[string]interface{}, action map[string]interface{},
+	logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32) error,
 	f2 func(intfId uint32, onuId uint32, uniId uint32, portNo uint32,
-		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32, vlanId uint32,
-		classifier map[string]interface{}, action map[string]interface{}),
+	logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32, vlanId uint32,
+	classifier map[string]interface{}, action map[string]interface{}) error,
 	args map[string]uint32,
 	classifier map[string]interface{}, action map[string]interface{},
 	logicalFlow *ofp.OfpFlowStats,
 	gemPorts []uint32,
 	FlowType string,
-	vlanID ...uint32) {
+	vlanID ...uint32) error {
 	log.Debugw("Installing flow on all GEM ports", log.Fields{"FlowType": FlowType, "gemPorts": gemPorts, "vlan": vlanID})
 	for _, gemPortID := range gemPorts {
 		if FlowType == HsiaFlow || FlowType == DhcpFlow {
-			f1(args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
+			if err := f1(args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID); err != nil {
+				log.Errorw("Failed to install hsia/dhcp flow on gemport", log.Fields{"gemport": gemPortID, "error": err, "flowType": FlowType})
+			}
 		} else if FlowType == EapolFlow {
-			f2(args["intfId"], args["onuId"], args["uniId"], args["portNo"], logicalFlow, args["allocId"], gemPortID, vlanID[0], classifier, action)
+			if err := f2(args["intfId"], args["onuId"], args["uniId"], args["portNo"], logicalFlow, args["allocId"], gemPortID, vlanID[0], classifier, action); err != nil {
+				log.Errorw("Failed to install eapol flow on gemport", log.Fields{"gemport": gemPortID, "error": err, "flowType": FlowType})
+			}
 		} else {
 			log.Errorw("Unrecognized Flow Type", log.Fields{"FlowType": FlowType})
-			return
+			return errors.New("failed to add due to unrecognized flow type")
 		}
 	}
+	return nil
 }
 
-func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) {
+func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
 	log.Debug("Adding trap-dhcp-of-nni-flow")
 	action := make(map[string]interface{})
 	classifier[PacketTagType] = DoubleTag
 	action[TrapToHost] = true
-	var err error
-	var networkInterfaceID uint32
+
 	/* We manage flowId resource pool on per PON port basis.
 	   Since this situation is tricky, as a hack, we pass the NNI port
 	   index (network_intf_id) as PON port Index for the flowId resource
@@ -2342,32 +2448,32 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 	uniID := -1
 	gemPortID := -1
 	allocID := -1
-	networkInterfaceID, err = getNniIntfID(classifier, action)
+	networkInterfaceID, err := getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 
 	flowStoreCookie := getFlowStoreCookie(classifier, uint32(0))
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
-		log.Debug("Flow-exists--not-re-adding")
-		return
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(networkInterfaceID, int32(onuID), int32(uniID), flowStoreCookie); present {
+		log.Debug("Flow-exists-not-re-adding")
+		return nil
 	}
-	flowID, err := f.resourceMgr.GetFlowID(uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
+	flowID, err := f.resourceMgr.GetFlowID(networkInterfaceID, int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
 	if err != nil {
 		log.Errorw("Flow id unavailable for DHCP traponNNI flow", log.Fields{"error": err})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	var actionProto *openoltpb2.Action
 	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for  dhcp trap on nni flow")
-		return
+		return err
 	}
 	log.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(action); actionProto == nil {
 		log.Error("Error in making action protobuf for dhcp trap on nni flow")
-		return
+		return err
 	}
 	log.Debugw("Created action proto", log.Fields{"action": *actionProto})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
@@ -2383,34 +2489,32 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(logicalFlow, &downstreamflow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &downstreamflow); ok {
 		log.Debug("DHCP trap on NNI flow added to device successfully")
 		flowsToKVStore := f.getUpdatedFlowInfo(&downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
 		if err := f.updateFlowInfoToKVStore(int32(networkInterfaceID),
 			int32(onuID),
 			int32(uniID),
 			flowID, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading DHCP DL  flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+			log.Errorw("Error uploading DHCP DL flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+			return err
 		}
+	} else {
+		log.Errorw("Failed to add dhcp trap flows to device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
-	return
+	return nil
 }
 
 //getPacketTypeFromClassifiers finds and returns packet type of a flow by checking flow classifiers
 func getPacketTypeFromClassifiers(classifierInfo map[string]interface{}) string {
 	var packetType string
 	ovid, ivid := false, false
-	if vlanID, ok := classifierInfo[VlanVid].(uint32); ok {
-		vid := vlanID & VlanvIDMask
-		if vid != ReservedVlan {
-			ovid = true
-		}
+	if vlanID, ok := classifierInfo[VlanVid].(uint32); ok && ((vlanID & VlanvIDMask) != ReservedVlan) {
+		ovid = true
 	}
-	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
-		vid := uint32(metadata)
-		if vid != ReservedVlan {
-			ivid = true
-		}
+	if metadata, ok := classifierInfo[Metadata].(uint64); ok && (uint32(metadata) != ReservedVlan) {
+		ivid = true
 	}
 	if ovid && ivid {
 		packetType = DoubleTag
@@ -2423,7 +2527,7 @@ func getPacketTypeFromClassifiers(classifierInfo map[string]interface{}) string 
 }
 
 //addIgmpTrapFlowOnNNI adds a trap-to-host flow on NNI
-func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) {
+func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
 	log.Debugw("Adding igmp-trap-of-nni-flow", log.Fields{"classifierInfo": classifier})
 	action := make(map[string]interface{})
 	classifier[PacketTagType] = getPacketTypeFromClassifiers(classifier)
@@ -2446,28 +2550,28 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 	networkInterfaceID, err := getNniIntfID(classifier, action)
 	if err != nil {
 		log.Error("Failed to get nniIntf ID")
-		return
+		return err
 	}
 	flowStoreCookie := getFlowStoreCookie(classifier, uint32(0))
-	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
-		log.Debug("igmp-flow-exists--not-re-adding")
-		return
+	if present := f.resourceMgr.IsFlowCookieOnKVStore(networkInterfaceID, int32(onuID), int32(uniID), flowStoreCookie); present {
+		log.Debug("igmp-flow-exists-not-re-adding")
+		return nil
 	}
-	flowID, err := f.resourceMgr.GetFlowID(uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0, 0)
+	flowID, err := f.resourceMgr.GetFlowID(networkInterfaceID, int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0, 0)
 	if err != nil {
 		log.Errorw("IGMP flow id unavailable for trap-on-NNI flow", log.Fields{"error": err})
-		return
+		return err
 	}
 	var classifierProto *openoltpb2.Classifier
 	var actionProto *openoltpb2.Action
 	if classifierProto = makeOpenOltClassifierField(classifier); classifierProto == nil {
 		log.Error("Error in making classifier protobuf for igmp trap on nni flow")
-		return
+		return err
 	}
 	log.Debugw("Created classifier proto for the IGMP flow", log.Fields{"classifier": *classifierProto})
 	if actionProto = makeOpenOltActionField(action); actionProto == nil {
 		log.Error("Error in making action protobuf for IGMP trap on nni flow")
-		return
+		return err
 	}
 	log.Debugw("Created action proto for the IGMP flow", log.Fields{"action": *actionProto})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
@@ -2483,7 +2587,7 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(logicalFlow, &downstreamflow); ok {
+	if ok, errAddFlow := f.addFlowToDevice(logicalFlow, &downstreamflow); ok {
 		log.Debug("IGMP Trap on NNI flow added to device successfully")
 		flowsToKVStore := f.getUpdatedFlowInfo(&downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
 		if err := f.updateFlowInfoToKVStore(int32(networkInterfaceID),
@@ -2491,27 +2595,32 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(logicalFlow *ofp.OfpFlowStats, cla
 			int32(uniID),
 			flowID, flowsToKVStore); err != nil {
 			log.Errorw("Error uploading igmp-trap-on-nni flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+			return err
 		}
+	} else {
+		log.Errorw("Failed to add igmp trap flows on device", log.Fields{"error": errAddFlow})
+		return errAddFlow
 	}
-	return
+	return nil
 }
 
-func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, error) {
+func verifyMeterIDAndGetDirection(MeterID uint32, Dir tppb.Direction) (string, error) {
 	if MeterID == 0 { // This should never happen
 		log.Error("Invalid meter id")
 		return "", errors.New("invalid meter id")
 	}
-	if Dir == tp_pb.Direction_UPSTREAM {
+	if Dir == tppb.Direction_UPSTREAM {
 		return "upstream", nil
-	} else if Dir == tp_pb.Direction_DOWNSTREAM {
+	} else if Dir == tppb.Direction_DOWNSTREAM {
 		return "downstream", nil
 	}
 	return "", nil
 }
 
+// nolint: gocyclo
 func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo map[string]interface{},
 	actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpInst *tp.TechProfile, gemPorts []uint32,
-	TpID uint32, uni string) {
+	TpID uint32, uni string) error {
 	var gemPort uint32
 	intfID := args[IntfID]
 	onuID := args[OnuID]
@@ -2523,29 +2632,42 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 			log.Info("Adding DHCP flow")
 			if pcp, ok := classifierInfo[VlanPcp]; ok {
 				gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-					tp_pb.Direction_UPSTREAM,
+					tppb.Direction_UPSTREAM,
 					pcp.(uint32))
 				//Adding DHCP upstream flow
-				f.addDHCPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+				if err := f.addDHCPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort); err != nil {
+					log.Errorw("Failed to add dhcp trap flow", log.Fields{"error": err, "gemport": gemPort, "portNo": portNo})
+					return err
+				}
 			} else {
 				//Adding DHCP upstream flow to all gemports
-				installFlowOnAllGemports(f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, DhcpFlow)
+				if err := installFlowOnAllGemports(f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, DhcpFlow); err != nil {
+					log.Errorw("dhcp upstream flow installation failed", log.Fields{"gemports": gemPorts})
+					return err
+				}
+
 			}
 
 		} else if ipProto == IgmpProto {
 			log.Infow("Adding Us IGMP flow", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "classifierInfo:": classifierInfo})
 			if pcp, ok := classifierInfo[VlanPcp]; ok {
 				gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-					tp_pb.Direction_UPSTREAM,
+					tppb.Direction_UPSTREAM,
 					pcp.(uint32))
-				f.addIGMPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+				if err := f.addIGMPTrapFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort); err != nil {
+					log.Errorw("failed to add igmp trap flow", log.Fields{"gemport": gemPort, "portno": portNo, "uniID": uniID, "intfid": intfID, "error": err})
+					return err
+				}
 			} else {
 				//Adding IGMP upstream flow to all gem ports
-				installFlowOnAllGemports(f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, IgmpFlow)
+				if err := installFlowOnAllGemports(f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, IgmpFlow); err != nil {
+					log.Errorw("failed to install igmp upstream flow on gemports", log.Fields{"error": err, "gemports": gemPorts})
+					return err
+				}
 			}
 		} else {
 			log.Errorw("Invalid-Classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
-			return
+			return errors.New("invalid classifier to handle")
 		}
 	} else if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == EapEthType {
@@ -2558,44 +2680,66 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(args map[string]uint32, classifierInfo 
 			}
 			if pcp, ok := classifierInfo[VlanPcp]; ok {
 				gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-					tp_pb.Direction_UPSTREAM,
+					tppb.Direction_UPSTREAM,
 					pcp.(uint32))
 
-				f.addEAPOLFlow(intfID, onuID, uniID, portNo, flow, allocID, gemPort, vlanID, classifierInfo, actionInfo)
+				if err := f.addEAPOLFlow(intfID, onuID, uniID, portNo, flow, allocID, gemPort, vlanID, classifierInfo, actionInfo); err != nil {
+					log.Errorw("Failed to add eapol flow", log.Fields{"error": err})
+					return err
+				}
 			} else {
-				installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, EapolFlow, vlanID)
+				if err := installFlowOnAllGemports(nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, EapolFlow, vlanID); err != nil {
+					log.Errorw("Failed to install flow", log.Fields{"gemports": gemPorts, "error": err})
+					return err
+				}
 			}
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
 		log.Info("Adding upstream data rule")
 		if pcp, ok := classifierInfo[VlanPcp]; ok {
 			gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-				tp_pb.Direction_UPSTREAM,
+				tppb.Direction_UPSTREAM,
 				pcp.(uint32))
 			//Adding HSIA upstream flow
-			f.addUpstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+			if err := f.addUpstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort); err != nil {
+				log.Errorw("Failed to add upstream data flow", log.Fields{"gemport": gemPorts})
+				return err
+			}
 		} else {
 			//Adding HSIA upstream flow to all gemports
-			installFlowOnAllGemports(f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow)
+			if err := installFlowOnAllGemports(f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow); err != nil {
+				log.Errorw("failed to install hsia flow", log.Fields{"error": err, "gemports": gemPorts})
+				return err
+			}
 		}
 	} else if _, ok := actionInfo[PopVlan]; ok {
 		log.Info("Adding Downstream data rule")
 		if pcp, ok := classifierInfo[VlanPcp]; ok {
 			gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
-				tp_pb.Direction_DOWNSTREAM,
+				tppb.Direction_DOWNSTREAM,
 				pcp.(uint32))
 			//Adding HSIA downstream flow
-			f.addDownstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+			if err := f.addDownstreamDataFlow(intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort); err != nil {
+				log.Errorw("failed to add downstream flow", log.Fields{"error": err, "portno": portNo, "uniID": uniID, "onuID": onuID})
+				return err
+			}
 		} else {
 			//Adding HSIA downstream flow to all gemports
-			installFlowOnAllGemports(f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow)
+			if err := installFlowOnAllGemports(f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, HsiaFlow); err != nil {
+				log.Errorw("failed to install flow on all gemports", log.Fields{"error": err, "gemports": gemPorts})
+			}
 		}
 	} else {
 		log.Errorw("Invalid-flow-type-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo, "flow": flow})
-		return
+		return errors.New("invalid flow type")
 	}
 	// Send Techprofile download event to child device in go routine as it takes time
-	go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, TpID)
+	go func() {
+		if err := f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, TpID); err != nil {
+			log.Errorw("Failed to send tech profile download message to onu adapter", log.Fields{"error": err, "onuID": onuID, "uniID": uniID})
+		}
+	}()
+	return nil
 }
 
 func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) bool {
@@ -2606,20 +2750,26 @@ func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) bool {
 	return false
 }
 
-func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uint32, uniID uint32, tpID uint32, tpInst *tp.TechProfile, gemPortID uint32) (bool, uint32) {
+func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uint32, uniID uint32, tpID uint32, tpInst *tp.TechProfile, gemPortID uint32) (bool, uint32, error) {
 	currentGemPorts := f.resourceMgr.GetCurrentGEMPortIDsForOnu(ponIntf, onuID, uniID)
 	tpGemPorts := tpInst.UpstreamGemPortAttributeList
 	for _, currentGemPort := range currentGemPorts {
 		for _, tpGemPort := range tpGemPorts {
 			if (currentGemPort == tpGemPort.GemportID) && (currentGemPort != gemPortID) {
-				return true, currentGemPort
+				return true, currentGemPort, nil
 			}
 		}
 	}
 	if tpInst.InstanceCtrl.Onu == "single-instance" {
 		// The TP information for the given TP ID, PON ID, ONU ID, UNI ID should be removed.
-		f.resourceMgr.RemoveTechProfileIDForOnu(ponIntf, uint32(onuID), uint32(uniID), tpID)
-		f.DeleteTechProfileInstance(ponIntf, uint32(onuID), uint32(uniID), "", tpID)
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ponIntf, onuID, uniID, tpID); err != nil {
+			log.Errorw("Failed to remove tech profile for onu", log.Fields{"error": err, "onuID": onuID, "uniID": uniID, "ponIntf": ponIntf})
+			return false, uint32(0), err
+		}
+		if err := f.DeleteTechProfileInstance(ponIntf, onuID, uniID, "", tpID); err != nil {
+			log.Errorw("Failed to delete tech profile instance", log.Fields{"error": err, "onuID": onuID, "uniID": uniID})
+			return false, uint32(0), err
+		}
 
 		// Although we cleaned up TP Instance for the given (PON ID, ONU ID, UNI ID), the TP might
 		// still be used on other uni ports.
@@ -2633,54 +2783,55 @@ func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ponIntf uint32, onuID uin
 			for _, tpGemPort := range tpGemPorts {
 				if tpGemPort.GemportID != gemPortID {
 					log.Debugw("single instance tp is in use by gem", log.Fields{"gemPort": tpGemPort.GemportID})
-					return true, tpGemPort.GemportID
+					return true, tpGemPort.GemportID, nil
 				}
 			}
 		}
 	}
 	log.Debug("tech profile is not in use by any gem")
-	return false, 0
+	return false, 0, nil
 }
 
 func formulateClassifierInfoFromFlow(classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) {
 	for _, field := range flows.GetOfbFields(flow) {
-		if field.Type == flows.ETH_TYPE {
+		switch field.Type {
+		case flows.ETH_TYPE:
 			classifierInfo[EthType] = field.GetEthType()
 			log.Debug("field-type-eth-type", log.Fields{"classifierInfo[ETH_TYPE]": classifierInfo[EthType].(uint32)})
-		} else if field.Type == flows.ETH_DST {
+		case flows.ETH_DST:
 			classifierInfo[EthDst] = field.GetEthDst()
 			log.Debug("field-type-eth-type", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
-		} else if field.Type == flows.IP_PROTO {
+		case flows.IP_PROTO:
 			classifierInfo[IPProto] = field.GetIpProto()
 			log.Debug("field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
-		} else if field.Type == flows.IN_PORT {
+		case flows.IN_PORT:
 			classifierInfo[InPort] = field.GetPort()
 			log.Debug("field-type-in-port", log.Fields{"classifierInfo[IN_PORT]": classifierInfo[InPort].(uint32)})
-		} else if field.Type == flows.VLAN_VID {
+		case flows.VLAN_VID:
 			classifierInfo[VlanVid] = field.GetVlanVid() & 0xfff
 			log.Debug("field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
-		} else if field.Type == flows.VLAN_PCP {
+		case flows.VLAN_PCP:
 			classifierInfo[VlanPcp] = field.GetVlanPcp()
 			log.Debug("field-type-vlan-pcp", log.Fields{"classifierInfo[VLAN_PCP]": classifierInfo[VlanPcp].(uint32)})
-		} else if field.Type == flows.UDP_DST {
+		case flows.UDP_DST:
 			classifierInfo[UDPDst] = field.GetUdpDst()
 			log.Debug("field-type-udp-dst", log.Fields{"classifierInfo[UDP_DST]": classifierInfo[UDPDst].(uint32)})
-		} else if field.Type == flows.UDP_SRC {
+		case flows.UDP_SRC:
 			classifierInfo[UDPSrc] = field.GetUdpSrc()
 			log.Debug("field-type-udp-src", log.Fields{"classifierInfo[UDP_SRC]": classifierInfo[UDPSrc].(uint32)})
-		} else if field.Type == flows.IPV4_DST {
+		case flows.IPV4_DST:
 			classifierInfo[Ipv4Dst] = field.GetIpv4Dst()
 			log.Debug("field-type-ipv4-dst", log.Fields{"classifierInfo[IPV4_DST]": classifierInfo[Ipv4Dst].(uint32)})
-		} else if field.Type == flows.IPV4_SRC {
+		case flows.IPV4_SRC:
 			classifierInfo[Ipv4Src] = field.GetIpv4Src()
 			log.Debug("field-type-ipv4-src", log.Fields{"classifierInfo[IPV4_SRC]": classifierInfo[Ipv4Src].(uint32)})
-		} else if field.Type == flows.METADATA {
+		case flows.METADATA:
 			classifierInfo[Metadata] = field.GetTableMetadata()
 			log.Debug("field-type-metadata", log.Fields{"classifierInfo[Metadata]": classifierInfo[Metadata].(uint64)})
-		} else if field.Type == flows.TUNNEL_ID {
+		case flows.TUNNEL_ID:
 			classifierInfo[TunnelID] = field.GetTunnelId()
 			log.Debug("field-type-tunnelId", log.Fields{"classifierInfo[TUNNEL_ID]": classifierInfo[TunnelID].(uint64)})
-		} else {
+		default:
 			log.Errorw("Un supported field type", log.Fields{"type": field.Type})
 			return
 		}
@@ -2754,6 +2905,7 @@ func formulateGroupActionInfoFromFlow(action *ofp.OfpAction, actionInfo map[stri
 		actionInfo[GroupID] = action.GetGroup().GroupId
 		log.Debugw("action-group-id", log.Fields{"actionInfo[GroupID]": actionInfo[GroupID].(uint32)})
 	}
+	return
 }
 
 func formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
@@ -2827,11 +2979,19 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 
 	portType := IntfIDToPortTypeName(classifier[InPort].(uint32))
 	if portType == voltha.Port_PON_OLT {
-		intfID := IntfIDFromNniPortNum(action[Output].(uint32))
+		intfID, err := IntfIDFromNniPortNum(action[Output].(uint32))
+		if err != nil {
+			log.Errorw("Failed to get interface id", log.Fields{"error": err, "port": action[Output].(uint32)})
+			return uint32(0), err
+		}
 		log.Debugw("output Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	} else if portType == voltha.Port_ETHERNET_NNI {
-		intfID := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		intfID, err := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		if err != nil {
+			log.Errorw("Failed to get interface id", log.Fields{"error": err, "port": classifier[InPort].(uint32)})
+			return uint32(0), err
+		}
 		log.Debugw("input Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	}
@@ -2844,8 +3004,7 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(intfID uint32, onuID uint32, logi
 
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
-	lookupGemPort, ok := f.packetInGemPort[pktInkey]
-	if ok {
+	if lookupGemPort, ok := f.packetInGemPort[pktInkey]; ok {
 		if lookupGemPort == gemPort {
 			log.Debugw("pktin key/value found in cache , no need to update kv as we are assuming both will be in sync",
 				log.Fields{"pktinkey": pktInkey, "gem": gemPort})
@@ -2888,7 +3047,7 @@ func (f *OpenOltFlowMgr) loadFlowIDlistForGem(intf uint32) {
 		return
 	}
 	for gem, FlowIDs := range flowIDsList {
-		gemPK := gemPortKey{intf, uint32(gem)}
+		gemPK := gemPortKey{intf, gem}
 		f.flowsUsedByGemPort[gemPK] = FlowIDs
 	}
 	return
