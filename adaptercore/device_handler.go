@@ -1474,7 +1474,14 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
+		nniIntfID, err := IntfIDFromNniPortNum(uint32(egressPortNo))
+		if err != nil {
+			log.Errorw("Error while sending packet-out to NNI", log.Fields{
+				"error": err,
+			})
+			return err
+		}
+		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
 		log.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,
