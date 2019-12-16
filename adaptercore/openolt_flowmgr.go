@@ -1114,7 +1114,11 @@ func (f *OpenOltFlowMgr) addLLDPFlow(flow *ofp.OfpFlowStats, portNo uint32) {
 	var uniID = -1
 	var gemPortID = -1
 
-	var networkInterfaceID = IntfIDFromNniPortNum(portNo)
+	var networkInterfaceID, err = IntfIDFromNniPortNum(portNo)
+	if err != nil {
+		log.Errorw("NNI port range invalid", log.Fields{"error": err})
+		return
+	}
 	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
@@ -1403,7 +1407,11 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(flow *ofp.OfpFlowStats, fl
 		onuID = -1
 		uniID = -1
 		log.Debug("Trap on nni flow set oni, uni to -1")
-		Intf = IntfIDFromNniPortNum(inPort)
+		Intf, err = IntfIDFromNniPortNum(inPort)
+		if err != nil {
+			log.Errorw("invalid nni port range", log.Fields{"error": err})
+			return
+		}
 	}
 	flowIds := f.resourceMgr.GetCurrentFlowIDsForOnu(Intf, onuID, uniID)
 	for _, flowID = range flowIds {
@@ -2131,11 +2139,19 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 
 	portType := IntfIDToPortTypeName(classifier[InPort].(uint32))
 	if portType == voltha.Port_PON_OLT {
-		intfID := IntfIDFromNniPortNum(action[Output].(uint32))
+		intfID, err := IntfIDFromNniPortNum(action[Output].(uint32))
+		if err != nil {
+			log.Errorw("invalid nni port number", log.Fields{"error": err})
+			return 0, err
+		}
 		log.Debugw("output Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	} else if portType == voltha.Port_ETHERNET_NNI {
-		intfID := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		intfID, err := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		if err != nil {
+			log.Errorw("invalid nni port number", log.Fields{"error": err})
+			return 0, err
+		}
 		log.Debugw("input Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	}
