@@ -18,6 +18,7 @@
 package adaptercore
 
 import (
+	"errors"
 	"math"
 	"reflect"
 	"testing"
@@ -113,7 +114,6 @@ func TestUniIDFromPortNum(t *testing.T) {
 		args args
 		want uint32
 	}{
-
 		// TODO: Add test cases.
 		{"UniIDFromPortNum-1", args{portNum: 8096}, (8096 & 15)},
 		{"UniIDFromPortNum-2", args{portNum: 1024}, (1024 & 15)},
@@ -165,20 +165,24 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		args args
-		want uint32
+		name    string
+		args    args
+		want    uint32
+		wantErr error
 	}{
 		// TODO: Add test cases.
-		{"IntfIDFromNniPortNum-1", args{portNum: 8081}, 8081},
-		{"IntfIDFromNniPortNum-2", args{portNum: 9090}, 9090},
-		{"IntfIDFromNniPortNum-3", args{portNum: 0}, 0},
-		{"IntfIDFromNniPortNum-3", args{portNum: 65535}, 65535},
+		{"IntfIDFromNniPortNum-1", args{portNum: 8081}, 8081, errors.New("invalid port range")},
+		{"IntfIDFromNniPortNum-2", args{portNum: 9090}, 9090, errors.New("invalid port range")},
+		{"IntfIDFromNniPortNum-3", args{portNum: 0}, 0, errors.New("invalid port range")},
+		{"IntfIDFromNniPortNum-4", args{portNum: 65535}, 65535, errors.New("invalid port range")},
+		{"IntfIDFromNniPortNum-4", args{portNum: 1048576}, 1048576, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDFromNniPortNum(tt.args.portNum); got != tt.want {
-				t.Errorf("IntfIDFromNniPortNum() = %v, want %v", got, tt.want)
+			if got, err := IntfIDFromNniPortNum(tt.args.portNum); got != tt.want && tt.wantErr != nil {
+				if err.Error() != tt.wantErr.Error() {
+					t.Errorf("IntfIDFromNniPortNum() = %v, want %v, err = %v", got, tt.want, err)
+				}
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
 			}
