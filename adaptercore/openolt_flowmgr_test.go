@@ -39,7 +39,9 @@ import (
 var flowMgr *OpenOltFlowMgr
 
 func init() {
-	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
+	if _, err := log.SetDefaultLogger(log.JSON, log.DebugLevel, nil); err != nil {
+		fmt.Println("Failed to set logger, error ", err)
+	}
 	flowMgr = newMockFlowmgr()
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
@@ -69,6 +71,7 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	rMgr.KVStore.Client = &mocks.MockKVClient{}
 
 	dh.resourceMgr = rMgr
+	dh.resourceMgr.ResourceMgrs[65536] = dh.resourceMgr.ResourceMgrs[1]
 	flwMgr := NewFlowManager(dh, rMgr)
 
 	onuGemInfo1 := make([]rsrcMgr.OnuGemInfo, 2)
@@ -283,7 +286,9 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.RemoveFlow(tt.args.flow)
+			if err := flowMgr.RemoveFlow(tt.args.flow); err != nil {
+				log.Errorw("Failed to remove flow", log.Fields{"error": err})
+			}
 		})
 	}
 	// t.Error("=====")
@@ -407,7 +412,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	dhcpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
+			fu.InPort(65536),
 			fu.UdpSrc(67),
 			//fu.TunnelId(536870912),
 			fu.IpProto(17),
@@ -526,7 +531,9 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.AddFlow(tt.args.flow, tt.args.flowMetadata)
+			if err := flowMgr.AddFlow(tt.args.flow, tt.args.flowMetadata); err != nil {
+				log.Errorw("Failed to add flow", log.Fields{"error": err})
+			}
 		})
 	}
 }
@@ -549,7 +556,9 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			flowMgr.UpdateOnuInfo(tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			if err := flowMgr.UpdateOnuInfo(tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+				log.Errorw("Failed to update onu information", log.Fields{"error": err})
+			}
 		})
 	}
 }
@@ -891,8 +900,10 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.checkAndAddFlow(tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
-				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni)
+			if err := flowMgr.checkAndAddFlow(tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
+				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni); err != nil {
+				log.Errorw("Failed to check and add flow", log.Fields{"error": err})
+			}
 		})
 	}
 }
@@ -916,7 +927,9 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 		},
 	}
 	ofpStats := fu.MkFlowStat(multicastFlowArgs)
-	flowMgr.AddFlow(ofpStats, &voltha.FlowMetadata{})
+	if err := flowMgr.AddFlow(ofpStats, &voltha.FlowMetadata{}); err != nil {
+		log.Errorw("Failed to add flow", log.Fields{"error": err})
+	}
 
 	//add bucket to the group
 	group = newGroup(2, []uint32{1, 2})
