@@ -781,7 +781,9 @@ func TestDeviceHandler_AdoptDevice(t *testing.T) {
 			//dh.doStateInit()
 			//	context.
 			//dh.AdoptDevice(tt.args.device)
-			tt.devicehandler.postInit()
+			if err := tt.devicehandler.postInit(); err != nil {
+				log.Errorw("Failed to post initialize", log.Fields{"error": err})
+			}
 		})
 	}
 }
