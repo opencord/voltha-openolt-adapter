@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4526231e_ac7b113b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2019-12-17T04:49:01Z",
+      "side": 1,
+      "message": "Changed to use log.Fields",
+      "parentUuid": "bb4c5123_e126cdad",
+      "range": {
+        "startLine": 345,
+        "startChar": 0,
+        "endLine": 345,
+        "endChar": 97
+      },
+      "revId": "b1974c222bdfd2946d6bbdf52f29e86b89cf14ad",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8aa35483_06caaadd",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2019-12-16T18:05:08Z",
       "side": 1,
       "message": "log with fields as opposed to printf style",
+      "range": {
+        "startLine": 445,
+        "startChar": 0,
+        "endLine": 445,
+        "endChar": 97
+      },
+      "revId": "b1974c222bdfd2946d6bbdf52f29e86b89cf14ad",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf0efc08_a8545ddc",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2019-12-17T04:49:01Z",
+      "side": 1,
+      "message": "Changed to use log.Fields",
+      "parentUuid": "8aa35483_06caaadd",
       "range": {
         "startLine": 445,
         "startChar": 0,
