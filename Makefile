@@ -103,6 +103,10 @@ docker-build: local-protos local-lib-go
 docker-push:
 	docker push ${ADAPTER_IMAGENAME}
 
+docker-kind-load:
+	@if [ "`kind get clusters | grep voltha-$(TYPE)`" = '' ]; then echo "no voltha-$(TYPE) cluster found" && exit 1; fi
+	kind load docker-image ${ADAPTER_IMAGENAME} --name=voltha-$(TYPE) --nodes voltha-minimal-worker,voltha-minimal-worker2,voltha-minimal-control-plane
+
 ## lint and unit tests
 
 lint-style:
