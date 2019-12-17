@@ -22,6 +22,30 @@
       "revId": "e667a0b205769c8088d16bdb0d68627e38b9b148",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "65e367a0_f6b564c9",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-17T09:05:00Z",
+      "side": 1,
+      "message": "Sure addressed",
+      "parentUuid": "c76e93cd_6b6c3101",
+      "range": {
+        "startLine": 111,
+        "startChar": 1,
+        "endLine": 111,
+        "endChar": 24
+      },
+      "revId": "e667a0b205769c8088d16bdb0d68627e38b9b148",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
