@@ -35,6 +35,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
+	com "github.com/opencord/voltha-lib-go/v2/pkg/adapters/common"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
@@ -124,6 +125,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
 	dh.EventProxy = ep
+	dh.EventProxy.(*com.EventProxy).EventFilter = com.NewEventFilter()
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.deviceID = cloned.Id
 	dh.deviceType = cloned.Type
@@ -1467,6 +1469,16 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 			"packet":         hex.EncodeToString(packet.Data),
 		})
 	}
+	return nil
+}
+
+func (dh *DeviceHandler) SuppressEvent(filter *voltha.EventFilter) error {
+	dh.EventProxy.(*com.EventProxy).EventFilter.AddRemoveFilters(filter, false)
+	return nil
+}
+
+func (dh *DeviceHandler) UnsuppressEvent(filter *voltha.EventFilter) error {
+	dh.EventProxy.(*com.EventProxy).EventFilter.AddRemoveFilters(filter, true)
 	return nil
 }
 
