@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b685b0c5_75b91d4f",
+        "filename": "main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-18T13:35:14Z",
+      "side": 1,
+      "message": "If I understand correctly, you restart openolt adapter if Kafka restarts. Is that correct? Is this a hack to work around another bug ?",
+      "revId": "2b4aea3b7b9470c3cf4485ec616045eab74f3d63",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
