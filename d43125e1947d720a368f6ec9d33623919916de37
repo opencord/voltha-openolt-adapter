@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55ed4c82_4bbcfafa",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2019-12-18T11:41:56Z",
+      "side": 1,
+      "message": "this is not set anywhere.",
+      "range": {
+        "startLine": 107,
+        "startChar": 41,
+        "endLine": 107,
+        "endChar": 48
+      },
+      "revId": "d43125e1947d720a368f6ec9d33623919916de37",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
