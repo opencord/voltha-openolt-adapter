@@ -35,6 +35,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
+	com "github.com/opencord/voltha-lib-go/v2/pkg/adapters/common"
+	ef "github.com/opencord/voltha-lib-go/v2/pkg/eventfilter"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	"github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
@@ -66,6 +68,7 @@ type DeviceHandler struct {
 	coreProxy     adapterif.CoreProxy
 	AdapterProxy  adapterif.AdapterProxy
 	EventProxy    adapterif.EventProxy
+	EventFilter   *ef.EventFilter
 	openOLT       *OpenOLT
 	exitChannel   chan int
 	lockDevice    sync.RWMutex
@@ -124,6 +127,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
 	dh.EventProxy = ep
+	dh.EventFilter = eventfilter.NewEventFilter()
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.deviceID = cloned.Id
 	dh.deviceType = cloned.Type
@@ -547,7 +551,7 @@ func (dh *DeviceHandler) doStateConnected() error {
 	dh.eventMgr = NewEventMgr(dh.EventProxy, dh)
 	// Stats config for new device
 	dh.portStats = NewOpenOltStatsMgr(dh)
-
+	log.Debugw("Filters reconciled from KV store", log.Fields{"filters": dh.EventFilter.Filters})
 	// Start reading indications
 	go dh.readIndications()
 	return nil
@@ -1468,6 +1472,22 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 		})
 	}
 	return nil
+}
+
+func (dh *DeviceHandler) SuppressEvent(filter *voltha.EventFilter, unSuppress bool) {
+	if unSuppress {
+		log.Debugw("unsuppresseing-event", log.Fields{"event_type": filter.EventType})
+		dh.EventFilter.AddRemoveFilters(filter, unSuppress)
+	}
+	log.Debugw("suppressing-event", log.Fields{"event_type": filter.EventType})
+	dh.EventFilter.AddRemoveFilters(filter, unSuppress)
+}
+
+func (dh *DeviceHandler) ReconcileFiltersToDevice(filters *voltha.EventFilters) {
+	log.Debugw("Reconciling-filters-to-device", log.Fields{"filters": filters})
+	for _, filter := range filters.Filters {
+		dh.SuppressEvent(filter, false)
+	}
 }
 
 func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {

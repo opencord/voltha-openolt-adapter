@@ -48,6 +48,7 @@ const (
 	OnuPacketINPath = "onu_packetin/{%d,%d,%d}"
 	//FlowIDsForGem flowids_per_gem/<intfid>
 	FlowIDsForGem = "flowids_per_gem/{%d}"
+	EventFilters = "eventfilters"
 )
 
 // FlowInfo holds the flow information
