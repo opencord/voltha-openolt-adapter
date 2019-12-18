@@ -16,6 +16,58 @@
       "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f5cc3af6_efa97f0e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-18T22:03:47Z",
+      "side": 1,
+      "message": "Since nniIntfID must escape the if block, this is actually an exception to the general rule.\n\nSee https://github.com/golang/go/wiki/CodeReviewComments#indent-error-flow",
+      "parentUuid": "4de74528_3ecead61",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3cba0e8b_2d9b78e9",
+        "filename": "adaptercore/olt_platform_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-18T22:03:47Z",
+      "side": 1,
+      "message": "IntfIDFromNniPortNum-4 is repeated twice, is this intentional?",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6253d8c4_61d2b071",
+        "filename": "go.mod",
+        "patchSetId": 9
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2019-12-18T22:03:47Z",
+      "side": 1,
+      "message": "Is import of an errors library here intentional?",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
