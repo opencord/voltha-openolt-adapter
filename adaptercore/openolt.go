@@ -302,14 +302,23 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 	return errors.New("device-handler-not-set")
 }
 
-//Suppress_event unimplemented
 func (oo *OpenOLT) Suppress_event(filter *voltha.EventFilter) error {
-	return errors.New("unImplemented")
+	log.Infow("Suppress-event", log.Fields{"deviceId": filter.DeviceId})
+	if handler := oo.getDeviceHandler(filter.DeviceId); handler != nil {
+		return handler.SuppressEvent(filter)
+	}
+	log.Errorw("Suppress-event-failed-handler-not-set", log.Fields{"deviceId": filter.DeviceId})
+	return errors.New("device-handler-not-set")
 }
 
 //Unsuppress_event  unimplemented
 func (oo *OpenOLT) Unsuppress_event(filter *voltha.EventFilter) error {
-	return errors.New("unImplemented")
+	log.Infow("Unsuppress-event", log.Fields{"deviceId": filter.DeviceId})
+	if handler := oo.getDeviceHandler(filter.DeviceId); handler != nil {
+		return handler.UnsuppressEvent(filter)
+	}
+	log.Errorw("Unsuppress-event-failed-handler-not-set", log.Fields{"deviceId": filter.DeviceId})
+	return errors.New("device-handler-not-set")
 }
 
 //Download_image unimplemented
