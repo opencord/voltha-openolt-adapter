@@ -30,6 +30,7 @@ import (
 	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
 	"github.com/opencord/voltha-protos/v2/go/openolt"
+	"github.com/opencord/voltha-protos/v2/go/voltha"
 )
 
 const (
@@ -1210,6 +1211,31 @@ func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore() error {
 	return nil
 }
 
+// GetDeviceFiltersFromKVStore retrieves the filters from the KV store upon adapter restart
+func (RsrcMgr *OpenOltResourceMgr) GetDeviceFiltersFromKVStore() map[string]*voltha.EventFilter {
+	filters := make(map[string]*voltha.EventFilter)
+	var filter voltha.EventFilter
+	var val []byte
+	for _, eventType := range []string{"device_event", "kpi_event", "config_event"} {
+		path := fmt.Sprintf("event_filters/filter-type-%s", eventType)
+		value, err := RsrcMgr.KVStore.Get(path)
+		if err != nil {
+			log.Errorw("failed to fetch filter from KV store", log.Fields{"path": path})
+		}
+		if value != nil {
+			if val, err = kvstore.ToByte(value.Value); err != nil {
+				log.Error("Failed to convert to byte array", log.Fields{"error": err})
+				return filters
+			}
+			if err = json.Unmarshal(val, &filter); err != nil {
+				log.Error("Failed to unmarshall", log.Fields{"error": err})
+				return filters
+			}
+		}
+		filters[filter.EventType] = &filter
+	}
+	return filters
+}
 //UpdateFlowIDsForGem updates flow id per gemport
 func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(intf uint32, gem uint32, flowIDs []uint32) error {
 	var val []byte
