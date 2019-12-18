@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4de74528_3ecead61",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-18T13:43:54Z",
+      "side": 1,
+      "message": "The general practice in golang is to get the result and evaluate in the same line. For ex: \n\nerr :\u003d func(); err !\u003d nil {\n      log.error()\n      return err\n}\n\nCan you consider this and change at all places in this file and others.",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
