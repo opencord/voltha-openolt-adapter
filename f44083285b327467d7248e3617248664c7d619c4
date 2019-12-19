@@ -52,6 +52,41 @@
       "revId": "f44083285b327467d7248e3617248664c7d619c4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fd37c2c6_da3314f3",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-12-19T19:37:42Z",
+      "side": 1,
+      "message": "I would think to keep it simple and not put this restrictions here. The port number is generated based on the interface ID and some other OLT could use different starting numbers.\n\nSo why not give the entire space and not limit it to 4 or 16 (yes logically seems to be a sufficient number)\nHow about?\nMAXNniPortNum \u003d ((1 \u003c\u003c (bitsforNNIID + 1)) - 1)",
+      "parentUuid": "f01e0693_0cbdddda",
+      "revId": "f44083285b327467d7248e3617248664c7d619c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "88e34525_9d9881b6",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2019-12-19T19:37:42Z",
+      "side": 1,
+      "message": "Since the logical port number for NNI now is 20 bits the \u0026 should happen with 0xFFFFF (one more F).",
+      "revId": "f44083285b327467d7248e3617248664c7d619c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
