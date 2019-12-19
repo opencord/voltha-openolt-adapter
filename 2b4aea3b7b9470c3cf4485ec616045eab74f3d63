@@ -16,6 +16,24 @@
       "revId": "2b4aea3b7b9470c3cf4485ec616045eab74f3d63",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a52bbde3_7c2e21bd",
+        "filename": "main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-12-19T22:24:03Z",
+      "side": 1,
+      "message": "Girish, yes it will cause the adapter to restart. The issue was that if Kafka restarts, the consumers exit and the adapter no longer responds to requests. We had a discussion in the stabilization channel, and the two alternatives were to try to repair the fault (restarting parts of the adapter as necessary) or to allow Kubernetes to simply restart the container fresh. This is only caused by a Kafka restart, not a network partition or other transient issue. It\u0027s not expected to happen in production, but the feeling was that restarting the container is better than leaving it in a broken state.",
+      "parentUuid": "b685b0c5_75b91d4f",
+      "revId": "2b4aea3b7b9470c3cf4485ec616045eab74f3d63",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
