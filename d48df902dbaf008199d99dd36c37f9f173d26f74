@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "37f47482_775df351",
+        "filename": "adaptercore/olt_platform_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-19T09:56:37Z",
+      "side": 1,
+      "message": "sure Updated.",
+      "parentUuid": "3cba0e8b_2d9b78e9",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6253d8c4_61d2b071",
         "filename": "go.mod",
         "patchSetId": 9
@@ -65,6 +83,24 @@
       "writtenOn": "2019-12-18T22:03:47Z",
       "side": 1,
       "message": "Is import of an errors library here intentional?",
+      "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d1793b67_1f335f12",
+        "filename": "go.mod",
+        "patchSetId": 9
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-19T09:56:37Z",
+      "side": 1,
+      "message": "My editor added some external error package, Thanks for notifying i will update to core error package.",
+      "parentUuid": "6253d8c4_61d2b071",
       "revId": "d48df902dbaf008199d99dd36c37f9f173d26f74",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
