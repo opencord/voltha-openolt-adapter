@@ -34,6 +34,24 @@
       "revId": "f44083285b327467d7248e3617248664c7d619c4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f01e0693_0cbdddda",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-19T16:45:58Z",
+      "side": 1,
+      "message": "We need to wait for Amit to respond on this before we merge. I would keep max NNI ports as 16 to be safe.",
+      "parentUuid": "38f0f142_f08203a1",
+      "revId": "f44083285b327467d7248e3617248664c7d619c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
