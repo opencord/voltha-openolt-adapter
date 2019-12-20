@@ -33,6 +33,29 @@
       "revId": "f5d2637916cf64812612f6a6d6ac3c8508a02f8b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6280a7ab_95ba2ca9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 878,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-12-20T17:04:47Z",
+      "side": 1,
+      "message": "we should also delete sn from discOnus map here.",
+      "range": {
+        "startLine": 878,
+        "startChar": 2,
+        "endLine": 878,
+        "endChar": 3
+      },
+      "revId": "f5d2637916cf64812612f6a6d6ac3c8508a02f8b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
