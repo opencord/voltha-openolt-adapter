@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dce053b2_e8315640",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1976,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2019-12-20T11:20:43Z",
+      "side": 1,
+      "message": "I just wanted it to be generic so that the method can be reusable. I can make it specific, no problem.",
+      "parentUuid": "73ad11f6_145d3132",
+      "revId": "464a59cafafc83b3c440735b54308231284ee91f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6606964_d1d15754",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2019-12-18T14:26:06Z",
       "side": 1,
       "message": "Is this operator specific? Shouldn\u0027t this come as part of the flow. I see this is being done in a similar fashion in legacy code. If possible get this from the flow, else leave it for now.",
+      "revId": "464a59cafafc83b3c440735b54308231284ee91f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6cb27524_ded03ece",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1979,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2019-12-20T11:20:43Z",
+      "side": 1,
+      "message": "I think we should not say that it is operator specific since PacketType\u003duntagged instructs BAL Agent to send all IGMP packets to the controller irrespective of their tag values. On the other hand, as you indicated, PacketType can be deduced from flow classifiers; I can make it this it way, no problem.",
+      "parentUuid": "b6606964_d1d15754",
       "revId": "464a59cafafc83b3c440735b54308231284ee91f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
