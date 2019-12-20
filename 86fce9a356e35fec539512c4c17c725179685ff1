@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3259e3f5_02d7d302",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v2/pkg/kafka/sarama_client.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2019-12-20T09:10:21Z",
+      "side": 1,
+      "message": "I guess we don\u0027t need channel with 10 element capacity because healthiness state will be published just once (or may be 2 times).",
+      "revId": "86fce9a356e35fec539512c4c17c725179685ff1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
