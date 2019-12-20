@@ -2184,16 +2184,18 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(intfID uint32, onuID uint32, logi
 
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
-	_, ok := f.packetInGemPort[pktInkey]
+	lookupGemPort, ok := f.packetInGemPort[pktInkey]
 	if ok {
-		log.Debugw("pktin key found in cache , no need to update kv as we are assuming both will be in sync",
-			log.Fields{"pktinkey": pktInkey, "gem": gemPort})
-	} else {
-		f.packetInGemPort[pktInkey] = gemPort
-
-		f.resourceMgr.UpdateGemPortForPktIn(pktInkey, gemPort)
-		log.Debugw("pktin key not found in local cache updating cache and kv store", log.Fields{"pktinkey": pktInkey, "gem": gemPort})
+		if lookupGemPort == gemPort {
+			log.Debugw("pktin key/value found in cache , no need to update kv as we are assuming both will be in sync",
+				log.Fields{"pktinkey": pktInkey, "gem": gemPort})
+			return
+		}
 	}
+	f.packetInGemPort[pktInkey] = gemPort
+
+	f.resourceMgr.UpdateGemPortForPktIn(pktInkey, gemPort)
+	log.Debugw("pktin key not found in local cache or value is different. updating cache and kv store", log.Fields{"pktinkey": pktInkey, "gem": gemPort})
 	return
 }
 
