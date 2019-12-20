@@ -16,6 +16,24 @@
       "revId": "86fce9a356e35fec539512c4c17c725179685ff1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2da98ec_330692c1",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v2/pkg/kafka/sarama_client.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 627,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-12-20T16:42:28Z",
+      "side": 1,
+      "message": "Yeah, let me take a look at this next time I\u0027m working on voltha-lib-go.",
+      "parentUuid": "3259e3f5_02d7d302",
+      "revId": "86fce9a356e35fec539512c4c17c725179685ff1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
