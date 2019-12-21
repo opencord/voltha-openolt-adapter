@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "edde9a7d_90089ceb",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-12-21T00:46:53Z",
+      "side": 1,
+      "message": "consider uncommenting this and leaving a comment to the effect \"// these are not yet supported in the agent and will return zero until agent support is finished\"",
+      "range": {
+        "startLine": 325,
+        "startChar": 4,
+        "endLine": 325,
+        "endChar": 21
+      },
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
