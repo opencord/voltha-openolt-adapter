@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "4695cd20_58a017ca",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 863,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2019-12-21T00:06:02Z",
+      "side": 1,
+      "message": "probably we should also free ONUID from resourceMgr here.",
+      "range": {
+        "startLine": 863,
+        "startChar": 5,
+        "endLine": 863,
+        "endChar": 7
+      },
+      "revId": "f5d2637916cf64812612f6a6d6ac3c8508a02f8b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15e78951_a992b551",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
