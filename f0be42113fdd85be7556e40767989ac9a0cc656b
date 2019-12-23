@@ -22,6 +22,40 @@
       "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aeb6efe2_5205af96",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-23T05:57:36Z",
+      "side": 1,
+      "message": "Can you include RxCrcErrors and BipErrors too. They may not supported from the hardware, but we can include them in unit tests.",
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a611550_00cd687a",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2019-12-23T05:57:36Z",
+      "side": 1,
+      "message": "Same here. Please include RxCrcErrors and BipErrors",
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
