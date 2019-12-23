@@ -16,6 +16,24 @@
       "revId": "4f90d30f03e086831b45e6a46bda99b73bf3d329",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4dced4a5_1b311eaa",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1475,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2019-12-23T10:46:54Z",
+      "side": 1,
+      "message": "Yes, the filters needs to be reconciled from the core if the adapter restarts.",
+      "parentUuid": "5b56d973_e49ee2f1",
+      "revId": "4f90d30f03e086831b45e6a46bda99b73bf3d329",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
