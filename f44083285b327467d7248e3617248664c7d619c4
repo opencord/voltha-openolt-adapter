@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "0e4e186b_fb7d9635",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-23T07:02:35Z",
+      "side": 1,
+      "message": "Sure, this provides flexibility and enough space to operator (1048575)",
+      "parentUuid": "fd37c2c6_da3314f3",
+      "revId": "f44083285b327467d7248e3617248664c7d619c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "88e34525_9d9881b6",
         "filename": "adaptercore/olt_platform.go",
         "patchSetId": 5
@@ -84,6 +102,24 @@
       "writtenOn": "2019-12-19T19:37:42Z",
       "side": 1,
       "message": "Since the logical port number for NNI now is 20 bits the \u0026 should happen with 0xFFFFF (one more F).",
+      "revId": "f44083285b327467d7248e3617248664c7d619c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0d9420f6_d9aac6c9",
+        "filename": "adaptercore/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2019-12-23T07:02:35Z",
+      "side": 1,
+      "message": "Sure, Addressed",
+      "parentUuid": "88e34525_9d9881b6",
       "revId": "f44083285b327467d7248e3617248664c7d619c4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
