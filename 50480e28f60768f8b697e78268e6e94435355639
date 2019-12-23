@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1de1be0e_c521748a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 834,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-23T05:49:18Z",
+      "side": 1,
+      "message": "getNniIntfID should be called before clearing the action map.",
+      "revId": "50480e28f60768f8b697e78268e6e94435355639",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
