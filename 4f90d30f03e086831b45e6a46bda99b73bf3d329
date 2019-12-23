@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b56d973_e49ee2f1",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1475,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-23T06:43:10Z",
+      "side": 1,
+      "message": "the filters are saved in the devicehandler , what if adapter restarts ? will the filters come from core as part of reconcile ?",
+      "revId": "4f90d30f03e086831b45e6a46bda99b73bf3d329",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
