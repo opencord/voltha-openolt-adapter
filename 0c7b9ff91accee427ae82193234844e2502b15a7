@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "811fa892_690c720c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-27T07:33:13Z",
+      "side": 1,
+      "message": "again the event filter is getting overwritten here as you are using the one in eventproxy which is a single proxy instance per adapter",
+      "revId": "0c7b9ff91accee427ae82193234844e2502b15a7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "83cd47db_1e84f892",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-27T07:33:13Z",
+      "side": 1,
+      "message": "why ask core to reconcile filters ? adapter can have all the filters stored in kv and load them on adapter restart",
+      "revId": "0c7b9ff91accee427ae82193234844e2502b15a7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c9daf6d_dcdb871c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-27T07:33:13Z",
+      "side": 1,
+      "message": "And i dont see this implementation in the core code. even here the filters are not being updated to the device handler filter",
+      "revId": "0c7b9ff91accee427ae82193234844e2502b15a7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
