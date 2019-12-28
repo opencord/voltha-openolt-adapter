@@ -21,19 +21,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	tp "github.com/opencord/voltha-lib-go/v3/pkg/techprofile"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	"github.com/opencord/voltha-protos/v2/go/openolt"
-	openoltpb2 "github.com/opencord/voltha-protos/v2/go/openolt"
-	tp_pb "github.com/opencord/voltha-protos/v2/go/tech_profile"
+	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	"github.com/opencord/voltha-protos/v3/go/openolt"
+	openoltpb2 "github.com/opencord/voltha-protos/v3/go/openolt"
+	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
 )
 
 var flowMgr *OpenOltFlowMgr

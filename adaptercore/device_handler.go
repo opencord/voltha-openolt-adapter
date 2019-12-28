@@ -34,15 +34,15 @@ import (
 	backoff "github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	"github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics"
+	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
-	"github.com/opencord/voltha-protos/v2/go/common"
-	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
-	of "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	oop "github.com/opencord/voltha-protos/v2/go/openolt"
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-protos/v3/go/common"
+	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
+	of "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/v3/go/openolt"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
@@ -226,7 +226,7 @@ func GetportLabel(portNum uint32, portType voltha.Port_PortType) string {
 }
 
 func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, state string) {
-	var operStatus common.OperStatus_OperStatus
+	var operStatus common.OperStatus_Types
 	if state == "up" {
 		operStatus = voltha.OperStatus_ACTIVE
 	} else {
@@ -775,7 +775,7 @@ func (dh *DeviceHandler) ProcessInterAdapterMessage(msg *ic.InterAdapterMessage)
 func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *ic.InterAdapterOmciMessage) {
 	var intfID uint32
 	var onuID uint32
-	var connectStatus common.ConnectStatus_ConnectStatus
+	var connectStatus common.ConnectStatus_Types
 	if onuDevice != nil {
 		intfID = onuDevice.ProxyAddress.GetChannelId()
 		onuID = onuDevice.ProxyAddress.GetOnuId()

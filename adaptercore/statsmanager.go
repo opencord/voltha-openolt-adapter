@@ -23,9 +23,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	"github.com/opencord/voltha-protos/v2/go/openolt"
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-protos/v3/go/openolt"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 var mutex = &sync.Mutex{}
@@ -332,7 +332,7 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[stri
 
 	var metricInfo voltha.MetricInformation
 	var ke voltha.KpiEvent2
-	var volthaEventSubCatgry voltha.EventSubCategory_EventSubCategory
+	var volthaEventSubCatgry voltha.EventSubCategory_Types
 
 	if portType == "NNIStats" {
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI

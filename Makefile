@@ -81,17 +81,17 @@ help:
 
 local-protos:
 ifdef LOCAL_PROTOS
-	rm -rf vendor/github.com/opencord/voltha-protos/v2/go
-	mkdir -p vendor/github.com/opencord/voltha-protos/v2/go
-	cp -r ${LOCAL_PROTOS}/go/* vendor/github.com/opencord/voltha-protos/v2/go
-	rm -rf vendor/github.com/opencord/voltha-protos/v2/go/vendor
+	rm -rf vendor/github.com/opencord/voltha-protos/v3/go
+	mkdir -p vendor/github.com/opencord/voltha-protos/v3/go
+	cp -r ${LOCAL_PROTOS}/go/* vendor/github.com/opencord/voltha-protos/v3/go
+	rm -rf vendor/github.com/opencord/voltha-protos/v3/go/vendor
 endif
 
 ## Local Development Helpers
 local-lib-go:
 ifdef LOCAL_LIB_GO
-	mkdir -p vendor/github.com/opencord/voltha-lib-go/v2/pkg
-	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/v2/pkg/
+	mkdir -p vendor/github.com/opencord/voltha-lib-go/v3/pkg
+	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/v3/pkg/
 endif
 
 ## Docker targets

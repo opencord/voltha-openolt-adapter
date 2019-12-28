@@ -25,21 +25,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v2/pkg/pmmetrics"
+	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v2/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v2/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v2/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/mocks"
-	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
-	of "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
-	oop "github.com/opencord/voltha-protos/v2/go/openolt"
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
+	of "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/v3/go/openolt"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 func init() {

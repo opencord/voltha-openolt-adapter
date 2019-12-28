@@ -20,7 +20,7 @@ package mocks
 import (
 	"errors"
 
-	"github.com/opencord/voltha-protos/v2/go/voltha"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 // MockEventProxy for mocking EventProxyIntf
