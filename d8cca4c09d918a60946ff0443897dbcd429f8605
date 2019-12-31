@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e85643a_bb4e66a3",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1221,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2019-12-31T11:34:39Z",
+      "side": 1,
+      "message": "base kv path will be service/voltha/openolt/{device-id}, i dont see filters being stored in this path",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
