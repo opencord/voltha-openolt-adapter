@@ -24,6 +24,7 @@ and few utility functions.
 package resourcemanager
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
@@ -37,6 +38,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -117,12 +119,12 @@ func getResMgr() *fields {
 }
 
 // List function implemented for KVClient.
-func (kvclient *MockResKVClient) List(key string, timeout int) (map[string]*kvstore.KVPair, error) {
+func (kvclient *MockResKVClient) List(ctx context.Context, key string) (map[string]*kvstore.KVPair, error) {
 	return nil, errors.New("key didn't find")
 }
 
 // Get mock function implementation for KVClient
-func (kvclient *MockResKVClient) Get(key string, timeout int) (*kvstore.KVPair, error) {
+func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
 	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		if strings.Contains(key, MeterConfig) {
@@ -183,7 +185,7 @@ func (kvclient *MockResKVClient) Get(key string, timeout int) (*kvstore.KVPair, 
 }
 
 // Put mock function implementation for KVClient
-func (kvclient *MockResKVClient) Put(key string, value interface{}, timeout int) error {
+func (kvclient *MockResKVClient) Put(ctx context.Context, key string, value interface{}) error {
 	if key != "" {
 		return nil
 	}
@@ -191,37 +193,37 @@ func (kvclient *MockResKVClient) Put(key string, value interface{}, timeout int)
 }
 
 // Delete mock function implementation for KVClient
-func (kvclient *MockResKVClient) Delete(key string, timeout int) error {
+func (kvclient *MockResKVClient) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
 // Reserve mock function implementation for KVClient
-func (kvclient *MockResKVClient) Reserve(key string, value interface{}, ttl int64) (interface{}, error) {
+func (kvclient *MockResKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl int64) (interface{}, error) {
 	return nil, errors.New("key didn't find")
 }
 
 // ReleaseReservation mock function implementation for KVClient
-func (kvclient *MockResKVClient) ReleaseReservation(key string) error {
+func (kvclient *MockResKVClient) ReleaseReservation(ctx context.Context, key string) error {
 	return nil
 }
 
 // ReleaseAllReservations mock function implementation for KVClient
-func (kvclient *MockResKVClient) ReleaseAllReservations() error {
+func (kvclient *MockResKVClient) ReleaseAllReservations(ctx context.Context) error {
 	return nil
 }
 
 // RenewReservation mock function implementation for KVClient
-func (kvclient *MockResKVClient) RenewReservation(key string) error {
+func (kvclient *MockResKVClient) RenewReservation(ctx context.Context, key string) error {
 	return nil
 }
 
 // Watch mock function implementation for KVClient
-func (kvclient *MockResKVClient) Watch(key string) chan *kvstore.Event {
+func (kvclient *MockResKVClient) Watch(ctx context.Context, key string) chan *kvstore.Event {
 	return nil
 }
 
 // AcquireLock mock function implementation for KVClient
-func (kvclient *MockResKVClient) AcquireLock(lockName string, timeout int) error {
+func (kvclient *MockResKVClient) AcquireLock(ctx context.Context, lockName string, timeout int) error {
 	return nil
 }
 
@@ -231,7 +233,7 @@ func (kvclient *MockResKVClient) ReleaseLock(lockName string) error {
 }
 
 // IsConnectionUp mock function implementation for KVClient
-func (kvclient *MockResKVClient) IsConnectionUp(timeout int) bool { // timeout in second
+func (kvclient *MockResKVClient) IsConnectionUp(ctx context.Context) bool { // timeout in second
 	return true
 }
 
@@ -278,7 +280,9 @@ func TestNewResourceMgr(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewResourceMgr(tt.args.deviceID, tt.args.KVStoreHostPort, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := NewResourceMgr(ctx, tt.args.deviceID, tt.args.KVStoreHostPort, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("NewResourceMgr() = %v, want %v", got, tt.want)
 			}
 		})
@@ -296,7 +300,9 @@ func TestOpenOltResourceMgr_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.Delete(); (err != nil) && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.Delete(ctx); (err != nil) && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -320,7 +326,9 @@ func TestOpenOltResourceMgr_FreeFlowID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			RsrcMgr.FreeFlowID(tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.FreeFlowID(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
 		})
 	}
 }
@@ -343,7 +351,9 @@ func TestOpenOltResourceMgr_FreeFlowIDs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			RsrcMgr.FreeFlowIDs(tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.FreeFlowIDs(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
 		})
 	}
 }
@@ -364,7 +374,9 @@ func TestOpenOltResourceMgr_FreePONResourcesForONU(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			RsrcMgr.FreePONResourcesForONU(tt.args.intfID, tt.args.onuID, tt.args.uniID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.FreePONResourcesForONU(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID)
 		})
 	}
 }
@@ -384,7 +396,9 @@ func TestOpenOltResourceMgr_FreeonuID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			RsrcMgr.FreeonuID(tt.args.intfID, tt.args.onuID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.FreeonuID(ctx, tt.args.intfID, tt.args.onuID)
 		})
 	}
 }
@@ -407,7 +421,9 @@ func TestOpenOltResourceMgr_GetAllocID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetAllocID(tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.GetAllocID(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetAllocID() = %v, want %v", got, tt.want)
 			}
 		})
@@ -431,7 +447,9 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetCurrentAllocIDsForOnu(tt.args.intfID, tt.args.onuID, tt.args.uniID); !reflect.DeepEqual(got, tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.GetCurrentAllocIDsForOnu(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetCurrentAllocIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -456,7 +474,9 @@ func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetCurrentFlowIDsForOnu(tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetCurrentFlowIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -480,7 +500,9 @@ func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetCurrentGEMPortIDsForOnu(tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.GetCurrentGEMPortIDsForOnu(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetCurrentGEMPortIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -511,7 +533,9 @@ func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			got, err := RsrcMgr.GetFlowID(tt.args.ponIntfID, tt.args.ONUID, tt.args.uniID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanPcp...)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			got, err := RsrcMgr.GetFlowID(ctx, tt.args.ponIntfID, tt.args.ONUID, tt.args.uniID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanPcp...)
 			if err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("GetFlowID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -543,7 +567,9 @@ func TestOpenOltResourceMgr_GetGEMPortID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			got, err := RsrcMgr.GetGEMPortID(tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.NumOfPorts)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			got, err := RsrcMgr.GetGEMPortID(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.NumOfPorts)
 			if reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("GetGEMPortID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -578,7 +604,9 @@ func TestOpenOltResourceMgr_GetMeterIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			got, err := RsrcMgr.GetMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.tpID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			got, err := RsrcMgr.GetMeterIDForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.tpID)
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) && err != nil {
 				t.Errorf("GetMeterIDForOnu() got = %v, want %v", got, tt.want)
 			}
@@ -602,7 +630,9 @@ func TestOpenOltResourceMgr_GetONUID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			got, err := RsrcMgr.GetONUID(tt.args.ponIntfID)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			got, err := RsrcMgr.GetONUID(ctx, tt.args.ponIntfID)
 			if got != tt.want && err != nil {
 				t.Errorf("GetONUID() got = %v, want %v", got, tt.want)
 			}
@@ -629,7 +659,9 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.GetTechProfileIDForOnu(tt.args.IntfID, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.GetTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetTechProfileIDForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -654,7 +686,9 @@ func TestOpenOltResourceMgr_IsFlowCookieOnKVStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if got := RsrcMgr.IsFlowCookieOnKVStore(tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowStoreCookie); got != tt.want {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if got := RsrcMgr.IsFlowCookieOnKVStore(ctx, tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowStoreCookie); got != tt.want {
 				t.Errorf("IsFlowCookieOnKVStore() = %v, want %v", got, tt.want)
 			}
 		})
@@ -682,7 +716,9 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.RemoveMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.RemoveMeterIDForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveMeterIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -709,7 +745,9 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.RemoveTechProfileIDForOnu(tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.RemoveTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveTechProfileIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -736,7 +774,9 @@ func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateAllocIdsForOnu(tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.allocID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateAllocIdsForOnu(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.allocID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateAllocIdsForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -762,7 +802,9 @@ func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateFlowIDInfo(tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowID, tt.args.flowData); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateFlowIDInfo(ctx, tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowID, tt.args.flowData); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateFlowIDInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -789,7 +831,9 @@ func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateGEMPortIDsForOnu(tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.GEMPortList); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateGEMPortIDsForOnu(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.GEMPortList); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateGEMPortIDsForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -815,7 +859,9 @@ func TestOpenOltResourceMgr_UpdateGEMportsPonportToOnuMapOnKVStore(t *testing.T)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(tt.args.gemPorts, tt.args.PonPort,
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(ctx, tt.args.gemPorts, tt.args.PonPort,
 				tt.args.onuID, tt.args.uniID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateGEMportsPonportToOnuMapOnKVStore() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -844,7 +890,9 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateMeterIDForOnu(tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateMeterIDForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID, tt.args.MeterConfig); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateMeterIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
@@ -871,7 +919,9 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.UpdateTechProfileIDForOnu(tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := RsrcMgr.UpdateTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateTechProfileIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
 		})
@@ -1004,7 +1054,9 @@ func TestOpenOltResourceMgr_AddMcastQueueForIntf(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			err := RsrcMgr.AddMcastQueueForIntf(tt.args.intf, tt.args.gem, tt.args.servicePriority)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := RsrcMgr.AddMcastQueueForIntf(ctx, tt.args.intf, tt.args.gem, tt.args.servicePriority)
 			if err != nil {
 				t.Errorf("%s got err= %s wants nil", tt.name, err)
 				return
@@ -1054,7 +1106,9 @@ func TestOpenOltResourceMgr_AddFlowGroupToKVStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			err := RsrcMgr.AddFlowGroupToKVStore(tt.args.group, tt.args.cached)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := RsrcMgr.AddFlowGroupToKVStore(ctx, tt.args.group, tt.args.cached)
 			if err != nil {
 				t.Errorf("%s got err= %s wants nil", tt.name, err)
 				return
@@ -1081,7 +1135,9 @@ func TestOpenOltResourceMgr_RemoveFlowGroupFromKVStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			success := RsrcMgr.RemoveFlowGroupFromKVStore(tt.args.groupID, tt.args.cached)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			success := RsrcMgr.RemoveFlowGroupFromKVStore(ctx, tt.args.groupID, tt.args.cached)
 			if !success {
 				t.Errorf("%s got false but wants true", tt.name)
 				return
@@ -1109,7 +1165,9 @@ func TestOpenOltResourceMgr_GetFlowGroupFromKVStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			exists, groupInfo, err := RsrcMgr.GetFlowGroupFromKVStore(tt.args.groupID, tt.args.cached)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			exists, groupInfo, err := RsrcMgr.GetFlowGroupFromKVStore(ctx, tt.args.groupID, tt.args.cached)
 			if err != nil {
 				t.Errorf("%s got error but wants nil error", tt.name)
 				return
