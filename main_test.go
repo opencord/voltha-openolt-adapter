@@ -156,7 +156,7 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 
 	ad := newMockAdapter()
 
-	kip, _ := kafka.NewInterContainerProxy(
+	kip := kafka.NewInterContainerProxy(
 		kafka.InterContainerHost(ad.config.KafkaAdapterHost),
 		kafka.InterContainerPort(ad.config.KafkaAdapterPort),
 		kafka.MsgClient(&mockKafkaClient{}),
@@ -227,4 +227,8 @@ func (kc *mockKafkaClient) EnableLivenessChannel(enable bool) chan bool {
 
 func (kc *mockKafkaClient) EnableHealthinessChannel(enable bool) chan bool {
 	return nil
+}
+
+func (kc *mockKafkaClient) SubscribeForMetadata(func(fromTopic string, timestamp int64)) {
+	return
 }
