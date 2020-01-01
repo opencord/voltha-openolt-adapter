@@ -44,7 +44,7 @@ type fields struct {
 	coreProxy             *com.CoreProxy
 	adapterProxy          *com.AdapterProxy
 	eventProxy            *com.EventProxy
-	kafkaICProxy          *kafka.InterContainerProxy
+	kafkaICProxy          kafka.InterContainerProxy
 	numOnus               int
 	KVStoreHost           string
 	KVStorePort           int
