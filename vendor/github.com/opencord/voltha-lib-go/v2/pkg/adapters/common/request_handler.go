@@ -17,6 +17,7 @@ package common
 
 import (
 	"errors"
+	"context"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters"
@@ -57,7 +58,7 @@ func (rhp *RequestHandlerProxy) Health() (*voltha.HealthStatus, error) {
 	return nil, nil
 }
 
-func (rhp *RequestHandlerProxy) Adopt_device(args []*ic.Argument) (*empty.Empty, error) {
+func (rhp *RequestHandlerProxy) Adopt_device(ctx context.Context, args []*ic.Argument) (*empty.Empty, error) {
 	if len(args) < 3 {
 		log.Warn("invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
@@ -92,14 +93,14 @@ func (rhp *RequestHandlerProxy) Adopt_device(args []*ic.Argument) (*empty.Empty,
 	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
 
 	//Invoke the adopt device on the adapter
-	if err := rhp.adapter.Adopt_device(device); err != nil {
+	if err := rhp.adapter.Adopt_device(ctx, device); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 
 	return new(empty.Empty), nil
 }
 
-func (rhp *RequestHandlerProxy) Reconcile_device(args []*ic.Argument) (*empty.Empty, error) {
+func (rhp *RequestHandlerProxy) Reconcile_device(ctx context.Context, args []*ic.Argument) (*empty.Empty, error) {
 	if len(args) < 3 {
 		log.Warn("invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
@@ -132,7 +133,7 @@ func (rhp *RequestHandlerProxy) Reconcile_device(args []*ic.Argument) (*empty.Em
 	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
 
 	//Invoke the reconcile device API on the adapter
-	if err := rhp.adapter.Reconcile_device(device); err != nil {
+	if err := rhp.adapter.Reconcile_device(ctx, device); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil
@@ -261,7 +262,7 @@ func (rhp *RequestHandlerProxy) Self_test_device(args []*ic.Argument) (*empty.Em
 	return new(empty.Empty), nil
 }
 
-func (rhp *RequestHandlerProxy) Delete_device(args []*ic.Argument) (*empty.Empty, error) {
+func (rhp *RequestHandlerProxy) Delete_device(ctx context.Context, args []*ic.Argument) (*empty.Empty, error) {
 	if len(args) < 3 {
 		log.Warn("invalid-number-of-args", log.Fields{"args": args})
 		err := errors.New("invalid-number-of-args")
@@ -293,7 +294,7 @@ func (rhp *RequestHandlerProxy) Delete_device(args []*ic.Argument) (*empty.Empty
 	//Update the core reference for that device
 	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
 	//Invoke the delete_device API on the adapter
-	if err := rhp.adapter.Delete_device(device); err != nil {
+	if err := rhp.adapter.Delete_device(ctx, device); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil
@@ -352,7 +353,7 @@ func (rhp *RequestHandlerProxy) Update_flows_bulk(args []*ic.Argument) (*empty.E
 	return new(empty.Empty), nil
 }
 
-func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) (*empty.Empty, error) {
+func (rhp *RequestHandlerProxy) Update_flows_incrementally(ctx context.Context, args []*ic.Argument) (*empty.Empty, error) {
 	log.Debug("Update_flows_incrementally")
 	if len(args) < 5 {
 		log.Warn("Update_flows_incrementally-invalid-number-of-args", log.Fields{"args": args})
@@ -395,7 +396,7 @@ func (rhp *RequestHandlerProxy) Update_flows_incrementally(args []*ic.Argument) 
 	}
 	log.Debugw("Update_flows_incrementally", log.Fields{"flows": flows, "groups": groups})
 	//Invoke the incremental flow update API of the adapter
-	if err := rhp.adapter.Update_flows_incrementally(device, flows, groups, flowMetadata); err != nil {
+	if err := rhp.adapter.Update_flows_incrementally(ctx, device, flows, groups, flowMetadata); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil
@@ -438,7 +439,7 @@ func (rhp *RequestHandlerProxy) Update_pm_config(args []*ic.Argument) (*empty.Em
 	return new(empty.Empty), nil
 }
 
-func (rhp *RequestHandlerProxy) Receive_packet_out(args []*ic.Argument) (*empty.Empty, error) {
+func (rhp *RequestHandlerProxy) Receive_packet_out(ctx context.Context, args []*ic.Argument) (*empty.Empty, error) {
 	log.Debugw("Receive_packet_out", log.Fields{"args": args})
 	if len(args) < 3 {
 		log.Warn("Receive_packet_out-invalid-number-of-args", log.Fields{"args": args})
@@ -475,7 +476,7 @@ func (rhp *RequestHandlerProxy) Receive_packet_out(args []*ic.Argument) (*empty.
 	}
 	log.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceId.Val, "outPort": egressPort, "packet": packet})
 	//Invoke the adopt device on the adapter
-	if err := rhp.adapter.Receive_packet_out(deviceId.Val, int(egressPort.Val), packet); err != nil {
+	if err := rhp.adapter.Receive_packet_out(ctx, deviceId.Val, int(egressPort.Val), packet); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil

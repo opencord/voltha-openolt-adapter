@@ -219,7 +219,8 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			err := oo.Adopt_device(tt.args.device)
+			ctx := context.Background()
+			err := oo.Adopt_device(ctx, tt.args.device)
 			if (err != nil) && (reflect.TypeOf(err) !=
 				reflect.TypeOf(tt.wantErr)) && (tt.args.device == nil) {
 				t.Errorf("Adopt_device() error = %v, wantErr %v", err, tt.wantErr)
@@ -276,7 +277,8 @@ func TestOpenOLT_Delete_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Delete_device(tt.args.device); (err != nil) && (reflect.TypeOf(err) !=
+			ctx := context.Background()
+			if err := oo.Delete_device(ctx, tt.args.device); (err != nil) && (reflect.TypeOf(err) !=
 				reflect.TypeOf(tt.wantErr)) {
 				t.Errorf("Delete_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -592,7 +594,8 @@ func TestOpenOLT_Receive_packet_out(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Receive_packet_out(tt.args.deviceID, tt.args.egressPortNo, tt.args.packet); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
+			ctx := context.Background()
+			if err := oo.Receive_packet_out(ctx, tt.args.deviceID, tt.args.egressPortNo, tt.args.packet); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
 				t.Errorf("Receive_packet_out() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -616,7 +619,8 @@ func TestOpenOLT_Reconcile_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Reconcile_device(tt.args.device); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
+			ctx := context.Background()
+			if err := oo.Reconcile_device(ctx, tt.args.device); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
 				t.Errorf("Reconcile_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -844,7 +848,8 @@ func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Update_flows_incrementally(tt.args.device, tt.args.flows, tt.args.groups, tt.args.flowMetadata); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
+			ctx := context.Background()
+			if err := oo.Update_flows_incrementally(ctx, tt.args.device, tt.args.flows, tt.args.groups, tt.args.flowMetadata); (err != nil) && (reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr)) {
 				t.Errorf("Update_flows_incrementally() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

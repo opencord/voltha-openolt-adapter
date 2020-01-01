@@ -18,6 +18,7 @@
 package mocks
 
 import (
+	"context"
 	"github.com/opencord/voltha-lib-go/v2/pkg/db"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
@@ -41,14 +42,14 @@ func (m MockTechProfile) GetTechProfileInstanceKVPath(techProfiletblID uint32, u
 }
 
 // GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
-func (m MockTechProfile) GetTPInstanceFromKVStore(techProfiletblID uint32, path string) (*tp.TechProfile, error) {
+func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (*tp.TechProfile, error) {
 	log.Debug("Warning Warning Warning: GetTPInstanceFromKVStore")
 	return nil, nil
 
 }
 
 // CreateTechProfInstance to mock techprofile CreateTechProfInstance method
-func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfID uint32) (*tp.TechProfile, error) {
+func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (*tp.TechProfile, error) {
 
 	return &tp.TechProfile{
 		Name:                           "mock-tech-profile",
@@ -63,7 +64,7 @@ func (m MockTechProfile) CreateTechProfInstance(techProfiletblID uint32, uniPort
 }
 
 // DeleteTechProfileInstance to mock techprofile DeleteTechProfileInstance method
-func (m MockTechProfile) DeleteTechProfileInstance(techProfiletblID uint32, uniPortName string) error {
+func (m MockTechProfile) DeleteTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string) error {
 	return nil
 }
 
@@ -102,6 +103,11 @@ func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direc
 }
 
 // FindAllTpInstances to mock techprofile FindAllTpInstances method
-func (m MockTechProfile) FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []tp.TechProfile {
+func (m MockTechProfile) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) []tp.TechProfile {
 	return []tp.TechProfile{}
+}
+
+// GetMulticastTrafficQueues to mock techprofile GetTrafficQueues method
+func (m MockTechProfile) GetMulticastTrafficQueues(tp *tp.TechProfile) []*tp_pb.TrafficQueue {
+	return []*tp_pb.TrafficQueue{{}}
 }
