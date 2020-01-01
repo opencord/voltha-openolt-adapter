@@ -18,10 +18,12 @@
 package mocks
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
@@ -57,7 +59,7 @@ type MockKVClient struct {
 }
 
 // List mock function implementation for KVClient
-func (kvclient *MockKVClient) List(key string, timeout int) (map[string]*kvstore.KVPair, error) {
+func (kvclient *MockKVClient) List(ctx context.Context, key string) (map[string]*kvstore.KVPair, error) {
 	if key != "" {
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
@@ -67,7 +69,7 @@ func (kvclient *MockKVClient) List(key string, timeout int) (map[string]*kvstore
 }
 
 // Get mock function implementation for KVClient
-func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, error) {
+func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
 	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		log.Debug("Warning Key Not Blank")
@@ -170,7 +172,7 @@ func (kvclient *MockKVClient) Get(key string, timeout int) (*kvstore.KVPair, err
 }
 
 // Put mock function implementation for KVClient
-func (kvclient *MockKVClient) Put(key string, value interface{}, timeout int) error {
+func (kvclient *MockKVClient) Put(ctx context.Context, key string, value interface{}) error {
 	if key != "" {
 
 		return nil
@@ -179,7 +181,7 @@ func (kvclient *MockKVClient) Put(key string, value interface{}, timeout int) er
 }
 
 // Delete mock function implementation for KVClient
-func (kvclient *MockKVClient) Delete(key string, timeout int) error {
+func (kvclient *MockKVClient) Delete(ctx context.Context, key string) error {
 	if key == "" {
 		return errors.New("key didn't find")
 	}
@@ -187,7 +189,7 @@ func (kvclient *MockKVClient) Delete(key string, timeout int) error {
 }
 
 // Reserve mock function implementation for KVClient
-func (kvclient *MockKVClient) Reserve(key string, value interface{}, ttl int64) (interface{}, error) {
+func (kvclient *MockKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl int64) (interface{}, error) {
 	if key != "" {
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
@@ -197,7 +199,7 @@ func (kvclient *MockKVClient) Reserve(key string, value interface{}, ttl int64) 
 }
 
 // ReleaseReservation mock function implementation for KVClient
-func (kvclient *MockKVClient) ReleaseReservation(key string) error {
+func (kvclient *MockKVClient) ReleaseReservation(ctx context.Context, key string) error {
 	// return nil
 	if key == "" {
 		return errors.New("key didn't find")
@@ -206,12 +208,12 @@ func (kvclient *MockKVClient) ReleaseReservation(key string) error {
 }
 
 // ReleaseAllReservations mock function implementation for KVClient
-func (kvclient *MockKVClient) ReleaseAllReservations() error {
+func (kvclient *MockKVClient) ReleaseAllReservations(ctx context.Context) error {
 	return nil
 }
 
 // RenewReservation mock function implementation for KVClient
-func (kvclient *MockKVClient) RenewReservation(key string) error {
+func (kvclient *MockKVClient) RenewReservation(ctx context.Context, key string) error {
 	// return nil
 	if key == "" {
 		return errors.New("key didn't find")
@@ -220,7 +222,7 @@ func (kvclient *MockKVClient) RenewReservation(key string) error {
 }
 
 // Watch mock function implementation for KVClient
-func (kvclient *MockKVClient) Watch(key string) chan *kvstore.Event {
+func (kvclient *MockKVClient) Watch(ctx context.Context, key string) chan *kvstore.Event {
 	return nil
 	// if key == "" {
 	// 	return nil
@@ -229,7 +231,7 @@ func (kvclient *MockKVClient) Watch(key string) chan *kvstore.Event {
 }
 
 // AcquireLock mock function implementation for KVClient
-func (kvclient *MockKVClient) AcquireLock(lockName string, timeout int) error {
+func (kvclient *MockKVClient) AcquireLock(ctx context.Context, lockName string, timeout int) error {
 	return nil
 }
 
@@ -239,8 +241,9 @@ func (kvclient *MockKVClient) ReleaseLock(lockName string) error {
 }
 
 // IsConnectionUp mock function implementation for KVClient
-func (kvclient *MockKVClient) IsConnectionUp(timeout int) bool { // timeout in second
-	if timeout < 1 {
+func (kvclient *MockKVClient) IsConnectionUp(ctx context.Context) bool { // timeout in second
+	t, _ := ctx.Deadline()
+	if t.Second()-time.Now().Second() < 1 {
 		return false
 	}
 	return true
