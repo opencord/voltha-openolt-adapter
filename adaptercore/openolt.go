@@ -129,7 +129,7 @@ func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 }
 
 // Adopt_device creates a new device handler if not present already and then adopts the device
-func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
+func (oo *OpenOLT) Adopt_device(ctx context.Context, device *voltha.Device) error {
 	if device == nil {
 		log.Warn("device-is-nil")
 		return errors.New("nil-device")
@@ -139,7 +139,7 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
 		oo.addDeviceHandlerToMap(handler)
-		go handler.AdoptDevice(device)
+		go handler.AdoptDevice(ctx, device)
 		// Launch the creation of the device topic
 		// go oo.createDeviceTopic(device)
 	}
@@ -196,7 +196,7 @@ func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
 }
 
 //Reconcile_device unimplemented
-func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
+func (oo *OpenOLT) Reconcile_device(ctx context.Context, device *voltha.Device) error {
 	if device == nil {
 		log.Warn("device-is-nil")
 		return errors.New("nil-device")
@@ -207,7 +207,7 @@ func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
-		handler.transitionMap.Handle(DeviceInit)
+		handler.transitionMap.Handle(ctx, DeviceInit)
 	}
 	return nil
 }
@@ -254,10 +254,10 @@ func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
 }
 
 //Delete_device unimplemented
-func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
+func (oo *OpenOLT) Delete_device(ctx context.Context, device *voltha.Device) error {
 	log.Infow("delete-device", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		if err := handler.DeleteDevice(device); err != nil {
+		if err := handler.DeleteDevice(ctx, device); err != nil {
 			log.Errorw("failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
 		}
 		oo.deleteDeviceHandlerToMap(handler)
@@ -278,10 +278,10 @@ func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows,
 }
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
-func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+func (oo *OpenOLT) Update_flows_incrementally(ctx context.Context, device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows, "flowMetadata": flowMetadata})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.UpdateFlowsIncrementally(device, flows, groups, flowMetadata)
+		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
 	log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
 	return errors.New("device-handler-not-set")
@@ -293,10 +293,10 @@ func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmC
 }
 
 //Receive_packet_out sends packet out to the device
-func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet *openflow_13.OfpPacketOut) error {
+func (oo *OpenOLT) Receive_packet_out(ctx context.Context, deviceID string, egressPortNo int, packet *openflow_13.OfpPacketOut) error {
 	log.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceID, "egress_port_no": egressPortNo, "pkt": packet})
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
-		return handler.PacketOut(egressPortNo, packet)
+		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
 	log.Errorw("Receive_packet_out failed-device-handler-not-set", log.Fields{"deviceId": deviceID, "egressport": egressPortNo, "packet": packet})
 	return errors.New("device-handler-not-set")

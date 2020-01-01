@@ -16,6 +16,7 @@
 package adapters
 
 import (
+	"context"
 	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
 	"github.com/opencord/voltha-protos/v2/go/openflow_13"
 	"github.com/opencord/voltha-protos/v2/go/voltha"
@@ -26,19 +27,19 @@ type IAdapter interface {
 	Adapter_descriptor() error
 	Device_types() (*voltha.DeviceTypes, error)
 	Health() (*voltha.HealthStatus, error)
-	Adopt_device(device *voltha.Device) error
-	Reconcile_device(device *voltha.Device) error
+	Adopt_device(ctx context.Context, device *voltha.Device) error
+	Reconcile_device(ctx context.Context, device *voltha.Device) error
 	Abandon_device(device *voltha.Device) error
 	Disable_device(device *voltha.Device) error
 	Reenable_device(device *voltha.Device) error
 	Reboot_device(device *voltha.Device) error
 	Self_test_device(device *voltha.Device) error
-	Delete_device(device *voltha.Device) error
+	Delete_device(ctx context.Context, device *voltha.Device) error
 	Get_device_details(device *voltha.Device) error
 	Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error
-	Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error
+	Update_flows_incrementally(ctx context.Context, device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error
 	Update_pm_config(device *voltha.Device, pm_configs *voltha.PmConfigs) error
-	Receive_packet_out(deviceId string, egress_port_no int, msg *openflow_13.OfpPacketOut) error
+	Receive_packet_out(ctx context.Context, deviceId string, egress_port_no int, msg *openflow_13.OfpPacketOut) error
 	Suppress_event(filter *voltha.EventFilter) error
 	Unsuppress_event(filter *voltha.EventFilter) error
 	Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapability, error)
