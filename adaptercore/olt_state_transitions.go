@@ -20,6 +20,7 @@ package adaptercore
 import (
 	"reflect"
 	"runtime"
+	"context"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 )
@@ -57,7 +58,7 @@ const (
 )
 
 // TransitionHandler function type for handling transition
-type TransitionHandler func() error
+type TransitionHandler func(ctx context.Context) error
 
 // Transition to store state machine
 type Transition struct {
@@ -144,7 +145,7 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 
 // Handle moves the state machine to next state based on the trigger and invokes the before and
 // after handlers if the transition is a valid transition
-func (tMap *TransitionMap) Handle(trigger Trigger) {
+func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 
 	// Check whether the transtion is valid from current state
 	if !tMap.isValidTransition(trigger) {
@@ -159,7 +160,7 @@ func (tMap *TransitionMap) Handle(trigger Trigger) {
 	}
 	for _, handler := range beforeHandlers {
 		log.Debugw("running-before-handler", log.Fields{"handler": funcName(handler)})
-		if err := handler(); err != nil {
+		if err := handler(ctx); err != nil {
 			// TODO handle error
 			log.Error(err)
 			return
@@ -177,7 +178,7 @@ func (tMap *TransitionMap) Handle(trigger Trigger) {
 	}
 	for _, handler := range afterHandlers {
 		log.Debugw("running-after-handler", log.Fields{"handler": funcName(handler)})
-		if err := handler(); err != nil {
+		if err := handler(ctx); err != nil {
 			// TODO handle error
 			log.Error(err)
 			return
