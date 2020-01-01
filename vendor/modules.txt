@@ -35,8 +35,8 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/empty
-github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
+github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/protoc-gen-go/descriptor
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
@@ -63,7 +63,7 @@ github.com/jcmturner/gofork/x/crypto/pbkdf2
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/opencord/voltha-lib-go/v3 v3.0.0
+# github.com/opencord/voltha-lib-go/v3 v3.0.5
 github.com/opencord/voltha-lib-go/v3/pkg/adapters
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/common
@@ -76,7 +76,7 @@ github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics
 github.com/opencord/voltha-lib-go/v3/pkg/techprofile
 github.com/opencord/voltha-lib-go/v3/pkg/db
 github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager
-# github.com/opencord/voltha-protos/v3 v3.1.0
+# github.com/opencord/voltha-protos/v3 v3.2.1
 github.com/opencord/voltha-protos/v3/go/inter_container
 github.com/opencord/voltha-protos/v3/go/voltha
 github.com/opencord/voltha-protos/v3/go/common

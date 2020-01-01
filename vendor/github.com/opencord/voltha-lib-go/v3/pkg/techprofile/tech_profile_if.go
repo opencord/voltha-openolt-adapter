@@ -17,6 +17,8 @@
 package techprofile
 
 import (
+	"context"
+
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
 )
@@ -24,9 +26,9 @@ import (
 type TechProfileIf interface {
 	SetKVClient() *db.Backend
 	GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string
-	GetTPInstanceFromKVStore(techProfiletblID uint32, path string) (*TechProfile, error)
-	CreateTechProfInstance(techProfiletblID uint32, uniPortName string, intfId uint32) (*TechProfile, error)
-	DeleteTechProfileInstance(techProfiletblID uint32, uniPortName string) error
+	GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (*TechProfile, error)
+	CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfId uint32) (*TechProfile, error)
+	DeleteTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string) error
 	GetprotoBufParamValue(paramType string, paramKey string) int32
 	GetUsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
 	GetDsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
@@ -35,5 +37,5 @@ type TechProfileIf interface {
 	GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
 	GetMulticastTrafficQueues(tp *TechProfile) []*tp_pb.TrafficQueue
 	GetGemportIDForPbit(tp *TechProfile, Dir tp_pb.Direction, pbit uint32) uint32
-	FindAllTpInstances(techProfiletblID uint32, ponIntf uint32, onuID uint32) []TechProfile
+	FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) []TechProfile
 }
