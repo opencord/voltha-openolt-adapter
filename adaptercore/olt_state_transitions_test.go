@@ -17,7 +17,9 @@
 package adaptercore
 
 import (
+	"context"
 	"errors"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
 	"reflect"
 	"testing"
 )
@@ -43,9 +45,9 @@ func getTranisitionsAfter() map[Trigger]Transition {
 	transition := Transition{
 		previousState: []DeviceState{deviceStateConnected},
 		currentState:  deviceStateConnected,
-		after: []TransitionHandler{func() error {
+		after: []TransitionHandler{func(ctx context.Context) error {
 			return nil
-		}, func() error {
+		}, func(ctx context.Context) error {
 			return errors.New("transition error")
 		}},
 	}
@@ -61,9 +63,9 @@ func getTranisitionsBefore() map[Trigger]Transition {
 	transition := Transition{
 		previousState: []DeviceState{deviceStateConnected},
 		currentState:  deviceStateConnected,
-		before: []TransitionHandler{func() error {
+		before: []TransitionHandler{func(ctx context.Context) error {
 			return nil
-		}, func() error {
+		}, func(ctx context.Context) error {
 			return errors.New("transition error")
 		}},
 	}
@@ -121,7 +123,9 @@ func TestTransitionMap_Handle(t *testing.T) {
 				transitions:        tt.fields.transitions,
 				currentDeviceState: tt.fields.currentDeviceState,
 			}
-			tMap.Handle(tt.args.trigger)
+			ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
+			tMap.Handle(ctx, tt.args.trigger)
 		})
 	}
 }
