@@ -18,12 +18,14 @@
 package adaptercore
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/opencord/voltha-protos/v2/go/voltha"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/db"
+	"github.com/opencord/voltha-lib-go/v2/pkg/db/kvstore"
 	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v2/pkg/techprofile"
@@ -52,7 +54,9 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 		GemportIdStart: 1, GemportIdEnd: 1, FlowIdStart: 1, FlowIdEnd: 1,
 		Ranges: ranges,
 	}
-	rsrMgr := resourcemanager.NewResourceMgr("olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
+	rsrMgr := resourcemanager.NewResourceMgr(ctx, "olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
 	for key := range rsrMgr.ResourceMgrs {
 		rsrMgr.ResourceMgrs[key].KVStore = &db.Backend{}
 		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}
@@ -69,7 +73,9 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	rMgr.KVStore.Client = &mocks.MockKVClient{}
 
 	dh.resourceMgr = rMgr
-	flwMgr := NewFlowManager(dh, rMgr)
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
+	flwMgr := NewFlowManager(ctx, dh, rMgr)
 
 	onuGemInfo1 := make([]rsrcMgr.OnuGemInfo, 2)
 	onuGemInfo2 := make([]rsrcMgr.OnuGemInfo, 2)
@@ -144,9 +150,11 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 2, &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-12", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 2, nil}, true},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.CreateSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
+			if err := flowMgr.CreateSchedulerQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.CreateSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -189,9 +197,11 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
 		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.RemoveSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
+			if err := flowMgr.RemoveSchedulerQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.RemoveSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -256,9 +266,11 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		{"RemoveFlow", args{flow: lldpofpstats}},
 		{"RemoveFlow", args{flow: dhcpofpstats}},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.RemoveFlow(tt.args.flow)
+			flowMgr.RemoveFlow(ctx, tt.args.flow)
 		})
 	}
 	// t.Error("=====")
@@ -483,9 +495,11 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		//{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
 		//ofpstats10
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.AddFlow(tt.args.flow, tt.args.flowMetadata)
+			flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
 		})
 	}
 }
@@ -505,10 +519,12 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 		{"UpdateOnuInfo", args{1, 1, "onu1"}},
 		{"UpdateOnuInfo", args{2, 3, "onu1"}},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			flowMgr.UpdateOnuInfo(tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
 		})
 	}
 }
@@ -531,10 +547,12 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 2, GemportId: 1, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 0, true},
 		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 1, GemportId: 1, FlowId: 100, PortNo: 0, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 4112, false},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetLogicalPortFromPacketIn(tt.args.packetIn)
+			got, err := flowMgr.GetLogicalPortFromPacketIn(ctx, tt.args.packetIn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetLogicalPortFromPacketIn() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -565,10 +583,12 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 		{"GetPacketOutGemPortID", args{intfID: 2, onuID: 2, portNum: 2}, 2, false},
 		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 2, portNum: 2}, 0, true},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetPacketOutGemPortID(tt.args.intfID, tt.args.onuID, tt.args.portNum)
+			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -598,9 +618,11 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 		// TODO: Add test cases.
 		{"DeleteTechProfileInstance", args{intfID: 0, onuID: 1, uniID: 1, sn: "", tpID: 64}, false},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn, tt.args.tpID); (err != nil) != tt.wantErr {
+			if err := flowMgr.DeleteTechProfileInstance(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn, tt.args.tpID); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.DeleteTechProfileInstance() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -848,9 +870,11 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			},
 		},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), kvstore.GetDuration(1))
+	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.checkAndAddFlow(tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
+			flowMgr.checkAndAddFlow(ctx, tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
 				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni)
 		})
 	}
