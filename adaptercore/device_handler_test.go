@@ -184,7 +184,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	}
 	dh.resourceMgr.ResourceMgrs[1] = ponmgr
 	dh.resourceMgr.ResourceMgrs[2] = ponmgr
-	dh.flowMgr = NewFlowManager(dh, dh.resourceMgr)
+	ctx := context.Background()
+	dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr)
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}}
 	dh.transitionMap = &TransitionMap{}
@@ -669,7 +670,8 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.deviceHandler
-			dh.handleIndication(tt.args.indication)
+			ctx := context.Background()
+			dh.handleIndication(ctx, tt.args.indication)
 		})
 	}
 }
@@ -756,7 +758,8 @@ func TestDeviceHandler_handleOltIndication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := newMockDeviceHandler()
-			dh.handleOltIndication(tt.args.oltIndication)
+			ctx := context.Background()
+			dh.handleOltIndication(ctx, tt.args.oltIndication)
 		})
 	}
 }
@@ -781,7 +784,8 @@ func TestDeviceHandler_AdoptDevice(t *testing.T) {
 			//dh.doStateInit()
 			//	context.
 			//dh.AdoptDevice(tt.args.device)
-			tt.devicehandler.postInit()
+			ctx := context.Background()
+			tt.devicehandler.postInit(ctx)
 		})
 	}
 }
@@ -808,7 +812,8 @@ func TestDeviceHandler_activateONU(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			tt.devicehandler.activateONU(tt.args.intfID, tt.args.onuID,
+			ctx := context.Background()
+			tt.devicehandler.activateONU(ctx, tt.args.intfID, tt.args.onuID,
 				tt.args.serialNum, tt.args.serialNumber)
 		})
 	}
@@ -855,7 +860,8 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.devicehandler
-			if err := dh.PacketOut(tt.args.egressPortNo, tt.args.packet); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := dh.PacketOut(ctx, tt.args.egressPortNo, tt.args.packet); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.PacketOut() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -881,7 +887,8 @@ func TestDeviceHandler_doStateUp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.devicehandler.doStateUp(); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := tt.devicehandler.doStateUp(ctx); (err != nil) != tt.wantErr {
 				t.Logf("DeviceHandler.doStateUp() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -903,7 +910,8 @@ func TestDeviceHandler_doStateDown(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.devicehandler.doStateDown(); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := tt.devicehandler.doStateDown(ctx); (err != nil) != tt.wantErr {
 				t.Logf("DeviceHandler.doStateDown() error = %v", err)
 			}
 		})
@@ -999,7 +1007,8 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.onuDiscIndication(tt.args.onuDiscInd, tt.args.sn)
+			ctx := context.Background()
+			tt.devicehandler.onuDiscIndication(ctx, tt.args.onuDiscInd, tt.args.sn)
 		})
 	}
 }
@@ -1056,7 +1065,8 @@ func TestDeviceHandler_readIndications(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.readIndications()
+			ctx := context.Background()
+			tt.devicehandler.readIndications(ctx)
 		})
 	}
 }

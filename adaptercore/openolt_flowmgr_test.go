@@ -18,6 +18,7 @@
 package adaptercore
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -52,7 +53,8 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 		GemportIdStart: 1, GemportIdEnd: 1, FlowIdStart: 1, FlowIdEnd: 1,
 		Ranges: ranges,
 	}
-	rsrMgr := resourcemanager.NewResourceMgr("olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
+	ctx := context.Background()
+	rsrMgr := resourcemanager.NewResourceMgr(ctx, "olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
 	for key := range rsrMgr.ResourceMgrs {
 		rsrMgr.ResourceMgrs[key].KVStore = &db.Backend{}
 		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}
@@ -69,7 +71,8 @@ func newMockFlowmgr() *OpenOltFlowMgr {
 	rMgr.KVStore.Client = &mocks.MockKVClient{}
 
 	dh.resourceMgr = rMgr
-	flwMgr := NewFlowManager(dh, rMgr)
+	ctx := context.Background()
+	flwMgr := NewFlowManager(ctx, dh, rMgr)
 
 	onuGemInfo1 := make([]rsrcMgr.OnuGemInfo, 2)
 	onuGemInfo2 := make([]rsrcMgr.OnuGemInfo, 2)
@@ -146,7 +149,8 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.CreateSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := flowMgr.CreateSchedulerQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.CreateSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -191,7 +195,8 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.RemoveSchedulerQueues(tt.schedQueue); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := flowMgr.RemoveSchedulerQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.RemoveSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -258,7 +263,8 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.RemoveFlow(tt.args.flow)
+			ctx := context.Background()
+			flowMgr.RemoveFlow(ctx, tt.args.flow)
 		})
 	}
 	// t.Error("=====")
@@ -485,7 +491,8 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.AddFlow(tt.args.flow, tt.args.flowMetadata)
+			ctx := context.Background()
+			flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
 		})
 	}
 }
@@ -508,7 +515,8 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			flowMgr.UpdateOnuInfo(tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			ctx := context.Background()
+			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
 		})
 	}
 }
@@ -534,7 +542,8 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetLogicalPortFromPacketIn(tt.args.packetIn)
+			ctx := context.Background()
+			got, err := flowMgr.GetLogicalPortFromPacketIn(ctx, tt.args.packetIn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetLogicalPortFromPacketIn() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -568,7 +577,8 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetPacketOutGemPortID(tt.args.intfID, tt.args.onuID, tt.args.portNum)
+			ctx := context.Background()
+			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -600,7 +610,8 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr.DeleteTechProfileInstance(tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn, tt.args.tpID); (err != nil) != tt.wantErr {
+			ctx := context.Background()
+			if err := flowMgr.DeleteTechProfileInstance(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.sn, tt.args.tpID); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.DeleteTechProfileInstance() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -850,7 +861,8 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.checkAndAddFlow(tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
+			ctx := context.Background()
+			flowMgr.checkAndAddFlow(ctx, tt.args.args, tt.args.classifierInfo, tt.args.actionInfo, tt.args.flow,
 				tt.args.TpInst, tt.args.gemPorts, tt.args.TpID, tt.args.uni)
 		})
 	}
