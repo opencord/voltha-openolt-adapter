@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70b1f16d_717f4563",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-01T06:40:15Z",
+      "side": 1,
+      "message": "i dont see these caches data being stored in kv store and loaded back from kv store after adapter restart. adapter is resilient now, would be good if we can have these stored in kv store and load them back to caches on adapter restarts",
+      "revId": "271944a577be5c063ad781d07329f1a1ca1ed9b1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
