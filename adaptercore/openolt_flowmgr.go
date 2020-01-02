@@ -1630,6 +1630,7 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 }
 
 // AddFlow add flow to device
+// nolint: gocyclo
 func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) {
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
@@ -1666,7 +1667,7 @@ func (f *OpenOltFlowMgr) AddFlow(flow *ofp.OfpFlowStats, flowMetadata *voltha.Fl
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
 			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
-				if udpSrc.(uint32) == uint32(67) {
+				if udpSrc.(uint32) == uint32(67) || udpSrc.(uint32) == uint32(546) {
 					log.Debug("trap-dhcp-from-nni-flow")
 					f.addDHCPTrapFlowOnNNI(flow, classifierInfo, portNo)
 					return
