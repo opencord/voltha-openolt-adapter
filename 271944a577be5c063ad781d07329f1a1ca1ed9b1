@@ -16,6 +16,24 @@
       "revId": "271944a577be5c063ad781d07329f1a1ca1ed9b1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a30b02f_ef63715c",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-03T10:42:49Z",
+      "side": 1,
+      "message": "Good point! I will look into it. Thanks.",
+      "parentUuid": "70b1f16d_717f4563",
+      "revId": "271944a577be5c063ad781d07329f1a1ca1ed9b1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
