@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ab31910_b255c23f",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1000631
+      },
+      "writtenOn": "2020-01-03T22:18:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edde9a7d_90089ceb",
+      "range": {
+        "startLine": 325,
+        "startChar": 4,
+        "endLine": 325,
+        "endChar": 21
+      },
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aeb6efe2_5205af96",
         "filename": "adaptercore/statsmanager_test.go",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "f7da45ba_94ec2e13",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1000631
+      },
+      "writtenOn": "2020-01-03T22:18:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aeb6efe2_5205af96",
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a611550_00cd687a",
         "filename": "adaptercore/statsmanager_test.go",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2019-12-23T05:57:36Z",
       "side": 1,
       "message": "Same here. Please include RxCrcErrors and BipErrors",
+      "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2244bc60_7c3a4aef",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000631
+      },
+      "writtenOn": "2020-01-03T22:18:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a611550_00cd687a",
       "revId": "f0be42113fdd85be7556e40767989ac9a0cc656b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
