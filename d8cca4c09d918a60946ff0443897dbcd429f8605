@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "16af4f0a_b6ea0be7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1478,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T06:44:01Z",
+      "side": 1,
+      "message": "This always returns success irrespective of what happens in AddRemoveFilters. Is that what you need?",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67c9ec1f_ebd342f4",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1483,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T06:44:01Z",
+      "side": 1,
+      "message": "This always returns success irrespective of what happens in AddRemoveFilters. Is that what you need?",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e85643a_bb4e66a3",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 11
@@ -31,6 +65,57 @@
       "side": 1,
       "message": "It is stored in the path service/voltha/openolt/\u003cdevice-id\u003e/event_filters/filter-type-\u003cfilter\u003e while a filter is created for a device by the core.",
       "parentUuid": "9e85643a_bb4e66a3",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efa53d4a_220f08be",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1223,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T06:44:01Z",
+      "side": 1,
+      "message": "You should return from here, otherwise there is chance you fill invalid value into map at line 1235.",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3260ecd7_8da3d211",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T06:44:01Z",
+      "side": 1,
+      "message": "Change to log.Errorw",
+      "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d04807d5_6f364bd6",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1231,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T06:44:01Z",
+      "side": 1,
+      "message": "Change to log.Errorw",
       "revId": "d8cca4c09d918a60946ff0443897dbcd429f8605",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
