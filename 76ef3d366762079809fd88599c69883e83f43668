@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db14564f_619e6fad",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 828,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Consider returning errors rather than just printing.\n\n(More like this.)",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d9e2e62_548d999e",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Consider using :\u003d to declare and assign together.",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2ce3e11a_9fd12fcc",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1628,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Can simplify with `ok \u0026\u0026 ethType.(uint32) \u003d\u003d IPv4EthType`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08d609e9_afce8102",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1630,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Can simplify with `ok \u0026\u0026 ipProto.(uint32) \u003d\u003d IgmpProto`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9b4a4e4_97bf2b1b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1989,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Consider `ok \u0026\u0026 vlanID \u0026 VlanvIDMask !\u003d ReservedVlan`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9db5916d_6861f1f5",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1995,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Consider `ok \u0026\u0026 uint32(metadata) !\u003d ReservedVlan`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28c420c9_74824f89",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 2035,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "Consider returning errors to the caller.\n\n(More like this.)",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "268c1fd6_bddb4543",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 2424,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-06T22:04:43Z",
+      "side": 1,
+      "message": "consider `if lookupGemPort, ok :\u003d f.packetInGemPort[pktInkey]; ok {`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
