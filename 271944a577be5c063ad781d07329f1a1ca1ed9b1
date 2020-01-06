@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "a6cb1005_0147e910",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1109,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-06T16:23:47Z",
+      "side": 1,
+      "message": "Please refresh my memory. This is not supported, because BAL does not support it?\nSo any group delete has to be done with a new list via Update action ?",
+      "revId": "271944a577be5c063ad781d07329f1a1ca1ed9b1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70b1f16d_717f4563",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 5
