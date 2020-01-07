@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da5a67c3_fea96f7b",
+        "filename": "VERSION",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-07T20:27:40Z",
+      "side": 1,
+      "message": "Is a release intended here?",
+      "revId": "ee7c0a04c18b9f4828e4f0ef541b3319d6d5bc55",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
