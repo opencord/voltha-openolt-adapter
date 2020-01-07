@@ -96,6 +96,11 @@ func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Directio
 	return []*tp_pb.TrafficQueue{{}}, nil
 }
 
+// GetMulticastTrafficQueues to mock techprofile GetMulticastTrafficQueues method
+func (m MockTechProfile) GetMulticastTrafficQueues(tp *tp.TechProfile) []*tp_pb.TrafficQueue {
+	return []*tp_pb.TrafficQueue{{}}
+}
+
 // GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method
 func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
 	return 0

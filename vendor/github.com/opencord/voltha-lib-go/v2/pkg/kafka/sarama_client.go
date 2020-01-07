@@ -532,6 +532,11 @@ func (sc *SaramaClient) isLivenessError(err error) bool {
 		return true
 	}
 
+	if strings.HasSuffix(err.Error(), "i/o timeout") { // "dial tcp 10.244.1.176:9092: i/o timeout"
+		log.Info("is-liveness-error-io-timeout")
+		return true
+	}
+
 	// Other errors shouldn't trigger a loss of liveness
 
 	log.Infow("is-liveness-error-ignored", log.Fields{"err": err})
