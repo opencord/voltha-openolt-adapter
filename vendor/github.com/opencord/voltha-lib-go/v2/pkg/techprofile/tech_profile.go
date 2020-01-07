@@ -162,12 +162,15 @@ type Scheduler struct {
 
 // default GEM attribute constants
 const (
-	defaultAESEncryption  = "True"
-	defaultPriorityQueue  = 0
-	defaultQueueWeight    = 0
-	defaultMaxQueueSize   = "auto"
-	defaultdropPolicy     = DiscardPolicy_TailDrop
-	defaultSchedulePolicy = SchedulingPolicy_WRR
+	defaultAESEncryption     = "True"
+	defaultPriorityQueue     = 0
+	defaultQueueWeight       = 0
+	defaultMaxQueueSize      = "auto"
+	defaultdropPolicy        = DiscardPolicy_TailDrop
+	defaultSchedulePolicy    = SchedulingPolicy_WRR
+	defaultIsMulticast       = "False"
+	defaultAccessControlList = "224.0.0.0-239.255.255.255"
+	defaultMcastGemID        = 4069
 )
 
 type GemPortAttribute struct {
@@ -179,6 +182,10 @@ type GemPortAttribute struct {
 	Weight           uint32        `json:"weight"`
 	DiscardPolicy    string        `json:"discard_policy"`
 	DiscardConfig    DiscardConfig `json:"discard_config"`
+	IsMulticast      string        `json:"is_multicast"`
+	DControlList     string        `json:"dynamic_access_control_list"`
+	SControlList     string        `json:"static_access_control_list"`
+	McastGemID       uint32        `json:"multicast_gem_id"`
 }
 
 type iScheduler struct {
@@ -199,6 +206,10 @@ type iGemPortAttribute struct {
 	Weight           uint32        `json:"weight"`
 	DiscardPolicy    string        `json:"discard_policy"`
 	DiscardConfig    DiscardConfig `json:"discard_config"`
+	IsMulticast      string        `json:"is_multicast"`
+	DControlList     string        `json:"dynamic_access_control_list"`
+	SControlList     string        `json:"static_access_control_list"`
+	McastGemID       uint32        `json:"multicast_gem_id"`
 }
 
 type TechProfileMgr struct {
@@ -410,6 +421,8 @@ func (t *TechProfileMgr) allocateTPInstance(uniPortName string, tp *DefaultTechP
 
 	var usGemPortAttributeList []iGemPortAttribute
 	var dsGemPortAttributeList []iGemPortAttribute
+	var dsMulticastGemAttributeList []iGemPortAttribute
+	var dsUnicastGemAttributeList []iGemPortAttribute
 	var tcontIDs []uint32
 	var gemPorts []uint32
 	var err error
@@ -452,17 +465,57 @@ func (t *TechProfileMgr) allocateTPInstance(uniPortName string, tp *DefaultTechP
 				Weight:           tp.UpstreamGemPortAttributeList[index].Weight,
 				DiscardPolicy:    tp.UpstreamGemPortAttributeList[index].DiscardPolicy,
 				DiscardConfig:    tp.UpstreamGemPortAttributeList[index].DiscardConfig})
+	}
+
+	log.Info("length of DownstreamGemPortAttributeList", len(tp.DownstreamGemPortAttributeList))
+	//put multicast and unicast downstream GEM port attributes in different lists first
+	for index := 0; index < int(len(tp.DownstreamGemPortAttributeList)); index++ {
+		if isMulticastGem(tp.DownstreamGemPortAttributeList[index].IsMulticast) {
+			dsMulticastGemAttributeList = append(dsMulticastGemAttributeList,
+				iGemPortAttribute{
+					McastGemID:       tp.DownstreamGemPortAttributeList[index].McastGemID,
+					MaxQueueSize:     tp.DownstreamGemPortAttributeList[index].MaxQueueSize,
+					PbitMap:          tp.DownstreamGemPortAttributeList[index].PbitMap,
+					AesEncryption:    tp.DownstreamGemPortAttributeList[index].AesEncryption,
+					SchedulingPolicy: tp.DownstreamGemPortAttributeList[index].SchedulingPolicy,
+					PriorityQueue:    tp.DownstreamGemPortAttributeList[index].PriorityQueue,
+					Weight:           tp.DownstreamGemPortAttributeList[index].Weight,
+					DiscardPolicy:    tp.DownstreamGemPortAttributeList[index].DiscardPolicy,
+					DiscardConfig:    tp.DownstreamGemPortAttributeList[index].DiscardConfig,
+					IsMulticast:      tp.DownstreamGemPortAttributeList[index].IsMulticast,
+					DControlList:     tp.DownstreamGemPortAttributeList[index].DControlList,
+					SControlList:     tp.DownstreamGemPortAttributeList[index].SControlList})
+		} else {
+			dsUnicastGemAttributeList = append(dsUnicastGemAttributeList,
+				iGemPortAttribute{
+					MaxQueueSize:     tp.DownstreamGemPortAttributeList[index].MaxQueueSize,
+					PbitMap:          tp.DownstreamGemPortAttributeList[index].PbitMap,
+					AesEncryption:    tp.DownstreamGemPortAttributeList[index].AesEncryption,
+					SchedulingPolicy: tp.DownstreamGemPortAttributeList[index].SchedulingPolicy,
+					PriorityQueue:    tp.DownstreamGemPortAttributeList[index].PriorityQueue,
+					Weight:           tp.DownstreamGemPortAttributeList[index].Weight,
+					DiscardPolicy:    tp.DownstreamGemPortAttributeList[index].DiscardPolicy,
+					DiscardConfig:    tp.DownstreamGemPortAttributeList[index].DiscardConfig})
+		}
+	}
+	//add unicast downstream GEM ports to dsGemPortAttributeList
+	for index := 0; index < int(tp.NumGemPorts); index++ {
 		dsGemPortAttributeList = append(dsGemPortAttributeList,
 			iGemPortAttribute{GemportID: gemPorts[index],
-				MaxQueueSize:     tp.DownstreamGemPortAttributeList[index].MaxQueueSize,
-				PbitMap:          tp.DownstreamGemPortAttributeList[index].PbitMap,
-				AesEncryption:    tp.DownstreamGemPortAttributeList[index].AesEncryption,
-				SchedulingPolicy: tp.DownstreamGemPortAttributeList[index].SchedulingPolicy,
-				PriorityQueue:    tp.DownstreamGemPortAttributeList[index].PriorityQueue,
-				Weight:           tp.DownstreamGemPortAttributeList[index].Weight,
-				DiscardPolicy:    tp.DownstreamGemPortAttributeList[index].DiscardPolicy,
-				DiscardConfig:    tp.DownstreamGemPortAttributeList[index].DiscardConfig})
+				MaxQueueSize:     dsUnicastGemAttributeList[index].MaxQueueSize,
+				PbitMap:          dsUnicastGemAttributeList[index].PbitMap,
+				AesEncryption:    dsUnicastGemAttributeList[index].AesEncryption,
+				SchedulingPolicy: dsUnicastGemAttributeList[index].SchedulingPolicy,
+				PriorityQueue:    dsUnicastGemAttributeList[index].PriorityQueue,
+				Weight:           dsUnicastGemAttributeList[index].Weight,
+				DiscardPolicy:    dsUnicastGemAttributeList[index].DiscardPolicy,
+				DiscardConfig:    dsUnicastGemAttributeList[index].DiscardConfig})
 	}
+	//add multicast GEM ports to dsGemPortAttributeList afterwards
+	for k := range dsMulticastGemAttributeList {
+		dsGemPortAttributeList = append(dsGemPortAttributeList, dsMulticastGemAttributeList[k])
+	}
+
 	return &TechProfile{
 		SubscriberIdentifier: uniPortName,
 		Name:                 tp.Name,
@@ -546,7 +599,11 @@ func (t *TechProfileMgr) getDefaultTechProfile() *DefaultTechProfile {
 				DiscardConfig: DiscardConfig{
 					MinThreshold:   defaultMinThreshold,
 					MaxThreshold:   defaultMaxThreshold,
-					MaxProbability: defaultMaxProbability}})
+					MaxProbability: defaultMaxProbability},
+				IsMulticast:  defaultIsMulticast,
+				DControlList: defaultAccessControlList,
+				SControlList: defaultAccessControlList,
+				McastGemID:   defaultMcastGemID})
 	}
 	return &DefaultTechProfile{
 		Name:        t.config.DefaultTPName,
@@ -720,6 +777,10 @@ func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction
 		NumGemPorts := len(tp.DownstreamGemPortAttributeList)
 		GemPorts := make([]*tp_pb.TrafficQueue, 0)
 		for Count := 0; Count < NumGemPorts; Count++ {
+			if isMulticastGem(tp.DownstreamGemPortAttributeList[Count].IsMulticast) {
+				//do not take multicast GEM ports. They are handled separately.
+				continue
+			}
 			if tp.DownstreamGemPortAttributeList[Count].AesEncryption == "True" {
 				encryp = true
 			} else {
@@ -755,6 +816,40 @@ func (tpm *TechProfileMgr) GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction
 
 	log.Errorf("Unsupported direction %s used for generating Traffic Queue list", Dir)
 	return nil, fmt.Errorf("downstream gem port traffic queue creation failed due to unsupported direction %s", Dir)
+}
+
+//isMulticastGem returns true if isMulticast attribute value of a GEM port is true; false otherwise
+func isMulticastGem(isMulticastAttrValue string) bool {
+	return isMulticastAttrValue != "" &&
+		(isMulticastAttrValue == "True" || isMulticastAttrValue == "true" || isMulticastAttrValue == "TRUE")
+}
+
+func (tpm *TechProfileMgr) GetMulticastTrafficQueues(tp *TechProfile) []*tp_pb.TrafficQueue {
+	var encryp bool
+	NumGemPorts := len(tp.DownstreamGemPortAttributeList)
+	mcastTrafficQueues := make([]*tp_pb.TrafficQueue, 0)
+	for Count := 0; Count < NumGemPorts; Count++ {
+		if !isMulticastGem(tp.DownstreamGemPortAttributeList[Count].IsMulticast) {
+			continue
+		}
+		if tp.DownstreamGemPortAttributeList[Count].AesEncryption == "True" {
+			encryp = true
+		} else {
+			encryp = false
+		}
+		mcastTrafficQueues = append(mcastTrafficQueues, &tp_pb.TrafficQueue{
+			Direction:     tp_pb.Direction(tpm.GetprotoBufParamValue("direction", tp.DsScheduler.Direction)),
+			GemportId:     tp.DownstreamGemPortAttributeList[Count].McastGemID,
+			PbitMap:       tp.DownstreamGemPortAttributeList[Count].PbitMap,
+			AesEncryption: encryp,
+			SchedPolicy:   tp_pb.SchedulingPolicy(tpm.GetprotoBufParamValue("sched_policy", tp.DownstreamGemPortAttributeList[Count].SchedulingPolicy)),
+			Priority:      tp.DownstreamGemPortAttributeList[Count].PriorityQueue,
+			Weight:        tp.DownstreamGemPortAttributeList[Count].Weight,
+			DiscardPolicy: tp_pb.DiscardPolicy(tpm.GetprotoBufParamValue("discard_policy", tp.DownstreamGemPortAttributeList[Count].DiscardPolicy)),
+		})
+	}
+	log.Debugw("Downstream Multicast Traffic queue list ", log.Fields{"queuelist": mcastTrafficQueues})
+	return mcastTrafficQueues
 }
 
 func (tpm *TechProfileMgr) GetUsTrafficScheduler(tp *TechProfile) *tp_pb.TrafficScheduler {
