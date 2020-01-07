@@ -16,6 +16,24 @@
       "revId": "ee7c0a04c18b9f4828e4f0ef541b3319d6d5bc55",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e4617a58_5bce4bf5",
+        "filename": "VERSION",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-07T20:41:34Z",
+      "side": 1,
+      "message": "Yes, I wanted to go ahead and release to resolve VOL-2348",
+      "parentUuid": "da5a67c3_fea96f7b",
+      "revId": "ee7c0a04c18b9f4828e4f0ef541b3319d6d5bc55",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
