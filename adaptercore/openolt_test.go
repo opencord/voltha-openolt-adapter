@@ -32,6 +32,7 @@ import (
 	com "github.com/opencord/voltha-lib-go/v2/pkg/adapters/common"
 	fu "github.com/opencord/voltha-lib-go/v2/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
+	"github.com/opencord/voltha-openolt-adapter/config"
 	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
 	"github.com/opencord/voltha-protos/v2/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v2/go/openflow_13"
@@ -102,22 +103,22 @@ func mockDevice() *voltha.Device {
 
 func TestNewOpenOLT(t *testing.T) {
 	tests := []struct {
-		name   string
-		fields *fields
-		want   *OpenOLT
+		name        string
+		fields      *fields
+		configFlags *config.AdapterFlags
+		want        *OpenOLT
 	}{
-		{"newopenolt-1", &fields{numOnus: 1, KVStorePort: 1, KVStoreType: "consul", KVStoreHost: "1.1.1.1"},
+		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStorePort: 1, KVStoreType: "consul", KVStoreHost: "1.1.1.1"},
 			&OpenOLT{numOnus: 1, KVStorePort: 1, KVStoreType: "consul", KVStoreHost: "1.1.1.1"}},
-		{"newopenolt-2", &fields{numOnus: 2, KVStorePort: 2, KVStoreType: "etcd", KVStoreHost: "2.2.2.2"},
+		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStorePort: 2, KVStoreType: "etcd", KVStoreHost: "2.2.2.2"},
 			&OpenOLT{numOnus: 2, KVStorePort: 2, KVStoreType: "etcd", KVStoreHost: "2.2.2.2"}},
-		{"newopenolt-3", &fields{numOnus: 3, KVStorePort: 3, KVStoreType: "consul", KVStoreHost: "3.3.3.3"},
+		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStorePort: 3, KVStoreType: "consul", KVStoreHost: "3.3.3.3"},
 			&OpenOLT{numOnus: 3, KVStorePort: 3, KVStoreType: "consul", KVStoreHost: "3.3.3.3"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewOpenOLT(tt.fields.ctx, tt.fields.kafkaICProxy, tt.fields.coreProxy, tt.fields.adapterProxy,
-				tt.fields.eventProxy, tt.fields.numOnus, tt.fields.KVStoreHost, tt.fields.KVStorePort,
-				tt.fields.KVStoreType); reflect.TypeOf(got) != reflect.TypeOf(tt.want) && got != nil {
+				tt.fields.eventProxy, tt.configFlags); reflect.TypeOf(got) != reflect.TypeOf(tt.want) && got != nil {
 				t.Errorf("NewOpenOLT() error = %v, wantErr %v", got, tt.want)
 			}
 		})

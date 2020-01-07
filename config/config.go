@@ -48,31 +48,40 @@ const (
 	defaultProbePort            = 8080
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
+	//defaultHearbeatFailReportInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
+	defaultHearbeatCheckInterval = 30 * time.Second
+	// defaultHearbeatFailReportInterval is the time adapter will wait before updating the state to the core.
+	defaultHearbeatFailReportInterval = 180 * time.Second
+	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
+	defaultGrpcTimeoutInterval = 2 * time.Second
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	InstanceID           string
-	KafkaAdapterHost     string
-	KafkaAdapterPort     int
-	KafkaClusterHost     string
-	KafkaClusterPort     int
-	KVStoreType          string
-	KVStoreTimeout       int // in seconds
-	KVStoreHost          string
-	KVStorePort          int
-	Topic                string
-	CoreTopic            string
-	EventTopic           string
-	LogLevel             int
-	OnuNumber            int
-	Banner               bool
-	DisplayVersionOnly   bool
-	ProbeHost            string
-	ProbePort            int
-	LiveProbeInterval    time.Duration
-	NotLiveProbeInterval time.Duration
+	InstanceID                  string
+	KafkaAdapterHost            string
+	KafkaAdapterPort            int
+	KafkaClusterHost            string
+	KafkaClusterPort            int
+	KVStoreType                 string
+	KVStoreTimeout              int // in seconds
+	KVStoreHost                 string
+	KVStorePort                 int
+	Topic                       string
+	CoreTopic                   string
+	EventTopic                  string
+	LogLevel                    int
+	OnuNumber                   int
+	Banner                      bool
+	DisplayVersionOnly          bool
+	ProbeHost                   string
+	ProbePort                   int
+	LiveProbeInterval           time.Duration
+	NotLiveProbeInterval        time.Duration
+	HeartbeatCheckInterval      time.Duration
+	HeartbeatFailReportInterval time.Duration
+	GrpcTimeoutInterval         time.Duration
 }
 
 func init() {
@@ -82,26 +91,29 @@ func init() {
 // NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:           defaultInstanceid,
-		KafkaAdapterHost:     defaultKafkaadapterhost,
-		KafkaAdapterPort:     defaultKafkaadapterport,
-		KafkaClusterHost:     defaultKafkaclusterhost,
-		KafkaClusterPort:     defaultKafkaclusterport,
-		KVStoreType:          defaultKvstoretype,
-		KVStoreTimeout:       defaultKvstoretimeout,
-		KVStoreHost:          defaultKvstorehost,
-		KVStorePort:          defaultKvstoreport,
-		Topic:                defaultTopic,
-		CoreTopic:            defaultCoretopic,
-		EventTopic:           defaultEventtopic,
-		LogLevel:             defaultLoglevel,
-		OnuNumber:            defaultOnunumber,
-		Banner:               defaultBanner,
-		DisplayVersionOnly:   defaultDisplayVersionOnly,
-		ProbeHost:            defaultProbeHost,
-		ProbePort:            defaultProbePort,
-		LiveProbeInterval:    defaultLiveProbeInterval,
-		NotLiveProbeInterval: defaultNotLiveProbeInterval,
+		InstanceID:                  defaultInstanceid,
+		KafkaAdapterHost:            defaultKafkaadapterhost,
+		KafkaAdapterPort:            defaultKafkaadapterport,
+		KafkaClusterHost:            defaultKafkaclusterhost,
+		KafkaClusterPort:            defaultKafkaclusterport,
+		KVStoreType:                 defaultKvstoretype,
+		KVStoreTimeout:              defaultKvstoretimeout,
+		KVStoreHost:                 defaultKvstorehost,
+		KVStorePort:                 defaultKvstoreport,
+		Topic:                       defaultTopic,
+		CoreTopic:                   defaultCoretopic,
+		EventTopic:                  defaultEventtopic,
+		LogLevel:                    defaultLoglevel,
+		OnuNumber:                   defaultOnunumber,
+		Banner:                      defaultBanner,
+		DisplayVersionOnly:          defaultDisplayVersionOnly,
+		ProbeHost:                   defaultProbeHost,
+		ProbePort:                   defaultProbePort,
+		LiveProbeInterval:           defaultLiveProbeInterval,
+		NotLiveProbeInterval:        defaultNotLiveProbeInterval,
+		HeartbeatCheckInterval:      defaultHearbeatCheckInterval,
+		HeartbeatFailReportInterval: defaultHearbeatFailReportInterval,
+		GrpcTimeoutInterval:         defaultGrpcTimeoutInterval,
 	}
 	return &adapterFlags
 }
@@ -166,8 +178,16 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	help = fmt.Sprintf("Number of seconds for liveliness check if probe is not running")
 	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
-	flag.Parse()
+	help = fmt.Sprintf("Number of seconds for heartbeat check interval.")
+	flag.DurationVar(&(so.HeartbeatCheckInterval), "hearbeat_check_interval", defaultHearbeatCheckInterval, help)
 
+	help = fmt.Sprintf("Number of seconds adapter has to wait before reporting core on the hearbeat check failure.")
+	flag.DurationVar(&(so.HeartbeatFailReportInterval), "hearbeat_fail_interval", defaultHearbeatFailReportInterval, help)
+
+	help = fmt.Sprintf("Number of seconds for GRPC timeout.")
+	flag.DurationVar(&(so.GrpcTimeoutInterval), "grpc_timeout_interval", defaultGrpcTimeoutInterval, help)
+
+	flag.Parse()
 	containerName := getContainerInfo()
 	if len(containerName) > 0 {
 		so.InstanceID = containerName

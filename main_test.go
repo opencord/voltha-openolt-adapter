@@ -112,8 +112,7 @@ func Test_startOpenOLT(t *testing.T) {
 
 	ad := newMockAdapter()
 	oolt, err := ad.startOpenOLT(context.TODO(), nil,
-		ad.coreProxy, ad.adapterProxy, ad.eventProxy, 1, ad.config.KVStoreHost,
-		ad.config.KVStorePort, ad.config.KVStoreType)
+		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
 	if oolt != nil {
 		t.Log("Open OLT ", oolt)
 	}
@@ -167,8 +166,7 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 	ad.kip.Start()
 
 	oolt, _ := ad.startOpenOLT(context.TODO(), nil,
-		ad.coreProxy, ad.adapterProxy, ad.eventProxy, 1, ad.config.KVStoreHost,
-		ad.config.KVStorePort, ad.config.KVStoreType)
+		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
 	printBanner()
 	printVersion()
 	ctx := context.TODO()
