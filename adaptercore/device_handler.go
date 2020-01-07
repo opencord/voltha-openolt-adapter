@@ -76,11 +76,12 @@ type DeviceHandler struct {
 	eventMgr      *OpenOltEventMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
 
-	discOnus      sync.Map
-	onus          sync.Map
-	portStats     *OpenOltStatisticsMgr
-	metrics       *pmmetrics.PmMetrics
-	stopCollector chan bool
+	discOnus           sync.Map
+	onus               sync.Map
+	portStats          *OpenOltStatisticsMgr
+	metrics            *pmmetrics.PmMetrics
+	stopCollector      chan bool
+	stopHeartbeatCheck chan bool
 }
 
 //OnuDevice represents ONU related info
@@ -133,6 +134,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.exitChannel = make(chan int, 1)
 	dh.lockDevice = sync.RWMutex{}
 	dh.stopCollector = make(chan bool, 2)
+	dh.stopHeartbeatCheck = make(chan bool, 2)
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	//TODO initialize the support classes.
 	return &dh
@@ -643,6 +645,7 @@ func (dh *DeviceHandler) AdoptDevice(device *voltha.Device) {
 	}
 
 	go startCollector(dh)
+	go startHeartbeatCheck(dh)
 }
 
 //GetOfpDeviceInfo Gets the Ofp information of the given device
@@ -1130,7 +1133,7 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 	dh.discOnus = sync.Map{}
 	dh.onus = sync.Map{}
 
-	go dh.notifyChildDevices()
+	go dh.notifyChildDevices("unreachable")
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to disable
 	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
@@ -1142,11 +1145,11 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 	return nil
 }
 
-func (dh *DeviceHandler) notifyChildDevices() {
+func (dh *DeviceHandler) notifyChildDevices(state string) {
 
 	// Update onu state as unreachable in onu adapter
 	onuInd := oop.OnuIndication{}
-	onuInd.OperState = "unreachable"
+	onuInd.OperState = state
 	//get the child device for the parent device
 	onuDevices, err := dh.coreProxy.GetChildDevices(context.TODO(), dh.device.Id)
 	if err != nil {
@@ -1326,6 +1329,8 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 	log.Debug("Removed-device-from-Resource-manager-KV-store")
 	// Stop the Stats collector
 	dh.stopCollector <- true
+	// stop the heartbeat check routine
+	dh.stopHeartbeatCheck <- true
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
@@ -1472,4 +1477,53 @@ func (dh *DeviceHandler) PacketOut(egressPortNo int, packet *of.OfpPacketOut) er
 
 func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
+}
+
+func startHeartbeatCheck(dh *DeviceHandler) {
+	// start the heartbeat check towards the OLT.
+	var timerCheck *time.Timer
+
+	for {
+		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
+		select {
+		case <-heartbeatTimer.C:
+			ctx, cancel := context.WithTimeout(context.Background(), dh.openOLT.GrpcTimeoutInterval)
+			if heartBeat, err := dh.Client.HeartbeatCheck(ctx, new(oop.Empty)); err != nil {
+				log.Error("Hearbeat failed")
+				if timerCheck == nil {
+					// start a after func, when expired will update the state to the core
+					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, dh.updateState)
+				}
+			} else {
+				if timerCheck != nil {
+					if timerCheck.Stop() {
+						log.Debug("We got hearbeat within the timeout")
+					} else {
+
+						log.Debug("We got hearbeat after the timeout expired, changing the states")
+						go dh.notifyChildDevices("up")
+						if err := dh.coreProxy.DeviceStateUpdate(context.Background(), dh.device.Id, voltha.ConnectStatus_REACHABLE,
+							voltha.OperStatus_ACTIVE); err != nil {
+							log.Errorw("Failed to update device state", log.Fields{"deviceID": dh.device.Id, "error": err})
+						}
+					}
+					timerCheck = nil
+				}
+				log.Debugw("Hearbeat", log.Fields{"signature": heartBeat})
+			}
+			cancel()
+		case <-dh.stopHeartbeatCheck:
+			log.Debug("Stopping heart beat check")
+			return
+		}
+	}
+}
+
+func (dh *DeviceHandler) updateState() {
+
+	go dh.notifyChildDevices("unreachable")
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+		log.Errorw("error-updating-device-state", log.Fields{"deviceID": dh.device.Id, "error": err})
+		return
+	}
 }

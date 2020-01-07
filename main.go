@@ -124,8 +124,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Create the open OLT adapter
 	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy,
-		a.config.OnuNumber,
-		a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreType); err != nil {
+		a.config); err != nil {
 		log.Fatal("error-starting-inter-container-proxy")
 	}
 
@@ -334,11 +333,11 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (*k
 }
 
 func (a *adapter) startOpenOLT(ctx context.Context, kip *kafka.InterContainerProxy,
-	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy, onuNumber int, kvStoreHost string,
-	kvStorePort int, KVStoreType string) (*ac.OpenOLT, error) {
+	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
+	cfg *config.AdapterFlags) (*ac.OpenOLT, error) {
 	log.Info("starting-open-olt")
 	var err error
-	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, onuNumber, kvStoreHost, kvStorePort, KVStoreType)
+	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, cfg)
 
 	if err = sOLT.Start(ctx); err != nil {
 		log.Fatalw("error-starting-messaging-proxy", log.Fields{"error": err})

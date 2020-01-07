@@ -22,10 +22,12 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
+	"github.com/opencord/voltha-openolt-adapter/config"
 	ic "github.com/opencord/voltha-protos/v2/go/inter_container"
 	"github.com/opencord/voltha-protos/v2/go/openflow_13"
 	"github.com/opencord/voltha-protos/v2/go/voltha"
@@ -33,35 +35,42 @@ import (
 
 //OpenOLT structure holds the OLT information
 type OpenOLT struct {
-	deviceHandlers        map[string]*DeviceHandler
-	coreProxy             adapterif.CoreProxy
-	adapterProxy          adapterif.AdapterProxy
-	eventProxy            adapterif.EventProxy
-	kafkaICProxy          *kafka.InterContainerProxy
-	numOnus               int
-	KVStoreHost           string
-	KVStorePort           int
-	KVStoreType           string
-	exitChannel           chan int
-	lockDeviceHandlersMap sync.RWMutex
+	deviceHandlers              map[string]*DeviceHandler
+	coreProxy                   adapterif.CoreProxy
+	adapterProxy                adapterif.AdapterProxy
+	eventProxy                  adapterif.EventProxy
+	kafkaICProxy                *kafka.InterContainerProxy
+	config                      *config.AdapterFlags
+	numOnus                     int
+	KVStoreHost                 string
+	KVStorePort                 int
+	KVStoreType                 string
+	exitChannel                 chan int
+	HeartbeatCheckInterval      time.Duration
+	HeartbeatFailReportInterval time.Duration
+	GrpcTimeoutInterval         time.Duration
+	lockDeviceHandlersMap       sync.RWMutex
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
 func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy,
 	coreProxy adapterif.CoreProxy, adapterProxy adapterif.AdapterProxy,
-	eventProxy adapterif.EventProxy, onuNumber int, kvStoreHost string,
-	kvStorePort int, KVStoreType string) *OpenOLT {
+	eventProxy adapterif.EventProxy, cfg *config.AdapterFlags) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
 	openOLT.kafkaICProxy = kafkaICProxy
-	openOLT.numOnus = onuNumber
+	openOLT.config = cfg
+	openOLT.numOnus = cfg.OnuNumber
 	openOLT.coreProxy = coreProxy
 	openOLT.adapterProxy = adapterProxy
 	openOLT.eventProxy = eventProxy
-	openOLT.KVStoreHost = kvStoreHost
-	openOLT.KVStorePort = kvStorePort
-	openOLT.KVStoreType = KVStoreType
+	openOLT.KVStoreHost = cfg.KVStoreHost
+	openOLT.KVStorePort = cfg.KVStorePort
+	openOLT.KVStoreType = cfg.KVStoreType
+	openOLT.HeartbeatCheckInterval = cfg.HeartbeatCheckInterval
+	openOLT.HeartbeatFailReportInterval = cfg.HeartbeatFailReportInterval
+	openOLT.GrpcTimeoutInterval = cfg.GrpcTimeoutInterval
 	openOLT.lockDeviceHandlersMap = sync.RWMutex{}
 	return &openOLT
 }
