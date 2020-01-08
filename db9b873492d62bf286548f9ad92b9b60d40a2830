@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e801f96f_46479cd7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1522,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-08T07:06:50Z",
+      "side": 1,
+      "message": "updateStateUnreachable?",
+      "revId": "db9b873492d62bf286548f9ad92b9b60d40a2830",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
