@@ -322,26 +322,28 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 				ponval["RxBytes"] = float32(cm.RxBytes)
 			case "rx_packets":
 				ponval["RxPackets"] = float32(cm.RxPackets)
-				/*  not supported
-				case "rx_ucast_packets":
-					ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
-				case "rx_mcast_packets":
-					ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
-				case "rx_bcast_packets":
-					ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
-				*/
+			// these are not supported in OpenOlt Agent.
+			// will return zero until supported
+			case "rx_ucast_packets":
+				ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
+			case "rx_mcast_packets":
+				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
+			case "rx_bcast_packets":
+				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			// End will return zero until supported
 			case "tx_bytes":
 				ponval["TxBytes"] = float32(cm.TxBytes)
 			case "tx_packets":
 				ponval["TxPackets"] = float32(cm.TxPackets)
-				/*
-					case "tx_ucast_packets":
-						ponval["TxUcastPackets"] = float32(cm.TxUcastPackets)
-					case "tx_mcast_packets":
-						ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
-					case "tx_bcast_packets":
-						ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
-				*/
+			// these are not supported in OpenOlt Agent.
+			// will return zero until supported
+			case "tx_ucast_packets":
+				ponval["TxUcastPackets"] = float32(cm.TxUcastPackets)
+			case "tx_mcast_packets":
+				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
+			case "tx_bcast_packets":
+				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			// End will return zero until supported
 			}
 		}
 	}

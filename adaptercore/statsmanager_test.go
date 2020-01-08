@@ -104,6 +104,8 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		TxMcastPackets: 0,
 		TxBcastPackets: 0,
 		TxErrorPackets: 0,
+		RxCrcErrors:	0, 
+		BipErrors:	0,
 	}
 	nnimap := map[uint32]*NniPort{}
 	nnimap[0] = &NniPort{
@@ -123,6 +125,8 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		TxMcastPackets: 0,
 		TxBcastPackets: 0,
 		TxErrorPackets: 0,
+		RxCrcErrors:	0, 
+		BipErrors:	0,
 	}
 	pval := make(map[string]float32)
 	pval["rx_bytes"] = float32(111)
