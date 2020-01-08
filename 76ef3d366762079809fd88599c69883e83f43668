@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ebcf843b_8e2012c1",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 828,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "db14564f_619e6fad",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d9e2e62_548d999e",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 17
@@ -30,6 +48,24 @@
       "writtenOn": "2020-01-06T22:04:43Z",
       "side": 1,
       "message": "Consider using :\u003d to declare and assign together.",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5a5a060_3ce5828a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "4d9e2e62_548d999e",
       "revId": "76ef3d366762079809fd88599c69883e83f43668",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "a9ace280_98aeea50",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1628,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure updated",
+      "parentUuid": "2ce3e11a_9fd12fcc",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "08d609e9_afce8102",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 17
@@ -64,6 +118,24 @@
       "writtenOn": "2020-01-06T22:04:43Z",
       "side": 1,
       "message": "Can simplify with `ok \u0026\u0026 ipProto.(uint32) \u003d\u003d IgmpProto`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8796037e_8e95f87c",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1630,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure updated",
+      "parentUuid": "08d609e9_afce8102",
       "revId": "76ef3d366762079809fd88599c69883e83f43668",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "d9312e80_9ac71c6a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1989,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "b9b4a4e4_97bf2b1b",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9db5916d_6861f1f5",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 17
@@ -98,6 +188,24 @@
       "writtenOn": "2020-01-06T22:04:43Z",
       "side": 1,
       "message": "Consider `ok \u0026\u0026 uint32(metadata) !\u003d ReservedVlan`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "040bc5e6_c0de5bf9",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1995,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "9db5916d_6861f1f5",
       "revId": "76ef3d366762079809fd88599c69883e83f43668",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "411d1c2a_e754cdbf",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 2035,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "28c420c9_74824f89",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "268c1fd6_bddb4543",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 17
@@ -132,6 +258,24 @@
       "writtenOn": "2020-01-06T22:04:43Z",
       "side": 1,
       "message": "consider `if lookupGemPort, ok :\u003d f.packetInGemPort[pktInkey]; ok {`",
+      "revId": "76ef3d366762079809fd88599c69883e83f43668",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b9edc31_cded803e",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 2424,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-08T17:43:20Z",
+      "side": 1,
+      "message": "Sure Updated",
+      "parentUuid": "268c1fd6_bddb4543",
       "revId": "76ef3d366762079809fd88599c69883e83f43668",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
