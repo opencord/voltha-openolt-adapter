@@ -325,7 +325,7 @@ func (dh *DeviceHandler) readIndications() {
 		// When OLT is admin down, ignore all indications.
 		if adminState == "down" {
 
-			log.Infow("olt is admin down, ignore indication", log.Fields{})
+			log.Infow("olt is admin down, ignore indication", log.Fields{"indication": indication})
 			continue
 		}
 		dh.handleIndication(indication)
@@ -1172,16 +1172,19 @@ func (dh *DeviceHandler) notifyChildDevices() {
 //Device Port-State: ACTIVE
 //Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
-	if _, err := dh.Client.ReenableOlt(context.Background(), new(oop.Empty)); err != nil {
-		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
-			log.Errorw("Failed to reenable olt ", log.Fields{"err": err})
-			return err
-		}
-	}
-
 	dh.lockDevice.Lock()
 	dh.adminState = "up"
 	dh.lockDevice.Unlock()
+
+	if _, err := dh.Client.ReenableOlt(context.Background(), new(oop.Empty)); err != nil {
+		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+			log.Errorw("Failed to reenable olt ", log.Fields{"err": err})
+			dh.lockDevice.Lock()
+			dh.adminState = "down"
+			dh.lockDevice.Unlock()
+			return err
+		}
+	}
 	log.Debug("olt-reenabled")
 
 	cloned := proto.Clone(device).(*voltha.Device)
