@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "bfedff79_5b22a3a3",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-10T18:03:07Z",
+      "side": 1,
+      "message": "On returning errors throughout, is it appropriate to print and then return the error, or would it be better to return an enriched error without printing a message?",
+      "range": {
+        "startLine": 695,
+        "startChar": 2,
+        "endLine": 695,
+        "endChar": 12
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0f666939_780a0238",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-01-10T18:03:07Z",
+      "side": 1,
+      "message": "is `err` nil when this return occurs? Is that intended?",
+      "range": {
+        "startLine": 701,
+        "startChar": 3,
+        "endLine": 701,
+        "endChar": 12
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1dafbb62_1291cbbe",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 21
