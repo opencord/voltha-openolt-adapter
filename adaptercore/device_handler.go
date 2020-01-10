@@ -240,6 +240,24 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 		log.Errorw("Invalid-port-label", log.Fields{"portNum": portNum, "portType": portType})
 		return
 	}
+
+	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		log.Errorw("Failed to fetch device device", log.Fields{"err": err})
+		return
+	}
+	if device.Ports != nil {
+		for _, dPort := range device.Ports {
+			if dPort.Type == portType && dPort.PortNo == portNum {
+				log.Debug("port already exists updating oper_status of port")
+				if err := dh.coreProxy.PortStateUpdate(context.TODO(), dh.device.Id, portType, portNum, operStatus); err != nil {
+					log.Errorw("failed to update port state", log.Fields{"err": err})
+					return
+				}
+				return
+			}
+		}
+	}
 	//    Now create  Port
 	port := &voltha.Port{
 		PortNo:     portNum,
