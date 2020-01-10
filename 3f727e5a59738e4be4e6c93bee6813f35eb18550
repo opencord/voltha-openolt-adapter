@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1dafbb62_1291cbbe",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 822,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "could be done \nif err :\u003d f.addUpstreamTrapFlow(intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, IgmpFlow); err !\u003d nil {",
+      "range": {
+        "startLine": 821,
+        "startChar": 0,
+        "endLine": 822,
+        "endChar": 16
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2908f339_ede879df",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "might want to simplify like \nif networkInterfaceID, err :\u003d IntfIDFromNniPortNum(portNo); err !\u003d nil {",
+      "range": {
+        "startLine": 1255,
+        "startChar": 1,
+        "endLine": 1258,
+        "endChar": 2
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63c87211_d7bd9fe9",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 1550,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "same as line 1258",
+      "range": {
+        "startLine": 1547,
+        "startChar": 0,
+        "endLine": 1550,
+        "endChar": 3
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "19f2b71b_15c903f4",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 1894,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "this function shoudl return the error and not just log them, please add ), error { and return error where needed",
+      "range": {
+        "startLine": 1882,
+        "startChar": 0,
+        "endLine": 1894,
+        "endChar": 20
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7974e4b0_08250879",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 1901,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "same simplification as line 1258",
+      "range": {
+        "startLine": 1898,
+        "startChar": 0,
+        "endLine": 1901,
+        "endChar": 4
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60807a72_e18cde84",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 2112,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "make the function return error and have return error here.",
+      "range": {
+        "startLine": 2110,
+        "startChar": 0,
+        "endLine": 2112,
+        "endChar": 5
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ff6933d_856d995a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 2406,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-10T10:34:45Z",
+      "side": 1,
+      "message": "same, error should be returned and handled",
+      "range": {
+        "startLine": 2396,
+        "startChar": 0,
+        "endLine": 2406,
+        "endChar": 3
+      },
+      "revId": "3f727e5a59738e4be4e6c93bee6813f35eb18550",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
