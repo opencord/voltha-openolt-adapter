@@ -206,3 +206,10 @@ func (mcp *MockCoreProxy) DeviceReasonUpdate(ctx context.Context, deviceID strin
 func (mcp *MockCoreProxy) DevicePMConfigUpdate(ctx context.Context, pmConfigs *voltha.PmConfigs) error {
 	return nil
 }
+
+// PortStateUpdate implements mock PortStateUpdate
+func (mcp *MockCoreProxy) PortStateUpdate(ctx context.Context, deviceID string, pType voltha.Port_PortType, portNo uint32,
+                operStatus voltha.OperStatus_OperStatus) error {
+        return nil
+}
+
