@@ -125,9 +125,9 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 		log.Infow("Received onu signal fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuSignalsFailIndication(alarmInd.GetOnuSignalsFailInd(), deviceID, raisedTs)
 
-	case *oop.AlarmIndication_OnuProcessingErrorInd:
+	case *oop.AlarmIndication_OnuStartupFailInd:
 		log.Infow("Received onu startup fail indication ", log.Fields{"alarm_ind": alarmInd})
-		log.Infow("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuStartupFailedIndication(alarmInd.GetOnuStartupFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuTiwiInd:
 		log.Infow("Received onu transmission warning indication ", log.Fields{"alarm_ind": alarmInd})
 		log.Infow("Not implemented yet", log.Fields{"alarm_ind": "Onu-Transmission-indication"})
@@ -396,6 +396,30 @@ func (em *OpenOltEventMgr) onuSignalsFailIndication(onuSignalsFail *oop.OnuSigna
 		return err
 	}
 	log.Infow("ONU signals fail event sent to KAFKA", log.Fields{"onu-id": onuSignalsFail.OnuId, "intf-id": onuSignalsFail.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuStartupFailedIndication(onuStartupFail *oop.OnuStartupFailureIndication, deviceID string, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	context["onu-id"] = strconv.FormatUint(uint64(onuStartupFail.OnuId), base10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuStartupFail.IntfId), base10)
+
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	if onuStartupFail.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuStartupFailEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuStartupFailEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU startup fail event", log.Fields{"onu-id": onuStartupFail.OnuId, "intf-id": onuStartupFail.IntfId})
+		return err
+	}
+	log.Infow("ONU startup fail event sent to KAFKA", log.Fields{"onu-id": onuStartupFail.OnuId, "intf-id": onuStartupFail.IntfId})
 	return nil
 }
 
