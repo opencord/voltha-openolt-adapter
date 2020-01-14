@@ -183,6 +183,23 @@
       "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7624819_71882f1d",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1361,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:47:50Z",
+      "side": 1,
+      "message": "Why is \u0027cached\u0027 needed?",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
