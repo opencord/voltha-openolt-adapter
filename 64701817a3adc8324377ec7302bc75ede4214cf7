@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a095bedd_975b75af",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-14T05:05:06Z",
+      "side": 1,
+      "message": "since called function runs on go routine and called func doesnot have the error checking on return value, do we need to log errors for debugging purpose?",
+      "parentUuid": "39193913_e17903a0",
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d1bd6ff_54233c1f",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 5
