@@ -37,6 +37,29 @@
     },
     {
       "key": {
+        "uuid": "c2558645_d52407e7",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1641,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "Where are removing the flow from updatedMcastFlows structure?",
+      "range": {
+        "startLine": 1639,
+        "startChar": 0,
+        "endLine": 1641,
+        "endChar": 119
+      },
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db1c340e_523b44b8",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 10
@@ -66,6 +89,97 @@
       "side": 1,
       "message": "this method creates an openoltpb2.Group object from given group id and bucket list",
       "parentUuid": "db1c340e_523b44b8",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2badf73e_02900ad8",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1336,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "log.Errorw",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba27f62a_b1a151d9",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1341,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "If it is not nil, should you return?",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "24d1be2d_430a88df",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1345,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "log.Errorw",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b75d5dbe_6c624940",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1347,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "put the err check in the same line..\n\nval, err \u003d jsonMarshal(..); err !\u003d nil {\n    return err\n}",
+      "range": {
+        "startLine": 1343,
+        "startChar": 0,
+        "endLine": 1347,
+        "endChar": 2
+      },
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fb1b8ccc_e4592232",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T14:40:03Z",
+      "side": 1,
+      "message": "correct the log.",
       "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
