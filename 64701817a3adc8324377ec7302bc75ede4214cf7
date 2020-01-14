@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39193913_e17903a0",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-14T04:36:12Z",
+      "side": 1,
+      "message": "If you are returning an error you don\u0027t need to log it",
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d1bd6ff_54233c1f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-14T04:36:12Z",
+      "side": 1,
+      "message": "I think the best practice is for errors to be string like \"invalid-port-label\". need to find that link from the #slack conversion to be sure",
+      "range": {
+        "startLine": 241,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 51
+      },
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4aa4b475_d68681d5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-14T04:36:12Z",
+      "side": 1,
+      "message": "if you are returning an error we don\u0027t need to log it",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 69
+      },
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3f7d095_60a0f7b9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-14T04:36:12Z",
+      "side": 1,
+      "message": "if you are returning an error you don\u0027t need to log it.",
+      "range": {
+        "startLine": 254,
+        "startChar": 0,
+        "endLine": 254,
+        "endChar": 70
+      },
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7cd22b42_816330d9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-14T04:36:12Z",
+      "side": 1,
+      "message": "might want to return a custom error if you want to include additional fields in the error message, but you don\u0027t need to log if you are returning the error.",
+      "range": {
+        "startLine": 271,
+        "startChar": 0,
+        "endLine": 271,
+        "endChar": 109
+      },
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
