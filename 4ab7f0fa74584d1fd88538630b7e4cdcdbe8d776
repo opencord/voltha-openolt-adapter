@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dce01166_20e932de",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T05:55:28Z",
+      "side": 1,
+      "message": "If https://gerrit.opencord.org/#/c/16863/ was not merged, then how are these changes present here. Some other commit pushed these changes?",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 22
+      },
+      "revId": "4ab7f0fa74584d1fd88538630b7e4cdcdbe8d776",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8384652f_755894cb",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T05:55:28Z",
+      "side": 1,
+      "message": "Remove the extra space char.",
+      "revId": "4ab7f0fa74584d1fd88538630b7e4cdcdbe8d776",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22997af8_428d8b46",
+        "filename": "adaptercore/statsmanager_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-14T05:55:28Z",
+      "side": 1,
+      "message": "Remove the extra space char.",
+      "revId": "4ab7f0fa74584d1fd88538630b7e4cdcdbe8d776",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
