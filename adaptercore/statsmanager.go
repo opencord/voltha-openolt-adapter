@@ -57,6 +57,7 @@ type PonPort struct {
 
 	RxBytes        uint64
 	RxPackets      uint64
+	RxUcastPackets uint64
 	RxMcastPackets uint64
 	RxBcastPackets uint64
 	RxErrorPackets uint64
@@ -66,6 +67,8 @@ type PonPort struct {
 	TxMcastPackets uint64
 	TxBcastPackets uint64
 	TxErrorPackets uint64
+	RxCrcErrors    uint64
+	BipErrors      uint64
 }
 
 // NewPONPort returns a new instance of PonPort initialized with given PONID, DeviceID, IntfID and PortNum
@@ -98,6 +101,7 @@ func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *P
 
 	PON.RxBytes = 0
 	PON.RxPackets = 0
+	PON.RxUcastPackets = 0
 	PON.RxMcastPackets = 0
 	PON.RxBcastPackets = 0
 	PON.RxErrorPackets = 0
@@ -107,6 +111,8 @@ func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *P
 	PON.TxMcastPackets = 0
 	PON.TxBcastPackets = 0
 	PON.TxErrorPackets = 0
+	PON.RxCrcErrors = 0
+	PON.BipErrors = 0
 
 	/*    def __str__(self):
 	      return "PonPort-{}: Admin: {}, Oper: {}, OLT: {}".format(self._label,
@@ -132,6 +138,7 @@ type NniPort struct {
 
 	RxBytes        uint64
 	RxPackets      uint64
+	RxUcastPackets uint64
 	RxMcastPackets uint64
 	RxBcastPackets uint64
 	RxErrorPackets uint64
@@ -141,6 +148,8 @@ type NniPort struct {
 	TxMcastPackets uint64
 	TxBcastPackets uint64
 	TxErrorPackets uint64
+	RxCrcErrors    uint64
+	BipErrors      uint64
 }
 
 // NewNniPort returns a new instance of NniPort initialized with the given PortNum and IntfID
@@ -154,6 +163,7 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 
 	NNI.RxBytes = 0
 	NNI.RxPackets = 0
+	NNI.RxUcastPackets = 0
 	NNI.RxMcastPackets = 0
 	NNI.RxBcastPackets = 0
 	NNI.RxErrorPackets = 0
@@ -163,6 +173,8 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 	NNI.TxMcastPackets = 0
 	NNI.TxBcastPackets = 0
 	NNI.TxErrorPackets = 0
+	NNI.RxCrcErrors = 0
+	NNI.BipErrors = 0
 
 	return &NNI
 }
@@ -274,6 +286,8 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 				nnival["RxBytes"] = float32(cm.RxBytes)
 			case "rx_packets":
 				nnival["RxPackets"] = float32(cm.RxPackets)
+			case "rx_ucast_packets":
+				nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
 			case "rx_mcast_packets":
 				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
 			case "rx_bcast_packets":
@@ -308,18 +322,28 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 				ponval["RxBytes"] = float32(cm.RxBytes)
 			case "rx_packets":
 				ponval["RxPackets"] = float32(cm.RxPackets)
+			// these are not supported in OpenOlt Agent.
+			// will return zero until supported
+			case "rx_ucast_packets":
+				ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
 			case "rx_mcast_packets":
 				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
 			case "rx_bcast_packets":
 				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			// End will return zero until supported
 			case "tx_bytes":
 				ponval["TxBytes"] = float32(cm.TxBytes)
 			case "tx_packets":
 				ponval["TxPackets"] = float32(cm.TxPackets)
+			// these are not supported in OpenOlt Agent.
+			// will return zero until supported
+			case "tx_ucast_packets":
+				ponval["TxUcastPackets"] = float32(cm.TxUcastPackets)
 			case "tx_mcast_packets":
 				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
 			case "tx_bcast_packets":
 				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			// End will return zero until supported
 			}
 		}
 	}
@@ -402,10 +426,12 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 		portNNIStat.PortNum = uint32(0)
 		portNNIStat.RxBytes = PortStats.RxBytes
 		portNNIStat.RxPackets = PortStats.RxPackets
+		portNNIStat.RxUcastPackets = PortStats.RxUcastPackets
 		portNNIStat.RxMcastPackets = PortStats.RxMcastPackets
 		portNNIStat.RxBcastPackets = PortStats.RxBcastPackets
 		portNNIStat.TxBytes = PortStats.TxBytes
 		portNNIStat.TxPackets = PortStats.TxPackets
+		portNNIStat.TxUcastPackets = PortStats.TxUcastPackets
 		portNNIStat.TxMcastPackets = PortStats.TxMcastPackets
 		portNNIStat.TxBcastPackets = PortStats.TxBcastPackets
 		mutex.Lock()
@@ -422,10 +448,12 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 			portPonStat.PONID = i
 			portPonStat.RxBytes = PortStats.RxBytes
 			portPonStat.RxPackets = PortStats.RxPackets
+			portPonStat.RxUcastPackets = PortStats.RxUcastPackets
 			portPonStat.RxMcastPackets = PortStats.RxMcastPackets
 			portPonStat.RxBcastPackets = PortStats.RxBcastPackets
 			portPonStat.TxBytes = PortStats.TxBytes
 			portPonStat.TxPackets = PortStats.TxPackets
+			portPonStat.TxUcastPackets = PortStats.TxUcastPackets
 			portPonStat.TxMcastPackets = PortStats.TxMcastPackets
 			portPonStat.TxBcastPackets = PortStats.TxBcastPackets
 			mutex.Lock()
