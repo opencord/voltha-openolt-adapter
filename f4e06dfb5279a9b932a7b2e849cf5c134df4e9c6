@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "b482dd88_3c6e66d4",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1641,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-15T10:29:44Z",
+      "side": 1,
+      "message": "Since there will be no flow matching with this flowId any more, updatedMcastFlows list is empty.",
+      "parentUuid": "c2558645_d52407e7",
+      "range": {
+        "startLine": 1639,
+        "startChar": 0,
+        "endLine": 1641,
+        "endChar": 119
+      },
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db1c340e_523b44b8",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 10
@@ -197,6 +221,24 @@
       "writtenOn": "2020-01-14T14:47:50Z",
       "side": 1,
       "message": "Why is \u0027cached\u0027 needed?",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "403e96c3_8cc9b154",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1361,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-15T10:29:44Z",
+      "side": 1,
+      "message": "When a group add request received, we create the group without setting any members to it since we cannot set any members to a group until it is associated with a multicast flow. It is a BAL limitation. When the related multicast flow has been created we perform set members operation for the group. That is why we need to keep the members of a group until the multicast flow creation request comes. We preserve the groups under \"FlowGroupsCached\" directory in the KV store temporarily. After having set members, we remove the group from the cached group store.",
+      "parentUuid": "e7624819_71882f1d",
       "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
