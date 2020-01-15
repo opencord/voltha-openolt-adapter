@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5376b85a_af5b9d6f",
+        "filename": "adaptercore/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000631
+      },
+      "writtenOn": "2020-01-15T18:02:42Z",
+      "side": 1,
+      "message": "I think it has done incremental diff based on the above pending commit.",
+      "parentUuid": "dce01166_20e932de",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 22
+      },
+      "revId": "4ab7f0fa74584d1fd88538630b7e4cdcdbe8d776",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8384652f_755894cb",
         "filename": "adaptercore/statsmanager_test.go",
         "patchSetId": 3
