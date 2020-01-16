@@ -278,6 +278,24 @@
       "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7dff7409_2c483388",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1361,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-16T09:33:35Z",
+      "side": 1,
+      "message": "Makes sense now, but it is not obvious. Can you please add these in comments in the code.",
+      "parentUuid": "403e96c3_8cc9b154",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
