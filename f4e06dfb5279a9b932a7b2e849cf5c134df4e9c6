@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "6e0ea7d9_8fd2288b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-16T08:57:30Z",
+      "side": 1,
+      "message": "i meant correct the spelling to interfaceTMcastQueueMap",
+      "parentUuid": "2a7d5309_8a7b4289",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2558645_d52407e7",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 10
@@ -113,6 +131,24 @@
       "side": 1,
       "message": "this method creates an openoltpb2.Group object from given group id and bucket list",
       "parentUuid": "db1c340e_523b44b8",
+      "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6dcdef6d_6ba0fcf3",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1936,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-16T08:57:30Z",
+      "side": 1,
+      "message": "spell check buildGroup",
+      "parentUuid": "51c43f72_c0fc07a7",
       "revId": "f4e06dfb5279a9b932a7b2e849cf5c134df4e9c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
