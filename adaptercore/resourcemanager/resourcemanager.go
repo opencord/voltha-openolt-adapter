@@ -739,8 +739,6 @@ func (RsrcMgr *OpenOltResourceMgr) FreeGemPortID(IntfID uint32, onuID uint32,
 // resource map and the onuID associated with (pon_intf_id, gemport_id) tuple,
 func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(intfID uint32, onuID uint32, uniID uint32) {
 
-	var onuIDs []uint32
-	onuIDs = append(onuIDs, onuID)
 	IntfOnuIDUniID := fmt.Sprintf("%d,%d,%d", intfID, onuID, uniID)
 
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(IntfOnuIDUniID)
@@ -758,14 +756,8 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(intfID uint32, onuID u
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(intfID,
 		ponrmgr.FLOW_ID,
 		FlowIDs)
-	if int32(onuID) >= 0 {
-		RsrcMgr.ResourceMgrs[intfID].FreeResourceID(intfID,
-			ponrmgr.ONU_ID,
-			onuIDs)
-	}
 	// Clear resource map associated with (pon_intf_id, gemport_id) tuple.
 	RsrcMgr.ResourceMgrs[intfID].RemoveResourceMap(IntfOnuIDUniID)
-
 	// Clear the ONU Id associated with the (pon_intf_id, gemport_id) tuple.
 	for _, GEM := range GEMPortIDs {
 		_ = RsrcMgr.KVStore.Delete(fmt.Sprintf("%d,%d", intfID, GEM))
@@ -1288,4 +1280,21 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(intf uint32) (ma
 		}
 	}
 	return flowsForGem, nil
+}
+
+//DeleteIntfIDGempMapPath deletes the intf id path used to store flow ids per gem to kvstore.
+func (RsrcMgr *OpenOltResourceMgr) DeleteIntfIDGempMapPath(intf uint32) {
+
+	path := fmt.Sprintf(FlowIDsForGem, intf)
+	if err := RsrcMgr.KVStore.Delete(path); err != nil {
+		log.Errorw("Failed to delete nni interfaces from kv store", log.Fields{"path": path})
+		return
+	}
+	return
+}
+
+// RemoveResourceMap Clear resource map associated with (intfid, onuid, uniid) tuple.
+func (RsrcMgr *OpenOltResourceMgr) RemoveResourceMap(intfID uint32, onuID int32, uniID int32) {
+	IntfOnuIDUniID := fmt.Sprintf("%d,%d,%d", intfID, onuID, uniID)
+	RsrcMgr.ResourceMgrs[intfID].RemoveResourceMap(IntfOnuIDUniID)
 }

@@ -1173,7 +1173,10 @@ func (f *OpenOltFlowMgr) addFlowToDevice(logicalFlow *ofp.OfpFlowStats, deviceFl
 		f.resourceMgr.FreeFlowID(intfID, deviceFlow.OnuId, deviceFlow.UniId, deviceFlow.FlowId)
 		return false
 	}
-	f.registerFlow(logicalFlow, deviceFlow)
+	if deviceFlow.GemportId != -1 {
+		// No need to register the flow if it is a trap on nni flow.
+		f.registerFlow(logicalFlow, deviceFlow)
+	}
 	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
 	return true
 }

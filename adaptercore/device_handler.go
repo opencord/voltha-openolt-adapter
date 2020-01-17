@@ -1288,6 +1288,7 @@ func (dh *DeviceHandler) clearNNIData() error {
 		for _, flowID := range flowIDs {
 			dh.resourceMgr.FreeFlowID(uint32(nniIntfID), -1, -1, uint32(flowID))
 		}
+		dh.resourceMgr.RemoveResourceMap(nniIntfID, int32(nniOnuID), int32(nniUniID))
 	}
 	if err = dh.resourceMgr.DelNNiFromKVStore(); err != nil {
 		log.Error("Failed to clear nni from kv store")
@@ -1321,11 +1322,19 @@ func (dh *DeviceHandler) DeleteDevice(device *voltha.Device) error {
 				return err
 			}
 			for _, onu := range onuGemData {
+				onuID := make([]uint32, 1)
 				log.Debugw("onu data ", log.Fields{"onu": onu})
 				if err = dh.clearUNIData(&onu); err != nil {
 					log.Errorw("Failed to clear data for onu", log.Fields{"onu-device": onu})
 				}
+				// Clear flowids for gem cache.
+				for _, gem := range onu.GemPorts {
+					dh.resourceMgr.DeleteFlowIDsForGem(ponPort, gem)
+				}
+				onuID[0] = onu.OnuID
+				dh.resourceMgr.FreeonuID(ponPort, onuID)
 			}
+			dh.resourceMgr.DeleteIntfIDGempMapPath(ponPort)
 			onuGemData = nil
 			err = dh.resourceMgr.DelOnuGemInfoForIntf(ponPort)
 			if err != nil {
