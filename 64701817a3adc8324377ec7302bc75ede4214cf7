@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "fa63f478_1e8bd78d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-01-17T21:30:39Z",
+      "side": 1,
+      "message": "If no one is listening for an error return value do we need to return one? If no one is listening then it makes sense to log and not return. It seems to me that someone needs to handle an add port that fails otherwise it just drops on the floor.",
+      "parentUuid": "a095bedd_975b75af",
+      "revId": "64701817a3adc8324377ec7302bc75ede4214cf7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d1bd6ff_54233c1f",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 5
