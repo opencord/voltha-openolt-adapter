@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "928114b4_5d32358d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1315,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-20T07:42:53Z",
+      "side": 1,
+      "message": "This happens as part of dh.resourceMgr.Delete right?\nThe point is, the ONU may not be assigned any gem ports yet before OLT delete is called. So, this may not be the right place to do it. It is not a harm, but this already being taken care as part of dh.resourceMgr.Delete afaik..",
+      "revId": "b6d7eed5c21b4ebf6c7e93f06a554713d8b624cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "141bd5dd_17eab548",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-20T07:42:53Z",
+      "side": 1,
+      "message": "I did not get the context. Why should we not register for nni trap flow. Also you may want to substantiate this in comments.",
+      "revId": "b6d7eed5c21b4ebf6c7e93f06a554713d8b624cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}

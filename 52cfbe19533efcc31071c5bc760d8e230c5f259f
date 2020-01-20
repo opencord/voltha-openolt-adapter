@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d7b22d5_5ebc3641",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-20T07:42:53Z",
+      "side": 0,
+      "message": "Why is this removed here?",
+      "revId": "52cfbe19533efcc31071c5bc760d8e230c5f259f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
