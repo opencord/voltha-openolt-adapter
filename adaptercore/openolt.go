@@ -345,3 +345,36 @@ func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, errors.New("unImplemented")
 }
+
+// Enable_port to Enable pon if
+func (oo *OpenOLT) Enable_port(deviceID string, port *voltha.Port) error {
+	log.Infow("Enable-port", log.Fields{"deviceId": deviceID, "port": port})
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		if port == nil {
+			log.Errorw("error-occurred-while-enable-port", log.Fields{"deviceID": deviceID, "port": port})
+			return errors.New("error-occurred-while-enable-port")
+		}
+		if err := handler.EnablePort(port); err != nil {
+			log.Errorw("error-occurred-while-enable-port", log.Fields{"deviceID": deviceID, "port": port, "error": err})
+			return err
+		}
+	}
+	return nil
+}
+
+// Disable_port to Disable pon if
+func (oo *OpenOLT) Disable_port(deviceID string, port *voltha.Port) error {
+	log.Infow("Disable_port", log.Fields{"deviceId": deviceID, "port": port})
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		if port == nil {
+			log.Errorw("error-occurred-while-disable-port", log.Fields{"Device": deviceID, "port": port})
+			return errors.New("error-occurred-while-disable-port")
+		}
+		log.Debugw("Disable-port", log.Fields{"deviceId": deviceID, "port": port})
+		if err := handler.DisablePort(port); err != nil {
+			log.Errorw("error-occurred-while-disable-port", log.Fields{"Device": deviceID, "port": port})
+			return err
+		}
+	}
+	return nil
+}
