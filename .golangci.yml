@@ -77,6 +77,8 @@ issues:
     - "don't use underscores in Go names; method Cancel_image_download"
     - "don't use underscores in Go names; method Activate_image_update"
     - "don't use underscores in Go names; method Revert_image_update"
+    - "don't use underscores in Go names; method Enable_port"
+    - "don't use underscores in Go names; method Disable_port"
   exclude-use-default: false
 
 # golangci.com configuration
