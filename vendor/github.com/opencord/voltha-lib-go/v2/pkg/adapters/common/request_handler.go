@@ -612,3 +612,55 @@ func (rhp *RequestHandlerProxy) Activate_image_update(args []*ic.Argument) (*vol
 func (rhp *RequestHandlerProxy) Revert_image_update(args []*ic.Argument) (*voltha.ImageDownload, error) {
 	return &voltha.ImageDownload{}, nil
 }
+
+func (rhp *RequestHandlerProxy) Enable_network_if(args []*ic.Argument) error {
+	log.Infow("enable-network-interface", log.Fields{"args":args})
+	return rhp.invokeEnableorDisableNetworkIf(args, true)
+}
+
+func (rhp *RequestHandlerProxy) Disable_network_if(args []*ic.Argument) error {
+	log.Infow("disable-network-interface", log.Fields{"args":args})
+	return rhp.invokeEnableorDisableNetworkIf(args, false)
+}
+
+func (rhp *RequestHandlerProxy) invokeEnableorDisableNetworkIf(args []*ic.Argument, enabler bool) error {
+	if len(args) < 3 {
+		log.Warn("invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return err
+	}
+	device := &ic.StrType{}
+	port := &voltha.Port{}
+	transactionID := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "deviceId":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return err
+			}
+		case "port":
+			if err := ptypes.UnmarshalAny(arg.Value, port); err != nil {
+				log.Warnw("cannot-unmarshal-port", log.Fields{"error": err})
+				return err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return err
+			}
+		}
+	}
+	if enabler == true {
+		if err := rhp.adapter.Enable_network_if(device.Val, port); err != nil {
+			log.Errorw("Error-occured-while-Enable-network-if", log.Fields{"error": err, "arguments": args})
+			return status.Errorf(codes.NotFound, "%s", err.Error())
+		}
+	} else {
+		if err := rhp.adapter.Disable_network_if(device.Val, port); err != nil {
+			log.Errorw("Error-occured-while-Disable-network-if", log.Fields{"error": err, "arguments": args})
+			return status.Errorf(codes.NotFound, "%s", err.Error())
+		}
+	}
+	return nil
+}

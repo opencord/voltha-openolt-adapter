@@ -186,7 +186,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.resourceMgr.ResourceMgrs[2] = ponmgr
 	dh.flowMgr = NewFlowManager(dh, dh.resourceMgr)
 	dh.Client = &mocks.MockOpenoltClient{}
-	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}}
+	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{} ,handler: dh}
 	dh.transitionMap = &TransitionMap{}
 	dh.portStats = &OpenOltStatisticsMgr{}
 

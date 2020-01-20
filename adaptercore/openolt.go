@@ -345,3 +345,37 @@ func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, errors.New("unImplemented")
 }
+
+// Enable_network_if to Enable pon if
+func (oo *OpenOLT) Enable_network_if(deviceID string, port *voltha.Port) error {
+	log.Infow("Enable-network-if", log.Fields{"deviceId": deviceID, "port": port})
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		if port == nil {
+			log.Errorw("error-occured-while-enable-network-if", log.Fields{"deviceID": deviceID, "port": port})
+			return errors.New("error-occured-while-enable-network-if")
+		}
+		if err := handler.EnableNetworkIf(port); err != nil {
+			log.Errorw("error-occured-while-enable-network-if", log.Fields{"deviceID": deviceID, "port": port,"error": err})
+			return err
+		}
+	}
+	return nil
+}
+
+// Disable_network_if to Disable pon if
+func (oo *OpenOLT) Disable_network_if(deviceID string, port *voltha.Port) error {
+	log.Infow("Disable_network_if", log.Fields{"deviceId": deviceID, "port": port})
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		//device, err := handler.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+		if port == nil {
+			log.Errorw("error-occured-while-disable-network-if", log.Fields{"Device": deviceID, "port": port})
+			return errors.New("error-occured-while-disable-network-if")
+		}
+		log.Debugw("Disable-network-if", log.Fields{"deviceId": deviceID, "port": port})
+		if err := handler.DisableNetworkIf(port); err != nil {
+			log.Errorw("error-occured-while-disable-network-if", log.Fields{"Device": deviceID, "port": port})
+			return err
+		}
+	}
+	return nil
+}

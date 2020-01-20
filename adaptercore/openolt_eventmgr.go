@@ -19,8 +19,9 @@ package adaptercore
 
 import (
 	"fmt"
+	"github.com/opencord/voltha-protos/v2/go/common"
 	"strconv"
-
+    ctx "context"
 	"github.com/opencord/voltha-lib-go/v2/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v2/pkg/log"
 	oop "github.com/opencord/voltha-protos/v2/go/openolt"
@@ -47,6 +48,7 @@ const (
 	onuLossOfKeySyncEvent   = "ONU_LOSS_OF_KEY_SYNC"
 	onuLossOfFrameEvent     = "ONU_LOSS_OF_FRAME"
 	onuLossOfPloamEvent     = "ONU_LOSS_OF_PLOAM"
+	ponIntfDownIndiction    = "OLT_PON_INTERFACE_DOWN"
 )
 
 const (
@@ -444,5 +446,45 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(onuLOKI *oop.OnuLossOfKeySync
 		return err
 	}
 	log.Infow("ONU loss of key sync event sent to KAFKA", log.Fields{"onu-id": onuLOKI.OnuId, "intf-id": onuLOKI.IntfId})
+	return nil
+}
+
+// handlePonIntfevent handles Up and Down state of an OLT PON ports
+func (em *OpenOltEventMgr) handlePonIntfevent(ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	portID := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
+	device, err := em.handler.coreProxy.GetDevice(ctx.Background(), deviceID, deviceID)
+	if err != nil {
+		log.Errorw("Error while fetching Device object", log.Fields{"DeviceId": deviceID})
+	}
+	for _, port := range device.Ports {
+		if port.PortNo == portID {
+			// Events are supressed if the Port Adminstate is not enabled.
+			if port.AdminState != common.AdminState_ENABLED {
+				log.Infow("Port disable/enable event not generated because, The port is not enabled by operator", log.Fields{"deviceId": deviceID, "port": port})
+				return nil
+			} else {
+				break
+			}
+		}
+	}
+	/* Populating event context */
+	context["oper-state"] = ifindication.GetOperState()
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+
+	if ifindication.GetOperState() == operationStateDown {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", ponIntfDownIndiction, "RAISE_EVENT")
+	} else if ifindication.OperState == operationStateUp {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", ponIntfDownIndiction, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
+		log.Errorw("Failed to send OLT event", log.Fields{"err": err})
+		return err
+	}
+	log.Infow("OLT UpDown event sent to KAFKA", log.Fields{})
 	return nil
 }
