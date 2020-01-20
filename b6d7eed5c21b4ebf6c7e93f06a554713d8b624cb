@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "56343bab_75dfe119",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1315,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-20T08:39:11Z",
+      "side": 1,
+      "message": "yes, anyway it will be deleted. added it to go according to the flow",
+      "parentUuid": "928114b4_5d32358d",
+      "revId": "b6d7eed5c21b4ebf6c7e93f06a554713d8b624cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "141bd5dd_17eab548",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2020-01-20T07:42:53Z",
       "side": 1,
       "message": "I did not get the context. Why should we not register for nni trap flow. Also you may want to substantiate this in comments.",
+      "revId": "b6d7eed5c21b4ebf6c7e93f06a554713d8b624cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9afbd2d_0e81073f",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-20T08:39:11Z",
+      "side": 1,
+      "message": "in register, we are updating gemports , onuid, uniids. trapp on nni will not be having any of those, hence not required to register it.",
+      "parentUuid": "141bd5dd_17eab548",
       "revId": "b6d7eed5c21b4ebf6c7e93f06a554713d8b624cb",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false

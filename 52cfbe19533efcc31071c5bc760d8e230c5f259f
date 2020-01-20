@@ -16,6 +16,24 @@
       "revId": "52cfbe19533efcc31071c5bc760d8e230c5f259f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ef2dabe_c4c9116d",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 761,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-20T08:39:11Z",
+      "side": 0,
+      "message": "it is trying to free onuid,and this will be called for every uni which is not right . And i have moved freeonuid to DeleteDevice function.",
+      "parentUuid": "6d7b22d5_5ebc3641",
+      "revId": "52cfbe19533efcc31071c5bc760d8e230c5f259f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
