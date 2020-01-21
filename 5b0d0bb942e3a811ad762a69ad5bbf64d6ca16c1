@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b0ace9b9_84d81422",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1558,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-21T11:32:53Z",
+      "side": 1,
+      "message": "Oh, yes! I will call removeFlowFromDevice method here. Thanks.",
+      "parentUuid": "8cee96d0_84d14498",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6f002e2_6f5e44d3",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 15
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "86f0d44a_0d9675b0",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1628,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-21T11:32:53Z",
+      "side": 1,
+      "message": "Multicast flows are in downstream direction and they are not associated with any GEM port.",
+      "parentUuid": "f6f002e2_6f5e44d3",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ff80e8f_8bfecf68",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 15
@@ -47,6 +83,24 @@
       "writtenOn": "2020-01-21T09:07:55Z",
       "side": 1,
       "message": "where is gemport being created ? As gemport is not being created dynamically, it should be done via the techprofile.",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6be5e644_c182c3b9",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1825,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-21T11:32:53Z",
+      "side": 1,
+      "message": "Multicast flows are in the downstream direction and they are not associated with a GEM port. Just one multicast GEM port is created system-wise. It is created along with VOD flows and each member of a group is associated with this multicast GEM.",
+      "parentUuid": "5ff80e8f_8bfecf68",
       "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
