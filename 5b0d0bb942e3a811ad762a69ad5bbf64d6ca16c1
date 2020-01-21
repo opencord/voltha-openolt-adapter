@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "f6f002e2_6f5e44d3",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1628,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-21T09:25:50Z",
+      "side": 1,
+      "message": "how are the gemports being freed ?",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ff80e8f_8bfecf68",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 15
