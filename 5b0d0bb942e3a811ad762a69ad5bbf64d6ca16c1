@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8cee96d0_84d14498",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1558,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-21T07:12:11Z",
+      "side": 1,
+      "message": "flow is removed from the resource manager, but not from the device. And how is the goup delete handeled ?",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
