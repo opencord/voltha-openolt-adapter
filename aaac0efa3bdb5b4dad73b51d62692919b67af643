@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46684ed2_f1c54d45",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 1375,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-21T12:12:34Z",
+      "side": 1,
+      "message": "please uncomment or remove.",
+      "range": {
+        "startLine": 1372,
+        "startChar": 0,
+        "endLine": 1375,
+        "endChar": 3
+      },
+      "revId": "aaac0efa3bdb5b4dad73b51d62692919b67af643",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6614aaf1_df208a81",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 2261,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-01-21T12:12:34Z",
+      "side": 1,
+      "message": "return error",
+      "range": {
+        "startLine": 2261,
+        "startChar": 4,
+        "endLine": 2261,
+        "endChar": 5
+      },
+      "revId": "aaac0efa3bdb5b4dad73b51d62692919b67af643",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
