@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "8ec16193_5652bafa",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1628,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-21T11:42:06Z",
+      "side": 1,
+      "message": "There is just one reserved multicast GEM port system-wise. It is configured in techProfile. We do not release it at all. It can be used any time by any multicast user.",
+      "parentUuid": "86f0d44a_0d9675b0",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ff80e8f_8bfecf68",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 15
