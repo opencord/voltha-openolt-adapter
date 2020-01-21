@@ -16,6 +16,23 @@
       "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ff80e8f_8bfecf68",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1825,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-21T09:07:55Z",
+      "side": 1,
+      "message": "where is gemport being created ? As gemport is not being created dynamically, it should be done via the techprofile.",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
