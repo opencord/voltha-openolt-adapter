@@ -122,6 +122,23 @@
       "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "af166672_3937959f",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/techprofile/tech_profile.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-01-22T05:43:42Z",
+      "side": 1,
+      "message": "i was not in the review list for voltha-lib-go techprofile review for this change set, hence had to comment here.i see that mcast gemport id is being fetched from tp. what if the specified gem is already used in the system. Usually there will be a range for gemport ids supported by the device, how will user come the know the range. i believe this we should let resourcemanager decide the mcast gemport id",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
