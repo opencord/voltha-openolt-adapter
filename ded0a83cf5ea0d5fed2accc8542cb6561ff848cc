@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75588cc6_b16c22b9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 0,
+      "message": "Why is this removed?",
+      "revId": "ded0a83cf5ea0d5fed2accc8542cb6561ff848cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}

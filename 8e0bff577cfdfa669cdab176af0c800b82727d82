@@ -1,0 +1,233 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45c17913_a3661a84",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Can this context be re-built on openolt-adapter container restart?",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b1647381_e4485c15",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "I am not sure I understand this. When the port is Disable, we invoke this function, but not when disabled. Why? Also I do not get the point of this entire code snippet. Can you please elaborate, why we need to update the same state again back to core?",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "276e8c2f_c37c13cd",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "I do not get this. We get the ports from core and again update it back to core. Why? If we are updating the same state back to core, we might as well skip this step.\nI do not justify the earlier code as well. I am not sure why the earlier code was there even. Please check.",
+      "range": {
+        "startLine": 553,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "36eed392_689ade90",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Same comment here.",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b01b369_b7c8d665",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1239,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Same as above. Not sure why this needed. Any example use case ?",
+      "range": {
+        "startLine": 1226,
+        "startChar": 0,
+        "endLine": 1239,
+        "endChar": 2
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcd32f8e_8325a148",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1588,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "change to enablePort",
+      "range": {
+        "startLine": 1588,
+        "startChar": 70,
+        "endLine": 1588,
+        "endChar": 77
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa76e9b2_e8e0ceca",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "this is not the convention. Do not put special characters in the place of key.",
+      "range": {
+        "startLine": 1589,
+        "startChar": 66,
+        "endLine": 1589,
+        "endChar": 74
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "942b3ce5_74eb2791",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1590,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Check for NNI port. This leads to confusion on other possibilities. Since your log specifically talks about NNI port, check for NNI.\nAlso why shouldn\u0027t one disable NNI port. \nIs it because of in-band. Not all may use in-band. So it should rather see if in-band is supported or not, and then take action accordingly.",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "93b48599_d359e8b6",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Please move this check to starting of the function, and also fix the log appropriately. It say \"error-occurred-while-enable-port\", but know the actual problem and is that the port is nil.",
+      "range": {
+        "startLine": 353,
+        "startChar": 0,
+        "endLine": 356,
+        "endChar": 3
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "214f9666_565c9a93",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Please move this check to starting of the function, and also fix the log appropriately. It say \"error-occurred-while-disable-port\", but know the actual problem and is that the port is nil.",
+      "range": {
+        "startLine": 369,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 3
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac76a42_8e569b7e",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-22T10:45:07Z",
+      "side": 1,
+      "message": "Fix log.",
+      "range": {
+        "startLine": 488,
+        "startChar": 12,
+        "endLine": 488,
+        "endChar": 21
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
