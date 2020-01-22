@@ -175,6 +175,24 @@
       "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1f9a6ce_55f4ece9",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/techprofile/tech_profile.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-01-22T08:07:39Z",
+      "side": 1,
+      "message": "I agree that we should let the resource manager decide the mcast gemport id. However, TürkTelekom scenarios require that multicast gem port id shall be a predefined constant value. That is why we cannot assign multicast gem port id value dynamically. It shall be a constant system-wise. On the other hand, it is true that the resource manager should be aware of this value to avoid collisions. For this purpose, we created the following task to cover this case. We will start working on this task soon.\n\nVOL-2337",
+      "parentUuid": "af166672_3937959f",
+      "revId": "5b0d0bb942e3a811ad762a69ad5bbf64d6ca16c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
