@@ -1447,6 +1447,30 @@ func (f *OpenOltFlowMgr) deletePendingFlows(Intf uint32, onuID int32, uniID int3
 
 }
 
+// Once the gemport is released for a given onu, it also has to be cleared from local cache
+// which was used for deriving the gemport->logicalPortNo during packet-in.
+// Otherwise stale info continues to exist after gemport is freed and wrong logicalPortNo
+// is conveyed to ONOS during packet-in OF message.
+func (f *OpenOltFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32, gemPortID uint32) {
+	f.lockCache.Lock()
+	defer f.lockCache.Unlock()
+	onugem := f.onuGemInfo[intfID]
+	for _, onu := range onugem {
+		if onu.OnuID == onuID {
+			for i, gem := range onu.GemPorts {
+				// If the gemport is found, delete it from local cache.
+				if gem == gemPortID {
+					onu.GemPorts = append(onu.GemPorts[:i], onu.GemPorts[i+1:]...)
+					log.Debugw("removed gemport from local cache",
+						log.Fields{"intfID": intfID, "onuID": onuID, "gemPortID": gemPortID})
+					break
+				}
+			}
+			break
+		}
+	}
+}
+
 //clearResources clears pon resources in kv store and the device
 func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onuID int32, uniID int32,
 	gemPortID int32, flowID uint32, flowDirection string,
@@ -1519,6 +1543,7 @@ func (f *OpenOltFlowMgr) clearResources(flow *ofp.OfpFlowStats, Intf uint32, onu
 			// TODO: The TrafficQueue corresponding to this gem-port also should be removed immediately.
 			// But it is anyway eventually  removed later when the TechProfile is freed, so not a big issue for now.
 			f.resourceMgr.RemoveGEMportPonportToOnuMapOnKVStore(uint32(gemPortID), Intf)
+			f.deleteGemPortFromLocalCache(Intf, uint32(onuID), uint32(gemPortID))
 			f.onuIdsLock.Lock()
 			//everytime an entry is deleted from flowsUsedByGemPort cache, the same should be updated in kv as well
 			// by calling DeleteFlowIDsForGem
