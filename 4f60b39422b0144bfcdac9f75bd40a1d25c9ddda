@@ -22,6 +22,30 @@
       "revId": "4f60b39422b0144bfcdac9f75bd40a1d25c9ddda",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1d1feaf_93172632",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1415,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-22T18:30:46Z",
+      "side": 1,
+      "message": "dh.resourceMgr.DelOnuGemInfoForIntf(ponPort) This is called only when deleteDevice is called. When the cache is cleaned it might also be necessary to update KV as Matt says.",
+      "parentUuid": "93d61d15_019c17a9",
+      "range": {
+        "startLine": 1415,
+        "startChar": 5,
+        "endLine": 1415,
+        "endChar": 18
+      },
+      "revId": "4f60b39422b0144bfcdac9f75bd40a1d25c9ddda",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
