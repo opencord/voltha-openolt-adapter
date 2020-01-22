@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2296fe5_c7f0f822",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-22T05:44:39Z",
+      "side": 1,
+      "message": "are we really storing intf status in the map , can we have appropriate naming convention.",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "38a92723_8b1eb2f7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1593,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-22T05:44:39Z",
+      "side": 1,
+      "message": "return error with proper message .",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "68fbea68_de30ac8f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1622,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-22T05:44:39Z",
+      "side": 1,
+      "message": "Maintain error logging format wherein called method should return error and should not log the same .",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "021883d2_e5d6e159",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-22T05:44:39Z",
+      "side": 1,
+      "message": "why are we having different execution path for enable and disable port , in device_handler if both are calling same method at the end , can we have single execution path from core itself ?",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a80677b_a9894762",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-22T05:44:39Z",
+      "side": 1,
+      "message": "maintain \"-\" based convention for logging",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
