@@ -613,3 +613,46 @@ func (rhp *RequestHandlerProxy) Activate_image_update(args []*ic.Argument) (*vol
 func (rhp *RequestHandlerProxy) Revert_image_update(args []*ic.Argument) (*voltha.ImageDownload, error) {
 	return &voltha.ImageDownload{}, nil
 }
+
+func (rhp *RequestHandlerProxy) Update_Port_OperStatus(args []*ic.Argument) error {
+	log.Infow("update_Port_OperStatus", log.Fields{"args": args})
+	if len(args) < 3 {
+		log.Warn("invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return err
+	}
+	device := &ic.StrType{}
+	port := &voltha.Port{}
+	transactionID := &ic.StrType{}
+	action := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "deviceId":
+			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+				log.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return err
+			}
+		case "port":
+			if err := ptypes.UnmarshalAny(arg.Value, port); err != nil {
+				log.Warnw("cannot-unmarshal-port", log.Fields{"error": err})
+				return err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				log.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return err
+			}
+		case "action":
+			if err := ptypes.UnmarshalAny(arg.Value, action); err != nil {
+				log.Warnw("cannot-unmarshal-action", log.Fields{"error": err})
+				return err
+			}
+		}
+	}
+	if err := rhp.adapter.Enable_Disable_Port(device.Val, port, action.Val); err != nil {
+		log.Errorw("Error-occurred-while-Enable-or-disable-port", log.Fields{"error": err, "arguments": args})
+		return status.Errorf(codes.NotFound, "%s", err.Error())
+	}
+
+	return nil
+}
