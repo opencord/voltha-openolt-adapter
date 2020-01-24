@@ -137,6 +137,30 @@
     },
     {
       "key": {
+        "uuid": "7e500327_2ed1a70b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T08:42:35Z",
+      "side": 1,
+      "message": "On OLT reboot , on what basis we are deciding other than the ports that has admin_state as \"DISABLED\" remaining will be operationally active?",
+      "parentUuid": "3d61a479_000128a0",
+      "range": {
+        "startLine": 553,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36eed392_689ade90",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -148,6 +172,23 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "Same comment here.",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bddc440_3a56ba12",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1234,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T08:42:35Z",
+      "side": 1,
+      "message": "same here",
       "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
