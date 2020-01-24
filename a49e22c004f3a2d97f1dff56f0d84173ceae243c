@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c74db88f_5c431209",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T09:25:10Z",
+      "side": 1,
+      "message": "maintain single naming convention for methods across patchset\nchange it to updatePortOnReboot",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "439ec225_94202850",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T09:25:10Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "32e0182c_8bfc6276",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1611,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T09:25:10Z",
+      "side": 1,
+      "message": "check logging format",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1fb65775_cb90ec94",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T09:25:10Z",
+      "side": 1,
+      "message": "can we have switch here and handle invalid field value for enablePort as well?Just a thought.",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf3b5d3c_8ba958c0",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T09:25:10Z",
+      "side": 1,
+      "message": "maintain uniform logging convention",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
