@@ -345,3 +345,39 @@ func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, errors.New("unImplemented")
 }
+
+// Enable_port to Enable PON/NNI interface
+func (oo *OpenOLT) Enable_port(deviceID string, port *voltha.Port) error {
+	log.Infow("Enable_port", log.Fields{"deviceId": deviceID, "port": port})
+	return oo.enableDisablePort(deviceID, port, true)
+}
+
+// Disable_port to Disable pon/nni interface
+func (oo *OpenOLT) Disable_port(deviceID string, port *voltha.Port) error {
+	log.Infow("Disable_port", log.Fields{"deviceId": deviceID, "port": port})
+	return oo.enableDisablePort(deviceID, port, false)
+}
+
+// enableDisablePort to Disable pon or Enable PON interface
+func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enablePort bool) error {
+	log.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
+	if port == nil {
+		log.Errorw("port-cannot-be-nil", log.Fields{"Device": deviceID, "port": port})
+		return errors.New("sent-port-cannot-be-nil")
+	}
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		log.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
+		if enablePort {
+			if err := handler.EnablePort(port); err != nil {
+				log.Errorw("error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port, "error": err})
+				return err
+			}
+		} else {
+			if err := handler.DisablePort(port); err != nil {
+				log.Errorw("error-occurred-during-disable-port", log.Fields{"Device": deviceID, "port": port})
+				return err
+			}
+		}
+	}
+	return nil
+}
