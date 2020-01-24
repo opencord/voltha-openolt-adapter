@@ -205,7 +205,7 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 		device *voltha.Device
 	}
 	var device = mockDevice()
-	device.Id = "openolt"
+	device.Id = "olt"
 	tests := []struct {
 		name    string
 		fields  *fields
