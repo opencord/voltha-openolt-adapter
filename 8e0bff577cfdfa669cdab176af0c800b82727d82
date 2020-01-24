@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dbd7e327_8be7d525",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T06:58:02Z",
+      "side": 1,
+      "message": "is this really storing status of an interface , can we have meaningful name for this ..something like activePON or something else ?",
+      "parentUuid": "45c17913_a3661a84",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1647381_e4485c15",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -202,6 +220,40 @@
         "endLine": 372,
         "endChar": 3
       },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a925bff7_c4b88252",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T06:58:02Z",
+      "side": 1,
+      "message": "Since this runs on go routine and not bothering about return values, is there a necessity to return error from this ?",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a6db3cb_ff9955d8",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-01-24T06:58:02Z",
+      "side": 1,
+      "message": "Maintain \"-\" based convention for logging throughout patch set",
       "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
