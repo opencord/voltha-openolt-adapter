@@ -345,3 +345,28 @@ func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, errors.New("unImplemented")
 }
+
+// Enable_Disable_Port to Disable pon or Enable PON interface
+func (oo *OpenOLT) Enable_Disable_Port(deviceID string, port *voltha.Port, enablePort string) error {
+	log.Infow("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
+	if port == nil {
+		log.Errorw("port-cannot-be-nil", log.Fields{"Device": deviceID, "port": port})
+		return errors.New("sent-port-cannot-be-nil")
+	}
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		log.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
+		if enablePort == "enable" {
+			if err := handler.EnablePort(port); err != nil {
+				log.Errorw("error-occurred-while-enable-port", log.Fields{"deviceID": deviceID, "port": port, "error": err})
+				return err
+			}
+		}
+		if enablePort == "disable" {
+			if err := handler.DisablePort(port); err != nil {
+				log.Errorw("error-occurred-while-disable-port", log.Fields{"Device": deviceID, "port": port})
+				return err
+			}
+		}
+	}
+	return nil
+}
