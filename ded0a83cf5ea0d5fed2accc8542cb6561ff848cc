@@ -16,6 +16,24 @@
       "revId": "ded0a83cf5ea0d5fed2accc8542cb6561ff848cc",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e6cda210_700d2ce5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-24T07:25:03Z",
+      "side": 0,
+      "message": "The log is initialized in main.go. This init() overrides the log set in main.go. Hence removed.",
+      "parentUuid": "75588cc6_b16c22b9",
+      "revId": "ded0a83cf5ea0d5fed2accc8542cb6561ff848cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }

@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "24e4cc28_46ea9ed6",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-24T07:25:03Z",
+      "side": 1,
+      "message": "Thank you, Girish\npopulating the map on creating the devicehandler object.",
+      "parentUuid": "45c17913_a3661a84",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b1647381_e4485c15",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -54,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "1b61c760_61311ebe",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-24T07:25:03Z",
+      "side": 1,
+      "message": "Hi Girish, \nOn OLT reboot, the openolt agent enables all the pon port. This code snippet iterates the port objects and Disable the pon port if the Admin state is Disabled and update the OperState of port state to the core. For enabled ports, it updates the operStatus",
+      "parentUuid": "b1647381_e4485c15",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "276e8c2f_c37c13cd",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -65,6 +101,30 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "I do not get this. We get the ports from core and again update it back to core. Why? If we are updating the same state back to core, we might as well skip this step.\nI do not justify the earlier code as well. I am not sure why the earlier code was there even. Please check.",
+      "range": {
+        "startLine": 553,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d61a479_000128a0",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-24T07:25:03Z",
+      "side": 1,
+      "message": "We are updating the Operstatus based on Admin state of port.",
+      "parentUuid": "276e8c2f_c37c13cd",
       "range": {
         "startLine": 553,
         "startChar": 0,
