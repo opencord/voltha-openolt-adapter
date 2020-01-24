@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5fb01c9e_f909d971",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "I think using common would be better",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 4
+      },
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "808e680c_5ab83341",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "How the filters reconciled from KV?",
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab0e0713_c2baf852",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1526,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "unSuppress -\u003e unsuppress",
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ec1f9669_33fb0306",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1527,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "if statement requires return or it will suppress the event again.",
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4993b842_39e8204f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1528,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "-\u003e unsuppressing",
+      "range": {
+        "startLine": 1528,
+        "startChar": 14,
+        "endLine": 1528,
+        "endChar": 28
+      },
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d840a248_92903c10",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1535,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-24T08:57:36Z",
+      "side": 1,
+      "message": "I could not see where this function is called.",
+      "range": {
+        "startLine": 1535,
+        "startChar": 25,
+        "endLine": 1535,
+        "endChar": 49
+      },
+      "revId": "4a450afe20d71692bbe309a8b31a2889b9ab3da4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
