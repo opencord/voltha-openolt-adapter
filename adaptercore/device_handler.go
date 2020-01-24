@@ -53,10 +53,6 @@ const (
 	MaxTimeOutInMs = 500
 )
 
-func init() {
-	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
-}
-
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	deviceID      string
@@ -82,6 +78,7 @@ type DeviceHandler struct {
 	metrics            *pmmetrics.PmMetrics
 	stopCollector      chan bool
 	stopHeartbeatCheck chan bool
+	activePonPorts     map[uint32]bool
 }
 
 //OnuDevice represents ONU related info
@@ -136,6 +133,29 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.stopCollector = make(chan bool, 2)
 	dh.stopHeartbeatCheck = make(chan bool, 2)
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
+	dh.activePonPorts = make(map[uint32]bool)
+	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		log.Errorw("Failed-to-fetch-device", log.Fields{"err": err})
+	} else {
+		for _, port := range device.Ports {
+			if port.Type == voltha.Port_ETHERNET_NNI {
+				if port.OperStatus == voltha.OperStatus_ACTIVE {
+					dh.activePonPorts[PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)] = true
+				} else {
+					dh.activePonPorts[PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)] = false
+				}
+			}
+			if port.Type == voltha.Port_PON_OLT {
+				if port.OperStatus == voltha.OperStatus_ACTIVE {
+					dh.activePonPorts[PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)] = true
+				} else {
+					dh.activePonPorts[PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)] = false
+				}
+			}
+		}
+	}
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -231,8 +251,11 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 	var operStatus common.OperStatus_Types
 	if state == "up" {
 		operStatus = voltha.OperStatus_ACTIVE
+		//populating the intfStatus map
+		dh.activePonPorts[intfID] = true
 	} else {
 		operStatus = voltha.OperStatus_DISCOVERED
+		dh.activePonPorts[intfID] = false
 	}
 	portNum := IntfIDToPortNo(intfID, portType)
 	label := GetportLabel(portNum, portType)
@@ -384,6 +407,7 @@ func (dh *DeviceHandler) handleIndication(indication *oop.Indication) {
 			// TODO: Check what needs to be handled here for When PON PORT down, ONU will be down
 			// Handle pon port update
 			go dh.addPort(intfOperInd.GetIntfId(), voltha.Port_PON_OLT, intfOperInd.GetOperState())
+			go dh.eventMgr.handlePonIntfevent(indication.GetIntfOperInd(), dh.deviceID, raisedTs)
 		}
 		log.Infow("Received interface oper indication ", log.Fields{"InterfaceOperInd": intfOperInd})
 	case *oop.Indication_OnuDiscInd:
@@ -545,11 +569,8 @@ func (dh *DeviceHandler) doStateConnected() error {
 		log.Errorw("Failed to fetch device device", log.Fields{"err": err})
 		return err
 	}
-	cloned := proto.Clone(device).(*voltha.Device)
-	// Update the all ports (if available) on that device to ACTIVE.
-	// The ports do not normally exist, unless the device is coming back from a reboot
-	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, voltha.OperStatus_ACTIVE); err != nil {
-		log.Errorw("updating-ports-failed", log.Fields{"deviceID": device.Id, "error": err})
+	if err := dh.updatePortOnReboot(device); err != nil {
+		log.Errorw("Error-on-updating-port-status", log.Fields{"device": device})
 		return err
 	}
 
@@ -642,7 +663,7 @@ func startCollector(dh *DeviceHandler) {
 			log.Debugf("Publish-NNI-Metrics")
 			// PON Stats
 			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
-			for i := uint32(0); i < NumPonPORTS; i++ {
+			for i := uint32(0); i < NumPonPORTS && (dh.activePonPorts[i]); i++ {
 				cmpon := dh.portStats.collectPONMetrics(i)
 				log.Debugf("Collect-PON-Metrics %v", cmpon)
 
@@ -1224,11 +1245,11 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to enable
-	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, voltha.OperStatus_ACTIVE); err != nil {
-		log.Errorw("updating-ports-failed", log.Fields{"deviceID": device.Id, "error": err})
+
+	if err := dh.updatePortOnReboot(device); err != nil {
+		log.Errorw("Error-on-updating-port-status", log.Fields{"device": device})
 		return err
 	}
-
 	//Update the device oper status as ACTIVE
 	cloned.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = cloned
@@ -1237,6 +1258,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": device.Id, "error": err})
 		return err
 	}
+
 	log.Debugw("ReEnableDevice-end", log.Fields{"deviceID": device.Id})
 
 	return nil
@@ -1570,4 +1592,72 @@ func (dh *DeviceHandler) updateStateUnreachable() {
 		log.Errorw("error-updating-device-state", log.Fields{"deviceID": dh.device.Id, "error": err})
 		return
 	}
+}
+
+// EnablePort to enable Pon interface
+func (dh *DeviceHandler) EnablePort(port *voltha.Port) error {
+	log.Debugw("enable-port", log.Fields{"Device": dh.device, "port": port})
+	return dh.invokeDisableorEnablePort(port, true)
+}
+
+// DisablePort to disable pon interface
+func (dh *DeviceHandler) DisablePort(port *voltha.Port) error {
+	log.Debugw("disable-port", log.Fields{"Device": dh.device, "port": port})
+	return dh.invokeDisableorEnablePort(port, false)
+}
+
+func (dh *DeviceHandler) invokeDisableorEnablePort(port *voltha.Port, enablePort bool) error {
+	log.Infow("invokeDisableorEnablePort", log.Fields{"port": port, "Enable": enablePort})
+	if port.GetType() == voltha.Port_ETHERNET_NNI {
+		log.Infow("voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
+			log.Fields{"Device": dh.device, "port": port})
+		return fmt.Errorf("received-disable-enable-nni-port-request, received-port %s", port.GetType())
+	}
+	// fetch interfaceid from PortNo
+	ponID := PortNoToIntfID(port.GetPortNo(), voltha.Port_PON_OLT)
+	ponIntf := &oop.Interface{IntfId: ponID}
+	var operStatus voltha.OperStatus_Types
+	if enablePort {
+		operStatus = voltha.OperStatus_ACTIVE
+		out, err := dh.Client.EnablePonIf(context.Background(), ponIntf)
+
+		if err != nil {
+			log.Errorw("error-while-enable-Pon-port", log.Fields{"DeviceID": dh.device, "Port": port, "error": err})
+			return err
+		}
+		// updating interface local cache for collecting stats
+		dh.activePonPorts[ponID] = true
+		log.Infow("enabled-pon-port", log.Fields{"out": out, "DeviceID": dh.device, "Port": port})
+	} else {
+		operStatus = voltha.OperStatus_UNKNOWN
+		out, err := dh.Client.DisablePonIf(context.Background(), ponIntf)
+		if err != nil {
+			log.Errorw("error-while-disabling-interface", log.Fields{"DeviceID": dh.device, "Port": port})
+			return err
+		}
+		// updating interface local cache for collecting stats
+		dh.activePonPorts[ponID] = false
+		log.Infow("disabled-pon-port", log.Fields{"out": out, "DeviceID": dh.device, "Port": port})
+	}
+	if errs := dh.coreProxy.PortStateUpdate(context.Background(), dh.deviceID, voltha.Port_PON_OLT, port.PortNo, operStatus); errs != nil {
+		log.Errorw("portstate-update-failed", log.Fields{"Device": dh.deviceID, "port": port.PortNo, "error": errs})
+		return errs
+	}
+	return nil
+}
+
+//updatePortOnReboot update the ports on reboot device.
+func (dh *DeviceHandler) updatePortOnReboot(device *voltha.Device) error {
+	cloned := proto.Clone(device).(*voltha.Device)
+	// Update the all ports (if available) on that device to ACTIVE.
+	// The ports do not normally exist, unless the device is coming back from a reboot
+	for _, port := range cloned.Ports {
+		if port.AdminState == common.AdminState_DISABLED {
+			if err := dh.invokeDisableorEnablePort(port, false); err != nil {
+				log.Errorw("error-occurred-while-disabling-port", log.Fields{"DeviceId": dh.deviceID, "port": port, "error": err})
+				return err
+			}
+		}
+	}
+	return nil
 }
