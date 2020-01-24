@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85915b57_2b8aa04b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-01-24T12:29:55Z",
+      "side": 1,
+      "message": "as you are storing both NNI and PON port status, would suggest you to rename it as activePorts",
+      "range": {
+        "startLine": 81,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 15
+      },
+      "revId": "018d015e2d2573730c9720cebba191d7a623221e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b8591adf_435ae6c4",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1250,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-01-24T12:29:55Z",
+      "side": 1,
+      "message": "update this as \"error on updating ports status after reenabling olt\"",
+      "range": {
+        "startLine": 1250,
+        "startChar": 32,
+        "endLine": 1250,
+        "endChar": 36
+      },
+      "revId": "018d015e2d2573730c9720cebba191d7a623221e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
