@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "bfde48cb_05b42537",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "c74db88f_5c431209",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "439ec225_94202850",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "0a205998_aae2d140",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1248,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "439ec225_94202850",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32e0182c_8bfc6276",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2020-01-24T09:25:10Z",
       "side": 1,
       "message": "check logging format",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ba15823_04f92aa1",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1611,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32e0182c_8bfc6276",
       "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -81,6 +135,24 @@
       "writtenOn": "2020-01-24T09:25:10Z",
       "side": 1,
       "message": "maintain uniform logging convention",
+      "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c3d9a77_af45141c",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "Done in latest patch.",
+      "parentUuid": "cf3b5d3c_8ba958c0",
       "revId": "a49e22c004f3a2d97f1dff56f0d84173ceae243c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
