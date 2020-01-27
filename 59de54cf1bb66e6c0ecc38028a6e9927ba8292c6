@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2430630b_de5cb240",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 924,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-27T10:48:56Z",
+      "side": 1,
+      "message": "return from here?",
+      "revId": "59de54cf1bb66e6c0ecc38028a6e9927ba8292c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "335d010d_34c4d937",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-27T10:48:56Z",
+      "side": 1,
+      "message": "I don\u0027t just logging the error here would be enough. The onuDevice is being de-referenced at line 940 and it will segfault.",
+      "revId": "59de54cf1bb66e6c0ecc38028a6e9927ba8292c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
