@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "01793aae_8d9d2958",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-27T10:14:57Z",
+      "side": 1,
+      "message": "The lock is not freed in this case. Rather you should call a defer unlock right after \nif f.perUserFlowHandleLock.TryLock(tpLockMapKey)",
+      "revId": "910094e66f7dd20d7b166e8c54cc64f34f067790",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9c709aa_fbbb3472",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 1620,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-27T10:14:57Z",
+      "side": 1,
+      "message": "log direction",
+      "revId": "910094e66f7dd20d7b166e8c54cc64f34f067790",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d994be49_2b58413a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 33
+      },
+      "lineNbr": 1624,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-27T10:14:57Z",
+      "side": 1,
+      "message": "log direction",
+      "revId": "910094e66f7dd20d7b166e8c54cc64f34f067790",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
