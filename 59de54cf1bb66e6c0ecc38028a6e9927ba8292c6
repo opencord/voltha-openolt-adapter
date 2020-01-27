@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "dfb69019_6a75759e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 912,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-01-27T17:48:41Z",
+      "side": 1,
+      "message": "ChildDeviceDetected sometimes takes too long time and timeouts. In this case the ONU is written to KV store via Core but the function here fails. So freeing resource may cause inconsistency for this case. We may check the error code of ChildDeviceDetected, and also increase the timeout for ChildDeviceDetected.",
+      "range": {
+        "startLine": 912,
+        "startChar": 8,
+        "endLine": 912,
+        "endChar": 19
+      },
+      "revId": "59de54cf1bb66e6c0ecc38028a6e9927ba8292c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2430630b_de5cb240",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 7
