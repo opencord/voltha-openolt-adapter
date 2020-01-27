@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d5b33ed3_9ec6fa20",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changed the intfstatus to activePorts",
+      "parentUuid": "f2296fe5_c7f0f822",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "38a92723_8b1eb2f7",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2020-01-22T05:44:39Z",
       "side": 1,
       "message": "return error with proper message .",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4234275_5ae97571",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1593,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changed as suggested.",
+      "parentUuid": "38a92723_8b1eb2f7",
       "revId": "83817296a66df732d677514ced4b52dde2e88c16",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "c6822f5b_005c1ec4",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1622,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "68fbea68_de30ac8f",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "021883d2_e5d6e159",
         "filename": "adaptercore/openolt.go",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "c7af00db_dc6dec08",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "As suggested by Mr.Matt, Had a different execution paths for enable and disble port.",
+      "parentUuid": "021883d2_e5d6e159",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a80677b_a9894762",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2020-01-22T05:44:39Z",
       "side": 1,
       "message": "maintain \"-\" based convention for logging",
+      "revId": "83817296a66df732d677514ced4b52dde2e88c16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa3a017a_1234b878",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changed as suggested.",
+      "parentUuid": "5a80677b_a9894762",
       "revId": "83817296a66df732d677514ced4b52dde2e88c16",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
