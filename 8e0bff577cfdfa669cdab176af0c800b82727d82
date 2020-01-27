@@ -161,6 +161,30 @@
     },
     {
       "key": {
+        "uuid": "c8e09598_5fe11efb",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "The entire code snippet is replaced with updatePortOnReboot, which only updates the Admin state based on operState and on reboot, by default all ports are enabled. so, the Admin Disabled ports are disabled again in the openolt adapter.",
+      "parentUuid": "3d61a479_000128a0",
+      "range": {
+        "startLine": 553,
+        "startChar": 0,
+        "endLine": 565,
+        "endChar": 2
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36eed392_689ade90",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -172,6 +196,24 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "Same comment here.",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2d76f394_9cb63e31",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "The entire code snippet is replaced with updatePortOnReboot, which only updates the Admin state based on operState and on reboot or Reenable the device, by default all ports are enabled. so, the Admin Disabled ports are disabled again in the openolt adapter",
+      "parentUuid": "36eed392_689ade90",
       "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -241,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "62a05d99_0392f722",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1588,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changes are made in latest patch.",
+      "parentUuid": "bcd32f8e_8325a148",
+      "range": {
+        "startLine": 1588,
+        "startChar": 70,
+        "endLine": 1588,
+        "endChar": 77
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa76e9b2_e8e0ceca",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
@@ -252,6 +318,30 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "this is not the convention. Do not put special characters in the place of key.",
+      "range": {
+        "startLine": 1589,
+        "startChar": 66,
+        "endLine": 1589,
+        "endChar": 74
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b20b0cbc_1b438f00",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changes are made in latest patch.",
+      "parentUuid": "fa76e9b2_e8e0ceca",
       "range": {
         "startLine": 1589,
         "startChar": 66,
@@ -281,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "69b37950_9d99f6a2",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1590,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "NNI port check is added instead of the PON port check and updated in the latest patch.\n\nThere is no better way to find the system is Inband or out of the band. The new user story is created to https://jira.opencord.org/browse/VOL-2505 to track the issue.\n\nHence NNI check is added.",
+      "parentUuid": "942b3ce5_74eb2791",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93b48599_d359e8b6",
         "filename": "adaptercore/openolt.go",
         "patchSetId": 2
@@ -292,6 +400,30 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "Please move this check to starting of the function, and also fix the log appropriately. It say \"error-occurred-while-enable-port\", but know the actual problem and is that the port is nil.",
+      "range": {
+        "startLine": 353,
+        "startChar": 0,
+        "endLine": 356,
+        "endChar": 3
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "58769c60_a9a22a02",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "addressed in the latest patch.",
+      "parentUuid": "93b48599_d359e8b6",
       "range": {
         "startLine": 353,
         "startChar": 0,
@@ -327,6 +459,30 @@
     },
     {
       "key": {
+        "uuid": "34874660_1204f60a",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "Hi Girish, addressed in the latest patch.",
+      "parentUuid": "214f9666_565c9a93",
+      "range": {
+        "startLine": 369,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 3
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a925bff7_c4b88252",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 2
@@ -338,6 +494,24 @@
       "writtenOn": "2020-01-24T06:58:02Z",
       "side": 1,
       "message": "Since this runs on go routine and not bothering about return values, is there a necessity to return error from this ?",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd1b933a_6821c67c",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changes are done as suggested.",
+      "parentUuid": "a925bff7_c4b88252",
       "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -361,6 +535,24 @@
     },
     {
       "key": {
+        "uuid": "d21fc60d_4b488737",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changes are done as suggested.",
+      "parentUuid": "5a6db3cb_ff9955d8",
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ac76a42_8e569b7e",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 2
@@ -372,6 +564,30 @@
       "writtenOn": "2020-01-22T10:45:07Z",
       "side": 1,
       "message": "Fix log.",
+      "range": {
+        "startLine": 488,
+        "startChar": 12,
+        "endLine": 488,
+        "endChar": 21
+      },
+      "revId": "8e0bff577cfdfa669cdab176af0c800b82727d82",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7cd9949d_dedddb83",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-27T17:05:38Z",
+      "side": 1,
+      "message": "changes are done as suggested.",
+      "parentUuid": "3ac76a42_8e569b7e",
       "range": {
         "startLine": 488,
         "startChar": 12,
