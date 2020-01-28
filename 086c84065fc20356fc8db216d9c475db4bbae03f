@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "558753d7_7a7f9c50",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-01-28T15:06:43Z",
+      "side": 1,
+      "message": "Why not do this step in doStateConnected() when the device is initialized so that you dont have to make another extra call to get the device.And I think it would be better if you make a separate function for this operation.",
+      "range": {
+        "startLine": 137,
+        "startChar": 1,
+        "endLine": 137,
+        "endChar": 82
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6091289b_dd3ada54",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 10
