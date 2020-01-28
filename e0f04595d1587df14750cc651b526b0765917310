@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4f1e13ad_62c62ead",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1650,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-28T08:07:41Z",
+      "side": 1,
+      "message": "I think this function is not called only reboot, but also on reenable. So, we can give a better name to avoid confusion. May be something like \"updatePortAdminState\". If you find some other better name, please go ahead and change it.",
+      "range": {
+        "startLine": 1650,
+        "startChar": 2,
+        "endLine": 1650,
+        "endChar": 20
+      },
+      "revId": "e0f04595d1587df14750cc651b526b0765917310",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ab12112_92f2195e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1653,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-01-28T08:07:41Z",
+      "side": 1,
+      "message": "Comments do not match code. It seems in the code, we check for if the device port was disabled, we disable it.",
+      "revId": "e0f04595d1587df14750cc651b526b0765917310",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
