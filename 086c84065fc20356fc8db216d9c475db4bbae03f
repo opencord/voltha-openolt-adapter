@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6091289b_dd3ada54",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-01-28T14:54:52Z",
+      "side": 1,
+      "message": "Can we change this to oltIntfOperIndication() to match the general naming pattern.",
+      "range": {
+        "startLine": 454,
+        "startChar": 27,
+        "endLine": 454,
+        "endChar": 45
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6509f0c7_4f6b2e3e",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-01-28T14:54:52Z",
+      "side": 1,
+      "message": "Is is necessary to get the device from the core?. As you are raising and clearing the event on the basis of info that is present in ifindication parameter. Maybe I am missing something here.",
+      "range": {
+        "startLine": 458,
+        "startChar": 1,
+        "endLine": 458,
+        "endChar": 84
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "793fbf0d_1c683ccf",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-01-28T14:54:52Z",
+      "side": 1,
+      "message": "Not sure why are we doing this. This to me seems to print a log and continues anyway.",
+      "range": {
+        "startLine": 462,
+        "startChar": 1,
+        "endLine": 462,
+        "endChar": 36
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2166383b_684fd6fb",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-01-28T14:54:52Z",
+      "side": 1,
+      "message": "Change this log statement",
+      "range": {
+        "startLine": 484,
+        "startChar": 14,
+        "endLine": 484,
+        "endChar": 38
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
