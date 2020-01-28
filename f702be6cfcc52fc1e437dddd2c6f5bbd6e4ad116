@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "90c54133_34d24992",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T16:01:44Z",
+      "side": 1,
+      "message": "In this case, all unlocks occur right before a return, so there is no benefit to unlocking manually/early.\n\ndefer is the preferred solution in this situation.",
+      "parentUuid": "fbfaad1c_3ffe7c2d",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c27a08d0_0d3325c6",
         "filename": "adaptercore/openolt_flowmgr_test.go",
         "patchSetId": 37
