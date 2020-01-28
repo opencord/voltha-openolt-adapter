@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4beabe9d_108473c5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1650,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-28T14:24:09Z",
+      "side": 1,
+      "message": "Thank you, Comment updated.",
+      "parentUuid": "4f1e13ad_62c62ead",
+      "range": {
+        "startLine": 1650,
+        "startChar": 2,
+        "endLine": 1650,
+        "endChar": 20
+      },
+      "revId": "e0f04595d1587df14750cc651b526b0765917310",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ab12112_92f2195e",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 9
@@ -36,6 +60,24 @@
       "writtenOn": "2020-01-28T08:07:41Z",
       "side": 1,
       "message": "Comments do not match code. It seems in the code, we check for if the device port was disabled, we disable it.",
+      "revId": "e0f04595d1587df14750cc651b526b0765917310",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de0ebfb4_3deb287b",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1653,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-28T14:24:09Z",
+      "side": 1,
+      "message": "Thank you, updated the comment.",
+      "parentUuid": "5ab12112_92f2195e",
       "revId": "e0f04595d1587df14750cc651b526b0765917310",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false

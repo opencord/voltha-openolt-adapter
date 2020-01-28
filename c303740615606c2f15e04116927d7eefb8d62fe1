@@ -16,6 +16,24 @@
       "revId": "c303740615606c2f15e04116927d7eefb8d62fe1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "be6e2b15_c4f1bf44",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-28T14:24:09Z",
+      "side": 0,
+      "message": "The log is initialized in main.go and Device handler, This init() overrides the log set in main.go. In the main.go, the common log level is set for openolt-adapter,\nHence removed.",
+      "parentUuid": "2e1a69e0_9256aceb",
+      "revId": "c303740615606c2f15e04116927d7eefb8d62fe1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
