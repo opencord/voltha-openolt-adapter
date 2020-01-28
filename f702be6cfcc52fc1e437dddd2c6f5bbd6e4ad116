@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fbfaad1c_3ffe7c2d",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000628
+      },
+      "writtenOn": "2020-01-28T15:11:18Z",
+      "side": 1,
+      "message": "Sometime back it was with defer and this was locking the map till its returned from the function so it was made to release the lock as soon as its done with the use of map so that it wont wait till the function is complete and defer statements gets executed.",
+      "parentUuid": "c660c33b_d192f26c",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c27a08d0_0d3325c6",
         "filename": "adaptercore/openolt_flowmgr_test.go",
         "patchSetId": 37
