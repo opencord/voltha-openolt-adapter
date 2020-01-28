@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c660c33b_d192f26c",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Rather than having multiple unlocks later, just add `defer f.perUserFlowHandleLock.Unlock(toLockMapKey)` here.",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c27a08d0_0d3325c6",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Does this fail the test?",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f162a56a_190a7ada",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Does this fail the test?",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66d606e9_b549e55c",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Does this fail the test?",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1168f8bf_e1851dbd",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 905,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Does this fail the test?",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "119ff2ca_cebe1ef4",
+        "filename": "adaptercore/openolt_flowmgr_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-01-28T14:33:07Z",
+      "side": 1,
+      "message": "Does this fail the test?",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
