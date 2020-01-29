@@ -25,10 +25,6 @@ package adaptercore
 import (
 	"context"
 	"errors"
-	"reflect"
-	"sync"
-	"testing"
-
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
@@ -37,6 +33,9 @@ import (
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"reflect"
+	"sync"
+	"testing"
 )
 
 // mocks the OpenOLT struct.
@@ -205,7 +204,7 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 		device *voltha.Device
 	}
 	var device = mockDevice()
-	device.Id = "openolt"
+	device.Id = "olt"
 	tests := []struct {
 		name    string
 		fields  *fields
@@ -896,6 +895,56 @@ func TestOpenOLT_deleteDeviceHandlerToMap(t *testing.T) {
 			oo.deleteDeviceHandlerToMap(tt.args.agent)
 			if len(oo.deviceHandlers) > 0 {
 				t.Errorf("delete device manager failed")
+			}
+		})
+	}
+}
+
+func TestOpenOLT_Enable_port(t *testing.T) {
+	type args struct {
+		deviceID string
+		port     *voltha.Port
+	}
+	tests := []struct {
+		name    string
+		fields  *fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{"Enable_port-1", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1}}, false},
+		{"Enable_port-2", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1}}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oo := testOltObject(tt.fields)
+			if err := oo.Enable_port(tt.args.deviceID, tt.args.port); (err != nil) != tt.wantErr {
+				t.Errorf("OpenOLT.Enable_port() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestOpenOLT_Disable_port(t *testing.T) {
+	type args struct {
+		deviceID string
+		port     *voltha.Port
+	}
+	tests := []struct {
+		name    string
+		fields  *fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{"Disable_port-1", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1}}, false},
+		{"Disable_port-2", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1}}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oo := testOltObject(tt.fields)
+			if err := oo.Disable_port(tt.args.deviceID, tt.args.port); (err != nil) != tt.wantErr {
+				t.Errorf("OpenOLT.Disable_port() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
