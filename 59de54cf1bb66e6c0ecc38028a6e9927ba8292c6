@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "8b1fba33_dec39144",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 912,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-01-29T01:26:28Z",
+      "side": 1,
+      "message": "It is a bit tough decision here.  If you free the resource id, then you need to verify that it is also freed in kv store. Otherwise you have an inconsistent data in KV store . I don\u0027t know  the behavior of the RW_Core and onu-adapter when you give the same id to another  onu next time. \n  If you don\u0027t free the ONU id, then you wasted an Id, and there is probably a garbage entry in your KV store (also same onu with two different Ids in KV, after the onu detected successfully). \nAnyway, I think we should somehow sync the resourceManager with rw_core.\nAs it is written in your  explanation of task, the problem that should be addressed is the timeout of ChildDeviceDetected, because this is the case we are facing generally.",
+      "parentUuid": "1a3b6abd_34376974",
+      "range": {
+        "startLine": 912,
+        "startChar": 8,
+        "endLine": 912,
+        "endChar": 19
+      },
+      "revId": "59de54cf1bb66e6c0ecc38028a6e9927ba8292c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2430630b_de5cb240",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 7
