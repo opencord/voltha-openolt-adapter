@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "69a439f1_6c2755e3",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-29T06:19:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6091289b_dd3ada54",
+      "range": {
+        "startLine": 454,
+        "startChar": 27,
+        "endLine": 454,
+        "endChar": 45
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6509f0c7_4f6b2e3e",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 10
@@ -59,6 +83,30 @@
       "writtenOn": "2020-01-28T14:54:52Z",
       "side": 1,
       "message": "Is is necessary to get the device from the core?. As you are raising and clearing the event on the basis of info that is present in ifindication parameter. Maybe I am missing something here.",
+      "range": {
+        "startLine": 458,
+        "startChar": 1,
+        "endLine": 458,
+        "endChar": 84
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ed640d4_7e20f826",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-29T06:19:53Z",
+      "side": 1,
+      "message": "Device Object is required to iterate the Ports and verify the Adminstate of the port. we are raising if the Port admin state is Enabled and the interface operation status is down",
+      "parentUuid": "6509f0c7_4f6b2e3e",
       "range": {
         "startLine": 458,
         "startChar": 1,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "c1370e90_c17d008b",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-29T06:19:53Z",
+      "side": 1,
+      "message": "Thank you, I missed the return statement. In case, the Admin_state of port is disabled by operator and operstatus in indication is UNKNOW, not raising the event. Simply return without raising event. So we are iteration to get the Port information using for loop",
+      "parentUuid": "793fbf0d_1c683ccf",
+      "range": {
+        "startLine": 462,
+        "startChar": 1,
+        "endLine": 462,
+        "endChar": 36
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2166383b_684fd6fb",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 10
@@ -105,6 +177,30 @@
       "writtenOn": "2020-01-28T14:54:52Z",
       "side": 1,
       "message": "Change this log statement",
+      "range": {
+        "startLine": 484,
+        "startChar": 14,
+        "endLine": 484,
+        "endChar": 38
+      },
+      "revId": "086c84065fc20356fc8db216d9c475db4bbae03f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd155da8_a0b33cfb",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-01-29T06:19:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2166383b_684fd6fb",
       "range": {
         "startLine": 484,
         "startChar": 14,
