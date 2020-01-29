@@ -55,6 +55,23 @@
     },
     {
       "key": {
+        "uuid": "c3ae9e40_4693a2d0",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 1270,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-01-29T01:24:14Z",
+      "side": 1,
+      "message": "returning err here is a bit of inconsistent. Better to have \"return true, nil\".",
+      "revId": "f702be6cfcc52fc1e437dddd2c6f5bbd6e4ad116",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c27a08d0_0d3325c6",
         "filename": "adaptercore/openolt_flowmgr_test.go",
         "patchSetId": 37
