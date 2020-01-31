@@ -37,7 +37,7 @@ const (
 	defaultKvstoretimeout       = 5 //in seconds
 	defaultKvstorehost          = "127.0.0.1"
 	defaultKvstoreport          = 2379 // Consul = 8500; Etcd = 2379
-	defaultLoglevel             = 0
+	defaultLoglevel             = "DEBUG"
 	defaultBanner               = false
 	defaultDisplayVersionOnly   = false
 	defaultTopic                = "openolt"
@@ -71,7 +71,7 @@ type AdapterFlags struct {
 	Topic                       string
 	CoreTopic                   string
 	EventTopic                  string
-	LogLevel                    int
+	LogLevel                    string
 	OnuNumber                   int
 	Banner                      bool
 	DisplayVersionOnly          bool
@@ -155,7 +155,7 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	flag.IntVar(&(so.KVStorePort), "kv_store_port", defaultKvstoreport, help)
 
 	help = fmt.Sprintf("Log level")
-	flag.IntVar(&(so.LogLevel), "log_level", defaultLoglevel, help)
+	flag.StringVar(&(so.LogLevel), "log_level", defaultLoglevel, help)
 
 	help = fmt.Sprintf("Number of ONUs")
 	flag.IntVar(&(so.OnuNumber), "onu_number", defaultOnunumber, help)
