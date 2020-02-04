@@ -78,7 +78,7 @@ type DeviceHandler struct {
 	metrics            *pmmetrics.PmMetrics
 	stopCollector      chan bool
 	stopHeartbeatCheck chan bool
-	activePorts        map[uint32]bool
+	activePorts        sync.Map
 }
 
 //OnuDevice represents ONU related info
@@ -133,7 +133,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.stopCollector = make(chan bool, 2)
 	dh.stopHeartbeatCheck = make(chan bool, 2)
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
-	dh.activePorts = make(map[uint32]bool)
+	dh.activePorts = sync.Map{}
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -230,10 +230,10 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 	if state == "up" {
 		operStatus = voltha.OperStatus_ACTIVE
 		//populating the intfStatus map
-		dh.activePorts[intfID] = true
+		dh.activePorts.Store(intfID, true)
 	} else {
 		operStatus = voltha.OperStatus_DISCOVERED
-		dh.activePorts[intfID] = false
+		dh.activePorts.Store(intfID, false)
 	}
 	portNum := IntfIDToPortNo(intfID, portType)
 	label := GetportLabel(portNum, portType)
@@ -642,12 +642,14 @@ func startCollector(dh *DeviceHandler) {
 			log.Debugf("Publish-NNI-Metrics")
 			// PON Stats
 			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
-			for i := uint32(0); i < NumPonPORTS && (dh.activePorts[i]); i++ {
-				cmpon := dh.portStats.collectPONMetrics(i)
-				log.Debugf("Collect-PON-Metrics %v", cmpon)
+			for i := uint32(0); i < NumPonPORTS; i++ {
+				if val, ok := dh.activePorts.Load(i); ok && val == true {
+					cmpon := dh.portStats.collectPONMetrics(i)
+					log.Debugf("Collect-PON-Metrics %v", cmpon)
 
-				go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
-				log.Debugf("Publish-PON-Metrics")
+					go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
+					log.Debugf("Publish-PON-Metrics")
+				}
 			}
 		}
 	}
@@ -1606,7 +1608,7 @@ func (dh *DeviceHandler) invokeDisableorEnablePort(port *voltha.Port, enablePort
 			return err
 		}
 		// updating interface local cache for collecting stats
-		dh.activePorts[ponID] = true
+		dh.activePorts.Store(ponID, true)
 		log.Infow("enabled-pon-port", log.Fields{"out": out, "DeviceID": dh.device, "Port": port})
 	} else {
 		operStatus = voltha.OperStatus_UNKNOWN
@@ -1616,7 +1618,7 @@ func (dh *DeviceHandler) invokeDisableorEnablePort(port *voltha.Port, enablePort
 			return err
 		}
 		// updating interface local cache for collecting stats
-		dh.activePorts[ponID] = false
+		dh.activePorts.Store(ponID, false)
 		log.Infow("disabled-pon-port", log.Fields{"out": out, "DeviceID": dh.device, "Port": port})
 	}
 	if errs := dh.coreProxy.PortStateUpdate(context.Background(), dh.deviceID, voltha.Port_PON_OLT, port.PortNo, operStatus); errs != nil {
@@ -1648,16 +1650,16 @@ func (dh *DeviceHandler) populateActivePorts(device *voltha.Device) {
 	for _, port := range device.Ports {
 		if port.Type == voltha.Port_ETHERNET_NNI {
 			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts[PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)] = true
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
 			} else {
-				dh.activePorts[PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)] = false
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), false)
 			}
 		}
 		if port.Type == voltha.Port_PON_OLT {
 			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts[PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)] = true
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), true)
 			} else {
-				dh.activePorts[PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)] = false
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), false)
 			}
 		}
 	}
