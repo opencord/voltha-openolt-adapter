@@ -79,6 +79,7 @@ issues:
     - "don't use underscores in Go names; method Revert_image_update"
     - "don't use underscores in Go names; method Disable_port"
     - "don't use underscores in Go names; method Enable_port"
+    - "don't use underscores in Go names; method Child_device_lost"
   exclude-use-default: false
 
 # golangci.com configuration
