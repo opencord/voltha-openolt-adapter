@@ -2229,7 +2229,8 @@ func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID
 	defer f.lockCache.Unlock()
 	onu := rsrcMgr.OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
 	f.onuGemInfo[intfID] = append(f.onuGemInfo[intfID], onu)
-	if err := f.resourceMgr.AddOnuInfo(ctx, intfID, onu); err != nil {
+	if err := f.resourceMgr.AddOnuGemInfo(ctx, intfID, onu); err != nil {
+		// TODO: VOL-2638
 		log.Errorw("failed to add onu info", log.Fields{"onu": onu})
 		return
 	}
