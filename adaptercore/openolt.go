@@ -39,7 +39,7 @@ type OpenOLT struct {
 	coreProxy                   adapterif.CoreProxy
 	adapterProxy                adapterif.AdapterProxy
 	eventProxy                  adapterif.EventProxy
-	kafkaICProxy                *kafka.InterContainerProxy
+	kafkaICProxy                kafka.InterContainerProxy
 	config                      *config.AdapterFlags
 	numOnus                     int
 	KVStoreHost                 string
@@ -53,7 +53,7 @@ type OpenOLT struct {
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
-func NewOpenOLT(ctx context.Context, kafkaICProxy *kafka.InterContainerProxy,
+func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	coreProxy adapterif.CoreProxy, adapterProxy adapterif.AdapterProxy,
 	eventProxy adapterif.EventProxy, cfg *config.AdapterFlags) *OpenOLT {
 	var openOLT OpenOLT
@@ -128,7 +128,8 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 //createDeviceTopic returns
 func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 	log.Infow("create-device-topic", log.Fields{"deviceId": device.Id})
-	deviceTopic := kafka.Topic{Name: oo.kafkaICProxy.DefaultTopic.Name + "_" + device.Id}
+	defaultTopic := oo.kafkaICProxy.GetDefaultTopic()
+	deviceTopic := kafka.Topic{Name: defaultTopic.Name + "_" + device.Id}
 	// TODO for the offset
 	if err := oo.kafkaICProxy.SubscribeWithDefaultRequestHandler(deviceTopic, 0); err != nil {
 		log.Infow("create-device-topic-failed", log.Fields{"deviceId": device.Id, "error": err})
