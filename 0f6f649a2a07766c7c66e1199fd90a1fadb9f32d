@@ -1,0 +1,276 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87d32c67_8928f95a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "01053ea0_ab3439c6",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "29f311db_1b993fe7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a824bcda_ac839d9d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "01f57d42_4627f3e5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "Use grpc.DialContext() instead",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9e698da_c3695720",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bcd7939_90f49498",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 849,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3492d78_3e19f664",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1153,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "Bubble context up from here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ece52ad6_2c0e85c7",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1173,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "Bubble context up from here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e6502639_61129fea",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1188,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "Bubble context up from here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a8ddd56_5407cdbd",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1194,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "Bubble context up from here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3bd84ca2_3ac4cbed",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1383,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "379a3942_f3004440",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1391,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1d703eb1_46b337c6",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1427,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c779d72_55036392",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1493,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1cfde1b9_bd73f63f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1508,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-04T19:21:25Z",
+      "side": 1,
+      "message": "pass context here?",
+      "revId": "0f6f649a2a07766c7c66e1199fd90a1fadb9f32d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
