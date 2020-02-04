@@ -1037,6 +1037,19 @@ func (dh *DeviceHandler) stringifySerialNumber(serialNum *oop.SerialNumber) stri
 	}
 	return ""
 }
+func (dh *DeviceHandler) deStringifySerialNumber(serialNum string) *oop.SerialNumber{
+        var sn oop.SerialNumber
+        vendorId := serialNum[:4]
+        sn.VendorId = []byte(vendorId)
+        vendorSpecific := serialNum[4:]
+        str, err := hex.DecodeString(vendorSpecific)
+	if err != nil {
+		log.Errorw("Error", log.Fields{"Err":err})
+	}
+        sn.VendorSpecific = []byte(str)
+        log.Debugw("SerialNumber", log.Fields{"Sn":sn, "Vendor": vendorId, "VenSpec":vendorSpecific, "str":str})
+	return &sn
+}
 
 func (dh *DeviceHandler) stringifyVendorSpecific(vendorSpecific []byte) string {
 	tmp := fmt.Sprintf("%x", (uint32(vendorSpecific[0])>>4)&0x0f) +
@@ -1665,4 +1678,52 @@ func (dh *DeviceHandler) populateActivePorts(device *voltha.Device) {
 			}
 		}
 	}
+}
+
+
+
+// DeleteChildDevice is to delete child device
+func (dh *DeviceHandler) DeleteChildDevice(ctx context.Context,device *voltha.Device) error {
+	log.Debugw("delete-child-device", log.Fields{"deviceID": device.Id, "pdeviceID": dh.device.Id,"sn":device.SerialNumber})
+	sn := dh.deStringifySerialNumber(device.SerialNumber)
+	if sn == nil {
+		return fmt.Errorf("failed to DestringifySerialNumber serial number %v", device.SerialNumber)
+	}
+        log.Debugw("cgs : sn ",log.Fields{"sn":sn})
+        IntfID:= PortNoToIntfID(device.ParentPortNo, voltha.Port_PON_OLT)
+	onu := &oop.Onu{IntfId: IntfID, OnuId: device.ProxyAddress.OnuId, SerialNumber: sn}
+	if _, err := dh.Client.DeleteOnu(context.Background(), onu); err != nil {
+		log.Errorw("Failed-to-Delete-Onu", log.Fields{"deviceID": dh.deviceID, "err": err})
+		return err
+	}
+	//clearUNIData
+       log.Debug("cgs : deleted onu ***********************************")
+	if dh.resourceMgr != nil {
+		var onuGemData []rsrcMgr.OnuGemInfo
+		err := dh.resourceMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx,IntfID, &onuGemData)
+		if err != nil {
+			log.Errorw("Failed-to-get-onu-info-for-pon-port ", log.Fields{"ponport": device.ParentId})
+			return err
+		}
+		for _, onu := range onuGemData {
+			if onu.OnuID == device.ProxyAddress.OnuId && onu.SerialNumber == device.SerialNumber {
+
+				log.Debugw("onu-data ", log.Fields{"onu": onu})
+				if err = dh.clearUNIData(ctx,&onu); err != nil {
+					log.Errorw("Failed-to-clear-uni-data-for-onu", log.Fields{"onu-device": onu,"err":err})
+				}
+				// Clear flowids for gem cache.
+				for _, gem := range onu.GemPorts {
+					dh.resourceMgr.DeleteFlowIDsForGem(ctx,IntfID, gem)
+				}
+				dh.resourceMgr.FreeonuID(ctx,IntfID, []uint32{onu.OnuID})
+			}
+
+		}
+
+	}
+	onuKey := dh.formOnuKey(device.ParentPortNo, device.ProxyAddress.OnuId)
+	dh.onus.Delete(onuKey)
+	dh.discOnus.Delete(device.SerialNumber)
+	return nil
 }

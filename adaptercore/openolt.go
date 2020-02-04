@@ -387,3 +387,15 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 	}
 	return nil
 }
+
+//Delete_child_device deletes the given child device
+func (oo *OpenOLT) Delete_child_device(deviceID string, device *voltha.Device) error {
+	log.Infow("Delete-child-device", log.Fields{"parentId": deviceID, "deviceId": device.Id})
+        ctx := context.Background()
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		return handler.DeleteChildDevice(ctx,device)
+	}
+	log.Errorw("device-handler-not-set", log.Fields{"deviceId": deviceID})
+	return errors.New("device-handler-not-found")
+}
+
