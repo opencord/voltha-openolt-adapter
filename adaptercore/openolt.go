@@ -387,3 +387,14 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 	}
 	return nil
 }
+
+//Child_device_lost deletes the ONU and its references from PONResources
+func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint32) error {
+	log.Infow("Child-device-lost", log.Fields{"parentId": deviceID})
+	ctx := context.Background()
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		return handler.ChildDeviceLost(ctx, pPortNo, onuID)
+	}
+	log.Errorw("device-handler-not-set", log.Fields{"deviceId": deviceID})
+	return errors.New("device-handler-not-found")
+}
