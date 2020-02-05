@@ -1,0 +1,9 @@
+Verified+1: Jenkins Jenkins <do-not-reply@opencord.org>
+Code-Review+1: Kent Hagerman <khagerma@ciena.com>
+Code-Review+1: Zack Williams <zdw@opennetworking.org>
+Code-Review+2: Scott Baker <scottb@opennetworking.org>
+Submitted-by: Scott Baker <scottb@opennetworking.org>
+Submitted-at: Wed, 05 Feb 2020 20:19:16 +0000
+Reviewed-on: https://gerrit.opencord.org/17377
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
