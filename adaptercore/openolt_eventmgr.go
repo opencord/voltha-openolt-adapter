@@ -294,6 +294,7 @@ func (em *OpenOltEventMgr) onuActivationFailIndication(oaf *oop.OnuActivationFai
 	/* Populating event context */
 	context["intf-id"] = strconv.FormatUint(uint64(oaf.IntfId), base10)
 	context["onu-id"] = strconv.FormatUint(uint64(oaf.OnuId), base10)
+	context["fail-reason"] = strconv.FormatUint(uint64(oaf.FailReason), base10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
@@ -336,8 +337,8 @@ func (em *OpenOltEventMgr) onuDriftOfWindowIndication(onuDriftWindow *oop.OnuDri
 	/* Populating event context */
 	context["intf-id"] = strconv.FormatUint(uint64(onuDriftWindow.IntfId), base10)
 	context["onu-id"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), base10)
-	context["drift"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), base10)
-	context["new-eqd"] = strconv.FormatUint(uint64(onuDriftWindow.OnuId), base10)
+	context["drift"] = strconv.FormatUint(uint64(onuDriftWindow.Drift), base10)
+	context["new-eqd"] = strconv.FormatUint(uint64(onuDriftWindow.NewEqd), base10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
@@ -361,6 +362,7 @@ func (em *OpenOltEventMgr) onuSignalDegradeIndication(onuSignalDegrade *oop.OnuS
 	/* Populating event context */
 	context["intf-id"] = strconv.FormatUint(uint64(onuSignalDegrade.IntfId), base10)
 	context["onu-id"] = strconv.FormatUint(uint64(onuSignalDegrade.OnuId), base10)
+	context["inverse-bit-error-rate"] = strconv.FormatUint(uint64(onuSignalDegrade.InverseBitErrorRate), base10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
