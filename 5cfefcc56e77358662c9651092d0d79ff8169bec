@@ -50,6 +50,24 @@
       "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4a8a28f_9ad4c92e",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-07T10:06:52Z",
+      "side": 1,
+      "message": "As discussed this should be Child_device_lost",
+      "parentUuid": "1b4668c0_cc9df0b6",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
