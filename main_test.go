@@ -65,7 +65,10 @@ func Test_adapter_setKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.adapter.setKVClient(); (err != nil) != tt.wantErr {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			if err := tt.adapter.setKVClient(ctx); (err != nil) != tt.wantErr {
 				t.Errorf("adapter.setKVClient() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -78,7 +81,9 @@ func Test_adapter_KVClient(t *testing.T) {
 	a.StartAt(0)
 	defer a.StopAt(0)
 
-	if err := adapt.setKVClient(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	if err := adapt.setKVClient(ctx); err != nil {
 		t.Errorf("adapter.setKVClient() error = %v", err)
 	}
 }

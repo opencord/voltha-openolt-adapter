@@ -31,6 +31,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters"
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
+	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
@@ -91,7 +92,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup KV Client
 	log.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
-	if err = a.setKVClient(); err != nil {
+	if err = a.setKVClient(ctx); err != nil {
 		log.Fatal("error-setting-kv-client")
 	}
 
@@ -288,7 +289,7 @@ func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
 	return nil, errors.New("unsupported-client-type")
 }
 
-func (a *adapter) setKVClient() error {
+func (a *adapter) setKVClient(ctx context.Context) error {
 	addr := a.config.KVStoreHost + ":" + strconv.Itoa(a.config.KVStorePort)
 	client, err := newKVClient(a.config.KVStoreType, addr, a.config.KVStoreTimeout)
 	if err != nil {
@@ -297,6 +298,9 @@ func (a *adapter) setKVClient() error {
 		return err
 	}
 	a.kvClient = client
+	cm := conf.NewConfigManager(client, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
+	go conf.ProcessLogConfigChange(cm, ctx)
+
 	return nil
 }
 
