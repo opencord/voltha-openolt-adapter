@@ -68,6 +68,7 @@ github.com/opencord/voltha-lib-go/v3/pkg/adapters
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/common
 github.com/opencord/voltha-lib-go/v3/pkg/db
+github.com/opencord/voltha-lib-go/v3/pkg/config
 github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore
 github.com/opencord/voltha-lib-go/v3/pkg/flows
 github.com/opencord/voltha-lib-go/v3/pkg/kafka
