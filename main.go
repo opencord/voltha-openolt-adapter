@@ -34,6 +34,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
 	"github.com/opencord/voltha-lib-go/v3/pkg/probe"
 	ac "github.com/opencord/voltha-openolt-adapter/adaptercore"
 	"github.com/opencord/voltha-openolt-adapter/config"
@@ -297,6 +298,9 @@ func (a *adapter) setKVClient() error {
 		return err
 	}
 	a.kvClient = client
+	cm := conf.NewConfigManager(client,a.config.KVStoreType,a.config.KVStoreHost,a.config.KVStorePort,a.config.KVStoreTimeout)
+        go conf.ProcessLogConfigChange(cm)
+
 	return nil
 }
 
@@ -452,7 +456,7 @@ func main() {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
-	log.SetPackageLogLevel("github.com/opencord/voltha-lib-go/v3/pkg/adapters/common", log.DebugLevel)
+	log.SetAllLogLevel(loglevel)
 
 	defer log.CleanUp()
 
