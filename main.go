@@ -31,6 +31,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters"
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
+	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
@@ -98,6 +99,10 @@ func (a *adapter) start(ctx context.Context) {
 	if p != nil {
 		p.UpdateStatus("kv-store", probe.ServiceStatusRunning)
 	}
+
+	// Setup Log Config
+	cm := conf.NewConfigManager(a.kvClient, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
+	go conf.ProcessLogConfigChange(cm, ctx)
 
 	// Setup Kafka Client
 	if a.kafkaClient, err = newKafkaClient("sarama", a.config.KafkaAdapterHost, a.config.KafkaAdapterPort); err != nil {
@@ -312,6 +317,7 @@ func (a *adapter) setKVClient() error {
 		return err
 	}
 	a.kvClient = client
+
 	return nil
 }
 
