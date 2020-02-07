@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ed6f15b8_b1a33812",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1714,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-02-07T08:46:26Z",
+      "side": 1,
+      "message": "you will have to delete gem map path from cache and kvstore",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf7314fa_570b952d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1715,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-02-07T08:46:26Z",
+      "side": 1,
+      "message": "you will have to remove onugem info from the cache and kv store when onu is deleted",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
