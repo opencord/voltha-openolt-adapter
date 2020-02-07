@@ -31,6 +31,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters"
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
+	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
@@ -94,6 +95,9 @@ func (a *adapter) start(ctx context.Context) {
 	if err = a.setKVClient(); err != nil {
 		log.Fatal("error-setting-kv-client")
 	}
+
+	// Setup Log Config
+	a.startLogConfig(ctx)
 
 	if p != nil {
 		p.UpdateStatus("kv-store", probe.ServiceStatusRunning)
@@ -297,7 +301,15 @@ func (a *adapter) setKVClient() error {
 		return err
 	}
 	a.kvClient = client
+	//cm := conf.NewConfigManager(client, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
+	//go conf.ProcessLogConfigChange(cm, ctx)
+
 	return nil
+}
+
+func (a *adapter) startLogConfig(ctx context.Context) {
+	cm := conf.NewConfigManager(a.kvClient, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
+	go conf.ProcessLogConfigChange(cm, ctx)
 }
 
 func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (kafka.InterContainerProxy, error) {
