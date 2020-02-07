@@ -2,6 +2,86 @@
   "comments": [
     {
       "key": {
+        "uuid": "1f0cbc54_9528e8f0",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1684,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-07T10:12:04Z",
+      "side": 1,
+      "message": "I would suggested to dump the etcd kv store and confirm that all the openolt adapter data on etcd kv store for the ONU are completely cleared. This is the best way to confirm.",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f6645cbb_cd39a14e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1689,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-07T10:12:04Z",
+      "side": 1,
+      "message": "sn :\u003d xyz(); sn \u003d\u003d nil {\n // do something\n}",
+      "range": {
+        "startLine": 1686,
+        "startChar": 0,
+        "endLine": 1689,
+        "endChar": 2
+      },
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba54c6b4_a7ce9eec",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1693,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-07T10:12:04Z",
+      "side": 1,
+      "message": "Error log?",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b5d43a8_71c05f24",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1701,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-07T10:12:04Z",
+      "side": 1,
+      "message": "err:\u003d xyz(); err !\u003d nil {\n  // do something\n}",
+      "range": {
+        "startLine": 1698,
+        "startChar": 0,
+        "endLine": 1701,
+        "endChar": 3
+      },
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed6f15b8_b1a33812",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 4
