@@ -33,6 +33,23 @@
       "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b4668c0_cc9df0b6",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-02-07T08:47:17Z",
+      "side": 1,
+      "message": "this will be called by openonu adapter i believe",
+      "revId": "5cfefcc56e77358662c9651092d0d79ff8169bec",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
