@@ -1073,14 +1073,14 @@ func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
 	groupEntry := ofp.OfpGroupEntry{
 		Desc: &groupDesc,
 	}
-	var acts []*ofp.OfpAction
 	for i := 0; i < len(outPorts); i++ {
+		var acts []*ofp.OfpAction
 		acts = append(acts, fu.Output(outPorts[i]))
+		bucket := ofp.OfpBucket{
+			Actions: acts,
+		}
+		groupDesc.Buckets = append(groupDesc.Buckets, &bucket)
 	}
-	bucket := ofp.OfpBucket{
-		Actions: acts,
-	}
-	groupDesc.Buckets = []*ofp.OfpBucket{&bucket}
 	return &groupEntry
 }
 
