@@ -2006,56 +2006,64 @@ func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEnt
 		return false
 	}
 
-	var current *openoltpb2.Group
+	var current *openoltpb2.Group // represents the group on the device
 	if groupExists {
 		// group already exists
 		current = f.buildGroup(group.Desc.GroupId, val.Desc.GetBuckets())
-		log.Debugw("modify-group: group exists.", log.Fields{"current": val, "new": group})
+		log.Debugw("modify-group: group exists.", log.Fields{"group on the device": val, "new": group})
 	} else {
 		current = f.buildGroup(group.Desc.GroupId, nil)
 	}
 
-	log.Debugw("modify-group: comparing current and new.", log.Fields{"current": current, "new": new})
-	// check if the buckets are identical
-	bucketsIdentical := f.bucketsIdentical(current, new)
+	log.Debugw("modify-group: comparing current and new.", log.Fields{"group on the device": current, "new": new})
+	// get members to be added
+	membersToBeAdded := f.findDiff(current, new)
+	// get members to be removed
+	membersToBeRemoved := f.findDiff(new, current)
 
-	isSuccess := true
-	if !bucketsIdentical {
-		groupToOlt := openoltpb2.Group{
-			GroupId: group.Desc.GroupId,
-			Command: openoltpb2.Group_SET_MEMBERS,
-			Members: new.Members,
-			Action:  f.buildGroupAction(),
-		}
+	log.Infow("modify-group -> differences found", log.Fields{"membersToBeAdded": membersToBeAdded,
+		"membersToBeRemoved": membersToBeRemoved, "groupId": group.Desc.GroupId})
 
-		if err := f.callGroupAdd(&groupToOlt); err != nil {
-			log.Warnw("One of the group add/remove operations has failed. Cannot save group modifications",
-				log.Fields{"group": group})
-			isSuccess = false
-		}
+	groupToOlt := openoltpb2.Group{
+		GroupId: group.Desc.GroupId,
+	}
+	var added, removed = true, true
+	if membersToBeAdded != nil && len(membersToBeAdded) > 0 {
+		groupToOlt.Command = openoltpb2.Group_ADD_MEMBERS
+		groupToOlt.Members = membersToBeAdded
+		//execute addMembers
+		added = f.callGroupAddRemove(&groupToOlt)
+	}
+	if membersToBeRemoved != nil && len(membersToBeRemoved) > 0 {
+		groupToOlt.Command = openoltpb2.Group_REMOVE_MEMBERS
+		groupToOlt.Members = membersToBeRemoved
+		//execute removeMembers
+		removed = f.callGroupAddRemove(&groupToOlt)
 	}
 
-	if isSuccess {
+	//save the modified group
+	if added && removed {
 		if err := f.resourceMgr.AddFlowGroupToKVStore(ctx, group, false); err != nil {
 			log.Errorw("Failed to save the group into kv store", log.Fields{"groupId": group.Desc.GroupId})
 		}
 		log.Debugw("modify-group was success. Storing the group", log.Fields{"group": group, "existingGroup": current})
+	} else {
+		log.Warnw("One of the group add/remove operations has failed. Cannot save group modifications",
+			log.Fields{"group": group})
 	}
-	return isSuccess
+	return added && removed
 }
 
-//bucketsIdentical returns true if groups are identical; false otherwise
-func (f *OpenOltFlowMgr) bucketsIdentical(current *openoltpb2.Group, new *openoltpb2.Group) bool {
-	if current.GroupId == new.GroupId &&
-		len(new.Members) == len(current.Members) {
-		diff := f.findDiff(current, new)
-		if diff == nil || len(diff) < 1 {
-			log.Infow("modify-group: current and new buckets are the same. Won't send SET_MEMBERS again.",
-				log.Fields{"groupId:": current.GroupId})
-			return true
+//callGroupAddRemove performs add/remove buckets operation for the indicated group
+func (f *OpenOltFlowMgr) callGroupAddRemove(group *openoltpb2.Group) bool {
+	if err := f.performGroupOperation(group); err != nil {
+		st, _ := status.FromError(err)
+		//ignore already exists error code
+		if st.Code() != codes.AlreadyExists {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 //findDiff compares group members and finds members which only exists in groups2
@@ -2080,8 +2088,8 @@ func (f *OpenOltFlowMgr) contains(members []*openoltpb2.GroupMember, member *ope
 	return false
 }
 
-//callGroupAdd call GroupAdd operation of openolt proto
-func (f *OpenOltFlowMgr) callGroupAdd(group *openoltpb2.Group) error {
+//performGroupOperation call performGroupOperation operation of openolt proto
+func (f *OpenOltFlowMgr) performGroupOperation(group *openoltpb2.Group) error {
 	log.Debugw("Sending group to device", log.Fields{"groupToOlt": group, "command": group.Command})
 	_, err := f.deviceHandler.Client.PerformGroupOperation(context.Background(), group)
 	if err != nil {
@@ -2931,13 +2939,13 @@ func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
 	groupEntry := ofp.OfpGroupEntry{
 		Desc: &groupDesc,
 	}
-	var acts []*ofp.OfpAction
 	for i := 0; i < len(outPorts); i++ {
+		var acts []*ofp.OfpAction
 		acts = append(acts, flows.Output(outPorts[i]))
+		bucket := ofp.OfpBucket{
+			Actions: acts,
+		}
+		groupDesc.Buckets = append(groupDesc.Buckets, &bucket)
 	}
-	bucket := ofp.OfpBucket{
-		Actions: acts,
-	}
-	groupDesc.Buckets = []*ofp.OfpBucket{&bucket}
 	return &groupEntry
 }
