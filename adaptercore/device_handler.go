@@ -1642,6 +1642,12 @@ func (dh *DeviceHandler) updatePortAdminState(device *voltha.Device) error {
 				return err
 			}
 		}
+		if port.GetType() == voltha.Port_ETHERNET_NNI && port.AdminState == common.AdminState_ENABLED {
+			if err := dh.coreProxy.PortStateUpdate(context.TODO(), dh.device.Id, port.GetType(), port.GetPortNo(), voltha.OperStatus_ACTIVE); err != nil {
+				log.Errorw("failed-to-update-port-state", log.Fields{"err": err})
+				return err
+			}
+		}
 	}
 	return nil
 }
