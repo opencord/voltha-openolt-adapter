@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dd78d6f_4bd5cb6a",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-02-10T15:18:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t the setting of the port states happen as part of the indications received from the agent for these ports?",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
