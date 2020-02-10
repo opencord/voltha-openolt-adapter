@@ -865,11 +865,6 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	log.Infow("new-discovery-indication", log.Fields{"sn": sn})
 
-	if _, ok := dh.discOnus.Load(sn); ok {
-		log.Warnw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
-		return
-	}
-
 	kwargs := make(map[string]interface{})
 	if sn != "" {
 		kwargs["serial_number"] = sn
@@ -878,7 +873,11 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		return
 	}
 
-	dh.discOnus.Store(sn, true)
+	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
+		log.Warnw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
+        return
+	}
+
 	var onuID uint32
 
 	// check the ONU is already know to the OLT
