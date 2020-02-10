@@ -864,13 +864,10 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	log.Debugw("new-discovery-indication", log.Fields{"sn": sn})
 
-	if _, ok := dh.discOnus.Load(sn); ok {
-
+	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
 		log.Debugw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
 		return
 	}
-
-	dh.discOnus.Store(sn, true)
 
 	kwargs := make(map[string]interface{})
 	if sn != "" {
