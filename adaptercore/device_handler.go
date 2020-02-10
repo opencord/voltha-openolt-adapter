@@ -548,7 +548,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		return err
 	}
 	dh.populateActivePorts(device)
-	if err := dh.updatePortAdminState(device); err != nil {
+	if err := dh.disableAdminDownPorts(device); err != nil {
 		log.Errorw("Error-on-updating-port-status", log.Fields{"device": device})
 		return err
 	}
@@ -1170,10 +1170,14 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 
 	go dh.notifyChildDevices("unreachable")
 	cloned := proto.Clone(device).(*voltha.Device)
-	// Update the all ports state on that device to disable
-	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
-		log.Errorw("updating-ports-failed", log.Fields{"deviceID": device.Id, "error": err})
-		return err
+	// Update the all pon ports state on that device to disable and NNI remains active as NNI remains active in openolt agent.
+	for _, port := range cloned.Ports {
+		if port.GetType() == voltha.Port_PON_OLT {
+			if err := dh.coreProxy.PortStateUpdate(context.TODO(), cloned.Id,
+				voltha.Port_PON_OLT, port.GetPortNo(), voltha.OperStatus_UNKNOWN); err != nil {
+				return err
+			}
+		}
 	}
 
 	log.Debugw("disable-device-end", log.Fields{"deviceID": device.Id})
@@ -1228,7 +1232,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to enable
 
-	if err := dh.updatePortAdminState(device); err != nil {
+	if err := dh.disableAdminDownPorts(device); err != nil {
 		log.Errorw("Error-on-updating-port-status-after-reenabling-olt", log.Fields{"device": device})
 		return err
 	}
@@ -1579,18 +1583,19 @@ func (dh *DeviceHandler) updateStateUnreachable() {
 // EnablePort to enable Pon interface
 func (dh *DeviceHandler) EnablePort(port *voltha.Port) error {
 	log.Debugw("enable-port", log.Fields{"Device": dh.device, "port": port})
-	return dh.invokeDisableorEnablePort(port, true)
+	return dh.modifyPhyPort(port, true)
 }
 
 // DisablePort to disable pon interface
 func (dh *DeviceHandler) DisablePort(port *voltha.Port) error {
 	log.Debugw("disable-port", log.Fields{"Device": dh.device, "port": port})
-	return dh.invokeDisableorEnablePort(port, false)
+	return dh.modifyPhyPort(port, false)
 }
 
-func (dh *DeviceHandler) invokeDisableorEnablePort(port *voltha.Port, enablePort bool) error {
+//modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
+func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error {
 	ctx := context.Background()
-	log.Infow("invokeDisableorEnablePort", log.Fields{"port": port, "Enable": enablePort})
+	log.Infow("modifyPhyPort", log.Fields{"port": port, "Enable": enablePort})
 	if port.GetType() == voltha.Port_ETHERNET_NNI {
 		// Bug is opened for VOL-2505 to support NNI disable feature.
 		log.Infow("voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
@@ -1630,14 +1635,14 @@ func (dh *DeviceHandler) invokeDisableorEnablePort(port *voltha.Port, enablePort
 	return nil
 }
 
-//updatePortAdminState update the ports on reboot and re-enable device.
-func (dh *DeviceHandler) updatePortAdminState(device *voltha.Device) error {
+//disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
+func (dh *DeviceHandler) disableAdminDownPorts(device *voltha.Device) error {
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Disable the port and update the oper_port_status to core
 	// if the Admin state of the port is disabled on reboot and re-enable device.
 	for _, port := range cloned.Ports {
 		if port.AdminState == common.AdminState_DISABLED {
-			if err := dh.invokeDisableorEnablePort(port, false); err != nil {
+			if err := dh.DisablePort(port); err != nil {
 				log.Errorw("error-occurred-while-disabling-port", log.Fields{"DeviceId": dh.deviceID, "port": port, "error": err})
 				return err
 			}
