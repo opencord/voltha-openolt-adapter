@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "933b35e8_177e7fbe",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1653,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-10T09:50:42Z",
+      "side": 1,
+      "message": "I think we should refactor this code and update the comments. Otherwise it seems very confusing, at least for me. \nThe function name says updatePortAdminState, but to what it should be updated is not clear (not coming as part of input arguments).\nThere are some comments in the function that says the port should be Disabled, but in the \u0027for\u0027 loop we are also checking the ENABLED state and the port is being moved to ACTIVE state. It is not really clear why this being done.",
+      "range": {
+        "startLine": 1634,
+        "startChar": 0,
+        "endLine": 1653,
+        "endChar": 1
+      },
+      "revId": "a458480e4cdb81148072a1da6323e6477e1ac4e9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
