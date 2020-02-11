@@ -452,7 +452,7 @@ func main() {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
-	log.SetPackageLogLevel("github.com/opencord/voltha-lib-go/v3/pkg/adapters/common", log.DebugLevel)
+	log.SetAllLogLevel(loglevel)
 
 	defer log.CleanUp()
 
