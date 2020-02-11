@@ -231,11 +231,7 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if dgi.Status == statusCheckOn {
-		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "RAISE_EVENT")
-	} else {
-		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "CLEAR_EVENT")
-	}
+	de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "EVENT")
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		log.Errorw("Failed to send ONU Dying gasp event", log.Fields{"intf-id": dgi.IntfId, "onu-id": dgi.OnuId})
