@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "295a5dd3_c93c5dda",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-02-11T06:51:20Z",
+      "side": 1,
+      "message": "Hi sir, As per the current implementation if \nthe admin state of the device is down the code is ignoring the indications.",
+      "parentUuid": "6dd78d6f_4bd5cb6a",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0dc34bf6_6747c3be",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "3a45a362_b3344887",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-02-11T06:51:20Z",
+      "side": 1,
+      "message": "Thanks chaitra, Removed the log.",
+      "parentUuid": "0dc34bf6_6747c3be",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0ca601_825fb6f6",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2020-02-11T05:33:06Z",
       "side": 1,
       "message": "update this comment with proper meaning",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61ba173e_355ad9fe",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1596,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-02-11T06:51:20Z",
+      "side": 1,
+      "message": "Thanks chaitra, Updated the comment.",
+      "parentUuid": "9a0ca601_825fb6f6",
       "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
