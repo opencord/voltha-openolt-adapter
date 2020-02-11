@@ -16,6 +16,24 @@
       "revId": "a84dca5713d4d205f89d0a76c99fcb5178a5838e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "647f0496_793edd70",
+        "filename": "VERSION",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-02-11T18:13:31Z",
+      "side": 1,
+      "message": "Sorry I uploaded another version with VERSION changed to 2.3.2-dev... but guess that was not required.\n\nThe failure now is not because of the tag collision but because of sanity failure, not sure what that means",
+      "parentUuid": "c7d5b6e0_7ca834ba",
+      "revId": "a84dca5713d4d205f89d0a76c99fcb5178a5838e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
