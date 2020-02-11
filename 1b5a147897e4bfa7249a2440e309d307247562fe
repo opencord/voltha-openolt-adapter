@@ -16,6 +16,40 @@
       "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0dc34bf6_6747c3be",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-11T05:33:06Z",
+      "side": 1,
+      "message": "It has been agreed that if a caller func is logging error message called func should only return it.",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0ca601_825fb6f6",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1596,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-11T05:33:06Z",
+      "side": 1,
+      "message": "update this comment with proper meaning",
+      "revId": "1b5a147897e4bfa7249a2440e309d307247562fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
