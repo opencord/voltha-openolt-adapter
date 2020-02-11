@@ -452,6 +452,8 @@ func main() {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
+	log.SetAllLogLevel(loglevel)
+
 	defer log.CleanUp()
 
 	// Print version / build information and exit
