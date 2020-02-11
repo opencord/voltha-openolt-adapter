@@ -452,6 +452,11 @@ func main() {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
+<<<<<<< HEAD
+=======
+	log.SetAllLogLevel(loglevel)
+
+>>>>>>> e66bcc7... [VOL-2565]OpenOLT adapter ignores the log-level
 	defer log.CleanUp()
 
 	// Print version / build information and exit
