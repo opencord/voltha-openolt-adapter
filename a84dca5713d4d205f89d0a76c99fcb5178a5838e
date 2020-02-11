@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7d5b6e0_7ca834ba",
+        "filename": "VERSION",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-11T17:55:17Z",
+      "side": 1,
+      "message": "I think this should be 2.3.2-dev or 2.3.2",
+      "revId": "a84dca5713d4d205f89d0a76c99fcb5178a5838e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
