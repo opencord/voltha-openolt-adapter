@@ -1499,7 +1499,15 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
+		nniIntfId, err := IntfIDFromNniPortNum(uint32(egressPortNo))
+		if err != nil {
+			log.Errorw("invalid-nni-port",
+				log.Fields{
+					"egress-nni-port": egressPortNo,
+					"error":           err})
+			return err
+		}
+		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfId, Pkt: packet.Data}
 
 		log.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,

@@ -765,16 +765,19 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &flow); ok {
-		log.Debug("HSIA flow added to device successfully", log.Fields{"direction": direction})
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &flow, flowStoreCookie, HsiaFlow, flowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, flow.AccessIntfId,
-			flow.OnuId,
-			flow.UniId,
-			flow.FlowId /*flowCategory,*/, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading HSIA  flow into KV store", log.Fields{"flow": flow, "direction": direction, "error": err})
-			return
-		}
+	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debug("HSIA flow added to device successfully", log.Fields{"direction": direction})
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &flow, flowStoreCookie, HsiaFlow, flowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, flow.AccessIntfId,
+		flow.OnuId,
+		flow.UniId,
+		flow.FlowId /*flowCategory,*/, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading HSIA  flow into KV store", log.Fields{"flow": flow, "direction": direction, "error": err})
+		return
 	}
 }
 
@@ -840,16 +843,19 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &dhcpFlow); ok {
-		log.Debug("DHCP UL flow added to device successfully")
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &dhcpFlow, flowStoreCookie, "DHCP", flowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, dhcpFlow.AccessIntfId,
-			dhcpFlow.OnuId,
-			dhcpFlow.UniId,
-			dhcpFlow.FlowId, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading DHCP UL flow into KV store", log.Fields{"flow": dhcpFlow, "error": err})
-			return
-		}
+	if err := f.addFlowToDevice(ctx, logicalFlow, &dhcpFlow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debug("DHCP UL flow added to device successfully")
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &dhcpFlow, flowStoreCookie, "DHCP", flowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, dhcpFlow.AccessIntfId,
+		dhcpFlow.OnuId,
+		dhcpFlow.UniId,
+		dhcpFlow.FlowId, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading DHCP UL flow into KV store", log.Fields{"flow": dhcpFlow, "error": err})
+		return
 	}
 
 	return
@@ -923,17 +929,20 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &flow); ok {
-		log.Debugf("%s UL flow added to device successfully", flowType)
+	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debugf("%s UL flow added to device successfully", flowType)
 
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &flow, flowStoreCookie, flowType, flowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, flow.AccessIntfId,
-			flow.OnuId,
-			flow.UniId,
-			flow.FlowId, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading UL flow into KV store", log.Fields{"flow": flow, "error": err})
-			return
-		}
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &flow, flowStoreCookie, flowType, flowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, flow.AccessIntfId,
+		flow.OnuId,
+		flow.UniId,
+		flow.FlowId, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading UL flow into KV store", log.Fields{"flow": flow, "error": err})
+		return
 	}
 
 	return
@@ -999,19 +1008,22 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); ok {
-		log.Debug("EAPOL UL flow added to device successfully")
-		flowCategory := "EAPOL"
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &upstreamFlow, flowStoreCookie, flowCategory, uplinkFlowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, upstreamFlow.AccessIntfId,
-			upstreamFlow.OnuId,
-			upstreamFlow.UniId,
-			upstreamFlow.FlowId,
-			/* lowCategory, */
-			flowsToKVStore); err != nil {
-			log.Errorw("Error uploading EAPOL UL flow into KV store", log.Fields{"flow": upstreamFlow, "error": err})
-			return
-		}
+	if err := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debug("EAPOL UL flow added to device successfully")
+	flowCategory := "EAPOL"
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &upstreamFlow, flowStoreCookie, flowCategory, uplinkFlowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, upstreamFlow.AccessIntfId,
+		upstreamFlow.OnuId,
+		upstreamFlow.UniId,
+		upstreamFlow.FlowId,
+		/* lowCategory, */
+		flowsToKVStore); err != nil {
+		log.Errorw("Error uploading EAPOL UL flow into KV store", log.Fields{"flow": upstreamFlow, "error": err})
+		return
 	}
 
 	log.Debugw("Added EAPOL flows to device successfully", log.Fields{"flow": logicalFlow})
@@ -1194,7 +1206,7 @@ func (f *OpenOltFlowMgr) updateFlowInfoToKVStore(ctx context.Context, intfID int
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) bool {
+func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) error {
 
 	var intfID uint32
 	/* For flows which trap out of the NNI, the AccessIntfId is invalid
@@ -1213,37 +1225,37 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 	st, _ := status.FromError(err)
 	if st.Code() == codes.AlreadyExists {
 		log.Debug("Flow already exists", log.Fields{"err": err, "deviceFlow": deviceFlow})
-		return true
+		return nil
 	}
 
 	if err != nil {
 		log.Errorw("Failed to Add flow to device", log.Fields{"err": err, "deviceFlow": deviceFlow})
 		f.resourceMgr.FreeFlowID(ctx, intfID, deviceFlow.OnuId, deviceFlow.UniId, deviceFlow.FlowId)
-		return false
+		return err
 	}
 	if deviceFlow.GemportId != -1 {
 		// No need to register the flow if it is a trap on nni flow.
 		f.registerFlow(ctx, logicalFlow, deviceFlow)
 	}
 	log.Debugw("Flow added to device successfully ", log.Fields{"flow": *deviceFlow})
-	return true
+	return nil
 }
 
-func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) bool {
+func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) error {
 	log.Debugw("Sending flow to device via grpc", log.Fields{"flow": *deviceFlow})
 	_, err := f.deviceHandler.Client.FlowRemove(context.Background(), deviceFlow)
 	if err != nil {
 		if f.deviceHandler.device.ConnectStatus == common.ConnectStatus_UNREACHABLE {
 			log.Warnw("Can not remove flow from device since it's unreachable", log.Fields{"err": err, "deviceFlow": deviceFlow})
 			//Assume the flow is removed
-			return true
+			return nil
 		}
 		log.Errorw("Failed to Remove flow from device", log.Fields{"err": err, "deviceFlow": deviceFlow})
-		return false
+		return err
 
 	}
 	log.Debugw("Flow removed from device successfully ", log.Fields{"flow": *deviceFlow})
-	return true
+	return nil
 }
 
 /*func register_flow(deviceFlow *openolt_pb2.Flow, logicalFlow *ofp.OfpFlowStats){
@@ -1291,7 +1303,15 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	var uniID = -1
 	var gemPortID = -1
 
-	var networkInterfaceID = IntfIDFromNniPortNum(portNo)
+	networkInterfaceID, err := IntfIDFromNniPortNum(portNo)
+	if err != nil {
+		// DKB
+		log.Errorw("invalid-port-number",
+			log.Fields{
+				"port-number": portNo,
+				"error":       err})
+		return
+	}
 	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(ctx, uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
 		log.Debug("Flow-exists--not-re-adding")
@@ -1328,15 +1348,18 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 		Priority:      int32(flow.Priority),
 		Cookie:        flow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(ctx, flow, &downstreamflow); ok {
-		log.Debug("LLDP trap on NNI flow added to device successfully")
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, flow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
-			int32(onuID),
-			int32(uniID),
-			flowID, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading LLDP flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
-		}
+	if err := f.addFlowToDevice(ctx, flow, &downstreamflow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debug("LLDP trap on NNI flow added to device successfully")
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, flow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
+		int32(onuID),
+		int32(uniID),
+		flowID, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading LLDP flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
 	}
 	return
 }
@@ -1611,7 +1634,15 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 		onuID = -1
 		uniID = -1
 		log.Debug("Trap on nni flow set oni, uni to -1")
-		Intf = IntfIDFromNniPortNum(inPort)
+		Intf, err = IntfIDFromNniPortNum(inPort)
+		if err != nil {
+			//DKB
+			log.Errorw("invalid-in-port-number",
+				log.Fields{
+					"port-number": inPort,
+					"error":       err})
+			return
+		}
 	}
 	flowIds := f.resourceMgr.GetCurrentFlowIDsForOnu(ctx, Intf, onuID, uniID)
 	for _, flowID = range flowIds {
@@ -1630,7 +1661,8 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 			if flow.Id == storedFlow.LogicalFlowID {
 				removeFlowMessage := openoltpb2.Flow{FlowId: storedFlow.Flow.FlowId, FlowType: storedFlow.Flow.FlowType}
 				log.Debugw("Flow to be deleted", log.Fields{"flow": storedFlow})
-				if ok := f.removeFlowFromDevice(&removeFlowMessage); ok {
+				// DKB
+				if err := f.removeFlowFromDevice(&removeFlowMessage); err == nil {
 					log.Debug("Flow removed from device successfully")
 					//Remove the Flow from FlowInfo
 					updatedFlows = append(updatedFlows[:i], updatedFlows[i+1:]...)
@@ -1641,7 +1673,7 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 						return
 					}
 				} else {
-					log.Error("Failed to remove flow from device")
+					log.Errorw("failed-to-remove-flow", log.Fields{"error": err})
 					return
 				}
 			}
@@ -1661,7 +1693,15 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 		return
 	}
 
-	networkInterfaceID := IntfIDFromNniPortNum(inPort)
+	networkInterfaceID, err := IntfIDFromNniPortNum(inPort)
+	if err != nil {
+		// DKB
+		log.Errorw("invalid-in-port-number",
+			log.Fields{
+				"port-number": inPort,
+				"error":       err})
+		return
+	}
 	var onuID = int32(NoneOnuID)
 	var uniID = int32(NoneUniID)
 	var flowID uint32
@@ -1685,8 +1725,12 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 				removeFlowMessage := openoltpb2.Flow{FlowId: storedFlow.Flow.FlowId, FlowType: storedFlow.Flow.FlowType}
 				log.Debugw("Multicast flow to be deleted", log.Fields{"flow": storedFlow})
 				//remove from device
-				if ok := f.removeFlowFromDevice(&removeFlowMessage); !ok {
-					log.Errorw("Failed to remove multicast flow from device", log.Fields{"flowId": flow.Id})
+				if err := f.removeFlowFromDevice(&removeFlowMessage); err != nil {
+					// DKB
+					log.Errorw("failed-to-remove-multicast-flow",
+						log.Fields{
+							"flow-id": flow.Id,
+							"error":   err})
 					return
 				}
 				log.Debugw("Multicast flow removed from device successfully", log.Fields{"flowId": flow.Id})
@@ -1887,7 +1931,15 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	var uniID = NoneUniID
 	var gemPortID = NoneGemPortID
 
-	networkInterfaceID := IntfIDFromNniPortNum(inPort)
+	networkInterfaceID, err := IntfIDFromNniPortNum(inPort)
+	if err != nil {
+		// DKB
+		log.Errorw("invalid-in-port-number",
+			log.Fields{
+				"port-number": inPort,
+				"error":       err})
+		return
+	}
 
 	var flowStoreCookie = getFlowStoreCookie(classifierInfo, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(ctx, uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
@@ -1914,27 +1966,29 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 		Priority:      int32(flow.Priority),
 		Cookie:        flow.Cookie}
 
-	if ok := f.addFlowToDevice(ctx, flow, &multicastFlow); ok {
-		log.Debug("multicast flow added to device successfully")
-		//get cached group
-		group, _, err := f.GetFlowGroupFromKVStore(ctx, groupID, true)
-		if err == nil {
-			//calling groupAdd to set group members after multicast flow creation
-			if f.ModifyGroup(ctx, group) {
-				//cached group can be removed now
-				f.resourceMgr.RemoveFlowGroupFromKVStore(ctx, groupID, true)
-			}
-		}
-
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &multicastFlow, flowStoreCookie, MulticastFlow, flowID, flow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
-			int32(onuID),
-			int32(uniID),
-			flowID, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading multicast flow into KV store", log.Fields{"flow": multicastFlow, "error": err})
+	if err := f.addFlowToDevice(ctx, flow, &multicastFlow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
+	}
+	log.Debug("multicast flow added to device successfully")
+	//get cached group
+	group, _, err := f.GetFlowGroupFromKVStore(ctx, groupID, true)
+	if err == nil {
+		//calling groupAdd to set group members after multicast flow creation
+		if f.ModifyGroup(ctx, group) {
+			//cached group can be removed now
+			f.resourceMgr.RemoveFlowGroupFromKVStore(ctx, groupID, true)
 		}
 	}
-	return
+
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &multicastFlow, flowStoreCookie, MulticastFlow, flowID, flow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
+		int32(onuID),
+		int32(uniID),
+		flowID, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading multicast flow into KV store", log.Fields{"flow": multicastFlow, "error": err})
+	}
 }
 
 //getInPortOfMulticastFlow return inPort criterion if exists; returns NNI interface of the device otherwise
@@ -2380,17 +2434,19 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); ok {
-		log.Debug("DHCP trap on NNI flow added to device successfully")
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
-			int32(onuID),
-			int32(uniID),
-			flowID, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading DHCP DL  flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
-		}
+	if err := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); err != nil {
+		// DKB
+		log.Errorw("failed-to-remove-flow", log.Fields{"error": err})
+		return
 	}
-	return
+	log.Debug("DHCP trap on NNI flow added to device successfully")
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
+		int32(onuID),
+		int32(uniID),
+		flowID, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading DHCP DL  flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+	}
 }
 
 //getPacketTypeFromClassifiers finds and returns packet type of a flow by checking flow classifiers
@@ -2480,17 +2536,19 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
-	if ok := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); ok {
-		log.Debug("IGMP Trap on NNI flow added to device successfully")
-		flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
-		if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
-			int32(onuID),
-			int32(uniID),
-			flowID, flowsToKVStore); err != nil {
-			log.Errorw("Error uploading igmp-trap-on-nni flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
-		}
+	if err := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); err != nil {
+		// DKB
+		log.Errorw("failed-to-add-flow", log.Fields{"error": err})
+		return
 	}
-	return
+	log.Debug("IGMP Trap on NNI flow added to device successfully")
+	flowsToKVStore := f.getUpdatedFlowInfo(ctx, &downstreamflow, flowStoreCookie, "", flowID, logicalFlow.Id)
+	if err := f.updateFlowInfoToKVStore(ctx, int32(networkInterfaceID),
+		int32(onuID),
+		int32(uniID),
+		flowID, flowsToKVStore); err != nil {
+		log.Errorw("Error uploading igmp-trap-on-nni flow into KV store", log.Fields{"flow": downstreamflow, "error": err})
+	}
 }
 
 func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, error) {
@@ -2824,11 +2882,27 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 
 	portType := IntfIDToPortTypeName(classifier[InPort].(uint32))
 	if portType == voltha.Port_PON_OLT {
-		intfID := IntfIDFromNniPortNum(action[Output].(uint32))
+		intfID, err := IntfIDFromNniPortNum(action[Output].(uint32))
+		if err != nil {
+			// DKB
+			log.Debugw("invalid-action-port-number",
+				log.Fields{
+					"port-number": action[Output].(uint32),
+					"error":       err})
+			return uint32(0), err
+		}
 		log.Debugw("output Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	} else if portType == voltha.Port_ETHERNET_NNI {
-		intfID := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		intfID, err := IntfIDFromNniPortNum(classifier[InPort].(uint32))
+		if err != nil {
+			// DKB
+			log.Debugw("invalid-classifier-port-number",
+				log.Fields{
+					"port-number": action[Output].(uint32),
+					"error":       err})
+			return uint32(0), err
+		}
 		log.Debugw("input Nni IntfID is", log.Fields{"intfid": intfID})
 		return intfID, nil
 	}
