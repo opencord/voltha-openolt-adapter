@@ -19,8 +19,6 @@ package adaptercore
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -143,7 +141,7 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	ctx := context.Background()
 	if device == nil {
 		log.Warn("device-is-nil")
-		return errors.New("nil-device")
+		return NewErrInvalidValue(ErrFields{"device": nil}, nil)
 	}
 	log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
@@ -164,7 +162,7 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 		return handler.GetOfpDeviceInfo(device)
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return nil, errors.New("device-handler-not-set")
+	return nil, NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Get_ofp_port_info returns OFP port information for the given device
@@ -174,7 +172,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 		return handler.GetOfpPortInfo(device, portNo)
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return nil, errors.New("device-handler-not-set")
+	return nil, NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
@@ -188,22 +186,22 @@ func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) er
 	if handler := oo.getDeviceHandler(targetDevice); handler != nil {
 		return handler.ProcessInterAdapterMessage(msg)
 	}
-	return fmt.Errorf(fmt.Sprintf("handler-not-found-%s", targetDevice))
+	return NewErrNotFound("device-handler", ErrFields{"device-id": targetDevice}, nil)
 }
 
 //Adapter_descriptor not implemented
 func (oo *OpenOLT) Adapter_descriptor() error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Device_types unimplemented
 func (oo *OpenOLT) Device_types() (*voltha.DeviceTypes, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Health  returns unimplemented
 func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Reconcile_device unimplemented
@@ -211,7 +209,7 @@ func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 	ctx := context.Background()
 	if device == nil {
 		log.Warn("device-is-nil")
-		return errors.New("nil-device")
+		return NewErrInvalidValue(ErrFields{"device": nil}, nil)
 	}
 	log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
@@ -226,7 +224,7 @@ func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 
 //Abandon_device unimplemented
 func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Disable_device disables the given device
@@ -236,7 +234,7 @@ func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
 		return handler.DisableDevice(device)
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	return NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Reenable_device enables the olt device after disable
@@ -246,7 +244,7 @@ func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
 		return handler.ReenableDevice(device)
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	return NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Reboot_device reboots the given device
@@ -256,13 +254,12 @@ func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
 		return handler.RebootDevice(device)
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
-
+	return NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Self_test_device unimplented
 func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Delete_device unimplemented
@@ -277,17 +274,17 @@ func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
 		return nil
 	}
 	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	return NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Get_device_details unimplemented
 func (oo *OpenOLT) Get_device_details(device *voltha.Device) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Update_flows_bulk returns
 func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
@@ -298,12 +295,12 @@ func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *open
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
 	log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-set")
+	return NewErrNotFound("device-handler", ErrFields{"device-id": device.Id}, nil)
 }
 
 //Update_pm_config returns PmConfigs nil or error
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmConfigs) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Receive_packet_out sends packet out to the device
@@ -314,42 +311,42 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
 	log.Errorw("Receive_packet_out failed-device-handler-not-set", log.Fields{"deviceId": deviceID, "egressport": egressPortNo, "packet": packet})
-	return errors.New("device-handler-not-set")
+	return NewErrNotFound("device-handler", ErrFields{"device-id": deviceID}, nil)
 }
 
 //Suppress_event unimplemented
 func (oo *OpenOLT) Suppress_event(filter *voltha.EventFilter) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Unsuppress_event  unimplemented
 func (oo *OpenOLT) Unsuppress_event(filter *voltha.EventFilter) error {
-	return errors.New("unImplemented")
+	return ErrNotImplemented
 }
 
 //Download_image unimplemented
 func (oo *OpenOLT) Download_image(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Get_image_download_status unimplemented
 func (oo *OpenOLT) Get_image_download_status(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Cancel_image_download unimplemented
 func (oo *OpenOLT) Cancel_image_download(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Activate_image_update unimplemented
 func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 //Revert_image_update unimplemented
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, errors.New("unImplemented")
+	return nil, ErrNotImplemented
 }
 
 // Enable_port to Enable PON/NNI interface
@@ -369,7 +366,7 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 	log.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
 	if port == nil {
 		log.Errorw("port-cannot-be-nil", log.Fields{"Device": deviceID, "port": port})
-		return errors.New("sent-port-cannot-be-nil")
+		return NewErrInvalidValue(ErrFields{"port": nil}, nil)
 	}
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		log.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
