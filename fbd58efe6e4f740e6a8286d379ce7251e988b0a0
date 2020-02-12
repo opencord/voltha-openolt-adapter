@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c8106a0_b30c7794",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1639,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T06:33:16Z",
+      "side": 1,
+      "message": "Do you need to export this function?",
+      "revId": "fbd58efe6e4f740e6a8286d379ce7251e988b0a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
