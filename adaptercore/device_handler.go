@@ -20,7 +20,6 @@ package adaptercore
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -182,7 +181,7 @@ func generateMacFromHost(host string) (string, error) {
 			log.Debugw("dns-result-ips", log.Fields{"ips": ips})
 			if addr = net.ParseIP(ips[0]); addr == nil {
 				log.Errorw("unable-to-parse-ip", log.Fields{"ip": ips[0]})
-				return "", errors.New("unable-to-parse-ip")
+				return "", NewErrInvalidValue(log.Fields{"ip": ips[0]}, nil)
 			}
 			genmac = macifyIP(addr)
 			log.Debugw("using-ip-as-mac", log.Fields{"host": ips[0], "mac": genmac})
@@ -356,7 +355,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) {
 	}
 }
 
-func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication *oop.OltIndication) {
+func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication *oop.OltIndication) error {
 	raisedTs := time.Now().UnixNano()
 	if oltIndication.OperState == "up" && dh.transitionMap.currentDeviceState != deviceStateUp {
 		dh.transitionMap.Handle(ctx, DeviceUpInd)
@@ -364,14 +363,18 @@ func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication 
 		dh.transitionMap.Handle(ctx, DeviceDownInd)
 	}
 	// Send or clear Alarm
-	dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs)
+	return dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs)
 }
 
 func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.Indication) {
 	raisedTs := time.Now().UnixNano()
 	switch indication.Data.(type) {
 	case *oop.Indication_OltInd:
-		dh.handleOltIndication(ctx, indication.GetOltInd())
+		if err := dh.handleOltIndication(ctx, indication.GetOltInd()); err != nil {
+			log.Errorw("handle-indication-error", log.Fields{
+				"type":  "olt",
+				"error": err})
+		}
 	case *oop.Indication_IntfInd:
 		intfInd := indication.GetIntfInd()
 		go dh.addPort(intfInd.GetIntfId(), voltha.Port_PON_OLT, intfInd.GetOperState())
@@ -439,7 +442,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	if err != nil || device == nil {
 		/*TODO: needs to handle error scenarios */
 		log.Errorw("Failed to fetch device device", log.Fields{"err": err})
-		return errors.New("failed to fetch device device")
+		return NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
 	}
 
 	cloned := proto.Clone(device).(*voltha.Device)
@@ -557,12 +560,12 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	// Instantiate resource manager
 	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.deviceID, KVStoreHostPort, dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
 		log.Error("Error while instantiating resource manager")
-		return errors.New("instantiating resource manager failed")
+		return ErrResourceManagerInstantiating
 	}
 	// Instantiate flow manager
 	if dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr); dh.flowMgr == nil {
 		log.Error("Error while instantiating flow manager")
-		return errors.New("instantiating flow manager failed")
+		return ErrResourceManagerInstantiating
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
@@ -583,11 +586,11 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 
 	if err != nil {
 		log.Errorw("Failed to fetch device info", log.Fields{"err": err})
-		return nil, err
+		return nil, NewErrPersistence("get", "device", 0, nil, err)
 	}
 	if deviceInfo == nil {
 		log.Errorw("Device info is nil", log.Fields{})
-		return nil, errors.New("failed to get device info from OLT")
+		return nil, NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	}
 
 	log.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
@@ -1079,7 +1082,7 @@ func (dh *DeviceHandler) stringifyVendorSpecific(vendorSpecific []byte) string {
 
 //UpdateFlowsBulk upates the bulk flow
 func (dh *DeviceHandler) UpdateFlowsBulk() error {
-	return errors.New("unimplemented")
+	return ErrNotImplemented
 }
 
 //GetChildDevice returns the child device for given parent port and onu id
@@ -1526,7 +1529,15 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			return err
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		uplinkPkt := oop.UplinkPacket{IntfId: IntfIDFromNniPortNum(uint32(egressPortNo)), Pkt: packet.Data}
+		nniIntfID, err := IntfIDFromNniPortNum(uint32(egressPortNo))
+		if err != nil {
+			log.Errorw("invalid-nni-port",
+				log.Fields{
+					"egress-nni-port": egressPortNo,
+					"error":           err})
+			return err
+		}
+		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
 		log.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,
