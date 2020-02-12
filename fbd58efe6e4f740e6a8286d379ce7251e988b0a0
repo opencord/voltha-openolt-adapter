@@ -16,6 +16,24 @@
       "revId": "fbd58efe6e4f740e6a8286d379ce7251e988b0a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9b6b60fc_ae8c4e7c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1639,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-02-12T07:24:37Z",
+      "side": 1,
+      "message": "Thank you, Girish. Changes as suggested.",
+      "parentUuid": "8c8106a0_b30c7794",
+      "revId": "fbd58efe6e4f740e6a8286d379ce7251e988b0a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
