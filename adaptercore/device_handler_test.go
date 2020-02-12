@@ -136,8 +136,8 @@ func newMockDeviceHandler() *DeviceHandler {
 		Root:     true,
 		ParentId: "logical_device",
 		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "nni"},
+			{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
+			{PortNo: 2, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
