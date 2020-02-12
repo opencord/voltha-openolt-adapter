@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26ec59c3_8dbdb510",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1712,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T15:09:09Z",
+      "side": 1,
+      "message": "I have a basic question. The Schedulers and queues on OLT are not cleared here. They get cleared as part of flow delete. But, they do not arrive at openolt adapter as part of ONU delete (because flow decomposer drops them). Is Khen working on this part?",
+      "revId": "dc2157651d4a3bcf163bd0d57508f166899c8ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c9958c9_7fea5f4d",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1717,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T15:09:09Z",
+      "side": 1,
+      "message": "in a single line",
+      "range": {
+        "startLine": 1716,
+        "startChar": 0,
+        "endLine": 1717,
+        "endChar": 9
+      },
+      "revId": "dc2157651d4a3bcf163bd0d57508f166899c8ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f81c9185_3dd54e04",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1747,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T15:09:09Z",
+      "side": 1,
+      "message": "This is not related to your change. But, can you please change the name to UpdateOnuGemInfo to be consistent with GetOnuGemInfo.",
+      "range": {
+        "startLine": 1747,
+        "startChar": 19,
+        "endLine": 1747,
+        "endChar": 32
+      },
+      "revId": "dc2157651d4a3bcf163bd0d57508f166899c8ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
