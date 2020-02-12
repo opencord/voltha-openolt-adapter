@@ -277,7 +277,6 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications(ctx context.Context) {
-	defer log.Errorw("Indications ended", log.Fields{})
 	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
 	if err != nil {
 		log.Errorw("Failed to read indications", log.Fields{"err": err})
@@ -1084,7 +1083,7 @@ func (dh *DeviceHandler) UpdateFlowsBulk() error {
 }
 
 //GetChildDevice returns the child device for given parent port and onu id
-func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) *voltha.Device {
+func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) (*voltha.Device, error) {
 	log.Debugw("GetChildDevice", log.Fields{"pon port": parentPort, "onuID": onuID})
 	kwargs := make(map[string]interface{})
 	kwargs["onu_id"] = onuID
@@ -1092,10 +1091,10 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) *voltha.Device
 	onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 	if err != nil {
 		log.Errorw("onu not found", log.Fields{"intfID": parentPort, "onuID": onuID})
-		return nil
+		return nil, err
 	}
 	log.Debugw("Successfully received child device from core", log.Fields{"child_device": *onuDevice})
-	return onuDevice
+	return onuDevice, nil
 }
 
 // SendPacketInToCore sends packet-in to core

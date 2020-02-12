@@ -301,7 +301,10 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			got, err := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			if err != nil {
+				t.Error(err)
+			}
 			t.Log("onu device id", got)
 		})
 	}
