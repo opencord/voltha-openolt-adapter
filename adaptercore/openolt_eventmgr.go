@@ -94,40 +94,33 @@ func NewEventMgr(eventProxy adapterif.EventProxy, handler *DeviceHandler) *OpenO
 }
 
 // ProcessEvents is function to process and publish OpenOLT event
-func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID string, raisedTs int64) {
+func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID string, raisedTs int64) error {
 	var err error
 	switch alarmInd.Data.(type) {
 	case *oop.AlarmIndication_LosInd:
 		log.Infow("Received LOS indication", log.Fields{"alarm_ind": alarmInd})
 		err = em.oltLosIndication(alarmInd.GetLosInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuAlarmInd:
 		log.Infow("Received onu alarm indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuAlarmIndication(alarmInd.GetOnuAlarmInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_DyingGaspInd:
 		log.Infow("Received dying gasp indication", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDyingGaspIndication(alarmInd.GetDyingGaspInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuActivationFailInd:
 		log.Infow("Received onu activation fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuActivationFailIndication(alarmInd.GetOnuActivationFailInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuLossOmciInd:
 		log.Infow("Received onu loss omci indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuLossOmciIndication(alarmInd.GetOnuLossOmciInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuDriftOfWindowInd:
 		log.Infow("Received onu drift of window indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDriftOfWindowIndication(alarmInd.GetOnuDriftOfWindowInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuSignalDegradeInd:
 		log.Infow("Received onu signal degrade indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuSignalDegradeIndication(alarmInd.GetOnuSignalDegradeInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuSignalsFailInd:
 		log.Infow("Received onu signal fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuSignalsFailIndication(alarmInd.GetOnuSignalsFailInd(), deviceID, raisedTs)
-
 	case *oop.AlarmIndication_OnuStartupFailInd:
 		log.Infow("Received onu startup fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuStartupFailedIndication(alarmInd.GetOnuStartupFailInd(), deviceID, raisedTs)
@@ -141,12 +134,12 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 		log.Infow("Received onu Itu Pon Stats indication ", log.Fields{"alarm_ind": alarmInd})
 		log.Infow("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
 	default:
-		log.Errorw("Received unknown indication type", log.Fields{"alarm_ind": alarmInd})
-
+		err = NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
 	}
 	if err != nil {
-		log.Errorw("Failed to publish message to KAFKA", log.Fields{"error": err})
+		return NewErrCommunication("publish-message", log.Fields{"indication-type": alarmInd}, err).Log()
 	}
+	return nil
 }
 
 // oltUpDownIndication handles Up and Down state of an OLT

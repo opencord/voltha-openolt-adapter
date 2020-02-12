@@ -165,22 +165,31 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		args args
-		want uint32
+		name    string
+		args    args
+		want    uint32
+		wantErr error
 	}{
 		// TODO: Add test cases.
-		{"IntfIDFromNniPortNum-1", args{portNum: 8081}, 8081},
-		{"IntfIDFromNniPortNum-2", args{portNum: 9090}, 9090},
-		{"IntfIDFromNniPortNum-3", args{portNum: 0}, 0},
-		{"IntfIDFromNniPortNum-3", args{portNum: 65535}, 65535},
+		{"IntfIDFromNniPortNum-01", args{portNum: 8081}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-02", args{portNum: 9090}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-03", args{portNum: 0}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-04", args{portNum: 65535}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-05", args{portNum: 1048575}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-06", args{portNum: 1048576}, 0, nil},
+		{"IntfIDFromNniPortNum-07", args{portNum: 1048577}, 1, nil},
+		{"IntfIDFromNniPortNum-08", args{portNum: 1048578}, 2, nil},
+		{"IntfIDFromNniPortNum-09", args{portNum: 1048579}, 3, nil},
+		{"IntfIDFromNniPortNum-10", args{portNum: 2097150}, 65534, nil},
+		{"IntfIDFromNniPortNum-11", args{portNum: 2097151}, 65535, nil},
+		{"IntfIDFromNniPortNum-12", args{portNum: 3000000}, 0, ErrInvalidPortRange},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDFromNniPortNum(tt.args.portNum); got != tt.want {
-				t.Errorf("IntfIDFromNniPortNum() = %v, want %v", got, tt.want)
-			} else {
-				t.Logf("Expected %v , Actual %v \n", tt.want, got)
+			got, err := IntfIDFromNniPortNum(tt.args.portNum)
+			if got != tt.want || err != tt.wantErr {
+				t.Errorf("IntfIDFromNniPortNum(): FOR[%v] WANT[%v and %v] GOT[%v and %v]",
+					tt.args.portNum, tt.want, tt.wantErr, got, err)
 			}
 		})
 	}

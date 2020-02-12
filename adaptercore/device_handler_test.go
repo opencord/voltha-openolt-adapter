@@ -308,28 +308,33 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 }
 
 func TestGetportLabel(t *testing.T) {
+	invalid := reflect.TypeOf(&ErrInvalidValue{})
 	type args struct {
 		portNum  uint32
 		portType voltha.Port_PortType
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		args    args
+		want    string
+		errType reflect.Type
 	}{
-		{"GetportLabel-1", args{portNum: 0, portType: 0}, ""},
-		{"GetportLabel-2", args{portNum: 1, portType: 1}, "nni-1"},
-		{"GetportLabel-3", args{portNum: 2, portType: 2}, ""},
-		{"GetportLabel-4", args{portNum: 3, portType: 3}, "pon-3"},
-		{"GetportLabel-5", args{portNum: 4, portType: 4}, ""},
-		{"GetportLabel-6", args{portNum: 5, portType: 5}, ""},
-		{"GetportLabel-7", args{portNum: 6, portType: 6}, ""},
+		{"GetportLabel-1", args{portNum: 0, portType: 0}, "", invalid},
+		{"GetportLabel-2", args{portNum: 1, portType: 1}, "nni-1", nil},
+		{"GetportLabel-3", args{portNum: 2, portType: 2}, "", invalid},
+		{"GetportLabel-4", args{portNum: 3, portType: 3}, "pon-3", nil},
+		{"GetportLabel-5", args{portNum: 4, portType: 4}, "", invalid},
+		{"GetportLabel-6", args{portNum: 5, portType: 5}, "", invalid},
+		{"GetportLabel-7", args{portNum: 6, portType: 6}, "", invalid},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetportLabel(tt.args.portNum, tt.args.portType); got != tt.want {
-				t.Errorf("GetportLabel() = %v, want %v", got, tt.want)
+			got, err := GetportLabel(tt.args.portNum, tt.args.portType)
+			if reflect.TypeOf(err) != tt.errType || got != tt.want {
+				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
+					tt.want, tt.errType, got, reflect.TypeOf(err))
 			}
+
 		})
 	}
 }
