@@ -33,6 +33,24 @@
       "revId": "deadffa02d0b6117e6620729c42c4b9a54b2f501",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fbe68706_0718eba7",
+        "filename": "adaptercore/device_handler_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-02-12T17:32:24Z",
+      "side": 1,
+      "message": "Hi Girish, Reverted the changes to remain the negative test case and added no-device error in mocks.\n\nPlease check the latest patch.",
+      "parentUuid": "a5297a66_43bb0e9b",
+      "revId": "deadffa02d0b6117e6620729c42c4b9a54b2f501",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
