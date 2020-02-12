@@ -18,14 +18,12 @@
 package adaptercore
 
 import (
-	"errors"
 	"fmt"
-	"sync"
-	"time"
-
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"sync"
+	"time"
 )
 
 var mutex = &sync.Mutex{}
@@ -235,7 +233,7 @@ func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}
 		return PONPorts, nil
 	} else {
 		log.Errorf("Invalid type of interface %s", Intftype)
-		return nil, errors.New("invalid type of interface ")
+		return nil, NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
 }
 

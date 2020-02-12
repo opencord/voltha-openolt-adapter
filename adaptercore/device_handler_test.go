@@ -275,6 +275,36 @@ func Test_macifyIP(t *testing.T) {
 	}
 }
 
+func sparseCompare(keys []string, spec, target interface{}) bool {
+	if spec == target {
+		return true
+	}
+	if spec == nil || target == nil {
+		return false
+	}
+	typeSpec := reflect.TypeOf(spec)
+	typeTarget := reflect.TypeOf(target)
+	if typeSpec != typeTarget {
+		return false
+	}
+
+	vSpec := reflect.ValueOf(spec)
+	vTarget := reflect.ValueOf(target)
+	if vSpec.Kind() == reflect.Ptr {
+		vSpec = vSpec.Elem()
+		vTarget = vTarget.Elem()
+	}
+
+	for _, key := range keys {
+		fSpec := vSpec.FieldByName(key)
+		fTarget := vTarget.FieldByName(key)
+		if !reflect.DeepEqual(fSpec.Interface(), fTarget.Interface()) {
+			return false
+		}
+	}
+	return true
+}
+
 func TestDeviceHandler_GetChildDevice(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
@@ -287,49 +317,72 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 		devicehandler *DeviceHandler
 		args          args
 		want          *voltha.Device
+		errType       reflect.Type
 	}{
 		{"GetChildDevice-1", dh1,
 			args{parentPort: 1,
 				onuID: 1},
-			&voltha.Device{},
+			&voltha.Device{
+				Id:           "1",
+				ParentId:     "olt",
+				ParentPortNo: 1,
+			},
+			nil,
 		},
 		{"GetChildDevice-2", dh2,
 			args{parentPort: 1,
 				onuID: 1},
-			&voltha.Device{},
+			nil,
+			reflect.TypeOf(&ErrNotFound{}),
 		},
 	}
+
+	/*
+	   --- FAIL: TestDeviceHandler_GetChildDevice/GetChildDevice-1 (0.00s)
+	       device_handler_test.go:309: GetportLabel() => want=(, <nil>) got=(id:"1" parent_id:"olt" parent_port_no:1 proxy_address:<channel_id:1 channel_group_id:1 onu_id:1 > oper_status:ACTIVE connect_status:UNREACHABLE ports:<port_no:1 label:"pon" > ports:<port_no:2 label:"uni" > pm_configs:<id:"olt" default_freq:10 > , <nil>)
+	   --- FAIL: TestDeviceHandler_GetChildDevice/GetChildDevice-2 (0.00s)
+	*/
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			got, err := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			if reflect.TypeOf(err) != tt.errType || !sparseCompare([]string{"Id", "ParentId", "ParentPortNo"}, tt.want, got) {
+				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
+					tt.want, tt.errType, got, reflect.TypeOf(err))
+				return
+			}
 			t.Log("onu device id", got)
 		})
 	}
 }
 
 func TestGetportLabel(t *testing.T) {
+	invalid := reflect.TypeOf(&ErrInvalidValue{})
 	type args struct {
 		portNum  uint32
 		portType voltha.Port_PortType
 	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		args    args
+		want    string
+		errType reflect.Type
 	}{
-		{"GetportLabel-1", args{portNum: 0, portType: 0}, ""},
-		{"GetportLabel-2", args{portNum: 1, portType: 1}, "nni-1"},
-		{"GetportLabel-3", args{portNum: 2, portType: 2}, ""},
-		{"GetportLabel-4", args{portNum: 3, portType: 3}, "pon-3"},
-		{"GetportLabel-5", args{portNum: 4, portType: 4}, ""},
-		{"GetportLabel-6", args{portNum: 5, portType: 5}, ""},
-		{"GetportLabel-7", args{portNum: 6, portType: 6}, ""},
+		{"GetportLabel-1", args{portNum: 0, portType: 0}, "", invalid},
+		{"GetportLabel-2", args{portNum: 1, portType: 1}, "nni-1", nil},
+		{"GetportLabel-3", args{portNum: 2, portType: 2}, "", invalid},
+		{"GetportLabel-4", args{portNum: 3, portType: 3}, "pon-3", nil},
+		{"GetportLabel-5", args{portNum: 4, portType: 4}, "", invalid},
+		{"GetportLabel-6", args{portNum: 5, portType: 5}, "", invalid},
+		{"GetportLabel-7", args{portNum: 6, portType: 6}, "", invalid},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetportLabel(tt.args.portNum, tt.args.portType); got != tt.want {
-				t.Errorf("GetportLabel() = %v, want %v", got, tt.want)
+			got, err := GetportLabel(tt.args.portNum, tt.args.portType)
+			if reflect.TypeOf(err) != tt.errType || got != tt.want {
+				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
+					tt.want, tt.errType, got, reflect.TypeOf(err))
 			}
+
 		})
 	}
 }
@@ -366,80 +419,86 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	type args struct {
 		msg *ic.InterAdapterMessage
 	}
+	invalid := reflect.TypeOf(&ErrInvalidValue{})
 	tests := []struct {
 		name    string
 		args    args
-		wantErr bool
+		wantErr reflect.Type
 	}{
 		{"ProcessInterAdapterMessage-1", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 0,
+				Type: ic.InterAdapterMessageType_FLOW_REQUEST,
 			},
 			Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-2", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 1,
+				Type: ic.InterAdapterMessageType_FLOW_RESPONSE,
 			},
 			Body: marshalledData1,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-3", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 2,
+				Type: ic.InterAdapterMessageType_OMCI_REQUEST,
 			},
 			Body: marshalledData,
-		}}, false},
+		}}, reflect.TypeOf(&ErrCommunication{})},
 		{"ProcessInterAdapterMessage-4", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 3,
+				Type: ic.InterAdapterMessageType_OMCI_RESPONSE,
 			}, Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-5", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 4,
+				Type: ic.InterAdapterMessageType_METRICS_REQUEST,
 			}, Body: marshalledData1,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-6", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 4,
+				Type: ic.InterAdapterMessageType_METRICS_RESPONSE,
 			}, Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-7", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 5,
+				Type: ic.InterAdapterMessageType_ONU_IND_REQUEST,
 			}, Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-8", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 6,
+				Type: ic.InterAdapterMessageType_ONU_IND_RESPONSE,
 			}, Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-9", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 7,
+				Type: ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
 			}, Body: marshalledData,
-		}}, false},
+		}}, invalid},
 		{"ProcessInterAdapterMessage-10", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",
-				Type: 7,
+				Type: ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
 			}, Body: marshalledData2,
-		}}, false},
-		//marshalledData2
+		}}, invalid},
+		{"ProcessInterAdapterMessage-11", args{msg: &ic.InterAdapterMessage{
+			Header: &ic.InterAdapterHeader{
+				Id:   "012345",
+				Type: ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
+			}, Body: marshalledData2,
+		}}, invalid},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := dh.ProcessInterAdapterMessage(tt.args.msg); (err != nil) != tt.wantErr {
+			if err := dh.ProcessInterAdapterMessage(tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
 				t.Errorf("DeviceHandler.ProcessInterAdapterMessage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
