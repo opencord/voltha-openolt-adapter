@@ -18,7 +18,6 @@ package adaptercore
 
 import (
 	"context"
-	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -48,7 +47,7 @@ func getTranisitionsAfter() map[Trigger]Transition {
 		after: []TransitionHandler{func(ctx context.Context) error {
 			return nil
 		}, func(ctx context.Context) error {
-			return errors.New("transition error")
+			return ErrStateTransition
 		}},
 	}
 	transitions[GrpcConnected] = transition
@@ -66,7 +65,7 @@ func getTranisitionsBefore() map[Trigger]Transition {
 		before: []TransitionHandler{func(ctx context.Context) error {
 			return nil
 		}, func(ctx context.Context) error {
-			return errors.New("transition error")
+			return ErrStateTransition
 		}},
 	}
 	transitions[GrpcConnected] = transition
