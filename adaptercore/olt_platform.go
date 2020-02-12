@@ -107,7 +107,17 @@ const (
 	ponIntfMarkerPos = 28
 	//Value of marker used to distinguish PON port type of OF port
 	ponIntfMarkerValue = 0x2
+	// Number of bits for NNI ID
+	bitsforNNIID = 20
+	// minNniIntPortNum is used to store start range of nni port number (1 << 20) 1048576
+	minNniIntPortNum = (1 << bitsforNNIID)
+	// maxNniPortNum is used to store the maximum range of nni port number ((1 << 21)-1) 2097151
+	maxNniPortNum = ((1 << (bitsforNNIID + 1)) - 1)
 )
+
+// ErrInvalidPortRange is the error returned when a requested NNI port is
+// outside the acceptable range
+var ErrInvalidPortRange = errors.New("invalid-port-range")
 
 //MinUpstreamPortID value
 var MinUpstreamPortID = 0xfffd
@@ -164,8 +174,12 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 }
 
 //IntfIDFromNniPortNum returns Intf ID derived from portNum
-func IntfIDFromNniPortNum(portNum uint32) uint32 {
-	return portNum & 0xFFFF
+func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
+	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
+		log.Errorw("NNIPortNumber is not in valid range", log.Fields{"portNum": portNum})
+		return uint32(0), ErrInvalidPortRange
+	}
+	return (portNum & 0xFFFF), nil
 }
 
 //IntfIDToPortTypeName returns port type derived from the intfId
