@@ -177,7 +177,11 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDFromNniPortNum(tt.args.portNum); got != tt.want {
+			got, err := IntfIDFromNniPortNum(tt.args.portNum)
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if got != tt.want {
 				t.Errorf("IntfIDFromNniPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
