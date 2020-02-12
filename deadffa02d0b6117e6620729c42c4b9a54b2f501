@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5cf75e36_13823a5e",
+        "filename": "VERSION",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T14:48:32Z",
+      "side": 1,
+      "message": "Why is this changing from 2.3.2-dev to 2.3.3-dev??\nEither keep the earlier dev version of make release 2.3.2.",
+      "revId": "deadffa02d0b6117e6620729c42c4b9a54b2f501",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a5297a66_43bb0e9b",
+        "filename": "adaptercore/device_handler_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T14:48:32Z",
+      "side": 1,
+      "message": "There is no success test case?",
+      "revId": "deadffa02d0b6117e6620729c42c4b9a54b2f501",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
