@@ -22,6 +22,30 @@
       "revId": "ea0a0bc3956495d86ebdaf024fe58bfedb68e08e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "980be798_b205d0cf",
+        "filename": "go.mod",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-02-12T23:46:54Z",
+      "side": 1,
+      "message": "yeah, will do.",
+      "parentUuid": "baba2faf_0d7ed4a6",
+      "range": {
+        "startLine": 10,
+        "startChar": 43,
+        "endLine": 10,
+        "endChar": 44
+      },
+      "revId": "ea0a0bc3956495d86ebdaf024fe58bfedb68e08e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
