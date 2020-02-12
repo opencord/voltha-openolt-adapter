@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e98bd28_41650729",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-12T06:24:39Z",
+      "side": 1,
+      "message": "Do you expect anything other than statusCheckOn. You might as well remove this check?",
+      "range": {
+        "startLine": 234,
+        "startChar": 1,
+        "endLine": 234,
+        "endChar": 31
+      },
+      "revId": "0d4efc37037de8a0a4232ea562bee9bc78b14a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
