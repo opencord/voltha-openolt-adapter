@@ -416,15 +416,15 @@ func waitForExit() int {
 }
 
 func printBanner() {
-	fmt.Println("   ____                     ____  _   _______ ")
-	fmt.Println("  / _ \\                   / __\\| | |__   __|")
-	fmt.Println(" | |  | |_ __   ___ _ __  | |  | | |    | |   ")
-	fmt.Println(" | |  | | '_\\ / _\\ '_\\ | |  | | |    | |   ")
-	fmt.Println(" | |__| | |_) |  __/ | | || |__| | |____| |   ")
-	fmt.Println(" \\____/| .__/\\___|_| |_|\\____/|______|_|   ")
-	fmt.Println("        | |                                   ")
-	fmt.Println("        |_|                                   ")
-	fmt.Println("                                              ")
+	fmt.Println(`   ____                     ____  _   _______ `)
+	fmt.Println(`  / _  \                   / __ \| | |__   __|`)
+	fmt.Println(` | |  | |_ __   ___ _ __  | |  | | |    | |   `)
+	fmt.Println(` | |  | | '_ \ / _ \ '_ \ | |  | | |    | |   `)
+	fmt.Println(` | |__| | |_) |  __/ | | || |__| | |____| |   `)
+	fmt.Println(`  \____/| .__/ \___|_| |_| \____/|______|_|   `)
+	fmt.Println(`        | |                                   `)
+	fmt.Println(`        |_|                                   `)
+	fmt.Println(`                                              `)
 }
 
 func printVersion() {
