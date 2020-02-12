@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baba2faf_0d7ed4a6",
+        "filename": "go.mod",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-02-12T22:24:24Z",
+      "side": 1,
+      "message": "Should you update this also to 3.0.9?",
+      "range": {
+        "startLine": 10,
+        "startChar": 43,
+        "endLine": 10,
+        "endChar": 44
+      },
+      "revId": "ea0a0bc3956495d86ebdaf024fe58bfedb68e08e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
