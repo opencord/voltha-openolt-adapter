@@ -1349,10 +1349,10 @@ func getUniPortPath(intfID uint32, onuID int32, uniID int32) string {
 func (f *OpenOltFlowMgr) getOnuChildDevice(intfID uint32, onuID uint32) (*voltha.Device, error) {
 	log.Debugw("GetChildDevice", log.Fields{"pon port": intfID, "onuId": onuID})
 	parentPortNo := IntfIDToPortNo(intfID, voltha.Port_PON_OLT)
-	onuDevice := f.deviceHandler.GetChildDevice(parentPortNo, onuID)
-	if onuDevice == nil {
-		log.Errorw("onu not found", log.Fields{"intfId": parentPortNo, "onuId": onuID})
-		return nil, errors.New("onu not found")
+	onuDevice, err := f.deviceHandler.GetChildDevice(parentPortNo, onuID)
+	if err != nil {
+		log.Errorw("onu not found", log.Fields{"err": err, "intfId": parentPortNo, "onuId": onuID})
+		return nil, err
 	}
 	log.Debugw("Successfully received child device from core", log.Fields{"child_device": *onuDevice})
 	return onuDevice, nil
@@ -1567,7 +1567,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 				// Delete the TCONT on the ONU.
 				if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.UsScheduler.AllocID), tpPath); err != nil {
 					log.Errorw("error processing delete tcont towards onu",
-						log.Fields{"pon": Intf, "onuID": onuID, "uniID": uniID, "allocId": techprofileInst.UsScheduler.AllocID})
+						log.Fields{"err": err, "pon": Intf, "onuID": onuID, "uniID": uniID, "allocId": techprofileInst.UsScheduler.AllocID})
 				}
 			}
 		}

@@ -163,8 +163,8 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpDeviceInfo(device)
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return nil, errors.New("device-handler-not-set")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return nil, errors.New("unknown-device")
 }
 
 //Get_ofp_port_info returns OFP port information for the given device
@@ -173,8 +173,8 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpPortInfo(device, portNo)
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return nil, errors.New("device-handler-not-set")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return nil, errors.New("unknown-device")
 }
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
@@ -235,8 +235,8 @@ func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.DisableDevice(device)
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return errors.New("unknown-device")
 }
 
 //Reenable_device enables the olt device after disable
@@ -245,8 +245,8 @@ func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.ReenableDevice(device)
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return errors.New("unknown-device")
 }
 
 //Reboot_device reboots the given device
@@ -255,8 +255,8 @@ func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.RebootDevice(device)
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return errors.New("unknown-device")
 
 }
 
@@ -276,8 +276,8 @@ func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
 		oo.deleteDeviceHandlerToMap(handler)
 		return nil
 	}
-	log.Errorw("device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-found")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return errors.New("unknown-device")
 }
 
 //Get_device_details unimplemented
@@ -297,8 +297,8 @@ func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *open
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
-	log.Errorw("Update_flows_incrementally failed-device-handler-not-set", log.Fields{"deviceId": device.Id})
-	return errors.New("device-handler-not-set")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": device.Id})
+	return errors.New("unknown-device")
 }
 
 //Update_pm_config returns PmConfigs nil or error
@@ -313,8 +313,8 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
-	log.Errorw("Receive_packet_out failed-device-handler-not-set", log.Fields{"deviceId": deviceID, "egressport": egressPortNo, "packet": packet})
-	return errors.New("device-handler-not-set")
+	log.Debugw("failed-unknown-device", log.Fields{"deviceId": deviceID, "egressport": egressPortNo, "packet": packet})
+	return errors.New("unknown-device")
 }
 
 //Suppress_event unimplemented
