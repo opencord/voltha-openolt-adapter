@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bd36f4e_f34d9169",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1744,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-02-13T13:08:11Z",
+      "side": 1,
+      "message": "can we not simply just use append instead of 2 statements here ?",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
