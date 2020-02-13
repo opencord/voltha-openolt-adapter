@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7516f42d_b4e021a5",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1712,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-13T08:25:53Z",
+      "side": 1,
+      "message": "Not sure about this .As discussed it has to be followed up by Khen and we don\u0027t have JIRA created to track this .",
+      "parentUuid": "26ec59c3_8dbdb510",
+      "revId": "dc2157651d4a3bcf163bd0d57508f166899c8ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c9958c9_7fea5f4d",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 13
@@ -30,6 +48,30 @@
       "writtenOn": "2020-02-12T15:09:09Z",
       "side": 1,
       "message": "in a single line",
+      "range": {
+        "startLine": 1716,
+        "startChar": 0,
+        "endLine": 1717,
+        "endChar": 9
+      },
+      "revId": "dc2157651d4a3bcf163bd0d57508f166899c8ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71be3357_2a2b0b86",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1717,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-13T08:25:53Z",
+      "side": 1,
+      "message": "if we use \"if with init \" , the scope of onudevice which has to be used further is limited to the if block only but not outside.",
+      "parentUuid": "3c9958c9_7fea5f4d",
       "range": {
         "startLine": 1716,
         "startChar": 0,
