@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08d55090_d286c590",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T18:55:44Z",
+      "side": 1,
+      "message": "Consider lowercasing to hide implementation.\n\n(Potentially more like this.)",
+      "revId": "1e9b5bd5ed4d626aa3b6cac615f9ec1ecc006578",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2bfbaea_3913e2e9",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T18:55:44Z",
+      "side": 1,
+      "message": "fields are a map[string]interface{} under the hood.  Values may change after the error has been created.  Not necessarily an error, but prone to errors.\n\n(This is not an issue for logging as fields are printed before log functions return.)",
+      "revId": "1e9b5bd5ed4d626aa3b6cac615f9ec1ecc006578",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a4ee880b_0707ece5",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T18:55:44Z",
+      "side": 1,
+      "message": "For utility, consider separating NewErrInvalidValue from WrapErrInvalidValue.\n\nAlso consider returning \"error\" interface instead of custom type.",
+      "revId": "1e9b5bd5ed4d626aa3b6cac615f9ec1ecc006578",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "52e89ddd_ab3f4389",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T18:55:44Z",
+      "side": 1,
+      "message": "It would be preferable to have `error: reason: reason: etc.` somewhere in the output.\n\nThis would be the case if the order was name-wrapped-fields instead of the current name-fields-wrapped.",
+      "revId": "1e9b5bd5ed4d626aa3b6cac615f9ec1ecc006578",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "af06be6f_99e4982c",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T18:55:44Z",
+      "side": 1,
+      "message": "Consider returning error interface instead of custom type, And creating/returning \u0026ErrAdapter instead of custom error type \u0026ErrInvalidValue.",
+      "revId": "1e9b5bd5ed4d626aa3b6cac615f9ec1ecc006578",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
