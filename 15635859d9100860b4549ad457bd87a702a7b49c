@@ -2,6 +2,74 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a614f35_d9d4e67c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1067,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "Consider returning (value, error):\nhttps://github.com/golang/go/wiki/CodeReviewComments#in-band-errors",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf188dc4_76953133",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1072,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "Consider using directly:\n\nstr, err :\u003d hex.DecodeString(serialNum[4:])",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39c8a644_c9d3d7bc",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "Consider more compact format:\n\nreturn \u0026oop.SerialNumber{\n  VendorId:       []byte(serialNum[:4]),\n  VendorSpecific: []byte(str),\n}",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab246034_a838e1c4",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1728,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "Can dh.resourceMgr be nil?  Is this check required?",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2bd36f4e_f34d9169",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 15
@@ -13,6 +81,40 @@
       "writtenOn": "2020-02-13T13:08:11Z",
       "side": 1,
       "message": "can we not simply just use append instead of 2 statements here ?",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ac2df5d_470c5533",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1055,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "Consider just returning as-is:\n\nreturn RsrcMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGem)",
+      "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4feb0ab8_d1c2d3b3",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 1063,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-13T15:44:28Z",
+      "side": 1,
+      "message": "If an error must be nil, just return nil.",
       "revId": "15635859d9100860b4549ad457bd87a702a7b49c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
