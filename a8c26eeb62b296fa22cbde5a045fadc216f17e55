@@ -34,6 +34,24 @@
       "revId": "a8c26eeb62b296fa22cbde5a045fadc216f17e55",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "238e8e25_c56f06d3",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-02-14T20:05:33Z",
+      "side": 1,
+      "message": "Any improvement is good.",
+      "parentUuid": "03de8f65_b8184f87",
+      "revId": "a8c26eeb62b296fa22cbde5a045fadc216f17e55",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
