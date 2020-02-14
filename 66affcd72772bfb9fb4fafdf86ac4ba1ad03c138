@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cebcea0c_e833c529",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:02:59Z",
+      "side": 1,
+      "message": "Consider returning an error interface type from NewErr\u003ctype\u003e() functions.",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba59d09c_dd62ca68",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:02:59Z",
+      "side": 1,
+      "message": "These pass-to-embedded-struct functions are unnecessary.\n\nFunctions from embedded structs can be called on the outer struct.\n\n(more like this.)",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
