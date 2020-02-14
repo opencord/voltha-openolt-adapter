@@ -102,6 +102,29 @@
     },
     {
       "key": {
+        "uuid": "852d0162_846c7721",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-02-14T23:08:05Z",
+      "side": 1,
+      "message": "Plan to use the new LogLevel type that Rohan and Divya are implementing in their patch, once their patch is merged?",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 36
+      },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba59d09c_dd62ca68",
         "filename": "adaptercore/error.go",
         "patchSetId": 18
