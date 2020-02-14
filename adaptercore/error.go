@@ -51,7 +51,7 @@ func merge(one, two log.Fields) log.Fields {
 type LoggableError interface {
 	error
 	Log() error
-	LogAt(int) error
+	LogAt(log.LogLevel) error
 }
 
 // ErrAdapter represents a basic adapter error that combines an name, field set
@@ -110,7 +110,7 @@ func (e *ErrAdapter) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrAdapter) LogAt(level int) error {
+func (e *ErrAdapter) LogAt(level log.LogLevel) error {
 	logger := log.Debugw
 	switch level {
 	case log.InfoLevel:
@@ -154,7 +154,7 @@ func (e *ErrInvalidValue) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrInvalidValue) LogAt(level int) error {
+func (e *ErrInvalidValue) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }
@@ -183,7 +183,7 @@ func (e *ErrNotFound) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrNotFound) LogAt(level int) error {
+func (e *ErrNotFound) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }
@@ -215,7 +215,7 @@ func (e *ErrPersistence) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrPersistence) LogAt(level int) error {
+func (e *ErrPersistence) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }
@@ -245,7 +245,7 @@ func (e *ErrCommunication) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrCommunication) LogAt(level int) error {
+func (e *ErrCommunication) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }
@@ -276,7 +276,7 @@ func (e *ErrFlowOp) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrFlowOp) LogAt(level int) error {
+func (e *ErrFlowOp) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }
@@ -305,7 +305,7 @@ func (e *ErrTimeout) Log() error {
 }
 
 // LogAt logs the error at the specified level and then returns the error
-func (e *ErrTimeout) LogAt(level int) error {
+func (e *ErrTimeout) LogAt(level log.LogLevel) error {
 	_ = e.ErrAdapter.LogAt(level)
 	return e
 }

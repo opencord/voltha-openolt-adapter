@@ -440,10 +440,13 @@ func main() {
 
 	// Setup logging
 
-	loglevel := log.StringToInt(cf.LogLevel)
+	logLevel, err := log.StringToLogLevel(cf.LogLevel)
+	if err != nil {
+		log.Fatalf("Cannot setup logging, %s", err)
+	}
 
 	// Setup default logger - applies for packages that do not have specific logger set
-	if _, err := log.SetDefaultLogger(log.JSON, loglevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if _, err := log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
@@ -452,7 +455,7 @@ func main() {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
-	log.SetAllLogLevel(loglevel)
+	log.SetAllLogLevel(logLevel)
 
 	defer log.CleanUp()
 
