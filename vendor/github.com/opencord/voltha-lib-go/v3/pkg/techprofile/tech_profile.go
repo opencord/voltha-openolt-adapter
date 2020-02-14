@@ -121,7 +121,6 @@ var InferredAdditionBWIndication_name = map[int32]string{
 const (
 	defaultOnuInstance    = "multi-instance"
 	defaultUniInstance    = "single-instance"
-	defaultNumGemPorts    = 1
 	defaultGemPayloadSize = "auto"
 )
 
@@ -437,8 +436,10 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 			return nil
 		}
 	} else { // "single-instance"
-		tpInst, err := t.getSingleInstanceTp(ctx, tpInstPath)
-		if tpInst == nil {
+		if tpInst, err := t.getSingleInstanceTp(ctx, tpInstPath); err != nil {
+			log.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
+			return nil
+		} else if tpInst == nil {
 			// No "single-instance" tp found on one any uni port for the given TP ID
 			// Allocate a new TcontID or AllocID
 			if tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1); err != nil {

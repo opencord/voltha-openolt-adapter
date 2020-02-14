@@ -26,13 +26,9 @@ const (
 	defaultVersion                = 1.0
 	defaultLogLevel               = 0
 	defaultGemportsCount          = 1
-	defaultNumTconts              = 1
 	defaultPbits                  = "0b11111111"
 
-	defaultKVStoreType    = "etcd"
 	defaultKVStoreTimeout = 5 //in seconds
-	defaultKVStoreHost    = "127.0.0.1"
-	defaultKVStorePort    = 2379 // Consul = 8500; Etcd = 2379
 
 	// Tech profile path prefix in kv store
 	defaultKVPathPrefix = "service/voltha/technology_profiles"
