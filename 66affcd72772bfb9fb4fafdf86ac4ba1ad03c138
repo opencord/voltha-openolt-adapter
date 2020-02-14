@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "183827d4_180755e4",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "they will return LoggableError in next patch",
+      "parentUuid": "4ec9073f_83ae4c33",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ddaf187c_d681fb9d",
         "filename": "adaptercore/error.go",
         "patchSetId": 18
@@ -48,6 +66,30 @@
       "writtenOn": "2020-02-14T21:47:01Z",
       "side": 1,
       "message": "I\u0027m generally opposed to using ...\u003ctype\u003e to make an argument optional (especially when only one is typically expected).\n\nConsider just removing this argument.",
+      "range": {
+        "startLine": 112,
+        "startChar": 38,
+        "endLine": 112,
+        "endChar": 55
+      },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c039730_0b6176f2",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "I actually have considered removing it and in reality is was a shortcut for an \"optional\" argument. not using it now, so will remove.",
+      "parentUuid": "ddaf187c_d681fb9d",
       "range": {
         "startLine": 112,
         "startChar": 38,
@@ -124,6 +166,24 @@
     },
     {
       "key": {
+        "uuid": "9d6b3251_fde0a831",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "if they want a reason they can add one via the `log.Fields`. not sure if this should be formalized beyond that to start.",
+      "parentUuid": "068262e5_91a9d548",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ad7f7dd_79713a6e",
         "filename": "adaptercore/openolt.go",
         "patchSetId": 18
@@ -135,6 +195,24 @@
       "writtenOn": "2020-02-14T21:47:01Z",
       "side": 1,
       "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad5e9d1_1f0bc12d",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "thanks, will do a once over to make sure i .Log everywhere",
+      "parentUuid": "2ad7f7dd_79713a6e",
       "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -277,6 +355,24 @@
     },
     {
       "key": {
+        "uuid": "bfb241b5_6202f4d0",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "yep, just missed the .Log in a lot of places",
+      "parentUuid": "937ef033_6394f175",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13fec8b0_aeb84458",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 18
@@ -288,6 +384,24 @@
       "writtenOn": "2020-02-14T21:47:01Z",
       "side": 1,
       "message": "In cases where there was previously an error logged but no error was returned, should the error just be returned \u0026 not logged?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b598e8ad_2ae57adb",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T22:15:32Z",
+      "side": 1,
+      "message": "in an effort to minimize the differences to start, anywhere there was a log and a return i want to log and return.",
+      "parentUuid": "13fec8b0_aeb84458",
       "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
