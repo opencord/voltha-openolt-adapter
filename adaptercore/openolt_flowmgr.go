@@ -79,10 +79,8 @@ const (
 	//IgmpProto proto value
 	IgmpProto = 2
 
-	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
-
-	//ReservedVlan Transparent Vlan
-	ReservedVlan = 4095
+	//ReservedVlan Transparent Vlan (Masked Vlan, VLAN_ANY in ONOS Flows)
+	ReservedVlan = 4096
 
 	//DefaultMgmtVlan default vlan value
 	DefaultMgmtVlan = 4091
