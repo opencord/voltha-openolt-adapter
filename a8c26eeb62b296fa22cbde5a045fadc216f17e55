@@ -16,6 +16,24 @@
       "revId": "a8c26eeb62b296fa22cbde5a045fadc216f17e55",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "03de8f65_b8184f87",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T20:03:21Z",
+      "side": 1,
+      "message": "Will do.\n\nFYI: There\u0027s a larger logging \u0026 errors refactoring being worked on by David.  This patch is meant to specifically address the confusing logging described in VOL-2402.  (Was considering abandoning this altogether, and closing as \"wontfix\", but thought I could improve things at least a little bit.)",
+      "parentUuid": "6e8f5399_f9bb7865",
+      "revId": "a8c26eeb62b296fa22cbde5a045fadc216f17e55",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
