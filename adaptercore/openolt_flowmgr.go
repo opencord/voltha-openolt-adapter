@@ -78,10 +78,8 @@ const (
 	//IgmpProto proto value
 	IgmpProto = 2
 
-	//FIXME - see also BRDCM_DEFAULT_VLAN in broadcom_onu.py
-
-	//ReservedVlan Transparent Vlan
-	ReservedVlan = 4095
+	//ReservedVlan Transparent Vlan (Masked Vlan, VLAN_ANY in ONOS Flows)
+	ReservedVlan = 4096
 
 	//DefaultMgmtVlan default vlan value
 	DefaultMgmtVlan = 4091
@@ -1036,8 +1034,8 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 	classifier.EthType, _ = classifierInfo[EthType].(uint32)
 	classifier.IpProto, _ = classifierInfo[IPProto].(uint32)
 	if vlanID, ok := classifierInfo[VlanVid].(uint32); ok {
-		vid := vlanID & VlanvIDMask
-		if vid != ReservedVlan {
+		if vlanID != ReservedVlan {
+			vid := vlanID & VlanvIDMask
 			classifier.OVid = vid
 		}
 	}
