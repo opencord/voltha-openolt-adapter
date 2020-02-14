@@ -37,6 +37,29 @@
     },
     {
       "key": {
+        "uuid": "ddaf187c_d681fb9d",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": "I\u0027m generally opposed to using ...\u003ctype\u003e to make an argument optional (especially when only one is typically expected).\n\nConsider just removing this argument.",
+      "range": {
+        "startLine": 112,
+        "startChar": 38,
+        "endLine": 112,
+        "endChar": 55
+      },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba59d09c_dd62ca68",
         "filename": "adaptercore/error.go",
         "patchSetId": 18
@@ -78,6 +101,193 @@
         "endLine": 159,
         "endChar": 1
       },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "068262e5_91a9d548",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": "For these subtypes, Consider accepting a reason string \u0026 prepending it with \"invalid value: \".  There seem to be several places through this patch that more information could be added to the errors, but can\u0027t be without generating \u0026 embedding a wrapped reason.\n\n`NewErrNotFound(\"meterbands\", log.Fields{\"flow-metadata\": sq.flowMetadata}, errors.New(\"Could-not-get-meterbands-from-flowMetadata\"))`\n\n^ Just trying to find a cleaner solution that doesn\u0027t lead to this.  Not sure I\u0027m on the right track.",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2ad7f7dd_79713a6e",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae5b5497_39c49ef4",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "788ed253_3a291c1e",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9acdda11_d8810c04",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7716c5be_099e935b",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b0289e83_d4f33a0f",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06a2286d_fa5baead",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8652f48a_a2de0cb8",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": ".Log() ?",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "937ef033_6394f175",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": "The logged info is helpful, but doesn\u0027t appear in the returned error.  Should it be?  \n\nAlso consider `.Log()`?\n\n(More like this.  I won\u0027t comment on each.)",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "13fec8b0_aeb84458",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 870,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-14T21:47:01Z",
+      "side": 1,
+      "message": "In cases where there was previously an error logged but no error was returned, should the error just be returned \u0026 not logged?",
       "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
