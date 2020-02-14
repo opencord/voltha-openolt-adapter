@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4ec9073f_83ae4c33",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T21:09:18Z",
+      "side": 1,
+      "message": "a lot of the usage is \nreturn NewErr\u003ctype\u003e(...).Log()\nso I could create and return an interface LoggableError or something.",
+      "parentUuid": "cebcea0c_e833c529",
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba59d09c_dd62ca68",
         "filename": "adaptercore/error.go",
         "patchSetId": 18
@@ -30,6 +48,30 @@
       "writtenOn": "2020-02-14T21:02:59Z",
       "side": 1,
       "message": "These pass-to-embedded-struct functions are unnecessary.\n\nFunctions from embedded structs can be called on the outer struct.\n\n(more like this.)",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 159,
+        "endChar": 1
+      },
+      "revId": "66affcd72772bfb9fb4fafdf86ac4ba1ad03c138",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cc8f3f9e_6fda5ae9",
+        "filename": "adaptercore/error.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-14T21:09:18Z",
+      "side": 1,
+      "message": "i thought so at first, but if you don\u0027t do it this way you lose the tyoe of the outer err type. i.e. the error returned is always ErrAdapter. this was the error returned is of the receiver type",
+      "parentUuid": "ba59d09c_dd62ca68",
       "range": {
         "startLine": 155,
         "startChar": 0,
