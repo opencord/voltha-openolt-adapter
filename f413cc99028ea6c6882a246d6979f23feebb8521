@@ -22,6 +22,30 @@
       "revId": "f413cc99028ea6c6882a246d6979f23feebb8521",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb171fdc_ba2ee09c",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1072,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-02-17T20:38:47Z",
+      "side": 1,
+      "message": "make sca does not show any errors. \n\nI will remove the argument and upload another patchset",
+      "parentUuid": "a08f165a_57054e02",
+      "range": {
+        "startLine": 1072,
+        "startChar": 94,
+        "endLine": 1072,
+        "endChar": 106
+      },
+      "revId": "f413cc99028ea6c6882a246d6979f23feebb8521",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
