@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d590da37_34147a8f",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1140,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-17T14:45:12Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "5cfc19b8_43e735d5",
+      "range": {
+        "startLine": 1140,
+        "startChar": 1,
+        "endLine": 1140,
+        "endChar": 4
+      },
+      "revId": "65b1e3003b5af11ee35a6df8a2dc88111a283a05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7e7ce838_95acd19f",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 20
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-17T14:27:51Z",
       "side": 1,
       "message": "shoudl this not be decoded the sane way as the one at the vendor specific string ?",
+      "range": {
+        "startLine": 1145,
+        "startChar": 18,
+        "endLine": 1145,
+        "endChar": 38
+      },
+      "revId": "65b1e3003b5af11ee35a6df8a2dc88111a283a05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0b516313_d1a348f9",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1145,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-17T14:45:12Z",
+      "side": 1,
+      "message": "while stringify only vendor specific ID to get hexdecimal string , destringify also should decode only the vendor specific part of it.",
+      "parentUuid": "7e7ce838_95acd19f",
       "range": {
         "startLine": 1145,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e1a33db6_064e33f8",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1810,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-17T14:45:12Z",
+      "side": 1,
+      "message": "Since this is a delete call ,clean up should continue even if errors pops at any stage i think",
+      "parentUuid": "afadd1b4_441ce788",
+      "range": {
+        "startLine": 1809,
+        "startChar": 0,
+        "endLine": 1810,
+        "endChar": 2
+      },
+      "revId": "65b1e3003b5af11ee35a6df8a2dc88111a283a05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11232180_9d284127",
         "filename": "adaptercore/resourcemanager/resourcemanager.go",
         "patchSetId": 20
@@ -82,6 +154,30 @@
       "writtenOn": "2020-02-17T14:27:51Z",
       "side": 1,
       "message": "you might want to remove this space",
+      "range": {
+        "startLine": 1058,
+        "startChar": 44,
+        "endLine": 1058,
+        "endChar": 45
+      },
+      "revId": "65b1e3003b5af11ee35a6df8a2dc88111a283a05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9400bc24_e26b91c2",
+        "filename": "adaptercore/resourcemanager/resourcemanager.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 1058,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-02-17T14:45:12Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "11232180_9d284127",
       "range": {
         "startLine": 1058,
         "startChar": 44,
