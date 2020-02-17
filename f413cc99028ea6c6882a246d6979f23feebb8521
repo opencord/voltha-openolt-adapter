@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b91afbda_96e0f1d0",
+        "filename": "VERSION",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2020-02-17T20:39:42Z",
+      "side": 1,
+      "message": "also this should be 2.3.6-dev since 2.3.5 is already released.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 9
+      },
+      "revId": "f413cc99028ea6c6882a246d6979f23feebb8521",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a08f165a_57054e02",
         "filename": "adaptercore/device_handler.go",
         "patchSetId": 2
