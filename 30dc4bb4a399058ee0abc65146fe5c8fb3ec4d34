@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19a3f24e_3321e872",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1024,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-02-17T14:54:16Z",
+      "side": 1,
+      "message": "If the incoming vid (vlanID variable in this case) is 4096 (VLAN_ANY), then after the \u0026 with the mask we will be left with 0 and below check will pass leading to having the OVid classifier.\n\nI guess we should do the if check before the \u0026 operation for the change of value to 4096.\n\nSame problem would happen in another place( func getPacketTypeFromClassifiers) in this file where we do \u0026 with the VlanvIDMask",
+      "revId": "30dc4bb4a399058ee0abc65146fe5c8fb3ec4d34",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
