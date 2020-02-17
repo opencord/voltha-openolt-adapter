@@ -1000,10 +1000,6 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			"serial-number": sn}, err).Log()
 	}
 	log.Infow("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id, "sn": sn})
-	//TODO: We put this sleep here to prevent the race between state update and onuIndication
-	//In onuIndication the operStatus of device is checked. If it is still not updated in KV store
-	//then the initialisation fails.
-	time.Sleep(1 * time.Second)
 	if err = dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn); err != nil {
 		return NewErrAdapter("onu-activation-failed", log.Fields{
 			"device-id":     onuDevice.Id,
@@ -1067,16 +1063,23 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) error {
 		dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId))
 
 	}
-	if err := dh.updateOnuStates(onuDevice, onuInd, foundInCache); err != nil {
+	if err := dh.updateOnuStates(onuDevice, onuInd); err != nil {
 		return NewErrCommunication("state-update-failed", errFields, err).Log()
 	}
 	return nil
 }
 
-func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication, foundInCache bool) error {
+func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication) error {
 	ctx := context.TODO()
 	log.Debugw("onu-indication-for-state", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
-	dh.updateOnuAdminState(onuInd)
+	if onuInd.AdminState == "down" {
+		// Tests have shown that we sometimes get OperState as NOT down even if AdminState is down, forcing it
+		if onuInd.OperState != "down" {
+			log.Warnw("ONU-admin-state-down", log.Fields{"operState": onuInd.OperState})
+			onuInd.OperState = "down"
+		}
+	}
+
 	switch onuInd.OperState {
 	case "down":
 		log.Debugw("sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
@@ -1091,11 +1094,6 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 				"device-id":     onuDevice.Id}, err).Log()
 		}
 	case "up":
-		// Ignore operstatus if device was found in cache
-		if !foundInCache && onuDevice.OperStatus != common.OperStatus_DISCOVERED {
-			log.Warnw("ignore-onu-indication", log.Fields{"intfID": onuInd.IntfId, "onuID": onuInd.OnuId, "operStatus": onuDevice.OperStatus, "msgOperStatus": onuInd.OperState})
-			return nil
-		}
 		log.Debugw("sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
@@ -1109,23 +1107,6 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 		}
 	default:
 		return NewErrInvalidValue(log.Fields{"oper-state": onuInd.OperState}, nil).Log()
-	}
-	return nil
-}
-
-func (dh *DeviceHandler) updateOnuAdminState(onuInd *oop.OnuIndication) error {
-	switch onuInd.AdminState {
-	case "down":
-		if onuInd.OperState != "down" {
-			log.Errorw("ONU-admin-state-down-and-oper-status-not-down", log.Fields{"operState": onuInd.OperState})
-			// Forcing the oper state change code to execute
-			onuInd.OperState = "down"
-		}
-		// Port and logical port update is taken care of by oper state block
-	case "up":
-		log.Debugln("received-onu-admin-state up")
-	default:
-		return NewErrInvalidValue(log.Fields{"admin-state": onuInd.AdminState}, nil).Log()
 	}
 	return nil
 }
