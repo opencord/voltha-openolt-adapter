@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a08f165a_57054e02",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1072,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-17T15:37:14Z",
+      "side": 1,
+      "message": "I do not see this parameter being used in the function. We can remove it.\nIs linter not showing this error.",
+      "range": {
+        "startLine": 1072,
+        "startChar": 94,
+        "endLine": 1072,
+        "endChar": 106
+      },
+      "revId": "f413cc99028ea6c6882a246d6979f23feebb8521",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
