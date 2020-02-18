@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b1a15bd2_8916a95a",
+        "filename": "Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-18T16:56:41Z",
+      "side": 1,
+      "message": "Not sure what you mean.  I\u0027m pretty sure this is unrelated to what I\u0027m trying to accomplish.",
+      "parentUuid": "a67a8177_b5ee6faa",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 27
+      },
+      "revId": "5283008b6a37ffbb33f9ff0afe59083ed3c35315",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba2ee25e_19de1277",
         "filename": "Makefile",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-18T16:51:13Z",
       "side": 1,
       "message": "Does this need to be repeated, or could it be stored in a variable that has a meaningful name? \n\nIt\u0027s not immediately obvious to me what this is doing.",
+      "range": {
+        "startLine": 53,
+        "startChar": 80,
+        "endLine": 53,
+        "endChar": 112
+      },
+      "revId": "5283008b6a37ffbb33f9ff0afe59083ed3c35315",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "503a60f1_33344ccd",
+        "filename": "Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-18T16:56:41Z",
+      "side": 1,
+      "message": "This allocates a tty if the caller has a tty.\n\nI wanted to avoid adding lines if possible, but it could be done once and reused.",
+      "parentUuid": "ba2ee25e_19de1277",
       "range": {
         "startLine": 53,
         "startChar": 80,
