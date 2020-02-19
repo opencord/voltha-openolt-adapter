@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "695d4e06_0d8848b7",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-19T06:23:17Z",
+      "side": 1,
+      "message": "Thinking about your point, I think vlanpbit should have initialized to 0xff meaning no pbit. However the existing code did not cause issue, but I think this need to be fixed anyway. Let me do the necessary change, test and submit a patch.",
+      "parentUuid": "0c074ed9_a03985b3",
+      "range": {
+        "startLine": 742,
+        "startChar": 119,
+        "endLine": 742,
+        "endChar": 127
+      },
+      "revId": "b67a4f307725a7352d9f56233e7b4fcc6690840b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83caff4b_e7a04be4",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-18T18:27:42Z",
       "side": 1,
       "message": "should `installFlowOnAllGemports` return an error so that here the caller understand that something didn\u0027t happen correctly?",
+      "range": {
+        "startLine": 2378,
+        "startChar": 5,
+        "endLine": 2378,
+        "endChar": 11
+      },
+      "revId": "b67a4f307725a7352d9f56233e7b4fcc6690840b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ca872370_f86e756a",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2378,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-19T06:23:17Z",
+      "side": 1,
+      "message": "Currently the FlowAdd errors on the device are not propagated back to the core in openolt adapter. This is something we need to fix. If you agree, I think we should take this issue separately and not in the scope of this particular Jira.",
+      "parentUuid": "83caff4b_e7a04be4",
       "range": {
         "startLine": 2378,
         "startChar": 5,
