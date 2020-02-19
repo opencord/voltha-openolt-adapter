@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "031be820_670055a3",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 1785,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2020-02-19T12:48:40Z",
+      "side": 1,
+      "message": "if this happens nobody knows.",
+      "range": {
+        "startLine": 1785,
+        "startChar": 2,
+        "endLine": 1785,
+        "endChar": 12
+      },
+      "revId": "4822737978bc7759dca5da7598588e4eb92ea193",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66b77dc7_f5c3e863",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1000436
+      },
+      "writtenOn": "2020-02-19T12:48:40Z",
+      "side": 1,
+      "message": "called function returns err if DeleteOnu fails.  its not logged here either... so no logs in adapter tell what happened.",
+      "range": {
+        "startLine": 386,
+        "startChar": 2,
+        "endLine": 386,
+        "endChar": 53
+      },
+      "revId": "4822737978bc7759dca5da7598588e4eb92ea193",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
