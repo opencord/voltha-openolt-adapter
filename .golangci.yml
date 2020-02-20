@@ -26,7 +26,7 @@ linters-settings:
     min-confidence: 0
 
   gocyclo:
-    min-complexity: 16
+    min-complexity: 17
 
   misspell:
     locale: US
