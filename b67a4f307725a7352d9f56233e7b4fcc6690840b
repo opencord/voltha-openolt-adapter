@@ -49,6 +49,23 @@
     },
     {
       "key": {
+        "uuid": "46f2bbc0_601c8e08",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2366,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-02-20T12:21:00Z",
+      "side": 1,
+      "message": "are we expecting pbits to be identical for both upstream and downstream.? shouldnt we be checking for downstream as well",
+      "revId": "b67a4f307725a7352d9f56233e7b4fcc6690840b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83caff4b_e7a04be4",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
