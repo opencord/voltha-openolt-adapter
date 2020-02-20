@@ -30,26 +30,27 @@ import (
 )
 
 const (
-	onuDiscoveryEvent       = "ONU_DISCOVERY"
-	onuLosEvent             = "ONU_LOSS_OF_SIGNAL"
-	onuLobEvent             = "ONU_LOSS_OF_BURST"
-	onuLopcMissEvent        = "ONU_LOPC_MISS"
-	onuLopcMicErrorEvent    = "ONU_LOPC_MIC_ERROR"
-	oltLosEvent             = "OLT_LOSS_OF_SIGNAL"
-	oltIndicationDown       = "OLT_DOWN_INDICATION"
-	onuDyingGaspEvent       = "ONU_DYING_GASP"
-	onuSignalsFailEvent     = "ONU_SIGNALS_FAIL"
-	onuStartupFailEvent     = "ONU_STARTUP_FAIL"
-	onuSignalDegradeEvent   = "ONU_SIGNAL_DEGRADE"
-	onuDriftOfWindowEvent   = "ONU_DRIFT_OF_WINDOW"
-	onuActivationFailEvent  = "ONU_ACTIVATION_FAIL"
-	onuProcessingErrorEvent = "ONU_PROCESSING_ERROR"
-	onuTiwiEvent            = "ONU_TRANSMISSION_WARNING"
-	onuLossOmciEvent        = "ONU_LOSS_OF_OMCI_CHANNEL"
-	onuLossOfKeySyncEvent   = "ONU_LOSS_OF_KEY_SYNC"
-	onuLossOfFrameEvent     = "ONU_LOSS_OF_FRAME"
-	onuLossOfPloamEvent     = "ONU_LOSS_OF_PLOAM"
-	ponIntfDownIndiction    = "OLT_PON_INTERFACE_DOWN"
+	onuDiscoveryEvent         = "ONU_DISCOVERY"
+	onuLosEvent               = "ONU_LOSS_OF_SIGNAL"
+	onuLobEvent               = "ONU_LOSS_OF_BURST"
+	onuLopcMissEvent          = "ONU_LOPC_MISS"
+	onuLopcMicErrorEvent      = "ONU_LOPC_MIC_ERROR"
+	oltLosEvent               = "OLT_LOSS_OF_SIGNAL"
+	oltIndicationDown         = "OLT_DOWN_INDICATION"
+	onuDyingGaspEvent         = "ONU_DYING_GASP"
+	onuSignalsFailEvent       = "ONU_SIGNALS_FAIL"
+	onuStartupFailEvent       = "ONU_STARTUP_FAIL"
+	onuSignalDegradeEvent     = "ONU_SIGNAL_DEGRADE"
+	onuDriftOfWindowEvent     = "ONU_DRIFT_OF_WINDOW"
+	onuActivationFailEvent    = "ONU_ACTIVATION_FAIL"
+	onuProcessingErrorEvent   = "ONU_PROCESSING_ERROR"
+	onuTiwiEvent              = "ONU_TRANSMISSION_WARNING"
+	onuLossOmciEvent          = "ONU_LOSS_OF_OMCI_CHANNEL"
+	onuLossOfKeySyncEvent     = "ONU_LOSS_OF_KEY_SYNC"
+	onuLossOfFrameEvent       = "ONU_LOSS_OF_FRAME"
+	onuLossOfPloamEvent       = "ONU_LOSS_OF_PLOAM"
+	ponIntfDownIndiction      = "OLT_PON_INTERFACE_DOWN"
+	onuRemoteDefectIndication = "ONU_REMOTE_DEFECT"
 )
 
 const (
@@ -137,9 +138,9 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuLossOfSyncFailInd:
 		log.Infow("Received onu Loss of Sync Fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuLossOfSyncIndication(alarmInd.GetOnuLossOfSyncFailInd(), deviceID, raisedTs)
-	case *oop.AlarmIndication_OnuItuPonStatsInd:
+	case *oop.AlarmIndication_OnuRemoteDefectInd:
 		log.Infow("Received onu Itu Pon Stats indication ", log.Fields{"alarm_ind": alarmInd})
-		log.Infow("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuRemoteDefectIndication(alarmInd.GetOnuRemoteDefectInd(), deviceID, raisedTs)
 	default:
 		log.Errorw("Received unknown indication type", log.Fields{"alarm_ind": alarmInd})
 
@@ -483,4 +484,24 @@ func (em *OpenOltEventMgr) oltIntfOperIndication(ifindication *oop.IntfOperIndic
 		log.Errorw("failed-to-send-olt-intf-oper-status-event", log.Fields{"err": err})
 	}
 	log.Info("sent-olt-intf-oper-status-event-to-kafka")
+}
+
+func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefectIndication, deviceID string, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	context["onu-id"] = strconv.FormatUint(uint64(onuRDI.OnuId), base10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuRDI.IntfId), base10)
+	context["rdi-error"] = strconv.FormatUint(uint64(onuRDI.RdiError), base10)
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	de.DeviceEventName = onuRemoteDefectIndication
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, equipment, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU remote defect event", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+		return err
+	}
+	log.Infow("ONU remote defect event sent to KAFKA", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+	return nil
 }
