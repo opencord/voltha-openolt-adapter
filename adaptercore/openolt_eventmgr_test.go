@@ -115,6 +115,11 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 		// AlarmIndication_onuLossOfKeySyncInd
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuLossOfSyncFailInd{OnuLossOfSyncFailInd: &oop.OnuLossOfKeySyncFailureIndication{IntfId: 1, OnuId: 3, Status: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuLossOfSyncFailInd{OnuLossOfSyncFailInd: &oop.OnuLossOfKeySyncFailureIndication{IntfId: 1, OnuId: 3, Status: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+
+		// AlarmIndication_onuDeactivationFailureInd
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuDeactivationFailureInd{OnuDeactivationFailureInd: &oop.OnuDeactivationFailureIndication{IntfId: 1, OnuId: 3, FailReason: 2}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		// AlarmIndication_onuRemoteDefectInd
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuRemoteDefectInd{OnuRemoteDefectInd: &oop.OnuRemoteDefectIndication{IntfId: 1, OnuId: 3, RdiErrors: 3}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
