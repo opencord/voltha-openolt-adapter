@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15b5efd4_3ffab7a9",
+        "filename": "adaptercore/openolt.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T01:25:03Z",
+      "side": 1,
+      "message": "please see the errors.go file and how NotFound errors are done elsewhere.",
+      "range": {
+        "startLine": 389,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 46
+      },
+      "revId": "431952599d447f6201a2529f7bea25d93f8889a2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a545365_b9bbac9e",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 2233,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T01:25:03Z",
+      "side": 1,
+      "message": "this is a failure that is not handled, we may not be able to handle it given we don\u0027t want to change public interfaces but please create a JIRA to have this error handled.,",
+      "range": {
+        "startLine": 2232,
+        "startChar": 2,
+        "endLine": 2233,
+        "endChar": 8
+      },
+      "revId": "431952599d447f6201a2529f7bea25d93f8889a2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12d39efd_d6b3782d",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T01:25:03Z",
+      "side": 1,
+      "message": "please see errors.go and InvalidValue error",
+      "range": {
+        "startLine": 665,
+        "startChar": 9,
+        "endLine": 665,
+        "endChar": 15
+      },
+      "revId": "431952599d447f6201a2529f7bea25d93f8889a2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89168068_bb5442fe",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T01:25:03Z",
+      "side": 1,
+      "message": "default case not handled (i.e. it is an error).",
+      "revId": "431952599d447f6201a2529f7bea25d93f8889a2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
