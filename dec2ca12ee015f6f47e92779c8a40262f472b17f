@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7e8db2c3_73266108",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 1785,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T15:01:02Z",
+      "side": 1,
+      "message": "logging and return error, don\u0027t need to do both and does not follow pattern in other parts of code.",
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1da0b76e_7cd5a3a9",
         "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
         "patchSetId": 29
