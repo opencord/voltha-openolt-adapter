@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "908262da_df784aca",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 676,
+      "author": {
+        "id": 1000604
+      },
+      "writtenOn": "2020-02-20T10:52:36Z",
+      "side": 1,
+      "message": "Since voltha-lib-go is already merged. This can be taken care in separate commit. Created JIRA https://jira.opencord.org/browse/VOL-2637 to address error logging.",
+      "parentUuid": "1da0b76e_7cd5a3a9",
+      "range": {
+        "startLine": 676,
+        "startChar": 0,
+        "endLine": 676,
+        "endChar": 78
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51ae4c40_4d7499a3",
         "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
         "patchSetId": 29
@@ -36,6 +60,30 @@
       "writtenOn": "2020-02-20T08:13:01Z",
       "side": 1,
       "message": "convert to new error method",
+      "range": {
+        "startLine": 681,
+        "startChar": 4,
+        "endLine": 681,
+        "endChar": 10
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1cef65de_df3b8e31",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1000604
+      },
+      "writtenOn": "2020-02-20T10:52:36Z",
+      "side": 1,
+      "message": "Same as above.. https://jira.opencord.org/browse/VOL-2637",
+      "parentUuid": "51ae4c40_4d7499a3",
       "range": {
         "startLine": 681,
         "startChar": 4,
