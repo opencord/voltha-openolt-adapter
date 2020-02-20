@@ -51,6 +51,7 @@ const (
 	onuLossOfPloamEvent         = "ONU_LOSS_OF_PLOAM"
 	ponIntfDownIndiction        = "OLT_PON_INTERFACE_DOWN"
 	onuDeactivationFailureEvent = "ONU_DEACTIVATION_FAILURE"
+	onuRemoteDefectIndication   = "ONU_REMOTE_DEFECT"
 )
 
 const (
@@ -131,9 +132,9 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuLossOfSyncFailInd:
 		log.Infow("Received onu Loss of Sync Fail indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuLossOfSyncIndication(alarmInd.GetOnuLossOfSyncFailInd(), deviceID, raisedTs)
-	case *oop.AlarmIndication_OnuItuPonStatsInd:
-		log.Infow("Received onu Itu Pon Stats indication ", log.Fields{"alarm_ind": alarmInd})
-		log.Infow("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
+	case *oop.AlarmIndication_OnuRemoteDefectInd:
+		log.Infow("Received onu remote defect indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuRemoteDefectIndication(alarmInd.GetOnuRemoteDefectInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuDeactivationFailureInd:
 		log.Infow("Received onu deactivation failure indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
@@ -500,5 +501,24 @@ func (em *OpenOltEventMgr) onuDeactivationFailureIndication(onuDFI *oop.OnuDeact
 		return err
 	}
 	log.Infow("ONU deactivation failure event sent to KAFKA", log.Fields{"onu-id": onuDFI.OnuId, "intf-id": onuDFI.IntfId})
+}
+
+func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefectIndication, deviceID string, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	context["onu-id"] = strconv.FormatUint(uint64(onuRDI.OnuId), base10)
+	context["intf-id"] = strconv.FormatUint(uint64(onuRDI.IntfId), base10)
+	context["rdi-errors"] = strconv.FormatUint(uint64(onuRDI.RdiErrors), base10)
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	de.DeviceEventName = onuRemoteDefectIndication
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(&de, equipment, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU remote defect event", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+		return err
+	}
+	log.Infow("ONU remote defect event sent to KAFKA", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
 	return nil
 }
