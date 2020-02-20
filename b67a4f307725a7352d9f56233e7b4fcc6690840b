@@ -66,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "55d5eba5_b631cc33",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2366,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-20T14:56:09Z",
+      "side": 1,
+      "message": "The gem ports are currently setup on the ONU with direction as \"bi-directional\" and the pbit mappings are taken from the \"upstream\" direction (see https://github.com/opencord/voltha-openonu-adapter/blob/master/python/adapters/brcm_openomci_onu/omci/brcm_tp_setup_task.py#L305). \nI understand this is a limitation on the tech-profile setup, and will probably need to be addressed separately (in both openonu and openolt adapter) if any new Operator Workflow has different pbit mapping requirement in both directions.",
+      "parentUuid": "46f2bbc0_601c8e08",
+      "revId": "b67a4f307725a7352d9f56233e7b4fcc6690840b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83caff4b_e7a04be4",
         "filename": "adaptercore/openolt_flowmgr.go",
         "patchSetId": 4
