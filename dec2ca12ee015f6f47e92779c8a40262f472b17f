@@ -19,6 +19,52 @@
     },
     {
       "key": {
+        "uuid": "4f87d904_7204cd5e",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 1791,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T16:07:26Z",
+      "side": 1,
+      "message": "Is this really an error? If so then I would expect processing to stop and an error returned.  If it is not an error then it should not be logged at the ErrorLevel.",
+      "range": {
+        "startLine": 1791,
+        "startChar": 0,
+        "endLine": 1791,
+        "endChar": 76
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9bac4709_35579124",
+        "filename": "adaptercore/device_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 1798,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T16:07:26Z",
+      "side": 1,
+      "message": "Is this really an error? If so then I would expect processing to stop and an error returned. It if is not an error then it should not be logged at the ErrorLevel.",
+      "range": {
+        "startLine": 1798,
+        "startChar": 0,
+        "endLine": 1798,
+        "endChar": 93
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1da0b76e_7cd5a3a9",
         "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
         "patchSetId": 29
@@ -66,6 +112,30 @@
     },
     {
       "key": {
+        "uuid": "f077860b_72696fbf",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 676,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T16:07:26Z",
+      "side": 1,
+      "message": "ignore, this is in vendor dir",
+      "parentUuid": "908262da_df784aca",
+      "range": {
+        "startLine": 676,
+        "startChar": 0,
+        "endLine": 676,
+        "endChar": 78
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51ae4c40_4d7499a3",
         "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
         "patchSetId": 29
@@ -101,6 +171,30 @@
       "side": 1,
       "message": "Same as above.. https://jira.opencord.org/browse/VOL-2637",
       "parentUuid": "51ae4c40_4d7499a3",
+      "range": {
+        "startLine": 681,
+        "startChar": 4,
+        "endLine": 681,
+        "endChar": 10
+      },
+      "revId": "dec2ca12ee015f6f47e92779c8a40262f472b17f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9cd655f3_f0ba9ab4",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v3/pkg/adapters/common/request_handler.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-20T16:07:26Z",
+      "side": 1,
+      "message": "ignore this is in vendor dir",
+      "parentUuid": "1cef65de_df3b8e31",
       "range": {
         "startLine": 681,
         "startChar": 4,
