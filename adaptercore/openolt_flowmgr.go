@@ -1475,14 +1475,15 @@ func (f *OpenOltFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
 	onugem := f.onuGemInfo[intfID]
-	for _, onu := range onugem {
+	for i, onu := range onugem {
 		if onu.OnuID == onuID {
-			for i, gem := range onu.GemPorts {
+			for j, gem := range onu.GemPorts {
 				// If the gemport is found, delete it from local cache.
 				if gem == gemPortID {
-					onu.GemPorts = append(onu.GemPorts[:i], onu.GemPorts[i+1:]...)
+					onu.GemPorts = append(onu.GemPorts[:j], onu.GemPorts[j+1:]...)
+					onugem[i] = onu
 					log.Debugw("removed gemport from local cache",
-						log.Fields{"intfID": intfID, "onuID": onuID, "gemPortID": gemPortID})
+						log.Fields{"intfID": intfID, "onuID": onuID, "deletedGemPortID": gemPortID, "gemPorts": onu.GemPorts})
 					break
 				}
 			}
