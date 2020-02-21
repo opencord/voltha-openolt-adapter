@@ -222,7 +222,7 @@ func (kvclient *MockKVClient) RenewReservation(ctx context.Context, key string) 
 }
 
 // Watch mock function implementation for KVClient
-func (kvclient *MockKVClient) Watch(ctx context.Context, key string) chan *kvstore.Event {
+func (kvclient *MockKVClient) Watch(ctx context.Context, key string, withPrefix bool) chan *kvstore.Event {
 	return nil
 	// if key == "" {
 	// 	return nil
