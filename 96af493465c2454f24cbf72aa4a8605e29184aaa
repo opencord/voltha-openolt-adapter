@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0d8a21d_ce74d024",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1478,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-21T05:19:48Z",
+      "side": 1,
+      "message": "I see that the problem here was that this was copied by value and not reference. Is that right?",
+      "range": {
+        "startLine": 1478,
+        "startChar": 8,
+        "endLine": 1478,
+        "endChar": 11
+      },
+      "revId": "96af493465c2454f24cbf72aa4a8605e29184aaa",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
