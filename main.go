@@ -255,6 +255,10 @@ func (a *adapter) stop(ctx context.Context) {
 		a.kvClient.Close()
 	}
 
+	if a.kip != nil {
+		a.kip.Stop()
+	}
+
 	// TODO:  More cleanup
 }
 
