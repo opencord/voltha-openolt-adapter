@@ -1,4 +1,4 @@
-/*
+/*//
  * Copyright 2018-present Open Networking Foundation
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/codes"
 
 	"github.com/cenkalti/backoff/v3"
@@ -520,7 +523,16 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
-	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure(), grpc.WithBlock()); err != nil {
+	log.Debugf("DoStateInit %s", dh.device.GetHostAndPort())
+	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		)),
+		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		))); err != nil {
 		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.deviceID,
 			"host-and-port": dh.device.GetHostAndPort()}, err).Log()

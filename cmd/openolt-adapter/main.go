@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"strconv"
@@ -41,6 +42,10 @@ import (
 	ac "github.com/opencord/voltha-openolt-adapter/internal/pkg/core"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/uber/jaeger-client-go"
+	jc "github.com/uber/jaeger-client-go/config"
 )
 
 type adapter struct {
@@ -60,6 +65,19 @@ type adapter struct {
 
 func init() {
 	_, _ = log.AddPackage(log.CONSOLE, log.DebugLevel, nil)
+}
+
+func initJaeger(service string) (opentracing.Tracer, io.Closer) {
+	cfg, err := jc.FromEnv()
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	log.Info("hwchiu-env")
+	tracer, closer, err := cfg.New(service, jc.Logger(jaeger.StdLogger))
+	if err != nil {
+		panic(fmt.Sprintf("ERROR: cannot init Jaeger: %v\n", err))
+	}
+	return tracer, closer
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
@@ -464,6 +482,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot setup logging, %s", err)
 	}
+	t, closer := initJaeger("openolt-adapter")
+	opentracing.SetGlobalTracer(t)
+	span := t.StartSpan("Start openolt-adapter")
+	defer span.Finish()
+	defer closer.Close()
 
 	// Setup default logger - applies for packages that do not have specific logger set
 	if _, err := log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
@@ -496,6 +519,8 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	ctx = opentracing.ContextWithSpan(ctx, span)
 
 	ad := newAdapter(cf)
 
