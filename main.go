@@ -202,17 +202,28 @@ func (a *adapter) checkKafkaReadiness(ctx context.Context) {
 	livelinessChannel := a.kafkaClient.EnableLivenessChannel(true)
 	healthinessChannel := a.kafkaClient.EnableHealthinessChannel(true)
 	timeout := a.config.LiveProbeInterval
+	failed := false
 	for {
 		timeoutTimer := time.NewTimer(timeout)
 
 		select {
 		case healthiness := <-healthinessChannel:
 			if !healthiness {
-				// log.Fatal will call os.Exit(1) to terminate
-				log.Fatal("Kafka service has become unhealthy")
+				// This will eventually cause K8s to restart the container, and will do
+				// so in a way that allows cleanup to continue, rather than an immediate
+				// panic and exit here.
+				probe.UpdateStatusFromContext(ctx, "message-bus", probe.ServiceStatusFailed)
+				failed = true
+			}
+			// Check if the timer has expired or not
+			if !timeoutTimer.Stop() {
+				<-timeoutTimer.C
 			}
 		case liveliness := <-livelinessChannel:
-			if !liveliness {
+			if failed {
+				// Failures of the message bus are permanent and can't ever be recovered from,
+				// so make sure we never inadvertently reset a failed state back to unready.
+			} else if !liveliness {
 				// kafka not reachable or down, updating the status to not ready state
 				probe.UpdateStatusFromContext(ctx, "message-bus", probe.ServiceStatusNotReady)
 				timeout = a.config.NotLiveProbeInterval
@@ -253,6 +264,10 @@ func (a *adapter) stop(ctx context.Context) {
 		}
 		// Close the DB connection
 		a.kvClient.Close()
+	}
+
+	if a.kip != nil {
+		a.kip.Stop()
 	}
 
 	// TODO:  More cleanup
