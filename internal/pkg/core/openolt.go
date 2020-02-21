@@ -30,6 +30,8 @@ import (
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"github.com/opentracing/opentracing-go"
+	"github.com/uber/jaeger-client-go"
 )
 
 //OpenOLT structure holds the OLT information
@@ -140,6 +142,23 @@ func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 // Adopt_device creates a new device handler if not present already and then adopts the device
 func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	ctx := context.Background()
+
+	log.Infow("hwchiu-demo", log.Fields{"ExtraArgs": device.ExtraArgs})
+
+	if device.ExtraArgs != "" {
+		spCtx, err := jaeger.ContextFromString(device.ExtraArgs)
+		if err != nil {
+			log.Infow("hwchiu-demo error", log.Fields{"error": err})
+		}
+		//span, ctx = opentracing.StartSpanFromContext(ctx, "OLT: Adopt_device", opentracing.ChildOf(spCtx))
+		span := opentracing.GlobalTracer().StartSpan("OLT: Adopt_device", opentracing.ChildOf(spCtx))
+		ctx = opentracing.ContextWithSpan(ctx, span)
+		log.Infow("hwchiu-demo", log.Fields{"data": span})
+		defer span.Finish()
+	} else {
+		log.Infow("hwchiu-demo extraArgs error", log.Fields{"extraArgs": device.ExtraArgs})
+	}
+
 	if device == nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}

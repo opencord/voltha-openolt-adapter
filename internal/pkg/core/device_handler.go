@@ -1,4 +1,4 @@
-/*
+/*//
  * Copyright 2018-present Open Networking Foundation
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,9 @@ import (
 	"sync"
 	"time"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/codes"
 
 	"github.com/cenkalti/backoff/v3"
@@ -520,7 +523,16 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
-	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure(), grpc.WithBlock()); err != nil {
+	log.Debugf("DoStateInit %s", dh.device.GetHostAndPort())
+	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		)),
+		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		))); err != nil {
 		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.deviceID,
 			"host-and-port": dh.device.GetHostAndPort()}, err).Log()
@@ -690,8 +702,10 @@ func startCollector(dh *DeviceHandler) {
 //AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
 	dh.transitionMap = NewTransitionMap(dh)
-	log.Infow("Adopt_device", log.Fields{"deviceID": device.Id, "Address": device.GetHostAndPort()})
+	log.Infow("hwchiu-demo Adopt_device", log.Fields{"deviceID": device.Id, "Address": device.GetHostAndPort()})
 	dh.transitionMap.Handle(ctx, DeviceInit)
+
+	log.Debug("hwchiu-adopt-device", log.Fields{"deviceId": device.Id})
 
 	// Now, set the initial PM configuration for that device
 	if err := dh.coreProxy.DevicePMConfigUpdate(nil, dh.metrics.ToPmConfigs()); err != nil {
@@ -891,7 +905,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 }
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
-	log.Debugw("activate-onu", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum, "serialNumber": serialNumber})
+	log.Infow("hwchiu-demo activate-onu", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum, "serialNumber": serialNumber})
 	dh.flowMgr.UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber)
 	// TODO: need resource manager
 	var pir uint32 = 1000000
