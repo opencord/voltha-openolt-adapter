@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0c3ed497_98082f8f",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2369,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-02-24T10:12:56Z",
+      "side": 1,
+      "message": "same comment on extracting and explaining",
+      "range": {
+        "startLine": 2369,
+        "startChar": 73,
+        "endLine": 2369,
+        "endChar": 77
+      },
+      "revId": "a97d17ca017f62dee18f2d3fcd3489aff4f0521a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08df52ab_0257c062",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2370,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-02-24T10:12:56Z",
+      "side": 1,
+      "message": "please extract this as constant and explain what 1 is for people that do not understand what this is.",
+      "range": {
+        "startLine": 2370,
+        "startChar": 17,
+        "endLine": 2370,
+        "endChar": 20
+      },
+      "revId": "a97d17ca017f62dee18f2d3fcd3489aff4f0521a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8651bba_492915ad",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2371,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-02-24T10:12:56Z",
+      "side": 1,
+      "message": "reuse",
+      "range": {
+        "startLine": 2371,
+        "startChar": 82,
+        "endLine": 2371,
+        "endChar": 86
+      },
+      "revId": "a97d17ca017f62dee18f2d3fcd3489aff4f0521a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcf9a873_d41f4b4b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2371,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-02-24T10:12:56Z",
+      "side": 1,
+      "message": "please put some comment explaining this operation.",
+      "range": {
+        "startLine": 2371,
+        "startChar": 82,
+        "endLine": 2371,
+        "endChar": 107
+      },
+      "revId": "a97d17ca017f62dee18f2d3fcd3489aff4f0521a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
