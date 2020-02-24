@@ -1796,7 +1796,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	//clear PON resources associated with ONU
 	var onuGemData []rsrcMgr.OnuGemInfo
 	if err := dh.resourceMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
-		log.Errorw("Failed-to-get-onu-info-for-pon-port ", log.Fields{
+		log.Warnw("Failed-to-get-onu-info-for-pon-port ", log.Fields{
 			"device-id":    dh.deviceID,
 			"interface-id": IntfID,
 			"error":        err})
@@ -1806,7 +1806,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
 			log.Debugw("onu-data ", log.Fields{"onu": onu})
 			if err := dh.clearUNIData(ctx, &onu); err != nil {
-				log.Errorw("Failed-to-clear-uni-data-for-onu", log.Fields{
+				log.Warnw("Failed-to-clear-uni-data-for-onu", log.Fields{
 					"device-id":  dh.deviceID,
 					"onu-device": onu,
 					"error":      err})
