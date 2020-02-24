@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55e08e17_d848b832",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-24T15:06:05Z",
+      "side": 1,
+      "message": "Consider using map literal instead of assigning later:\n\ncontext :\u003d map[string]string{\n  key: value,\n  ...\n}",
+      "revId": "f5797397b3091deae944b3096fdb12fafccae788",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a0868b3_51955228",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-24T15:06:05Z",
+      "side": 1,
+      "message": "Consider declaring de with values.\n\nde :\u003d \u0026voltha.DeviceEvent{\n  Context: context,\n  ...\n}",
+      "revId": "f5797397b3091deae944b3096fdb12fafccae788",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
