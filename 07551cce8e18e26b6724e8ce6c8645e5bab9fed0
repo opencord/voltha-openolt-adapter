@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75544c58_24120f18",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-24T09:36:13Z",
+      "side": 1,
+      "message": "should change to rdi-errors and RdiErrors as per the comments in voltha-protos review.",
+      "revId": "07551cce8e18e26b6724e8ce6c8645e5bab9fed0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
