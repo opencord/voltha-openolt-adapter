@@ -16,6 +16,24 @@
       "revId": "07551cce8e18e26b6724e8ce6c8645e5bab9fed0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "709e2f5c_33abf66b",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-02-24T09:43:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75544c58_24120f18",
+      "revId": "07551cce8e18e26b6724e8ce6c8645e5bab9fed0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
