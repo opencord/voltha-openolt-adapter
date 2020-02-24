@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f85adca_efacbb6b",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2400,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2020-02-24T18:14:33Z",
+      "side": 1,
+      "message": "IGMP flow is not handled here . Is it intentional ?",
+      "revId": "5ec842ccb16559007e72de0f2054d8ae463330c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
