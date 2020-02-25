@@ -34,6 +34,24 @@
       "revId": "5ec842ccb16559007e72de0f2054d8ae463330c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7dc9034e_d7f41d70",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2400,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-25T15:17:28Z",
+      "side": 1,
+      "message": "I am not sure I understand your comment. This is case of DhcpTrapOnNni.",
+      "parentUuid": "0486030b_58217fbc",
+      "revId": "5ec842ccb16559007e72de0f2054d8ae463330c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
