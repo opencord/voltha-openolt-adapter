@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aee6cc25_b0e1ba79",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-25T22:36:20Z",
+      "side": 1,
+      "message": "should the timeoutTimer be stopped here?",
+      "revId": "1bf3056a3da68bf7b1f614a6970f08af81ab4bf9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
