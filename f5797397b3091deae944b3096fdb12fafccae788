@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "577767e9_f25c3590",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-02-25T07:01:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "55e08e17_d848b832",
+      "revId": "f5797397b3091deae944b3096fdb12fafccae788",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a0868b3_51955228",
         "filename": "adaptercore/openolt_eventmgr.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2020-02-24T15:06:05Z",
       "side": 1,
       "message": "Consider declaring de with values.\n\nde :\u003d \u0026voltha.DeviceEvent{\n  Context: context,\n  ...\n}",
+      "revId": "f5797397b3091deae944b3096fdb12fafccae788",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e37c979a_97cd46da",
+        "filename": "adaptercore/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-02-25T07:01:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a0868b3_51955228",
       "revId": "f5797397b3091deae944b3096fdb12fafccae788",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
