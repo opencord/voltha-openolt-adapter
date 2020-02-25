@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f012ecab_84f8f053",
+        "filename": "adaptercore/openolt_flowmgr.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 2387,
+      "author": {
+        "id": 1000548
+      },
+      "writtenOn": "2020-02-25T16:09:41Z",
+      "side": 1,
+      "message": "Igmp flow type is not handled",
+      "range": {
+        "startLine": 2387,
+        "startChar": 0,
+        "endLine": 2387,
+        "endChar": 5
+      },
+      "revId": "2fa27ff082730e8247860a290aea774ed3c7b367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
