@@ -32,18 +32,20 @@ linters-settings:
     locale: US
 
 linters:
-  disable-all: true
+  disable-all: true #TODO: enable default linters
   enable:
-    - gofmt
-    - govet
+    #- gocritic
+    #- gochecknoglobals
+    #- gochecknoinits
     - gocyclo
+    - gofmt
     - golint
+    - govet
     - ineffassign
     - misspell
+    #- unparam
 
 run:
-  skip-dirs:
-    - vendor
   modules-download-mode: vendor
 
 issues:
@@ -81,10 +83,3 @@ issues:
     - "don't use underscores in Go names; method Enable_port"
     - "don't use underscores in Go names; method Child_device_lost"
   exclude-use-default: false
-
-# golangci.com configuration
-# https://github.com/golangci/golangci/wiki/Configuration
-service:
-  golangci-lint-version: 1.17.1 # use the fixed version to not introduce new linters unexpectedly
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
