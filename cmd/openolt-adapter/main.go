@@ -93,7 +93,7 @@ func (a *adapter) start(ctx context.Context) {
 	// Setup KV Client
 	log.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
 	if err = a.setKVClient(); err != nil {
-		log.Fatal("error-setting-kv-client")
+		log.Fatalw("error-setting-kv-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
@@ -106,7 +106,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup Kafka Client
 	if a.kafkaClient, err = newKafkaClient("sarama", a.config.KafkaAdapterHost, a.config.KafkaAdapterPort); err != nil {
-		log.Fatal("Unsupported-common-client")
+		log.Fatalw("Unsupported-common-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
@@ -188,13 +188,13 @@ func (a *adapter) checkKvStoreReadiness(ctx context.Context) {
 				<-timeoutTimer.C
 			}
 		case <-timeoutTimer.C:
-			// Check the status of the kv-store
+			// Check the status of the kv-store. Use timeout of 2 seconds to avoid forever blocking
 			log.Info("kv-store liveliness-recheck")
-			if a.kvClient.IsConnectionUp(ctx) {
-				kvStoreChannel <- true
-			} else {
-				kvStoreChannel <- false
-			}
+			timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
+
+			kvStoreChannel <- a.kvClient.IsConnectionUp(timeoutCtx)
+			// Cleanup cancel func resources
+			cancelFunc()
 		}
 	}
 }
@@ -313,7 +313,6 @@ func (a *adapter) setKVClient() error {
 	client, err := newKVClient(a.config.KVStoreType, addr, a.config.KVStoreTimeout)
 	if err != nil {
 		a.kvClient = nil
-		log.Error(err)
 		return err
 	}
 	a.kvClient = client
