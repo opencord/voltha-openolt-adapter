@@ -1,6 +1,6 @@
 module github.com/opencord/voltha-openolt-adapter
 
-go 1.12
+go 1.13
 
 require (
 	github.com/EagleChen/mapmutex v0.0.0-20180418073615-e1a5ae258d8d
