@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5086d3b_b85dab63",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-26T11:42:27Z",
+      "side": 1,
+      "message": "It seems to me that setKVClient is doing other things than what it is supposed to do. How about moving this into its own function?",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 302,
+        "endChar": 40
+      },
+      "revId": "98299169ede06b90b931626deb275ac0ecbc8418",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
