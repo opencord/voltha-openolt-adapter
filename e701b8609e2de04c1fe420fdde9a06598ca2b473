@@ -1,0 +1,9 @@
+Verified+1: Jenkins Jenkins <do-not-reply@opencord.org>
+Code-Review+1: Girish Gowdra <girish@opennetworking.org>
+Code-Review+1: khenaidoo Nursimulu <knursimu@ciena.com>
+Code-Review+2: Scott Baker <scottb@opennetworking.org>
+Submitted-by: Scott Baker <scottb@opennetworking.org>
+Submitted-at: Wed, 26 Feb 2020 16:39:43 +0000
+Reviewed-on: https://gerrit.opencord.org/17706
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
