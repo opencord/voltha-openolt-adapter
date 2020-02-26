@@ -22,6 +22,30 @@
       "revId": "98299169ede06b90b931626deb275ac0ecbc8418",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06e34e14_a09752ed",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-02-26T17:48:26Z",
+      "side": 1,
+      "message": "Agree with Girish. The etcd client used by the ConfigManager and the etcd client used by the KVClient are initialized separately, right? I\u0027m wondering if it would be possible to make initializing the ConfigManager the first thing that Adapter.Start() does.",
+      "parentUuid": "c5086d3b_b85dab63",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 302,
+        "endChar": 40
+      },
+      "revId": "98299169ede06b90b931626deb275ac0ecbc8418",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
