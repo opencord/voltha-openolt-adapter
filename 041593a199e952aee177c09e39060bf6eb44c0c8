@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f66565f3_def297af",
+        "filename": "VERSION",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-02-26T11:44:35Z",
+      "side": 1,
+      "message": "This should become 2.3.9-dev. \nSorry I did not notice this earlier.",
+      "revId": "041593a199e952aee177c09e39060bf6eb44c0c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
