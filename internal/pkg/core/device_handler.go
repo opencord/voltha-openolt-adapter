@@ -1826,3 +1826,17 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
 	return nil
 }
+func (dh *DeviceHandler) getOnuDistance(onuid *voltha.ID) (*voltha.OnuDistance,error) {
+        var err error
+        var onudistance  *voltha.OnuDistance
+	ctx := context.Background()
+        log.Infow("getOnuDistance", log.Fields{"onu-id": onuid.Id, })
+        onudistance, err = dh.Client.GetOnuDistance(ctx, onuid)
+
+        if err != nil {
+                log.Errorw("error-while-onu-distance", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+                return nil,err
+                }
+        log.Infow("get-onu-distance", log.Fields{"distance": onudistance, "DeviceID": dh.device, "onuid": onuid.Id})
+        return onudistance,nil
+}
