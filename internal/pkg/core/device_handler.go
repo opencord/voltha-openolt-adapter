@@ -1827,3 +1827,28 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
 	return nil
 }
+func (dh *DeviceHandler) getOnuDistance(device *voltha.Device,onuid *voltha.ID) (*voltha.OnuDistance,error) {
+        var err error
+	var ID int64
+        var onudistance  *voltha.OnuDistance
+	ctx := context.Background()
+        log.Infow("getOnuDistance", log.Fields{"onu-id": onuid.Id,"pon-intf": device.ParentPortNo })
+	var sn *oop.SerialNumber
+        if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		log.Errorw("error-while-deStringifySerialNumber", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+                return nil,err
+        }
+	ID ,err = strconv.ParseInt(onuid.Id,10,32)
+	if err != nil {
+                log.Errorw("error-while-strconv", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+                return nil,err
+	}	
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: uint32(ID), SerialNumber: sn }
+        onudistance, err = dh.Client.GetOnuDistance(ctx, &Onu)
+        if err != nil {
+                log.Errorw("error-while-onu-distance", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+                return nil,err
+                }
+        log.Infow("get-onu-distance", log.Fields{"distance": onudistance, "DeviceID": dh.device, "onuid": onuid.Id, "pon-intf": device.ParentPortNo })
+        return onudistance,nil
+}
