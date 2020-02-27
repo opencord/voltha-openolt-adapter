@@ -2178,3 +2178,36 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
 	dh.onus.Store(onuKey, onuDevice)
 }
+
+func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+	var err error
+	var ID uint32
+	resp := new(voltha.ReturnValues)
+	valueparam := new(oop.ValueParam)
+	ctx := context.Background()
+	log.Infow("getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	sn := new(oop.SerialNumber)
+	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		return nil, err
+	}
+	ID = device.ProxyAddress.GetOnuId()
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: ID, SerialNumber: sn}
+	valueparam.Onu = &Onu
+	valueparam.Value = value
+
+	// This API is unsupported until agent patch is added
+	resp.Unsupported = uint32(value)
+	_ = ctx
+
+	// Uncomment this code once agent changes are complete and tests
+	/*
+		resp, err = dh.Client.GetValue(ctx, valueparam)
+		if err != nil {
+			log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
+			return nil, err
+		}
+	*/
+
+	log.Infow("get-ext-value", log.Fields{"resp": resp, "device-id": dh.device, "onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	return resp, nil
+}
