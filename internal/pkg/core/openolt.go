@@ -389,3 +389,22 @@ func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint
 func (oo *OpenOLT) Start_omci_test(device *voltha.Device, request *voltha.OmciTestRequest) (*voltha.TestResponse, error) {
 	return nil, olterrors.ErrNotImplemented
 }
+
+func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, onuid string, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+	var err error
+	resp := new(voltha.ReturnValues)
+	log.Infow("Get_values", log.Fields{"deviceId": deviceID, "onuid": onuid})
+	if onuid == "" {
+		log.Errorw("onuid-cannot-be-empty", log.Fields{"Device": deviceID, "onu-id": onuid})
+		return nil, olterrors.NewErrInvalidValue(log.Fields{"onu-id": nil}, nil).Log()
+	}
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		log.Debugw("get-value", log.Fields{"deviceId": deviceID, "onu-id": onuid})
+		if resp, err = handler.getExtValue(device, onuid, valueparam); err != nil {
+			log.Errorw("error-occurred-during-get-ext-value", log.Fields{"deviceID": deviceID, "onu-id": onuid,
+				"error": err})
+			return nil, err
+		}
+	}
+	return resp, nil
+}
