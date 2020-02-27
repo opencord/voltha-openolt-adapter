@@ -385,4 +385,22 @@ func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint
 		return handler.ChildDeviceLost(ctx, pPortNo, onuID)
 	}
 	return NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+
+func (oo *OpenOLT) get_onu_distance(deviceID string, onuid *voltha.ID, ) (*voltha.OnuDistance,error) {
+	var err error
+	distance := new(voltha.OnuDistance)
+        log.Infow("get_onu_distance", log.Fields{"deviceId": deviceID, "onuid": onuid.Id})
+        if onuid == nil {
+                log.Errorw("onuid-cannot-be-nil", log.Fields{"Device": deviceID, "onu-id": onuid.Id})
+                return nil, NewErrInvalidValue(log.Fields{"onu-id": nil}, nil).Log() 
+        }
+        if handler := oo.getDeviceHandler(deviceID); handler != nil {
+                log.Debugw("get_onu_distance", log.Fields{"deviceId": deviceID, "onu-id": onuid.Id})
+                if  distance, err = handler.getOnuDistance(onuid); err != nil {
+                        log.Errorw("error-occurred-during-onudistance", log.Fields{"deviceID": deviceID, "onu-id": onuid.Id,
+					 "error": err})
+                        return nil,err
+                }
+        }
+        return distance,nil
 }
