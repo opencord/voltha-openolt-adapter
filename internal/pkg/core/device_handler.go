@@ -2147,3 +2147,31 @@ func extractOmciTransactionID(omciPkt []byte) uint16 {
 	}
 	return 0
 }
+func (dh *DeviceHandler) getValue(device *voltha.Device, onuid *voltha.ID, value *voltha.ValueType) (*voltha.ReturnValues, error) {
+	var err error
+	var ID int64
+	var resp *voltha.ReturnValues
+	var valueparam *oop.ValueParam
+	ctx := context.Background()
+	log.Infow("getValue", log.Fields{"onu-id": onuid.Id, "pon-intf": device.ParentPortNo})
+	var sn *oop.SerialNumber
+	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		log.Errorw("error-while-deStringifySerialNumber", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+		return nil, err
+	}
+	ID, err = strconv.ParseInt(onuid.Id, 10, 32)
+	if err != nil {
+		log.Errorw("error-while-strconv", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+		return nil, err
+	}
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: uint32(ID), SerialNumber: sn}
+	valueparam.Onu = &Onu
+	valueparam.Value = value 
+	resp, err = dh.Client.GetValue(ctx, valueparam)
+	if err != nil {
+		log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+		return nil, err
+	}
+	log.Infow("get-onu-distance", log.Fields{"resp": resp, "DeviceID": dh.device, "onuid": onuid.Id, "pon-intf": device.ParentPortNo})
+	return resp, nil
+}
