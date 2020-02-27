@@ -2178,3 +2178,37 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
 	dh.onus.Store(onuKey, onuDevice)
 }
+
+// TODO: consider dropping onuid as an argument.
+func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+	var err error
+	var ID uint32
+	resp := new(voltha.ReturnValues)
+	valueparam := new(oop.ValueParam)
+	ctx := context.Background()
+	log.Infow("getValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	sn := new(oop.SerialNumber)
+	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		log.Errorw("error-while-deStringifySerialNumber", log.Fields{"DeviceID": dh.device, "onu-id": device.Id, "error": err})
+		return nil, err
+	}
+	ID = device.ProxyAddress.GetOnuId()
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: ID, SerialNumber: sn}
+	valueparam.Onu = &Onu
+	valueparam.Value = value
+
+	// Unsupported until agent patch is added
+	resp.Unsupported = uint32(value)
+	_ = ctx
+
+	/*
+		resp, err = dh.Client.GetValue(ctx, valueparam)
+		if err != nil {
+			log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
+			return nil, err
+		}
+	*/
+
+	log.Infow("get-onu-distance", log.Fields{"resp": resp, "DeviceID": dh.device, "onuid": device.Id, "pon-intf": device.ParentPortNo})
+	return resp, nil
+}
