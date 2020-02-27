@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "185a2210_08578ec6",
+        "filename": "main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-27T23:09:20Z",
+      "side": 1,
+      "message": "if the code is not used then it should just be deleted",
+      "range": {
+        "startLine": 304,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 42
+      },
+      "revId": "1b804027835db3c0482442326a4b0d40fa9efed2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcbe13e4_718d0e89",
+        "filename": "main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-27T23:09:20Z",
+      "side": 1,
+      "message": "couldn\u0027t this function be removed and where \u003dyou call `a.startLogConfig` above just put these two lines?",
+      "range": {
+        "startLine": 310,
+        "startChar": 18,
+        "endLine": 310,
+        "endChar": 32
+      },
+      "revId": "1b804027835db3c0482442326a4b0d40fa9efed2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
