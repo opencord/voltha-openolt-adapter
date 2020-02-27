@@ -701,3 +701,35 @@ func (rhp *RequestHandlerProxy) Child_device_lost(args []*ic.Argument) error {
 	}
 	return nil
 }
+
+func (rhp *RequestHandlerProxy) Get_onu_distance(args []*ic.Argument) (*voltha.OnuDistance,error) {
+        if len(args) < 3 {
+                logger.Warn("invalid-number-of-args", log.Fields{"args": args})
+                return nil,errors.New("invalid-number-of-args")
+        }
+
+        pDeviceId := &ic.StrType{}
+        onuID := &voltha.ID{}
+	device := &voltha.Device{}
+        for _, arg := range args {
+                switch arg.Key {
+                case "device":
+                        if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
+                                logger.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+                                return nil, err
+                        }
+                case "pDeviceId":
+                        if err := ptypes.UnmarshalAny(arg.Value, pDeviceId); err != nil {
+                                logger.Warnw("cannot-unmarshal-parent-deviceId", log.Fields{"error": err})
+                                return nil,err
+                        }
+                case "onuID":
+                        if err := ptypes.UnmarshalAny(arg.Value, onuID); err != nil {
+                                logger.Warnw("cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+                                return nil,err
+                        }
+                }
+        }
+        //Invoke the Get_onu_distance API on the adapter
+        return  rhp.adapter.Get_onu_distance(pDeviceId.Val,device, onuID)
+}
