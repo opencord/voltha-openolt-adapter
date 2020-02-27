@@ -2178,3 +2178,27 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
 	dh.onus.Store(onuKey, onuDevice)
 }
+func (dh *DeviceHandler) getValue(device *voltha.Device, onuid *voltha.ID, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+	var err error
+	var ID uint32
+	resp := new(voltha.ReturnValues)
+	valueparam := new(oop.ValueParam)
+	ctx := context.Background()
+	log.Infow("getValue", log.Fields{"onu-id": onuid.Id, "pon-intf": device.ParentPortNo})
+	sn := new(oop.SerialNumber)
+	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		log.Errorw("error-while-deStringifySerialNumber", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+		return nil, err
+	}
+	ID = device.ProxyAddress.GetOnuId()
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: ID, SerialNumber: sn}
+	valueparam.Onu = &Onu
+	valueparam.Value = value
+	resp, err = dh.Client.GetValue(ctx, valueparam)
+	if err != nil {
+		log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid.Id, "error": err})
+		return nil, err
+	}
+	log.Infow("get-onu-distance", log.Fields{"resp": resp, "DeviceID": dh.device, "onuid": onuid.Id, "pon-intf": device.ParentPortNo})
+	return resp, nil
+}
