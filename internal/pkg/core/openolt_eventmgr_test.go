@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-// Package adaptercore provides APIs for the openOLT adapter
-package adaptercore
+// Package core provides APIs for the openOLT adapter
+package core
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-openolt-adapter/mocks"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 )
 

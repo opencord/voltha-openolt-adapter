@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// Package version is used to inject build time information via -X variables
 package version
 
 import (
@@ -35,8 +33,7 @@ var (
 	arch      = "unknown-arch"
 )
 
-// InfoType is a collection of build time environment variables
-type InfoType struct {
+type VersionInfoType struct {
 	Version   string `json:"version"`
 	GoVersion string `json:"goversion"`
 	VcsRef    string `json:"vcsref"`
@@ -46,11 +43,10 @@ type InfoType struct {
 	Arch      string `json:"arch"`
 }
 
-// VersionInfo is an instance of build time environment variables populated at build time via -X arguments
-var VersionInfo InfoType
+var VersionInfo VersionInfoType
 
 func init() {
-	VersionInfo = InfoType{
+	VersionInfo = VersionInfoType{
 		Version:   version,
 		VcsRef:    vcsRef,
 		VcsDirty:  vcsDirty,
@@ -61,7 +57,7 @@ func init() {
 	}
 }
 
-func (v InfoType) String(indent string) string {
+func (v VersionInfoType) String(indent string) string {
 	builder := strings.Builder{}
 
 	builder.WriteString(fmt.Sprintf("%sVersion:      %s\n", indent, VersionInfo.Version))
