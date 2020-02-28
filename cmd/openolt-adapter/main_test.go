@@ -24,8 +24,8 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
-	"github.com/opencord/voltha-openolt-adapter/config"
-	"github.com/opencord/voltha-openolt-adapter/mocks"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	ca "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"go.etcd.io/etcd/pkg/mock/mockserver"
 )

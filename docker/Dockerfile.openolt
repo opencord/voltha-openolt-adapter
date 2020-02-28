@@ -41,7 +41,8 @@ RUN go build -mod=vendor -o /go/bin/openolt \
 	 -X github.com/opencord/voltha-openolt-adapter/config/version.goVersion=$(go version 2>&1 | sed -E  's/.*go([0-9]+\.[0-9]+\.[0-9]+).*/\1/g') \
 	 -X github.com/opencord/voltha-openolt-adapter/config/version.os=$(go env GOHOSTOS) \
 	 -X github.com/opencord/voltha-openolt-adapter/config/version.arch=$(go env GOHOSTARCH) \
-	 -X github.com/opencord/voltha-openolt-adapter/config/version.buildTime=$org_label_schema_build_date"
+	 -X github.com/opencord/voltha-openolt-adapter/config/version.buildTime=$org_label_schema_build_date" \
+	 cmd/openolt-adapter/main.go
 
 # -------------
 # Image creation stage

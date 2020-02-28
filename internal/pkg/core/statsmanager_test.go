@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-//Package adaptercore provides the utility for olt devices, flows and statistics
-package adaptercore
+//Package core provides the utility for olt devices, flows and statistics
+package core
 
 import (
 	"reflect"
