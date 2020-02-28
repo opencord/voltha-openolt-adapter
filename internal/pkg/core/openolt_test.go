@@ -19,8 +19,8 @@ This file contains unit test cases for functions in the file openolt.go.
 This file also implements the fields struct to mock the Openolt and few utility functions.
 */
 
-//Package adaptercore provides the utility for olt devices, flows and statistics
-package adaptercore
+//Package core provides the utility for olt devices, flows and statistics
+package core
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
-	"github.com/opencord/voltha-openolt-adapter/config"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"

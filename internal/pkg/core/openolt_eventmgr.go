@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// Package adaptercore provides APIs for the openOLT adapter
-package adaptercore
+// Package core provides APIs for the openOLT adapter
+package core
 
 import (
 	ctx "context"
