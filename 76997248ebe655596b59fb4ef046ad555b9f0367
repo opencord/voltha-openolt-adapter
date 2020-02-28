@@ -22,6 +22,30 @@
       "revId": "76997248ebe655596b59fb4ef046ad555b9f0367",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa855a02_69c59dc5",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-02-28T17:53:35Z",
+      "side": 1,
+      "message": "This liveness will loop forever; not calling cancelFunc() may leak some instances in each loop. Second call to cancelFunc() won\u0027t do any harm",
+      "parentUuid": "1daed241_1652736e",
+      "range": {
+        "startLine": 193,
+        "startChar": 3,
+        "endLine": 193,
+        "endChar": 13
+      },
+      "revId": "76997248ebe655596b59fb4ef046ad555b9f0367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
