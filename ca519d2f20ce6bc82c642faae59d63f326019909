@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d690a04_82b7ec0d",
+        "filename": "internal/pkg/config/version/version.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-02-28T17:08:21Z",
+      "side": 1,
+      "message": "don\u0027t need this file, this can be imported from lib-go. doing so might require makefile changes as the path to the vars changes a little.",
+      "revId": "ca519d2f20ce6bc82c642faae59d63f326019909",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
