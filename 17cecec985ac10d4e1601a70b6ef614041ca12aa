@@ -16,6 +16,24 @@
       "revId": "17cecec985ac10d4e1601a70b6ef614041ca12aa",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4702bf00_fc5cdcda",
+        "filename": "main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-02-28T17:34:19Z",
+      "side": 1,
+      "message": "Sure. Won\u0027t do any harm including defer call as well to handle panic scenario",
+      "parentUuid": "a44cb461_56238133",
+      "revId": "17cecec985ac10d4e1601a70b6ef614041ca12aa",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
