@@ -477,6 +477,8 @@ func main() {
 
 	log.SetAllLogLevel(logLevel)
 
+	realMain()
+
 	defer log.CleanUp()
 
 	// Print version / build information and exit
