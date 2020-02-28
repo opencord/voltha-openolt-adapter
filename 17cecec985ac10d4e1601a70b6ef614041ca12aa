@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a44cb461_56238133",
+        "filename": "main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-28T15:36:20Z",
+      "side": 1,
+      "message": "Consider `defer cancelFunc()` here.\n(This will still run even if something panics, and is the idiomatic solution.)",
+      "revId": "17cecec985ac10d4e1601a70b6ef614041ca12aa",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
