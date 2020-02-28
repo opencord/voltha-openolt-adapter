@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-//Package adaptercore provides the utility for olt devices, flows and statistics
-package adaptercore
+//Package core provides the utility for olt devices, flows and statistics
+package core
 
 import (
 	"context"
@@ -33,8 +33,8 @@ import (
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
-	"github.com/opencord/voltha-openolt-adapter/adaptercore/resourcemanager"
-	"github.com/opencord/voltha-openolt-adapter/mocks"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	of "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"

@@ -33,7 +33,7 @@ ARG org_opencord_vcs_dirty=unknown
 
 # Build openolt
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
-RUN go build -mod=vendor -o /go/bin/openolt \
+RUN go build -mod=vendor -o /go/bin/openolt-adapter \
 	-ldflags \
 	"-X github.com/opencord/voltha-openolt-adapter/config/version.version=$org_label_schema_version \
 	 -X github.com/opencord/voltha-openolt-adapter/config/version.vcsRef=$org_label_schema_vcs_ref  \
