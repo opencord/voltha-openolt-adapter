@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package adaptercore
+package core
 
 import (
 	"context"
