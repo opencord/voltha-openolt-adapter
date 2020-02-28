@@ -46,6 +46,30 @@
       "revId": "76997248ebe655596b59fb4ef046ad555b9f0367",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02e48a07_0401fb29",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-28T18:35:43Z",
+      "side": 1,
+      "message": "Oh, it\u0027s a loop, I missed that, sorry.\nIf that\u0027s the case, the defer is actually unnecessary. (and also resource leak)",
+      "parentUuid": "fa855a02_69c59dc5",
+      "range": {
+        "startLine": 193,
+        "startChar": 3,
+        "endLine": 193,
+        "endChar": 13
+      },
+      "revId": "76997248ebe655596b59fb4ef046ad555b9f0367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
