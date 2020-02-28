@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1daed241_1652736e",
+        "filename": "main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-02-28T17:44:36Z",
+      "side": 1,
+      "message": "cancelFunc is already deferred, no need to call it twice.",
+      "range": {
+        "startLine": 193,
+        "startChar": 3,
+        "endLine": 193,
+        "endChar": 13
+      },
+      "revId": "76997248ebe655596b59fb4ef046ad555b9f0367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
