@@ -31,28 +31,31 @@ import (
 )
 
 const (
-	onuDiscoveryEvent           = "ONU_DISCOVERY"
-	onuLosEvent                 = "ONU_LOSS_OF_SIGNAL"
-	onuLobEvent                 = "ONU_LOSS_OF_BURST"
-	onuLopcMissEvent            = "ONU_LOPC_MISS"
-	onuLopcMicErrorEvent        = "ONU_LOPC_MIC_ERROR"
-	oltLosEvent                 = "OLT_LOSS_OF_SIGNAL"
-	oltIndicationDown           = "OLT_DOWN_INDICATION"
-	onuDyingGaspEvent           = "ONU_DYING_GASP"
-	onuSignalsFailEvent         = "ONU_SIGNALS_FAIL"
-	onuStartupFailEvent         = "ONU_STARTUP_FAIL"
-	onuSignalDegradeEvent       = "ONU_SIGNAL_DEGRADE"
-	onuDriftOfWindowEvent       = "ONU_DRIFT_OF_WINDOW"
-	onuActivationFailEvent      = "ONU_ACTIVATION_FAIL"
-	onuProcessingErrorEvent     = "ONU_PROCESSING_ERROR"
-	onuTiwiEvent                = "ONU_TRANSMISSION_WARNING"
-	onuLossOmciEvent            = "ONU_LOSS_OF_OMCI_CHANNEL"
-	onuLossOfKeySyncEvent       = "ONU_LOSS_OF_KEY_SYNC"
-	onuLossOfFrameEvent         = "ONU_LOSS_OF_FRAME"
-	onuLossOfPloamEvent         = "ONU_LOSS_OF_PLOAM"
-	ponIntfDownIndiction        = "OLT_PON_INTERFACE_DOWN"
-	onuDeactivationFailureEvent = "ONU_DEACTIVATION_FAILURE"
-	onuRemoteDefectIndication   = "ONU_REMOTE_DEFECT"
+	onuDiscoveryEvent                   = "ONU_DISCOVERY"
+	onuLosEvent                         = "ONU_LOSS_OF_SIGNAL"
+	onuLobEvent                         = "ONU_LOSS_OF_BURST"
+	onuLopcMissEvent                    = "ONU_LOPC_MISS"
+	onuLopcMicErrorEvent                = "ONU_LOPC_MIC_ERROR"
+	oltLosEvent                         = "OLT_LOSS_OF_SIGNAL"
+	oltIndicationDown                   = "OLT_DOWN_INDICATION"
+	onuDyingGaspEvent                   = "ONU_DYING_GASP"
+	onuSignalsFailEvent                 = "ONU_SIGNALS_FAIL"
+	onuStartupFailEvent                 = "ONU_STARTUP_FAIL"
+	onuSignalDegradeEvent               = "ONU_SIGNAL_DEGRADE"
+	onuDriftOfWindowEvent               = "ONU_DRIFT_OF_WINDOW"
+	onuActivationFailEvent              = "ONU_ACTIVATION_FAIL"
+	onuProcessingErrorEvent             = "ONU_PROCESSING_ERROR"
+	onuTiwiEvent                        = "ONU_TRANSMISSION_WARNING"
+	onuLossOmciEvent                    = "ONU_LOSS_OF_OMCI_CHANNEL"
+	onuLossOfKeySyncEvent               = "ONU_LOSS_OF_KEY_SYNC"
+	onuLossOfFrameEvent                 = "ONU_LOSS_OF_FRAME"
+	onuLossOfPloamEvent                 = "ONU_LOSS_OF_PLOAM"
+	ponIntfDownIndiction                = "OLT_PON_INTERFACE_DOWN"
+	onuDeactivationFailureEvent         = "ONU_DEACTIVATION_FAILURE"
+	onuRemoteDefectIndication           = "ONU_REMOTE_DEFECT"
+	onuLossOfGEMChannelDelineationEvent = "ONU_LOSS_OF_GEM_CHANNEL_DELINEATION"
+	onuPhysicalEquipmentErrorEvent      = "ONU_PHYSICAL_EQUIPMENT_ERROR"
+	onuLossOfAcknowledgementEvent       = "ONU_LOSS_OF_ACKNOWLEDGEMENT"
 )
 
 const (
@@ -97,6 +100,7 @@ func NewEventMgr(eventProxy adapterif.EventProxy, handler *DeviceHandler) *OpenO
 }
 
 // ProcessEvents is function to process and publish OpenOLT event
+// nolint: gocyclo
 func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID string, raisedTs int64) error {
 	var err error
 	switch alarmInd.Data.(type) {
@@ -142,6 +146,15 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuDeactivationFailureInd:
 		log.Infow("Received onu deactivation failure indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuLossGemDelineationInd:
+		log.Infow("Received onu loss of GEM channel delineation indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuLossOfGEMChannelDelineationIndication(alarmInd.GetOnuLossGemDelineationInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuPhysicalEquipmentErrorInd:
+		log.Infow("Received onu physical equipment error indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuPhysicalEquipmentErrorIndication(alarmInd.GetOnuPhysicalEquipmentErrorInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuLossOfAckInd:
+		log.Infow("Received onu loss of acknowledgement indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuLossOfAcknowledgementIndication(alarmInd.GetOnuLossOfAckInd(), deviceID, raisedTs)
 	default:
 		err = olterrors.NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
 	}
@@ -527,5 +540,78 @@ func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefect
 		return err
 	}
 	log.Infow("ONU remote defect event sent to KAFKA", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuLossOfGEMChannelDelineationIndication(onuGCD *oop.OnuLossOfGEMChannelDelineationIndication, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":             strconv.FormatUint(uint64(onuGCD.OnuId), base10),
+		"intf-id":            strconv.FormatUint(uint64(onuGCD.IntfId), base10),
+		"delineation-errors": strconv.FormatUint(uint64(onuGCD.DelineationErrors), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuGCD.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfGEMChannelDelineationEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfGEMChannelDelineationEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, communication, onu, raisedTs); err != nil {
+		return err
+	}
+	log.Debugw("ONU loss of GEM channel delineation event sent to KAFKA", log.Fields{"onu-id": onuGCD.OnuId, "intf-id": onuGCD.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuPhysicalEquipmentErrorIndication(onuErr *oop.OnuPhysicalEquipmentErrorIndication, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":  strconv.FormatUint(uint64(onuErr.OnuId), base10),
+		"intf-id": strconv.FormatUint(uint64(onuErr.IntfId), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuErr.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuPhysicalEquipmentErrorEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuPhysicalEquipmentErrorEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
+		return err
+	}
+	log.Debugw("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuErr.OnuId, "intf-id": onuErr.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuLossOfAcknowledgementIndication(onuLOA *oop.OnuLossOfAcknowledgementIndication, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":  strconv.FormatUint(uint64(onuLOA.OnuId), base10),
+		"intf-id": strconv.FormatUint(uint64(onuLOA.IntfId), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuLOA.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfAcknowledgementEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfAcknowledgementEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
+		return err
+	}
+	log.Debugw("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
 	return nil
 }
