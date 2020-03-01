@@ -142,6 +142,15 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuDeactivationFailureInd:
 		log.Infow("Received onu deactivation failure indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuLossOfGEMChannelDelineationInd:
+		log.Infow("Received onu loss of GEM channel delineation indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuLossOfGEMChannelDelineationIndication(alarmInd.GetOnuLossOfGEMChannelDelineationInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuPhysicalEquipmentErrorInd:
+		log.Infow("Received onu physical equipment error indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuPhysicalEquipmentErrorIndication(alarmInd.GetOnuPhysicalEquipmentErrorInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuLossOfAcknowledgementInd:
+		log.Infow("Received onu loss of acknowledgement indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuLossOfAcknowledgementIndication(alarmInd.GetOnuLossOfAcknowledgementInd(), deviceID, raisedTs)
 	default:
 		err = olterrors.NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
 	}
@@ -527,5 +536,81 @@ func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefect
 		return err
 	}
 	log.Infow("ONU remote defect event sent to KAFKA", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuLossOfGEMChannelDelineationIndication(onuGCD *oop.OnuLossofGEMChannelDelineation, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":         strconv.FormatUint(uint64(onuGCD.OnuId), base10),
+		"intf-id":        strconv.FormatUint(uint64(onuGCD.IntfId), base10),
+		"delineation-errors": strconv.FormatUint(uint64(onuGCD.DelineationErrors), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuGCD.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfGEMChannelDelineationEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfGEMChannelDelineationEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, communication, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU loss of GEM channel delineation event", log.Fields{"onu-id": onuGCD.OnuId, "intf-id": onuGCD.IntfId})
+		return err
+	}
+	log.Infow("ONU loss of GEM channel delineation event sent to KAFKA", log.Fields{"onu-id": onuGCD.OnuId, "intf-id": onuGCD.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuPhysicalEquipmentErrorIndication(onuErr *oop.OnuPhysicalEquipmentErrorIndicaton, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":         strconv.FormatUint(uint64(onuErr.OnuId), base10),
+		"intf-id":        strconv.FormatUint(uint64(onuErr.IntfId), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuErr.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuPhysicalEquipmentErrorEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuPhysicalEquipmentErrorEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU physical equipment error event", log.Fields{"onu-id": onuErr.OnuId, "intf-id": onuErr.IntfId})
+		return err
+	}
+	log.Infow("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuErr.OnuId, "intf-id": onuErr.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuLossOfAcknowledgementIndication(onuLOA *oop.OnuPhysicalEquipmentErrorIndicaton, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":         strconv.FormatUint(uint64(onuLOA.OnuId), base10),
+		"intf-id":        strconv.FormatUint(uint64(onuLOA.IntfId), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuLOA.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfAcknowledgementEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLossOfAcknowledgementEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
+		log.Errorw("Failed to send ONU physical equipment error event", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
+		return err
+	}
+	log.Infow("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
 	return nil
 }
