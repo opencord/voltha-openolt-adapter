@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "80ddc166_01000aa2",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-03-02T17:01:18Z",
+      "side": 1,
+      "message": "Agree with Andrea. The other pre-existing alarm implementations should be addressed as well (either now, or separately).",
+      "parentUuid": "4fb3b330_3c5cec93",
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c635966_b1ebba80",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2020-03-02T09:05:14Z",
       "side": 1,
       "message": "debug",
+      "range": {
+        "startLine": 537,
+        "startChar": 5,
+        "endLine": 537,
+        "endChar": 10
+      },
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d4d54eb_0f4c510e",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-03-02T17:01:18Z",
+      "side": 1,
+      "message": "Info is consistent with the other alarm implementations. Assuming this does not appear elsewhere, I think it could be argued that posting an alarm is a valid use of Info level. Will solicit opinions on slack.",
+      "parentUuid": "9c635966_b1ebba80",
       "range": {
         "startLine": 537,
         "startChar": 5,
