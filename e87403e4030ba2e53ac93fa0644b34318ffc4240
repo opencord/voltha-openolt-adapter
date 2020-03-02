@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "4eb9882b_82199975",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-03-02T17:14:15Z",
+      "side": 1,
+      "message": "Consulted the loglevel guidelines (https://docs.google.com/document/d/1oXkhBPTA3fW35d--OcZTORgIBInixkTiMLLL0K5Ry_4) and agree with Andrea that these should be debug-level messages.",
+      "parentUuid": "8d4d54eb_0f4c510e",
+      "range": {
+        "startLine": 537,
+        "startChar": 5,
+        "endLine": 537,
+        "endChar": 10
+      },
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51c60ccf_7d267ac9",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 2
