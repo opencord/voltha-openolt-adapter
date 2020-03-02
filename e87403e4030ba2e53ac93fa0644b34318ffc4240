@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fb3b330_3c5cec93",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "don\u0027t log error before returning the same",
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c635966_b1ebba80",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 537,
+        "startChar": 5,
+        "endLine": 537,
+        "endChar": 10
+      },
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51c60ccf_7d267ac9",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "same",
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "53b48db7_b151c134",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 562,
+        "startChar": 5,
+        "endLine": 562,
+        "endChar": 10
+      },
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c244818_8117e9d2",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "same",
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0cab8fc3_2872a521",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-02T09:05:14Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 587,
+        "startChar": 5,
+        "endLine": 587,
+        "endChar": 10
+      },
+      "revId": "e87403e4030ba2e53ac93fa0644b34318ffc4240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
