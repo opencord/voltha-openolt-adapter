@@ -36,6 +36,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v3/go/common"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
@@ -180,13 +181,13 @@ func generateMacFromHost(host string) (string, error) {
 		if ips, err = net.LookupHost(host); err == nil {
 			log.Debugw("dns-result-ips", log.Fields{"ips": ips})
 			if addr = net.ParseIP(ips[0]); addr == nil {
-				return "", NewErrInvalidValue(log.Fields{"ip": ips[0]}, nil).Log()
+				return "", olterrors.NewErrInvalidValue(log.Fields{"ip": ips[0]}, nil).Log()
 			}
 			genmac = macifyIP(addr)
 			log.Debugw("using-ip-as-mac", log.Fields{"host": ips[0], "mac": genmac})
 			return genmac, nil
 		}
-		return "", NewErrAdapter("cannot-resolve-hostname-to-ip", nil, err).Log()
+		return "", olterrors.NewErrAdapter("cannot-resolve-hostname-to-ip", nil, err).Log()
 	}
 
 	genmac = macifyIP(addr)
@@ -218,7 +219,7 @@ func GetportLabel(portNum uint32, portType voltha.Port_PortType) (string, error)
 		return fmt.Sprintf("pon-%d", portNum), nil
 	}
 
-	return "", NewErrInvalidValue(log.Fields{"port-type": portType}, nil).Log()
+	return "", olterrors.NewErrInvalidValue(log.Fields{"port-type": portType}, nil).Log()
 }
 
 func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, state string) error {
@@ -234,19 +235,19 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 	portNum := IntfIDToPortNo(intfID, portType)
 	label, err := GetportLabel(portNum, portType)
 	if err != nil {
-		return NewErrNotFound("port-label", log.Fields{"port-number": portNum, "port-type": portType}, nil).Log()
+		return olterrors.NewErrNotFound("port-label", log.Fields{"port-number": portNum, "port-type": portType}, nil).Log()
 	}
 
 	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
-		return NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	if device.Ports != nil {
 		for _, dPort := range device.Ports {
 			if dPort.Type == portType && dPort.PortNo == portNum {
 				log.Debug("port-already-exists-updating-oper-status-of-port")
 				if err := dh.coreProxy.PortStateUpdate(context.TODO(), dh.device.Id, portType, portNum, operStatus); err != nil {
-					return NewErrAdapter("failed-to-update-port-state", log.Fields{
+					return olterrors.NewErrAdapter("failed-to-update-port-state", log.Fields{
 						"device-id":   dh.device.Id,
 						"port-type":   portType,
 						"port-number": portNum,
@@ -267,7 +268,7 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 	log.Debugw("Sending-port-update-to-core", log.Fields{"port": port})
 	// Synchronous call to update device - this method is run in its own go routine
 	if err := dh.coreProxy.PortCreated(context.TODO(), dh.device.Id, port); err != nil {
-		return NewErrAdapter("Error-creating-port", log.Fields{
+		return olterrors.NewErrAdapter("Error-creating-port", log.Fields{
 			"device-id": dh.device.Id,
 			"port-type": portType}, err).Log()
 	}
@@ -279,16 +280,16 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	defer log.Debugw("indications-ended", log.Fields{"device-id": dh.device.Id})
 	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
 	if err != nil {
-		return NewErrCommunication("fail-to-read-indications", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrCommunication("fail-to-read-indications", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	if indications == nil {
-		return NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
 	}
 	/* get device state */
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
 		/*TODO: needs to handle error scenarios */
-		return NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	// When the device is in DISABLED and Adapter container restarts, we need to
 	// rebuild the locally maintained admin state.
@@ -321,7 +322,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 			time.Sleep(indicationBackoff.NextBackOff())
 			indications, err = dh.Client.EnableIndication(ctx, new(oop.Empty))
 			if err != nil {
-				return NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+				return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 			}
 			continue
 		}
@@ -333,7 +334,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 			}
 			dh.transitionMap.Handle(ctx, DeviceDownInd)
 			dh.transitionMap.Handle(ctx, DeviceInit)
-			return NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+			return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 		// Reset backoff if we have a successful receive
 		indicationBackoff.Reset()
@@ -361,7 +362,7 @@ func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication 
 	}
 	// Send or clear Alarm
 	if err := dh.eventMgr.oltUpDownIndication(oltIndication, dh.deviceID, raisedTs); err != nil {
-		return NewErrAdapter("failed-indication", log.Fields{
+		return olterrors.NewErrAdapter("failed-indication", log.Fields{
 			"device_id":  dh.deviceID,
 			"indication": oltIndication,
 			"timestamp":  raisedTs}, err).Log()
@@ -375,13 +376,13 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 	switch indication.Data.(type) {
 	case *oop.Indication_OltInd:
 		if err := dh.handleOltIndication(ctx, indication.GetOltInd()); err != nil {
-			NewErrAdapter("handle-indication-error", log.Fields{"type": "olt"}, err).Log()
+			olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "olt"}, err).Log()
 		}
 	case *oop.Indication_IntfInd:
 		intfInd := indication.GetIntfInd()
 		go func() {
 			if err := dh.addPort(intfInd.GetIntfId(), voltha.Port_PON_OLT, intfInd.GetOperState()); err != nil {
-				NewErrAdapter("handle-indication-error", log.Fields{"type": "interface"}, err).Log()
+				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface"}, err).Log()
 			}
 		}()
 		log.Infow("Received interface indication ", log.Fields{"InterfaceInd": intfInd})
@@ -390,7 +391,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		if intfOperInd.GetType() == "nni" {
 			go func() {
 				if err := dh.addPort(intfOperInd.GetIntfId(), voltha.Port_ETHERNET_NNI, intfOperInd.GetOperState()); err != nil {
-					NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-nni"}, err).Log()
+					olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-nni"}, err).Log()
 				}
 			}()
 			dh.resourceMgr.AddNNIToKVStore(ctx, intfOperInd.GetIntfId())
@@ -399,7 +400,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 			// Handle pon port update
 			go func() {
 				if err := dh.addPort(intfOperInd.GetIntfId(), voltha.Port_PON_OLT, intfOperInd.GetOperState()); err != nil {
-					NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-pon"}, err).Log()
+					olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-pon"}, err).Log()
 				}
 			}()
 			go dh.eventMgr.oltIntfOperIndication(indication.GetIntfOperInd(), dh.deviceID, raisedTs)
@@ -411,7 +412,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 		go func() {
 			if err := dh.onuDiscIndication(ctx, onuDiscInd, sn); err != nil {
-				NewErrAdapter("handle-indication-error", log.Fields{"type": "onu-discovery"}, err).Log()
+				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "onu-discovery"}, err).Log()
 			}
 		}()
 	case *oop.Indication_OnuInd:
@@ -419,7 +420,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		log.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd})
 		go func() {
 			if err := dh.onuIndication(onuInd); err != nil {
-				NewErrAdapter("handle-indication-error", log.Fields{"type": "onu"}, err).Log()
+				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "onu"}, err).Log()
 			}
 		}()
 	case *oop.Indication_OmciInd:
@@ -427,7 +428,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		log.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId, "pkt": hex.EncodeToString(omciInd.Pkt)})
 		go func() {
 			if err := dh.omciIndication(omciInd); err != nil {
-				NewErrAdapter("handle-indication-error", log.Fields{"type": "omci"}, err).Log()
+				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "omci"}, err).Log()
 			}
 		}()
 	case *oop.Indication_PktInd:
@@ -435,7 +436,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		log.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
-				NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
+				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
 			}
 		}()
 	case *oop.Indication_PortStats:
@@ -456,7 +457,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	// Synchronous call to update device state - this method is run in its own go routine
 	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
-		return NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	return nil
 }
@@ -470,13 +471,13 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
 		/*TODO: needs to handle error scenarios */
-		return NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 
 	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to disable
 	if err = dh.coreProxy.PortsStateUpdate(ctx, cloned.Id, voltha.OperStatus_UNKNOWN); err != nil {
-		return NewErrAdapter("port-update-failed", log.Fields{"device-id": device.Id}, err).Log()
+		return olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": device.Id}, err).Log()
 	}
 
 	//Update the device oper state and connection status
@@ -485,13 +486,13 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	dh.device = cloned
 
 	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err).Log()
+		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err).Log()
 	}
 
 	//get the child device for the parent device
 	onuDevices, err := dh.coreProxy.GetChildDevices(ctx, dh.device.Id)
 	if err != nil {
-		return NewErrAdapter("child-device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrAdapter("child-device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	for _, onuDevice := range onuDevices.Items {
 
@@ -501,7 +502,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
-			NewErrCommunication("inter-adapter-send-failed", log.Fields{
+			olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
 				"source":        "openolt",
 				"onu-indicator": onuInd,
 				"device-type":   onuDevice.Type,
@@ -520,7 +521,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
 	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure(), grpc.WithBlock()); err != nil {
-		return NewErrCommunication("dial-failure", log.Fields{
+		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.deviceID,
 			"host-and-port": dh.device.GetHostAndPort()}, err).Log()
 	}
@@ -544,7 +545,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 		if err != nil || device == nil {
 			/*TODO: needs to handle error scenarios */
-			NewErrAdapter("device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+			olterrors.NewErrAdapter("device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
 		cloned := proto.Clone(device).(*voltha.Device)
@@ -552,19 +553,19 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
 		dh.device = cloned
 		if er := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); er != nil {
-			NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+			olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
 		// Since the device was disabled before the OLT was rebooted, enforce the OLT to be Disabled after re-connection.
 		_, err = dh.Client.DisableOlt(ctx, new(oop.Empty))
 		if err != nil {
-			NewErrAdapter("olt-disable-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+			olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
 		// Start reading indications
 		go func() {
 			if err := dh.readIndications(ctx); err != nil {
-				NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+				olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 			}
 		}()
 		return nil
@@ -572,27 +573,27 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 
 	deviceInfo, err := dh.populateDeviceInfo()
 	if err != nil {
-		return NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 
 	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
 		/*TODO: needs to handle error scenarios */
-		return NewErrAdapter("fetch-device-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return olterrors.NewErrAdapter("fetch-device-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	dh.populateActivePorts(device)
 	if err := dh.disableAdminDownPorts(device); err != nil {
-		return NewErrAdapter("port-status-update-failed", log.Fields{"device": device}, err).Log()
+		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"device": device}, err).Log()
 	}
 
 	KVStoreHostPort := fmt.Sprintf("%s:%d", dh.openOLT.KVStoreHost, dh.openOLT.KVStorePort)
 	// Instantiate resource manager
 	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.deviceID, KVStoreHostPort, dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
-		return ErrResourceManagerInstantiating.Log()
+		return olterrors.ErrResourceManagerInstantiating.Log()
 	}
 	// Instantiate flow manager
 	if dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr); dh.flowMgr == nil {
-		return ErrResourceManagerInstantiating.Log()
+		return olterrors.ErrResourceManagerInstantiating.Log()
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
@@ -603,7 +604,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	// Start reading indications
 	go func() {
 		if err := dh.readIndications(ctx); err != nil {
-			NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+			olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}()
 	return nil
@@ -616,10 +617,10 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 	deviceInfo, err = dh.Client.GetDeviceInfo(context.Background(), new(oop.Empty))
 
 	if err != nil {
-		return nil, NewErrPersistence("get", "device", 0, nil, err).Log()
+		return nil, olterrors.NewErrPersistence("get", "device", 0, nil, err).Log()
 	}
 	if deviceInfo == nil {
-		return nil, NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
+		return nil, olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}
 
 	log.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
@@ -635,7 +636,7 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 		host := strings.Split(dh.device.GetHostAndPort(), ":")[0]
 		genmac, err := generateMacFromHost(host)
 		if err != nil {
-			return nil, NewErrAdapter("failed-to-generate-mac-host", log.Fields{"host": host}, err).Log()
+			return nil, olterrors.NewErrAdapter("failed-to-generate-mac-host", log.Fields{"host": host}, err).Log()
 		}
 		log.Debugw("using-host-for-mac-address", log.Fields{"host": host, "mac": genmac})
 		dh.device.MacAddress = genmac
@@ -645,7 +646,7 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 
 	// Synchronous call to update device - this method is run in its own go routine
 	if err := dh.coreProxy.DeviceUpdate(context.TODO(), dh.device); err != nil {
-		return nil, NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		return nil, olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 
 	return deviceInfo, nil
@@ -694,7 +695,7 @@ func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device)
 
 	// Now, set the initial PM configuration for that device
 	if err := dh.coreProxy.DevicePMConfigUpdate(nil, dh.metrics.ToPmConfigs()); err != nil {
-		NewErrAdapter("error-updating-performance-metrics", log.Fields{"device-id": device.Id}, err).LogAt(log.ErrorLevel)
+		olterrors.NewErrAdapter("error-updating-performance-metrics", log.Fields{"device-id": device.Id}, err).LogAt(log.ErrorLevel)
 	}
 
 	go startCollector(dh)
@@ -760,7 +761,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 
 		onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 		if err != nil {
-			return NewErrNotFound("onu", log.Fields{
+			return olterrors.NewErrNotFound("onu", log.Fields{
 				"interface-id": omciInd.IntfId,
 				"onu-id":       omciInd.OnuId}, err).Log()
 		}
@@ -781,7 +782,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	if err := dh.AdapterProxy.SendInterAdapterMessage(context.Background(), omciMsg,
 		ic.InterAdapterMessageType_OMCI_REQUEST, dh.deviceType, deviceType,
 		deviceID, proxyDeviceID, ""); err != nil {
-		return NewErrCommunication("omci-request", log.Fields{
+		return olterrors.NewErrCommunication("omci-request", log.Fields{
 			"source":          dh.deviceType,
 			"destination":     deviceType,
 			"onu-id":          deviceID,
@@ -815,27 +816,27 @@ func (dh *DeviceHandler) ProcessInterAdapterMessage(msg *ic.InterAdapterMessage)
 		if omciMsg.GetProxyAddress() == nil {
 			onuDevice, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, toDeviceID)
 			if err != nil {
-				return NewErrNotFound("onu", log.Fields{
+				return olterrors.NewErrNotFound("onu", log.Fields{
 					"device-id":     dh.device.Id,
 					"onu-device-id": toDeviceID}, err).Log()
 			}
 			log.Debugw("device retrieved from core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
 			if err := dh.sendProxiedMessage(onuDevice, omciMsg); err != nil {
-				return NewErrCommunication("send-failed", log.Fields{
+				return olterrors.NewErrCommunication("send-failed", log.Fields{
 					"device-id":     dh.device.Id,
 					"onu-device-id": toDeviceID}, err).Log()
 			}
 		} else {
 			log.Debugw("Proxy Address found in omci message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
 			if err := dh.sendProxiedMessage(nil, omciMsg); err != nil {
-				return NewErrCommunication("send-failed", log.Fields{
+				return olterrors.NewErrCommunication("send-failed", log.Fields{
 					"device-id":     dh.device.Id,
 					"onu-device-id": toDeviceID}, err).Log()
 			}
 		}
 
 	} else {
-		return NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil).Log()
 	}
 	return nil
 }
@@ -856,7 +857,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 	if connectStatus != voltha.ConnectStatus_REACHABLE {
 		log.Debugw("ONU is not reachable, cannot send OMCI", log.Fields{"intfID": intfID, "onuID": onuID})
 
-		return NewErrCommunication("unreachable", log.Fields{
+		return olterrors.NewErrCommunication("unreachable", log.Fields{
 			"interface-id": intfID,
 			"onu-id":       onuID}, nil).Log()
 	}
@@ -880,7 +881,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 
 	_, err := dh.Client.OmciMsgOut(context.Background(), omciMessage)
 	if err != nil {
-		return NewErrCommunication("omci-send-failed", log.Fields{
+		return olterrors.NewErrCommunication("omci-send-failed", log.Fields{
 			"interface-id": intfID,
 			"onu-id":       onuID,
 			"message":      omciMessage}, err).Log()
@@ -900,7 +901,7 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 		if st.Code() == codes.AlreadyExists {
 			log.Debug("ONU activation is in progress", log.Fields{"SerialNumber": serialNumber})
 		} else {
-			return NewErrAdapter("onu-activate-failed", log.Fields{"onu": Onu}, err).Log()
+			return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": Onu}, err).Log()
 		}
 	} else {
 		log.Infow("activated-onu", log.Fields{"SerialNumber": serialNumber})
@@ -919,7 +920,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	if sn != "" {
 		kwargs["serial_number"] = sn
 	} else {
-		return NewErrInvalidValue(log.Fields{"serial-number": sn}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"serial-number": sn}, nil).Log()
 	}
 
 	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
@@ -944,7 +945,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			case codes.DeadlineExceeded:
 				// if the call times out, cleanup and exit
 				dh.discOnus.Delete(sn)
-				return NewErrTimeout("get-child-device", log.Fields{"device-id": dh.device.Id}, err).Log()
+				return olterrors.NewErrTimeout("get-child-device", log.Fields{"device-id": dh.device.Id}, err).Log()
 			}
 		}
 	}
@@ -964,7 +965,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			// if we can't create an ID in resource manager,
 			// cleanup and exit
 			dh.discOnus.Delete(sn)
-			return NewErrAdapter("resource-manage-get-onu-id-failed", log.Fields{
+			return olterrors.NewErrAdapter("resource-manage-get-onu-id-failed", log.Fields{
 				"pon-interface-id": ponintfid,
 				"serial-number":    sn}, err).Log()
 		}
@@ -973,7 +974,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			"", int(channelID), string(onuDiscInd.SerialNumber.GetVendorId()), sn, int64(onuID)); err != nil {
 			dh.discOnus.Delete(sn)
 			dh.resourceMgr.FreeonuID(ctx, ponintfid, []uint32{onuID}) // NOTE I'm not sure this method is actually cleaning up the right thing
-			return NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
+			return olterrors.NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
 				"pon-interface-id": ponintfid,
 				"serial-number":    sn}, err).Log()
 		}
@@ -995,13 +996,13 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev, "sn": sn})
 
 	if err = dh.coreProxy.DeviceStateUpdate(ctx, onuDevice.Id, common.ConnectStatus_REACHABLE, common.OperStatus_DISCOVERED); err != nil {
-		return NewErrAdapter("failed-to-update-device-state", log.Fields{
+		return olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
 			"device-id":     onuDevice.Id,
 			"serial-number": sn}, err).Log()
 	}
 	log.Infow("onu-discovered-reachable", log.Fields{"deviceId": onuDevice.Id, "sn": sn})
 	if err = dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn); err != nil {
-		return NewErrAdapter("onu-activation-failed", log.Fields{
+		return olterrors.NewErrAdapter("onu-activation-failed", log.Fields{
 			"device-id":     onuDevice.Id,
 			"serial-number": sn}, err).Log()
 	}
@@ -1043,7 +1044,7 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) error {
 	}
 
 	if err != nil || onuDevice == nil {
-		return NewErrNotFound("onu-device", errFields, err).Log()
+		return olterrors.NewErrNotFound("onu-device", errFields, err).Log()
 	}
 
 	if onuDevice.ParentPortNo != ponPort {
@@ -1064,7 +1065,7 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) error {
 
 	}
 	if err := dh.updateOnuStates(onuDevice, onuInd); err != nil {
-		return NewErrCommunication("state-update-failed", errFields, err).Log()
+		return olterrors.NewErrCommunication("state-update-failed", errFields, err).Log()
 	}
 	return nil
 }
@@ -1087,7 +1088,7 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
-			return NewErrCommunication("inter-adapter-send-failed", log.Fields{
+			return olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
 				"onu-indicator": onuInd,
 				"source":        "openolt",
 				"device-type":   onuDevice.Type,
@@ -1099,14 +1100,14 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
-			return NewErrCommunication("inter-adapter-send-failed", log.Fields{
+			return olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
 				"onu-indicator": onuInd,
 				"source":        "openolt",
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err).Log()
 		}
 	default:
-		return NewErrInvalidValue(log.Fields{"oper-state": onuInd.OperState}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"oper-state": onuInd.OperState}, nil).Log()
 	}
 	return nil
 }
@@ -1142,7 +1143,7 @@ func (dh *DeviceHandler) stringifyVendorSpecific(vendorSpecific []byte) string {
 
 //UpdateFlowsBulk upates the bulk flow
 func (dh *DeviceHandler) UpdateFlowsBulk() error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //GetChildDevice returns the child device for given parent port and onu id
@@ -1153,7 +1154,7 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) (*voltha.Devic
 	kwargs["parent_port_no"] = parentPort
 	onuDevice, err := dh.coreProxy.GetChildDevice(context.TODO(), dh.device.Id, kwargs)
 	if err != nil {
-		return nil, NewErrNotFound("onu", log.Fields{
+		return nil, olterrors.NewErrNotFound("onu", log.Fields{
 			"interface-id": parentPort,
 			"onu-id":       onuID}, err).Log()
 	}
@@ -1170,7 +1171,7 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 		"packet": hex.EncodeToString(packetPayload),
 	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPort, packetPayload); err != nil {
-		return NewErrCommunication("packet-send-failed", log.Fields{
+		return olterrors.NewErrCommunication("packet-send-failed", log.Fields{
 			"source":       "adapter",
 			"destination":  "core",
 			"device-id":    dh.device.Id,
@@ -1249,7 +1250,7 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 				dh.lockDevice.Lock()
 				dh.adminState = "up"
 				dh.lockDevice.Unlock()
-				return NewErrAdapter("olt-disable-failed", log.Fields{"device-id": device.Id}, err).Log()
+				return olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": device.Id}, err).Log()
 			}
 		}
 	}
@@ -1315,7 +1316,7 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 			dh.lockDevice.Lock()
 			dh.adminState = "down"
 			dh.lockDevice.Unlock()
-			return NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+			return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}
 	log.Debug("olt-reenabled")
@@ -1324,14 +1325,14 @@ func (dh *DeviceHandler) ReenableDevice(device *voltha.Device) error {
 	// Update the all ports state on that device to enable
 
 	if err := dh.disableAdminDownPorts(device); err != nil {
-		return NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err).Log()
+		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err).Log()
 	}
 	//Update the device oper status as ACTIVE
 	cloned.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = cloned
 
 	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return NewErrAdapter("state-update-failed", log.Fields{
+		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
 			"oper-status":    cloned.OperStatus}, err).Log()
@@ -1390,7 +1391,7 @@ func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
 	//Free the flow-ids for the NNI port
 	nni, err := dh.resourceMgr.GetNNIFromKVStore(ctx)
 	if err != nil {
-		return NewErrPersistence("get", "nni", 0, nil, err).Log()
+		return olterrors.NewErrPersistence("get", "nni", 0, nil, err).Log()
 	}
 	log.Debugw("NNI are ", log.Fields{"nni": nni})
 	for _, nniIntfID := range nni {
@@ -1402,7 +1403,7 @@ func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
 		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
 	}
 	if err = dh.resourceMgr.DelNNiFromKVStore(ctx); err != nil {
-		return NewErrPersistence("clear", "nni", 0, nil, err).Log()
+		return olterrors.NewErrPersistence("clear", "nni", 0, nil, err).Log()
 	}
 	return nil
 }
@@ -1428,7 +1429,7 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 			var onuGemData []rsrcMgr.OnuGemInfo
 			err := dh.resourceMgr.ResourceMgrs[ponPort].GetOnuGemInfo(ctx, ponPort, &onuGemData)
 			if err != nil {
-				return NewErrNotFound("onu", log.Fields{
+				return olterrors.NewErrNotFound("onu", log.Fields{
 					"device-id": dh.device.Id,
 					"pon-port":  ponPort}, err).Log()
 			}
@@ -1477,14 +1478,14 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
-			return NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
+			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
 		}
 	}
 	cloned := proto.Clone(device).(*voltha.Device)
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
 	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
 	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return NewErrAdapter("device-state-update-failed", log.Fields{
+		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
 			"device-id":      device.Id,
 			"connect-status": cloned.ConnectStatus,
 			"oper-status":    cloned.OperStatus}, err).Log()
@@ -1495,7 +1496,7 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 //RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 	if _, err := dh.Client.Reboot(context.Background(), new(oop.Empty)); err != nil {
-		return NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
+		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
 	}
 	log.Debugw("rebooted-device-successfully", log.Fields{"deviceID": device.Id})
 	return nil
@@ -1508,14 +1509,14 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	})
 	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
 	if err != nil {
-		return NewErrNotFound("logical-port", log.Fields{"packet": hex.EncodeToString(packetIn.Pkt)}, err).Log()
+		return olterrors.NewErrNotFound("logical-port", log.Fields{"packet": hex.EncodeToString(packetIn.Pkt)}, err).Log()
 	}
 	log.Debugw("sending packet-in to core", log.Fields{
 		"logicalPortNum": logicalPortNum,
 		"packet":         hex.EncodeToString(packetIn.Pkt),
 	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
-		return NewErrCommunication("send-packet-in", log.Fields{
+		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
 			"destination": "core",
 			"source":      dh.deviceType,
 			"packet":      hex.EncodeToString(packetIn.Pkt)}, err).Log()
@@ -1581,7 +1582,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		})
 
 		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
-			return NewErrCommunication("packet-out-send", log.Fields{
+			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
 				"source":             "adapter",
 				"destination":        "onu",
 				"egress-port-number": egressPortNo,
@@ -1594,7 +1595,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
 		nniIntfID, err := IntfIDFromNniPortNum(uint32(egressPortNo))
 		if err != nil {
-			return NewErrInvalidValue(log.Fields{"egress-nni-port": egressPortNo}, err).Log()
+			return olterrors.NewErrInvalidValue(log.Fields{"egress-nni-port": egressPortNo}, err).Log()
 		}
 		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
@@ -1604,7 +1605,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		})
 
 		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
-			return NewErrCommunication("packet-out-to-nni", log.Fields{"packet": hex.EncodeToString(packet.Data)}, err).Log()
+			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{"packet": hex.EncodeToString(packet.Data)}, err).Log()
 		}
 	} else {
 		log.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{
@@ -1664,7 +1665,7 @@ func (dh *DeviceHandler) updateStateUnreachable() {
 
 	go dh.notifyChildDevices("unreachable")
 	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
-		NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 	}
 }
 
@@ -1688,7 +1689,7 @@ func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error
 		// Bug is opened for VOL-2505 to support NNI disable feature.
 		log.Infow("voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
 			log.Fields{"Device": dh.device, "port": port})
-		return NewErrAdapter("illegal-port-request", log.Fields{
+		return olterrors.NewErrAdapter("illegal-port-request", log.Fields{
 			"port-type":    port.GetType,
 			"enable-state": enablePort}, nil).Log()
 	}
@@ -1701,7 +1702,7 @@ func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error
 		out, err := dh.Client.EnablePonIf(ctx, ponIntf)
 
 		if err != nil {
-			return NewErrAdapter("pon-port-enable-failed", log.Fields{
+			return olterrors.NewErrAdapter("pon-port-enable-failed", log.Fields{
 				"device-id": dh.device.Id,
 				"port":      port}, err).Log()
 		}
@@ -1712,7 +1713,7 @@ func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error
 		operStatus = voltha.OperStatus_UNKNOWN
 		out, err := dh.Client.DisablePonIf(ctx, ponIntf)
 		if err != nil {
-			return NewErrAdapter("pon-port-disable-failed", log.Fields{
+			return olterrors.NewErrAdapter("pon-port-disable-failed", log.Fields{
 				"device-id": dh.device.Id,
 				"port":      port}, err).Log()
 		}
@@ -1721,7 +1722,7 @@ func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error
 		log.Infow("disabled-pon-port", log.Fields{"out": out, "DeviceID": dh.device, "Port": port})
 	}
 	if err := dh.coreProxy.PortStateUpdate(ctx, dh.deviceID, voltha.Port_PON_OLT, port.PortNo, operStatus); err != nil {
-		return NewErrAdapter("port-state-update-failed", log.Fields{
+		return olterrors.NewErrAdapter("port-state-update-failed", log.Fields{
 			"device-id": dh.deviceID,
 			"port":      port.PortNo}, err).Log()
 	}
@@ -1736,7 +1737,7 @@ func (dh *DeviceHandler) disableAdminDownPorts(device *voltha.Device) error {
 	for _, port := range cloned.Ports {
 		if port.AdminState == common.AdminState_DISABLED {
 			if err := dh.DisablePort(port); err != nil {
-				return NewErrAdapter("port-disable-failed", log.Fields{
+				return olterrors.NewErrAdapter("port-disable-failed", log.Fields{
 					"device-id": dh.deviceID,
 					"port":      port}, err).Log()
 			}
@@ -1773,7 +1774,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	onuKey := dh.formOnuKey(IntfID, onuID)
 	onuDevice, ok := dh.onus.Load(onuKey)
 	if !ok {
-		return NewErrAdapter("failed-to-load-onu-details",
+		return olterrors.NewErrAdapter("failed-to-load-onu-details",
 			log.Fields{
 				"device-id":    dh.deviceID,
 				"onu-id":       onuID,
@@ -1782,14 +1783,14 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	var sn *oop.SerialNumber
 	var err error
 	if sn, err = dh.deStringifySerialNumber(onuDevice.(*OnuDevice).serialNumber); err != nil {
-		return NewErrAdapter("failed-to-destringify-serial-number",
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
 			log.Fields{
 				"devicer-id":    dh.deviceID,
 				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
 	}
 	onu := &oop.Onu{IntfId: IntfID, OnuId: onuID, SerialNumber: sn}
 	if _, err := dh.Client.DeleteOnu(context.Background(), onu); err != nil {
-		return NewErrAdapter("failed-to-delete-onu", log.Fields{
+		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
 			"device-id": dh.deviceID,
 			"onu-id":    onuID}, err).Log()
 	}
