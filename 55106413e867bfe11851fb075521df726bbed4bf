@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "78b696c9_c313bfff",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1805,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-03T16:57:12Z",
+      "side": 1,
+      "message": "I don\u0027t think this kind of check is required here, either we will get the err or we will get data on onuGemData, having both err and partial data is not expected, even in that case we need to re-write the GetOnuGemInfo to return either err or data not both(if required this need to be handled in separate PR).",
+      "parentUuid": "96d575e3_611eb116",
+      "range": {
+        "startLine": 1805,
+        "startChar": 0,
+        "endLine": 1805,
+        "endChar": 33
+      },
+      "revId": "55106413e867bfe11851fb075521df726bbed4bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dae4df1c_3d11e4f8",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2020-03-03T16:27:18Z",
       "side": 1,
       "message": "if clearUNiData returns an error then this loop should not happen as the value of onu should be considered undefined.",
+      "range": {
+        "startLine": 1815,
+        "startChar": 0,
+        "endLine": 1815,
+        "endChar": 37
+      },
+      "revId": "55106413e867bfe11851fb075521df726bbed4bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78126ce5_070782e1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1815,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-03T16:57:12Z",
+      "side": 1,
+      "message": "clearUNIData doesnot fill in value for onu and just takes onu data as input , and clearing flow IDs from gem cache is altogether a separate call .",
+      "parentUuid": "dae4df1c_3d11e4f8",
       "range": {
         "startLine": 1815,
         "startChar": 0,
