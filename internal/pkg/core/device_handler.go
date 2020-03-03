@@ -977,13 +977,12 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"pon-interface-id": ponintfid,
 				"serial-number":    sn}, err).Log()
 		}
-
+		dh.eventMgr.OnuDiscoveryIndication(onuDiscInd, onuDevice.Id, onuID, sn, time.Now().UnixNano())
 		log.Infow("onu-child-device-added", log.Fields{"onuDevice": onuDevice, "sn": sn})
 	}
 
 	// we can now use the existing ONU Id
 	onuID = onuDevice.ProxyAddress.OnuId
-
 	//Insert the ONU into cache to use in OnuIndication.
 	//TODO: Do we need to remove this from the cache on ONU change, or wait for overwritten on next discovery.
 	log.Debugw("onu-discovery-indication-key-create", log.Fields{"onuID": onuID,
