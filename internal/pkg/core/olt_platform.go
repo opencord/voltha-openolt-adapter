@@ -20,6 +20,7 @@ package core
 import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
@@ -171,7 +172,7 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
 	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
 		log.Errorw("NNIPortNumber is not in valid range", log.Fields{"portNum": portNum})
-		return uint32(0), ErrInvalidPortRange
+		return uint32(0), olterrors.ErrInvalidPortRange
 	}
 	return (portNum & 0xFFFF), nil
 }
@@ -260,7 +261,7 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, 0, 0, NewErrNotFound("pon-interface", log.Fields{
+		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound("pon-interface", log.Fields{
 			"flow-direction": flowDirection}, nil)
 	}
 

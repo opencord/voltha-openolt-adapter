@@ -33,6 +33,7 @@ import (
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
@@ -333,7 +334,7 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 			args{parentPort: 1,
 				onuID: 1},
 			nil,
-			reflect.TypeOf(&ErrNotFound{}),
+			reflect.TypeOf(&olterrors.ErrNotFound{}),
 		},
 	}
 
@@ -356,7 +357,7 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 }
 
 func TestGetportLabel(t *testing.T) {
-	invalid := reflect.TypeOf(&ErrInvalidValue{})
+	invalid := reflect.TypeOf(&olterrors.ErrInvalidValue{})
 	type args struct {
 		portNum  uint32
 		portType voltha.Port_PortType
@@ -419,7 +420,7 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	type args struct {
 		msg *ic.InterAdapterMessage
 	}
-	invalid := reflect.TypeOf(&ErrInvalidValue{})
+	invalid := reflect.TypeOf(&olterrors.ErrInvalidValue{})
 	tests := []struct {
 		name    string
 		args    args
@@ -445,7 +446,7 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 				Type: ic.InterAdapterMessageType_OMCI_REQUEST,
 			},
 			Body: marshalledData,
-		}}, reflect.TypeOf(&ErrCommunication{})},
+		}}, reflect.TypeOf(&olterrors.ErrCommunication{})},
 		{"ProcessInterAdapterMessage-4", args{msg: &ic.InterAdapterMessage{
 			Header: &ic.InterAdapterHeader{
 				Id:   "012345",

@@ -18,6 +18,7 @@ package core
 
 import (
 	"context"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"reflect"
 	"testing"
 	"time"
@@ -47,7 +48,7 @@ func getTranisitionsAfter() map[Trigger]Transition {
 		after: []TransitionHandler{func(ctx context.Context) error {
 			return nil
 		}, func(ctx context.Context) error {
-			return ErrStateTransition
+			return olterrors.ErrStateTransition
 		}},
 	}
 	transitions[GrpcConnected] = transition
@@ -65,7 +66,7 @@ func getTranisitionsBefore() map[Trigger]Transition {
 		before: []TransitionHandler{func(ctx context.Context) error {
 			return nil
 		}, func(ctx context.Context) error {
-			return ErrStateTransition
+			return olterrors.ErrStateTransition
 		}},
 	}
 	transitions[GrpcConnected] = transition

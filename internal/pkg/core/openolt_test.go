@@ -30,6 +30,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
@@ -135,9 +136,9 @@ func TestOpenOLT_Abandon_device(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"abandon_device-1", &fields{}, args{}, ErrNotImplemented},
-		{"abandon_device-2", &fields{}, args{}, ErrNotImplemented},
-		{"abandon_device-3", &fields{}, args{}, ErrNotImplemented},
+		{"abandon_device-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"abandon_device-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"abandon_device-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -162,11 +163,11 @@ func TestOpenOLT_Activate_image_update(t *testing.T) {
 		wantErr error
 	}{
 		{"activate_image_upate-1", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123XYZ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"activate_image_upate-2", &fields{}, args{}, &voltha.ImageDownload{Id: "Image2-ABC123CDE"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"activate_image_upate-3", &fields{}, args{}, &voltha.ImageDownload{Id: "Image3-ABC123EFG"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -185,9 +186,9 @@ func TestOpenOLT_Adapter_descriptor(t *testing.T) {
 		fields  *fields
 		wantErr error
 	}{
-		{"adapter_descriptor-1", &fields{}, ErrNotImplemented},
-		{"adapter_descriptor-2", &fields{}, ErrNotImplemented},
-		{"adapter_descriptor-3", &fields{}, ErrNotImplemented},
+		{"adapter_descriptor-1", &fields{}, olterrors.ErrNotImplemented},
+		{"adapter_descriptor-2", &fields{}, olterrors.ErrNotImplemented},
+		{"adapter_descriptor-3", &fields{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -205,7 +206,7 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 	}
 	var device = mockDevice()
 	device.Id = "olt"
-	nilDevice := NewErrInvalidValue(log.Fields{"device": nil}, nil)
+	nilDevice := olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	tests := []struct {
 		name    string
 		fields  *fields
@@ -244,11 +245,11 @@ func TestOpenOLT_Cancel_image_download(t *testing.T) {
 		wantErr error
 	}{
 		{"cancel_image_download-1", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123XYZ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"cancel_image_download-2", &fields{}, args{}, &voltha.ImageDownload{Id: "Image2-ABC123IJK"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"cancel_image_download-3", &fields{}, args{}, &voltha.ImageDownload{Id: "Image3-ABC123KLM"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -272,7 +273,7 @@ func TestOpenOLT_Delete_device(t *testing.T) {
 		wantErr error
 	}{
 		{"delete_device-1", &fields{}, args{mockDevice()},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -292,11 +293,11 @@ func TestOpenOLT_Device_types(t *testing.T) {
 		wantErr error
 	}{
 		{"device_types-1", &fields{}, &voltha.DeviceTypes{},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"device_types-2", &fields{}, &voltha.DeviceTypes{},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"device_types-3", &fields{}, &voltha.DeviceTypes{},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -321,7 +322,7 @@ func TestOpenOLT_Disable_device(t *testing.T) {
 	}{
 		{"disable_device-1", mockOlt(), args{mockDevice()}, nil},
 		{"disable_device-2", &fields{}, args{mockDevice()},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -346,11 +347,11 @@ func TestOpenOLT_Download_image(t *testing.T) {
 		wantErr error
 	}{
 		{"download_image-1", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123XYZ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"download_image-2", &fields{}, args{}, &voltha.ImageDownload{Id: "Image2-ABC123LKJ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"download_image-3", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123RTY"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -373,9 +374,9 @@ func TestOpenOLT_Get_device_details(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"get_device_details-1", &fields{}, args{}, ErrNotImplemented},
-		{"get_device_details-2", &fields{}, args{}, ErrNotImplemented},
-		{"get_device_details-3", &fields{}, args{}, ErrNotImplemented},
+		{"get_device_details-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"get_device_details-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"get_device_details-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -400,11 +401,11 @@ func TestOpenOLT_Get_image_download_status(t *testing.T) {
 		wantErr error
 	}{
 		{"get_image_download_status-1", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123XYZ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"get_image_download_status-2", &fields{}, args{}, &voltha.ImageDownload{Id: "Image2-ABC123LKJ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"get_image_download_status-3", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123DFG"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -442,7 +443,7 @@ func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 			},
 		}, nil},
 		{"get_ofp_device_info-2", &fields{}, args{mockDevice()}, nil,
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -484,7 +485,7 @@ func TestOpenOLT_Get_ofp_port_info(t *testing.T) {
 			},
 		}, nil},
 		{"get_ofp_port_info-2", &fields{}, args{mockDevice(), 1}, nil,
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -505,9 +506,9 @@ func TestOpenOLT_Health(t *testing.T) {
 		want    *voltha.HealthStatus
 		wantErr error
 	}{
-		{"health-1", &fields{}, &voltha.HealthStatus{}, ErrNotImplemented},
-		{"health-2", &fields{}, &voltha.HealthStatus{}, ErrNotImplemented},
-		{"health-3", &fields{}, &voltha.HealthStatus{}, ErrNotImplemented},
+		{"health-1", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
+		{"health-2", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
+		{"health-3", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -560,11 +561,11 @@ func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
 		wantErrType reflect.Type
 	}{
 		{"process_inter_adaptor_messgae-1", mockOlt(), message1,
-			reflect.TypeOf(&ErrNotFound{})},
+			reflect.TypeOf(&olterrors.ErrNotFound{})},
 		{"process_inter_adaptor_messgae-2", mockOlt(), message2,
 			reflect.TypeOf(errors.New("message is nil"))},
 		{"process_inter_adaptor_messgae-3", mockOlt(), message3,
-			reflect.TypeOf(&ErrInvalidValue{})},
+			reflect.TypeOf(&olterrors.ErrInvalidValue{})},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -589,7 +590,7 @@ func TestOpenOLT_Reboot_device(t *testing.T) {
 	}{
 		{"reboot_device-1", mockOlt(), args{mockDevice()}, nil},
 		{"reboot_device-2", &fields{}, args{mockDevice()},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -623,7 +624,7 @@ func TestOpenOLT_Receive_packet_out(t *testing.T) {
 	}{
 		{"receive_packet_out-1", mockOlt(), args{mockDevice().Id, 1, pktout}, nil},
 		{"receive_packet_out-2", mockOlt(), args{"1234", 1, pktout},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "1234"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "1234"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -639,7 +640,7 @@ func TestOpenOLT_Reconcile_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
-	expectedError := NewErrInvalidValue(log.Fields{"device": nil}, nil)
+	expectedError := olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	tests := []struct {
 		name    string
 		fields  *fields
@@ -672,7 +673,7 @@ func TestOpenOLT_Reenable_device(t *testing.T) {
 	}{
 		{"reenable_device-1", mockOlt(), args{mockDevice()}, nil},
 		{"reenable_device-2", &fields{}, args{mockDevice()},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -697,11 +698,11 @@ func TestOpenOLT_Revert_image_update(t *testing.T) {
 		wantErr error
 	}{
 		{"revert_image_update-1", &fields{}, args{}, &voltha.ImageDownload{Id: "Image1-ABC123XYZ"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"revert_image_update-2", &fields{}, args{}, &voltha.ImageDownload{Id: "Image2-ABC123TYU"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 		{"revert_image_update-3", &fields{}, args{}, &voltha.ImageDownload{Id: "Image3-ABC123GTH"},
-			ErrNotImplemented},
+			olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -724,9 +725,9 @@ func TestOpenOLT_Self_test_device(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"self_test_device-1", &fields{}, args{}, ErrNotImplemented},
-		{"self_test_device-2", &fields{}, args{}, ErrNotImplemented},
-		{"self_test_device-3", &fields{}, args{}, ErrNotImplemented},
+		{"self_test_device-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"self_test_device-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"self_test_device-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -793,9 +794,9 @@ func TestOpenOLT_Suppress_event(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"suppress_event-1", &fields{}, args{}, ErrNotImplemented},
-		{"suppress_event-2", &fields{}, args{}, ErrNotImplemented},
-		{"suppress_event-3", &fields{}, args{}, ErrNotImplemented},
+		{"suppress_event-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"suppress_event-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"suppress_event-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -817,9 +818,9 @@ func TestOpenOLT_Unsuppress_event(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"unsupress_event-1", &fields{}, args{}, ErrNotImplemented},
-		{"unsupress_event-2", &fields{}, args{}, ErrNotImplemented},
-		{"unsupress_event-3", &fields{}, args{}, ErrNotImplemented},
+		{"unsupress_event-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"unsupress_event-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"unsupress_event-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -844,9 +845,9 @@ func TestOpenOLT_Update_flows_bulk(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"update_flows_bulk-1", &fields{}, args{}, ErrNotImplemented},
-		{"update_flows_bulk-2", &fields{}, args{}, ErrNotImplemented},
-		{"update_flows_bulk-3", &fields{}, args{}, ErrNotImplemented},
+		{"update_flows_bulk-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"update_flows_bulk-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"update_flows_bulk-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -873,7 +874,7 @@ func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
 		wantErr error
 	}{
 		{"update_flows_incrementally-1", &fields{}, args{device: mockDevice()},
-			NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 		{"update_flows_incrementally-2", mockOlt(), args{device: mockDevice()}, nil},
 	}
 	for _, tt := range tests {
@@ -897,9 +898,9 @@ func TestOpenOLT_Update_pm_config(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"update_pm_config-1", &fields{}, args{}, ErrNotImplemented},
-		{"update_pm_config-2", &fields{}, args{}, ErrNotImplemented},
-		{"update_pm_config-3", &fields{}, args{}, ErrNotImplemented},
+		{"update_pm_config-1", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"update_pm_config-2", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"update_pm_config-3", &fields{}, args{}, olterrors.ErrNotImplemented},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
