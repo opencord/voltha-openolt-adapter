@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "96d575e3_611eb116",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1805,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-03T16:27:18Z",
+      "side": 1,
+      "message": "If the call to GetOnuGemInfo returns an error then the value of onuGemData should be considered undefined. So this loop should only happen if err \u003d\u003d nil.",
+      "range": {
+        "startLine": 1805,
+        "startChar": 0,
+        "endLine": 1805,
+        "endChar": 33
+      },
+      "revId": "55106413e867bfe11851fb075521df726bbed4bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dae4df1c_3d11e4f8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1815,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-03T16:27:18Z",
+      "side": 1,
+      "message": "if clearUNiData returns an error then this loop should not happen as the value of onu should be considered undefined.",
+      "range": {
+        "startLine": 1815,
+        "startChar": 0,
+        "endLine": 1815,
+        "endChar": 37
+      },
+      "revId": "55106413e867bfe11851fb075521df726bbed4bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
