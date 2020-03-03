@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
@@ -171,18 +172,18 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 		wantErr error
 	}{
 		// TODO: Add test cases.
-		{"IntfIDFromNniPortNum-01", args{portNum: 8081}, 0, ErrInvalidPortRange},
-		{"IntfIDFromNniPortNum-02", args{portNum: 9090}, 0, ErrInvalidPortRange},
-		{"IntfIDFromNniPortNum-03", args{portNum: 0}, 0, ErrInvalidPortRange},
-		{"IntfIDFromNniPortNum-04", args{portNum: 65535}, 0, ErrInvalidPortRange},
-		{"IntfIDFromNniPortNum-05", args{portNum: 1048575}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-01", args{portNum: 8081}, 0, olterrors.ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-02", args{portNum: 9090}, 0, olterrors.ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-03", args{portNum: 0}, 0, olterrors.ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-04", args{portNum: 65535}, 0, olterrors.ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-05", args{portNum: 1048575}, 0, olterrors.ErrInvalidPortRange},
 		{"IntfIDFromNniPortNum-06", args{portNum: 1048576}, 0, nil},
 		{"IntfIDFromNniPortNum-07", args{portNum: 1048577}, 1, nil},
 		{"IntfIDFromNniPortNum-08", args{portNum: 1048578}, 2, nil},
 		{"IntfIDFromNniPortNum-09", args{portNum: 1048579}, 3, nil},
 		{"IntfIDFromNniPortNum-10", args{portNum: 2097150}, 65534, nil},
 		{"IntfIDFromNniPortNum-11", args{portNum: 2097151}, 65535, nil},
-		{"IntfIDFromNniPortNum-12", args{portNum: 3000000}, 0, ErrInvalidPortRange},
+		{"IntfIDFromNniPortNum-12", args{portNum: 3000000}, 0, olterrors.ErrInvalidPortRange},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

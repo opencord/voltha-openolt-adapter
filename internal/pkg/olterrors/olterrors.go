@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// Package core provides the utility for olt devices, flows and statistics
-package core
+//Package olterrors implements functions to manipulate OLT errors
+package olterrors
 
 import (
 	"encoding/json"

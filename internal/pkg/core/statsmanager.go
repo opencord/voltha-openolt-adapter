@@ -20,6 +20,7 @@ package core
 import (
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 	"sync"
@@ -233,7 +234,7 @@ func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}
 		return PONPorts, nil
 	} else {
 		log.Errorf("Invalid type of interface %s", Intftype)
-		return nil, NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
+		return nil, olterrors.NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
 }
 

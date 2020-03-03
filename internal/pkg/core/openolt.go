@@ -26,6 +26,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
@@ -140,7 +141,7 @@ func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	ctx := context.Background()
 	if device == nil {
-		return NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}
 	log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
@@ -160,7 +161,7 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpDeviceInfo(device)
 	}
-	return nil, NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Get_ofp_port_info returns OFP port information for the given device
@@ -169,7 +170,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpPortInfo(device, portNo)
 	}
-	return nil, NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
@@ -183,29 +184,29 @@ func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) er
 	if handler := oo.getDeviceHandler(targetDevice); handler != nil {
 		return handler.ProcessInterAdapterMessage(msg)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil).Log()
 }
 
 //Adapter_descriptor not implemented
 func (oo *OpenOLT) Adapter_descriptor() error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Device_types unimplemented
 func (oo *OpenOLT) Device_types() (*voltha.DeviceTypes, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Health  returns unimplemented
 func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Reconcile_device unimplemented
 func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 	ctx := context.Background()
 	if device == nil {
-		return NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}
 	log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
@@ -220,7 +221,7 @@ func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 
 //Abandon_device unimplemented
 func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Disable_device disables the given device
@@ -229,7 +230,7 @@ func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.DisableDevice(device)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Reenable_device enables the olt device after disable
@@ -238,7 +239,7 @@ func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.ReenableDevice(device)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Reboot_device reboots the given device
@@ -247,12 +248,12 @@ func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.RebootDevice(device)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Self_test_device unimplented
 func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Delete_device unimplemented
@@ -266,17 +267,17 @@ func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
 		oo.deleteDeviceHandlerToMap(handler)
 		return nil
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Get_device_details unimplemented
 func (oo *OpenOLT) Get_device_details(device *voltha.Device) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Update_flows_bulk returns
 func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
@@ -286,12 +287,12 @@ func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *open
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Update_pm_config returns PmConfigs nil or error
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmConfigs) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Receive_packet_out sends packet out to the device
@@ -301,42 +302,42 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
 }
 
 //Suppress_event unimplemented
 func (oo *OpenOLT) Suppress_event(filter *voltha.EventFilter) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Unsuppress_event  unimplemented
 func (oo *OpenOLT) Unsuppress_event(filter *voltha.EventFilter) error {
-	return ErrNotImplemented
+	return olterrors.ErrNotImplemented
 }
 
 //Download_image unimplemented
 func (oo *OpenOLT) Download_image(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Get_image_download_status unimplemented
 func (oo *OpenOLT) Get_image_download_status(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Cancel_image_download unimplemented
 func (oo *OpenOLT) Cancel_image_download(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Activate_image_update unimplemented
 func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 //Revert_image_update unimplemented
 func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
-	return nil, ErrNotImplemented
+	return nil, olterrors.ErrNotImplemented
 }
 
 // Enable_port to Enable PON/NNI interface
@@ -355,7 +356,7 @@ func (oo *OpenOLT) Disable_port(deviceID string, port *voltha.Port) error {
 func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enablePort bool) error {
 	log.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
 	if port == nil {
-		return NewErrInvalidValue(log.Fields{
+		return olterrors.NewErrInvalidValue(log.Fields{
 			"reason":    "port cannot be nil",
 			"device-id": deviceID,
 			"port":      nil}, nil).Log()
@@ -384,5 +385,5 @@ func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.ChildDeviceLost(ctx, pPortNo, onuID)
 	}
-	return NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
 }
