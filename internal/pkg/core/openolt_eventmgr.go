@@ -24,6 +24,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v3/go/common"
 	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
@@ -142,10 +143,10 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 		log.Infow("Received onu deactivation failure indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
 	default:
-		err = NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
+		err = olterrors.NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
 	}
 	if err != nil {
-		return NewErrCommunication("publish-message", log.Fields{"indication-type": alarmInd}, err).Log()
+		return olterrors.NewErrCommunication("publish-message", log.Fields{"indication-type": alarmInd}, err).Log()
 	}
 	return nil
 }
