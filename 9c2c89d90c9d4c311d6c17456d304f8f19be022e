@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c80dfee6_d46c0175",
+        "filename": "VERSION",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-03T20:22:56Z",
+      "side": 1,
+      "message": "Should be 2.3.12-dev (version that\u0027s targeted, not the version that work is based off of.)",
+      "revId": "9c2c89d90c9d4c311d6c17456d304f8f19be022e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
