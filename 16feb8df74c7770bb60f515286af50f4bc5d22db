@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ce8be95_ddbe7cd7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-04T09:22:41Z",
+      "side": 1,
+      "message": "Couple of points\n1. This event should be generated only once when the ONU is discovered the first time. So I guess this line should be inside the if onuDevice \u003d\u003d nil condition and when the ChildDeviceDetected returns successfully\n\n2. Is there a specific reason why the function needs to be called in a separate go subroutine? Is this the general pattern followed for event generation? Do we expect this function to take good amount of time?",
+      "revId": "16feb8df74c7770bb60f515286af50f4bc5d22db",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
