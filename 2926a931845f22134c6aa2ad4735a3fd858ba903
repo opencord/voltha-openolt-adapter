@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89c26b52_aeef945d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1834,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-04T19:33:49Z",
+      "side": 1,
+      "message": "We will need to log the pon interface as well. The ONU ID is not unique on the OLT.",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b0f0e64d_6ce05256",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1851,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-04T19:33:49Z",
+      "side": 1,
+      "message": "Log the pon interface id.",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c992af44_1d1804ae",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-04T19:33:49Z",
+      "side": 1,
+      "message": "Get-onu-distance",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02e0c6fd_7f505083",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-04T19:33:49Z",
+      "side": 1,
+      "message": "get-onu-distance",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
