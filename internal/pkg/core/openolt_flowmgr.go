@@ -1912,16 +1912,23 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	if err != nil {
 		return NewErrNotFound("multicast-in-port", log.Fields{"classifier": classifierInfo}, err).Log()
 	}
-	//replace ipDst with ethDst
-	if ipv4Dst, ok := classifierInfo[Ipv4Dst]; ok &&
-		flows.IsMulticastIp(ipv4Dst.(uint32)) {
-		// replace ipv4_dst classifier with eth_dst
-		multicastMac := flows.ConvertToMulticastMacBytes(ipv4Dst.(uint32))
-		delete(classifierInfo, Ipv4Dst)
-		delete(classifierInfo, EthType)
-		classifierInfo[EthDst] = multicastMac
-		log.Debugw("multicast-ip-to-mac-conversion-success", log.Fields{"ip:": ipv4Dst.(uint32), "mac:": multicastMac})
+	//this variable acts like a switch. When it is set, multicast flows are classified by eth_dst.
+	//otherwise, classification is based on ipv4_dst by default.
+	//the variable can be configurable in the future; it can be read from a configuration path in the kv store.
+	mcastFlowClassificationByEthDst := false
+
+	if mcastFlowClassificationByEthDst {
+		//replace ipDst with ethDst
+		if ipv4Dst, ok := classifierInfo[Ipv4Dst]; ok &&
+			flows.IsMulticastIp(ipv4Dst.(uint32)) {
+			// replace ipv4_dst classifier with eth_dst
+			multicastMac := flows.ConvertToMulticastMacBytes(ipv4Dst.(uint32))
+			delete(classifierInfo, Ipv4Dst)
+			classifierInfo[EthDst] = multicastMac
+			log.Debugw("multicast-ip-to-mac-conversion-success", log.Fields{"ip:": ipv4Dst.(uint32), "mac:": multicastMac})
+		}
 	}
+	delete(classifierInfo, EthType)
 
 	onuID := NoneOnuID
 	uniID := NoneUniID
