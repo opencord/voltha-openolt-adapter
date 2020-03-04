@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4d2cc58e_066e5ffd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1834,
+      "author": {
+        "id": 1000475
+      },
+      "writtenOn": "2020-03-04T23:57:13Z",
+      "side": 1,
+      "message": "added",
+      "parentUuid": "89c26b52_aeef945d",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0f0e64d_6ce05256",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2020-03-04T19:33:49Z",
       "side": 1,
       "message": "Log the pon interface id.",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e059e330_54449476",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1851,
+      "author": {
+        "id": 1000475
+      },
+      "writtenOn": "2020-03-04T23:57:13Z",
+      "side": 1,
+      "message": "added",
+      "parentUuid": "b0f0e64d_6ce05256",
       "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "6dddeb3b_9b768665",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000475
+      },
+      "writtenOn": "2020-03-04T23:57:13Z",
+      "side": 1,
+      "message": "corrected",
+      "parentUuid": "c992af44_1d1804ae",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "02e0c6fd_7f505083",
         "filename": "internal/pkg/core/openolt.go",
         "patchSetId": 4
@@ -64,6 +118,24 @@
       "writtenOn": "2020-03-04T19:33:49Z",
       "side": 1,
       "message": "get-onu-distance",
+      "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79f3f9db_fb07fc59",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1000475
+      },
+      "writtenOn": "2020-03-04T23:57:13Z",
+      "side": 1,
+      "message": "corrected",
+      "parentUuid": "02e0c6fd_7f505083",
       "revId": "2926a931845f22134c6aa2ad4735a3fd858ba903",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
