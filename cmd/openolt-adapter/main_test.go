@@ -111,13 +111,10 @@ func Test_startOpenOLT(t *testing.T) {
 	defer a.StopAt(0)
 
 	ad := newMockAdapter()
-	oolt, err := ad.startOpenOLT(context.TODO(), nil,
+	oolt := ad.startOpenOLT(context.TODO(), nil,
 		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
 	if oolt != nil {
 		t.Log("Open OLT ", oolt)
-	}
-	if err != nil {
-		t.Errorf("err %v", err)
 	}
 }
 
@@ -165,7 +162,7 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 	ad.kip = kip
 	ad.kip.Start()
 
-	oolt, _ := ad.startOpenOLT(context.TODO(), nil,
+	oolt := ad.startOpenOLT(context.TODO(), nil,
 		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
 	printBanner()
 	printVersion()
