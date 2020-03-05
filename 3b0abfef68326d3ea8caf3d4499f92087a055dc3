@@ -34,6 +34,24 @@
       "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7a67dea_54af5c31",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1931,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-05T18:48:10Z",
+      "side": 1,
+      "message": "If I understand correctly, you have tried below code and it does not work? What I did not understand is, in this particular case, it should enter the else case and delete the ethType classifier, which is what you need. So, I am not sure why it did not work for you. For my information, what is the exact etherType?\n\n\tif mcastFlowClassificationByEthDst {\n\t\t//replace ipDst with ethDst\n\t\tif ipv4Dst, ok :\u003d classifierInfo[Ipv4Dst]; ok \u0026\u0026\n\t\t\tflows.IsMulticastIp(ipv4Dst.(uint32)) {\n\t\t\t// replace ipv4_dst classifier with eth_dst\n\t\t\tmulticastMac :\u003d flows.ConvertToMulticastMacBytes(ipv4Dst.(uint32))\n\t\t\tdelete(classifierInfo, Ipv4Dst)\n\t\t\tclassifierInfo[EthDst] \u003d multicastMac\n\t\t\tlog.Debugw(\"multicast-ip-to-mac-conversion-success\", log.Fields{\"ip:\": ipv4Dst.(uint32), \"mac:\": multicastMac})\n\t\t}\n\t} else { // classification by Ip Address\n\t        delete(classifierInfo, EthType)\n        }",
+      "parentUuid": "171fd732_ad6cde3f",
+      "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
