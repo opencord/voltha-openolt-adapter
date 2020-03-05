@@ -16,6 +16,24 @@
       "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "171fd732_ad6cde3f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1931,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-03-05T07:37:49Z",
+      "side": 1,
+      "message": "It seems it should not. When I set eth_type along with ipv4_dst, flow installations fails with the following error message from BAL:\n\n\"A multicast flow can only be classified with vid, dst_mac and dst_ip#012\"\n\nEventually, it seems we cannot set eth_type criterion for multicast flows in any case. It is a BAL requirement. \n\nI conducted some tests and confirmed that a multicast flow with the following criteria works as expected.\n\nclassify o_vid 550\nclassify i_vid 55\nclassify dst_ip 225.22.0.1\nclassify tag_type double_tag",
+      "parentUuid": "19400b89_fc6cfab0",
+      "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
