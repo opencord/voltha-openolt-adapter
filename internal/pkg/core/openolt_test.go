@@ -563,7 +563,7 @@ func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
 		{"process_inter_adaptor_messgae-1", mockOlt(), message1,
 			reflect.TypeOf(&olterrors.ErrNotFound{})},
 		{"process_inter_adaptor_messgae-2", mockOlt(), message2,
-			reflect.TypeOf(errors.New("message is nil"))},
+			reflect.TypeOf(&olterrors.ErrAdapter{})},
 		{"process_inter_adaptor_messgae-3", mockOlt(), message3,
 			reflect.TypeOf(&olterrors.ErrInvalidValue{})},
 	}
