@@ -131,8 +131,7 @@ func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
 	deviceTopic := kafka.Topic{Name: defaultTopic.Name + "_" + device.Id}
 	// TODO for the offset
 	if err := oo.kafkaICProxy.SubscribeWithDefaultRequestHandler(deviceTopic, 0); err != nil {
-		log.Infow("create-device-topic-failed", log.Fields{"deviceId": device.Id, "error": err})
-		return err
+		return olterrors.NewErrAdapter("subscribe-for-device-topic-failed", log.Fields{"device-topic": deviceTopic}, err)
 	}
 	return nil
 }
@@ -161,7 +160,7 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpDeviceInfo(device)
 	}
-	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Get_ofp_port_info returns OFP port information for the given device
@@ -170,7 +169,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpPortInfo(device, portNo)
 	}
-	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
@@ -184,7 +183,7 @@ func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) er
 	if handler := oo.getDeviceHandler(targetDevice); handler != nil {
 		return handler.ProcessInterAdapterMessage(msg)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil)
 }
 
 //Adapter_descriptor not implemented
@@ -206,7 +205,7 @@ func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
 func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 	ctx := context.Background()
 	if device == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
+		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	}
 	log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
@@ -230,7 +229,7 @@ func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.DisableDevice(device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Reenable_device enables the olt device after disable
@@ -239,7 +238,7 @@ func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.ReenableDevice(device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Reboot_device reboots the given device
@@ -248,7 +247,7 @@ func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.RebootDevice(device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Self_test_device unimplented
@@ -267,7 +266,7 @@ func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
 		oo.deleteDeviceHandlerToMap(handler)
 		return nil
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Get_device_details unimplemented
@@ -287,7 +286,7 @@ func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *open
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Update_pm_config returns PmConfigs nil or error
@@ -302,7 +301,7 @@ func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet 
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil)
 }
 
 //Suppress_event unimplemented
@@ -359,19 +358,17 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 		return olterrors.NewErrInvalidValue(log.Fields{
 			"reason":    "port cannot be nil",
 			"device-id": deviceID,
-			"port":      nil}, nil).Log()
+			"port":      nil}, nil)
 	}
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		log.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
 		if enablePort {
 			if err := handler.EnablePort(port); err != nil {
-				log.Errorw("error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port, "error": err})
-				return err
+				return olterrors.NewErrAdapter("error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
 			}
 		} else {
 			if err := handler.DisablePort(port); err != nil {
-				log.Errorw("error-occurred-during-disable-port", log.Fields{"Device": deviceID, "port": port})
-				return err
+				return olterrors.NewErrAdapter("error-occurred-during-disable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
 			}
 		}
 	}

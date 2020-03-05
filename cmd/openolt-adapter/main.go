@@ -128,14 +128,11 @@ func (a *adapter) start(ctx context.Context) {
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy,
-		a.config); err != nil {
-		log.Fatal("error-starting-inter-container-proxy")
-	}
+	a.iAdapter = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config)
 
 	// Register the core request handler
 	if err = a.setupRequestHandler(ctx, a.instanceID, a.iAdapter); err != nil {
-		log.Fatal("error-setting-core-request-handler")
+		log.Fatalw("error-setting-core-request-handler", log.Fields{"error": err})
 	}
 
 	// Register this adapter to the Core - retries indefinitely
@@ -350,25 +347,23 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 
 func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProxy,
 	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
-	cfg *config.AdapterFlags) (*ac.OpenOLT, error) {
+	cfg *config.AdapterFlags) *ac.OpenOLT {
 	log.Info("starting-open-olt")
 	var err error
 	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, cfg)
 
 	if err = sOLT.Start(ctx); err != nil {
-		log.Fatalw("error-starting-messaging-proxy", log.Fields{"error": err})
-		return nil, err
+		log.Fatalw("error-starting-openolt", log.Fields{"error": err})
 	}
 
 	log.Info("open-olt-started")
-	return sOLT, nil
+	return sOLT
 }
 
 func (a *adapter) setupRequestHandler(ctx context.Context, coreInstanceID string, iadapter adapters.IAdapter) error {
 	log.Info("setting-request-handler")
 	requestProxy := com.NewRequestHandlerProxy(coreInstanceID, iadapter, a.coreProxy)
 	if err := a.kip.SubscribeWithRequestHandlerInterface(kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
-		log.Errorw("request-handler-setup-failed", log.Fields{"error": err})
 		return err
 
 	}
