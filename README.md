@@ -27,3 +27,5 @@ will be removed from the `vendor` directory and replaced by coping the files fro
 the specified locations to the `vendor` directory. *NOTE:* _this means that
 the files in the `vendor` directory are no longer what is in the `git` repository
 and it will take manual `git` intervention to put the original files back._
+
+This is a bogus change to trigger some hardware tests
