@@ -167,8 +167,7 @@ func (em *OpenOltEventMgr) oltUpDownIndication(oltIndication *oop.OltIndication,
 	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
-		log.Errorw("Failed to send OLT event", log.Fields{"err": err})
-		return err
+		return olterrors.NewErrCommunication("send-olt-event", log.Fields{"device-id": deviceID}, err)
 	}
 	log.Infow("OLT UpDown event sent to KAFKA", log.Fields{})
 	return nil
@@ -188,8 +187,7 @@ func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication
 	de.DeviceEventName = fmt.Sprintf("%s_%s", onuDiscoveryEvent, "RAISE_EVENT")
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, pon, raisedTs); err != nil {
-		log.Errorw("Failed to send ONU discovery event", log.Fields{"serial-number": serialNumber, "intf-id": onuDisc.IntfId})
-		return err
+		return olterrors.NewErrCommunication("send-onu-discovery-event", log.Fields{"serial-number": serialNumber, "intf-id": onuDisc.IntfId}, err)
 	}
 	log.Infow("ONU discovery event sent to KAFKA", log.Fields{"serial-number": serialNumber, "intf-id": onuDisc.IntfId})
 	return nil
@@ -458,6 +456,7 @@ func (em *OpenOltEventMgr) oltIntfOperIndication(ifindication *oop.IntfOperIndic
 	device, err := em.handler.coreProxy.GetDevice(ctx.Background(), deviceID, deviceID)
 	if err != nil {
 		log.Errorw("Error while fetching Device object", log.Fields{"DeviceId": deviceID})
+		return
 	}
 	for _, port := range device.Ports {
 		if port.PortNo == portID {
@@ -482,7 +481,7 @@ func (em *OpenOltEventMgr) oltIntfOperIndication(ifindication *oop.IntfOperIndic
 	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
-		log.Errorw("failed-to-send-olt-intf-oper-status-event", log.Fields{"err": err})
+		olterrors.NewErrCommunication("send-olt-intf-oper-status-event", log.Fields{"device-id": deviceID, "intf-id": ifindication.IntfId, "oper-state": ifindication.OperState}, err).Log()
 	}
 	log.Info("sent-olt-intf-oper-status-event-to-kafka")
 }
