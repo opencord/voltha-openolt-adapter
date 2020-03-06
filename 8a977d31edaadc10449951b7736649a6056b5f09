@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ae2d08a_5e109de3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1825,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-06T05:53:16Z",
+      "side": 1,
+      "message": "this loop should only be executed if GetOnuGemInfo returns nil for err. In other words you aren\u0027t guaranteed that onuGemData will be an empty list if GetOnuGemInfo returns a non-nil err. I would either put this in an else clause for the err check of put an \"if err !\u003d nil\" around it.",
+      "range": {
+        "startLine": 1806,
+        "startChar": 0,
+        "endLine": 1825,
+        "endChar": 2
+      },
+      "revId": "8a977d31edaadc10449951b7736649a6056b5f09",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
