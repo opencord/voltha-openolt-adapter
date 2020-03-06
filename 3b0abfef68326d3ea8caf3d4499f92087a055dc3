@@ -52,6 +52,24 @@
       "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c546993b_2367583b",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1931,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-03-06T13:41:50Z",
+      "side": 1,
+      "message": "In this case, eth_type\u003d0x800 (ipv4). \n\nIf mcastFlowClassificationByEthDst is false, your code works fine. In case mcastFlowClassificationByEthDst is true, your code does not work. According to BAL, multicast flow\ncan not be classified by eth_type. Thus, I remove ether_type criterion from the flow in both cases; it should not be in the else block.",
+      "parentUuid": "d7a67dea_54af5c31",
+      "revId": "3b0abfef68326d3ea8caf3d4499f92087a055dc3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
