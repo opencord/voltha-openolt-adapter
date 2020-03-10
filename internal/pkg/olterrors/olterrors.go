@@ -281,6 +281,37 @@ func (e *ErrFlowOp) LogAt(level log.LogLevel) error {
 	return e
 }
 
+// ErrGroupOp represents an error condition when a flow operation to a device did
+// not succeed
+type ErrGroupOp struct {
+	ErrAdapter
+}
+
+// NewErrGroupOp constructs a new error based on the given values
+func NewErrGroupOp(operation string, ID uint32, fields log.Fields, wrapped error) LoggableError {
+	return &ErrPersistence{
+		ErrAdapter{
+			name: "unable-to-perform-flow-operation",
+			fields: merge(fields, log.Fields{
+				"operation": operation,
+				"id":        fmt.Sprintf("0x%x", ID)}),
+			wrapped: wrapped,
+		},
+	}
+}
+
+// Log logs the error at the default level for log and return
+func (e *ErrGroupOp) Log() error {
+	_ = e.ErrAdapter.Log()
+	return e
+}
+
+// LogAt logs the error at the specified level and then returns the error
+func (e *ErrGroupOp) LogAt(level log.LogLevel) error {
+	_ = e.ErrAdapter.LogAt(level)
+	return e
+}
+
 // ErrTimeout represents an error condition when the deadline for performing an
 // operation has been exceeded
 type ErrTimeout struct {
