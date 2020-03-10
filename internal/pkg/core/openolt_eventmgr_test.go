@@ -28,7 +28,7 @@ import (
 
 func mockEventMgr() *OpenOltEventMgr {
 	ep := &mocks.MockEventProxy{}
-	dh := &DeviceHandler{}
+	dh := newMockDeviceHandler()
 	dh.onus = sync.Map{}
 	dh.onus.Store(dh.formOnuKey(1, 1), &OnuDevice{deviceID: "TEST_ONU",
 		deviceType:   "ONU",

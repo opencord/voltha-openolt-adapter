@@ -196,7 +196,11 @@ func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication
 }
 
 func (em *OpenOltEventMgr) oltLosIndication(oltLos *oop.LosIndication, deviceID string, raisedTs int64) error {
+	var err error = nil
 	var de voltha.DeviceEvent
+	var alarmInd oop.OnuAlarmIndication
+	ponIntdID := PortNoToIntfID(oltLos.IntfId, voltha.Port_PON_OLT)
+
 	context := make(map[string]string)
 	/* Populating event context */
 	context["intf-id"] = strconv.FormatUint(uint64(oltLos.IntfId), base10)
@@ -205,6 +209,19 @@ func (em *OpenOltEventMgr) oltLosIndication(oltLos *oop.LosIndication, deviceID 
 	de.ResourceId = deviceID
 	if oltLos.Status == statusCheckOn {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltLosEvent, "RAISE_EVENT")
+		em.handler.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
+			if onuInCache.(*OnuDevice).intfID == ponIntdID {
+				alarmInd.IntfId = ponIntdID
+				alarmInd.OnuId = onuInCache.(*OnuDevice).onuID
+				alarmInd.LosStatus = statusCheckOn
+				err = em.onuAlarmIndication(&alarmInd, deviceID, raisedTs)
+			}
+			return true
+		})
+		if err != nil {
+			/* Return if any error encountered while processing ONU LoS Event*/
+			return err
+		}
 	} else {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltLosEvent, "CLEAR_EVENT")
 	}
@@ -243,6 +260,61 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 	return nil
 }
 
+//GetChildDeviceLosStatus checks whether los raised/cleared already. If already raised/cleared returns true else false
+func (em *OpenOltEventMgr) GetChildDeviceLosStatus(onuAlarm *oop.OnuAlarmIndication) bool {
+	/* check whether LoS Raise/Clear event already raised for the onu */
+	onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
+	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
+		log.Debugw("onu-device-found-in-cache.", log.Fields{"intfID": onuAlarm.IntfId, "onuID": onuAlarm.OnuId})
+
+		if onuAlarm.LosStatus == statusCheckOn {
+			if onuInCache.(*OnuDevice).losRaised {
+				log.Warnw("onu-los-raised-already", log.Fields{"onu_id": onuAlarm.OnuId,
+					"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
+				return true
+			}
+			/* update onu device with LoS raised state as true*/
+			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
+				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
+				onuInCache.(*OnuDevice).proxyDeviceID, true))
+		} else if onuAlarm.LosStatus == statusCheckOff {
+			if !onuInCache.(*OnuDevice).losRaised {
+				log.Warnw("onu-los-cleared-already", log.Fields{"onu_id": onuAlarm.OnuId,
+					"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
+				return true
+			}
+			/* update onu device with LoS cleared state as true*/
+			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
+				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
+				onuInCache.(*OnuDevice).proxyDeviceID, false))
+		}
+	} else {
+		log.Debugw("onu-device-not-found-in-cache.", log.Fields{"intfID": onuAlarm.IntfId, "onuID": onuAlarm.OnuId})
+		parentPortNo := IntfIDToPortNo(onuAlarm.GetIntfId(), voltha.Port_PON_OLT)
+		onuDevice, err := em.handler.GetChildDevice(parentPortNo, onuAlarm.OnuId)
+		if err != nil {
+			log.Warnw("Ignoring-onuLosEvent-as-onu-not-found-in-core.", log.Fields{"onu_id": onuAlarm.OnuId, "intf_id": onuAlarm.IntfId,
+				"LosStatus": onuAlarm.LosStatus})
+			return true
+		}
+		deviceType := onuDevice.Type
+		deviceID := onuDevice.Id
+		proxyDeviceID := onuDevice.ProxyAddress.DeviceId
+
+		if onuAlarm.LosStatus == statusCheckOn {
+			//if not exist in cache, then add to cache with LoSRaised state as true.
+			em.handler.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, onuAlarm.OnuId,
+				onuAlarm.IntfId, proxyDeviceID, true))
+		} else if onuAlarm.LosStatus == statusCheckOff {
+			//if not exist in cache, then add to cache with LoSRaised state as true.
+			em.handler.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, onuAlarm.OnuId,
+				onuAlarm.IntfId, proxyDeviceID, false))
+		}
+
+	}
+	return false
+}
+
 func (em *OpenOltEventMgr) onuAlarmIndication(onuAlarm *oop.OnuAlarmIndication, deviceID string, raisedTs int64) error {
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
@@ -254,8 +326,16 @@ func (em *OpenOltEventMgr) onuAlarmIndication(onuAlarm *oop.OnuAlarmIndication, 
 	de.ResourceId = deviceID
 	if onuAlarm.LosStatus == statusCheckOn {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "RAISE_EVENT")
+		if em.GetChildDeviceLosStatus(onuAlarm) {
+			/* No need to raise Onu Los Event as it might have already raised or Onu might have deleted */
+			return nil
+		}
 	} else if onuAlarm.LosStatus == statusCheckOff {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "CLEAR_EVENT")
+		if em.GetChildDeviceLosStatus(onuAlarm) {
+			/* No need to clear Onu Los Event as it might have already raised or Onu might have deleted */
+			return nil
+		}
 	} else if onuAlarm.LobStatus == statusCheckOn {
 		de.DeviceEventName = fmt.Sprintf("%s_%s", onuLobEvent, "RAISE_EVENT")
 	} else if onuAlarm.LobStatus == statusCheckOff {

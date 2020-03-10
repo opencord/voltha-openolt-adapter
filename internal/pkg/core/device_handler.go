@@ -90,6 +90,7 @@ type OnuDevice struct {
 	intfID        uint32
 	proxyDeviceID string
 	uniPorts      map[uint32]struct{}
+	losRaised     bool
 }
 
 var pmNames = []string{
@@ -104,7 +105,7 @@ var pmNames = []string{
 }
 
 //NewOnuDevice creates a new Onu Device
-func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxyDevID string) *OnuDevice {
+func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxyDevID string, losRaised bool) *OnuDevice {
 	var device OnuDevice
 	device.deviceID = devID
 	device.deviceType = deviceTp
@@ -113,6 +114,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	device.intfID = intfID
 	device.proxyDeviceID = proxyDevID
 	device.uniPorts = make(map[uint32]struct{})
+	device.losRaised = losRaised
 	return &device
 }
 
@@ -769,7 +771,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 		deviceID = onuDevice.Id
 		proxyDeviceID = onuDevice.ProxyAddress.DeviceId
 		//if not exist in cache, then add to cache.
-		dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID))
+		dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID, false))
 	} else {
 		//found in cache
 		log.Debugw("omci indication for a device in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
@@ -923,7 +925,26 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		return olterrors.NewErrInvalidValue(log.Fields{"serial-number": sn}, nil).Log()
 	}
 
+	var alarmInd oop.OnuAlarmIndication
+	raisedTs := time.Now().UnixNano()
 	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
+		dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
+			if onuInCache.(*OnuDevice).serialNumber == sn && onuInCache.(*OnuDevice).losRaised {
+				if onuDiscInd.GetIntfId() != onuInCache.(*OnuDevice).intfID {
+					log.Warnw("ONU-is-on-a-different-intf-id-now", log.Fields{
+						"previousIntfId": onuInCache.(*OnuDevice).intfID,
+						"currentIntfId":  onuDiscInd.GetIntfId()})
+					// TODO:: Should we need to ignore raising OnuLosClear event
+					// since onu connected to different PON?
+				}
+				alarmInd.IntfId = onuInCache.(*OnuDevice).intfID
+				alarmInd.OnuId = onuInCache.(*OnuDevice).onuID
+				alarmInd.LosStatus = statusCheckOff
+				go dh.eventMgr.onuAlarmIndication(&alarmInd, onuInCache.(*OnuDevice).deviceID, raisedTs)
+			}
+			return true
+		})
+
 		log.Warnw("onu-sn-is-already-being-processed", log.Fields{"sn": sn})
 		return nil
 	}
@@ -990,7 +1011,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		"intfId": onuDiscInd.GetIntfId(), "sn": sn})
 	onuKey := dh.formOnuKey(onuDiscInd.GetIntfId(), onuID)
 
-	onuDev := NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId)
+	onuDev := NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuID, onuDiscInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId, false)
 	dh.onus.Store(onuKey, onuDev)
 	log.Debugw("new-onu-device-discovered", log.Fields{"onu": onuDev, "sn": sn})
 
@@ -1060,7 +1081,7 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) error {
 	if !foundInCache {
 		onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.GetOnuId())
 
-		dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId))
+		dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId, false))
 
 	}
 	if err := dh.updateOnuStates(onuDevice, onuInd); err != nil {

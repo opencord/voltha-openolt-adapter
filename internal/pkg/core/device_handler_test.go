@@ -672,8 +672,8 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	dh2 := negativeDeviceHandler()
 	dh3 := newMockDeviceHandler()
 	dh3.onus = sync.Map{}
-	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1"))
-	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2"))
+	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1", false))
+	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2", false))
 
 	type args struct {
 		indication *oop.Indication
