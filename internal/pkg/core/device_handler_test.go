@@ -672,8 +672,8 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	dh2 := negativeDeviceHandler()
 	dh3 := newMockDeviceHandler()
 	dh3.onus = sync.Map{}
-	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1"))
-	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2"))
+	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1", false))
+	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2", false))
 
 	type args struct {
 		indication *oop.Indication
@@ -1054,6 +1054,11 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 	dh1.discOnus = sync.Map{}
 	dh1.discOnus.Store("onu1", true)
 	dh1.discOnus.Store("onu2", false)
+	dh1.discOnus.Store("onu3", true)
+	dh1.discOnus.Store("onu4", true)
+	dh1.onus = sync.Map{}
+	dh1.onus.Store("onu3", NewOnuDevice("onu3", "onu3", "onu3", 3, 3, "onu3", true))
+	dh1.onus.Store("onu4", NewOnuDevice("onu4", "onu4", "onu4", 4, 4, "onu4", true))
 	dh2 := negativeDeviceHandler()
 	type args struct {
 		onuDiscInd *oop.OnuDiscIndication
@@ -1071,7 +1076,9 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 		{"onuDiscIndication-4", dh1, args{onuDiscInd: &oop.OnuDiscIndication{}}},
 		{"onuDiscIndication-5", dh1, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, sn: "onu1"}},
 		{"onuDiscIndication-6", dh1, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, sn: "onu2"}},
-		{"onuDiscIndication-7", dh2, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}}},
+		{"onuDiscIndication-7", dh1, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 3, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, sn: "onu3"}},
+		{"onuDiscIndication-8", dh1, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 3, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, sn: "onu4"}},
+		{"onuDiscIndication-9", dh2, args{onuDiscInd: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
