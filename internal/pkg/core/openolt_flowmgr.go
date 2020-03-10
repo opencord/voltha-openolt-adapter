@@ -22,6 +22,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -1812,7 +1813,7 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 
 // AddFlow add flow to device
 // nolint: gocyclo
-func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) {
+func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) error {
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
 	var UsMeterID uint32
@@ -1825,20 +1826,19 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
-		return
+		return err
 	}
 
 	if flows.HasGroup(flow) {
 		// handle multicast flow
-		f.handleFlowWithGroup(ctx, actionInfo, classifierInfo, flow)
-		return
+		return f.handleFlowWithGroup(ctx, actionInfo, classifierInfo, flow)
 	}
 
 	/* Controller bound trap flows */
 	err = formulateControllerBoundTrapFlowInfo(actionInfo, classifierInfo, flow)
 	if err != nil {
 		// error if any, already logged in the called function
-		return
+		return err
 	}
 
 	log.Infow("Flow ports", log.Fields{"classifierInfo_inport": classifierInfo[InPort], "action_output": actionInfo[Output]})
@@ -1847,8 +1847,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 	if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == LldpEthType {
 			log.Info("Adding LLDP flow")
-			f.addLLDPFlow(ctx, flow, portNo)
-			return
+			return f.addLLDPFlow(ctx, flow, portNo)
 		}
 	}
 	if ipProto, ok := classifierInfo[IPProto]; ok {
@@ -1856,16 +1855,14 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
 				if udpSrc.(uint32) == uint32(67) || udpSrc.(uint32) == uint32(546) {
 					log.Debug("trap-dhcp-from-nni-flow")
-					f.addDHCPTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
-					return
+					return f.addDHCPTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 				}
 			}
 		}
 	}
 	if isIgmpTrapDownstreamFlow(classifierInfo) {
 		log.Debug("trap-igmp-from-nni-flow")
-		f.addIgmpTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
-		return
+		return f.addIgmpTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 	}
 
 	f.deviceHandler.AddUniPortToOnu(intfID, onuID, portNo)
@@ -1874,7 +1871,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 	TpID, err := getTpIDFromFlow(flow)
 	if err != nil {
 		log.Error("metadata-is-not-present-invalid-flow-to-process", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
-		return
+		return fmt.Errorf("metadata-is-not-present-invalid-flow-to-process, pon:%v, onuID:%v, uniID:%v", intfID, onuID, uniID)
 	}
 	log.Debugw("TPID for this subcriber", log.Fields{"TpId": TpID, "pon": intfID, "onuID": onuID, "uniID": uniID})
 	if IsUpstream(actionInfo[Output].(uint32)) {
@@ -1899,9 +1896,11 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 			f.divideAndAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
 
 		case <-time.After(10 * time.Second):
-			log.Errorw("pending flow deletes not completed after timeout", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
+			log.Errorw("pending-flow-deletes-not-completed-after-timeout", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
+			return fmt.Errorf("pending-flow-deletes-not-completed-after-timeout, pon:%v, onuID:%v, uniID:%v", intfID, onuID, uniID)
 		}
 	}
+	return nil
 }
 
 // handleFlowWithGroup adds multicast flow to the device.
@@ -1977,9 +1976,11 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	group, _, err := f.GetFlowGroupFromKVStore(ctx, groupID, true)
 	if err == nil {
 		//calling groupAdd to set group members after multicast flow creation
-		if f.ModifyGroup(ctx, group) {
+		if err = f.ModifyGroup(ctx, group); err == nil {
 			//cached group can be removed now
 			f.resourceMgr.RemoveFlowGroupFromKVStore(ctx, groupID, true)
+		} else {
+			return olterrors.NewErrGroupOp("modify", groupID, log.Fields{"group": group}, err).Log()
 		}
 	}
 
@@ -2007,11 +2008,11 @@ func (f *OpenOltFlowMgr) getInPortOfMulticastFlow(ctx context.Context, classifie
 }
 
 // AddGroup add or update the group
-func (f *OpenOltFlowMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry) {
+func (f *OpenOltFlowMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry) error {
 	log.Infow("add-group", log.Fields{"group": group})
 	if group == nil {
 		log.Warn("skipping nil group")
-		return
+		return errors.New("group is nil")
 	}
 
 	groupToOlt := openoltpb2.Group{
@@ -2024,14 +2025,15 @@ func (f *OpenOltFlowMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry)
 	_, err := f.deviceHandler.Client.PerformGroupOperation(ctx, &groupToOlt)
 	if err != nil {
 		log.Errorw("add-group operation failed", log.Fields{"err": err, "groupToOlt": groupToOlt})
-		return
+		return fmt.Errorf("add-group operation failed, err %v, groupToOlt %v", err, groupToOlt)
 	}
 	// group members not created yet. So let's store the group
 	if err := f.resourceMgr.AddFlowGroupToKVStore(ctx, group, true); err != nil {
 		log.Errorw("Group cannot be stored in KV store", log.Fields{"groupId": group.Desc.GroupId, "err": err})
-	} else {
-		log.Debugw("add-group operation performed on the device successfully ", log.Fields{"groupToOlt": groupToOlt})
+		return fmt.Errorf("group cannot be stored in KV store, groupId %v, err %v", group.Desc.GroupId, err)
 	}
+	log.Debugw("add-group operation performed on the device successfully ", log.Fields{"groupToOlt": groupToOlt})
+	return nil
 }
 
 //buildGroupAction creates and returns a group action
@@ -2045,21 +2047,21 @@ func (f *OpenOltFlowMgr) buildGroupAction() *openoltpb2.Action {
 }
 
 // ModifyGroup updates the group
-func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEntry) bool {
+func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEntry) error {
 	log.Infow("modify-group", log.Fields{"group": group})
 	if group == nil || group.Desc == nil {
 		log.Warn("cannot modify group; group is nil")
-		return false
+		return errors.New("cannot modify group; group is nil")
 	}
 
-	new := f.buildGroup(group.Desc.GroupId, group.Desc.Buckets)
+	newGroup := f.buildGroup(group.Desc.GroupId, group.Desc.Buckets)
 	//get existing members of the group
 	val, groupExists, err := f.GetFlowGroupFromKVStore(ctx, group.Desc.GroupId, false)
 
 	if err != nil {
 		log.Errorw("Failed to retrieve the group from the store. Cannot modify group.",
 			log.Fields{"groupId": group.Desc.GroupId, "err": err})
-		return false
+		return fmt.Errorf("failed to retrieve the group from the store. Cannot modify group. groupId:%v, err:%v", group.Desc.GroupId, err)
 	}
 
 	var current *openoltpb2.Group // represents the group on the device
@@ -2071,11 +2073,11 @@ func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEnt
 		current = f.buildGroup(group.Desc.GroupId, nil)
 	}
 
-	log.Debugw("modify-group: comparing current and new.", log.Fields{"group on the device": current, "new": new})
+	log.Debugw("modify-group: comparing current and new.", log.Fields{"group on the device": current, "new": newGroup})
 	// get members to be added
-	membersToBeAdded := f.findDiff(current, new)
+	membersToBeAdded := f.findDiff(current, newGroup)
 	// get members to be removed
-	membersToBeRemoved := f.findDiff(new, current)
+	membersToBeRemoved := f.findDiff(newGroup, current)
 
 	log.Infow("modify-group -> differences found", log.Fields{"membersToBeAdded": membersToBeAdded,
 		"membersToBeRemoved": membersToBeRemoved, "groupId": group.Desc.GroupId})
@@ -2083,43 +2085,48 @@ func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEnt
 	groupToOlt := openoltpb2.Group{
 		GroupId: group.Desc.GroupId,
 	}
-	var added, removed = true, true
+	var errAdd, errRemoved error
 	if membersToBeAdded != nil && len(membersToBeAdded) > 0 {
 		groupToOlt.Command = openoltpb2.Group_ADD_MEMBERS
 		groupToOlt.Members = membersToBeAdded
 		//execute addMembers
-		added = f.callGroupAddRemove(&groupToOlt)
+		errAdd = f.callGroupAddRemove(&groupToOlt)
 	}
 	if membersToBeRemoved != nil && len(membersToBeRemoved) > 0 {
 		groupToOlt.Command = openoltpb2.Group_REMOVE_MEMBERS
 		groupToOlt.Members = membersToBeRemoved
 		//execute removeMembers
-		removed = f.callGroupAddRemove(&groupToOlt)
+		errRemoved = f.callGroupAddRemove(&groupToOlt)
 	}
 
 	//save the modified group
-	if added && removed {
+	if errAdd == nil && errRemoved == nil {
 		if err := f.resourceMgr.AddFlowGroupToKVStore(ctx, group, false); err != nil {
-			log.Errorw("Failed to save the group into kv store", log.Fields{"groupId": group.Desc.GroupId})
+			log.Errorw("Failed to save the group into kv store", log.Fields{"groupId": group.Desc.GroupId, "error": err})
+			return fmt.Errorf("failed to save the group into kv store. groupId:%v, err:%v", group.Desc.GroupId, err)
 		}
 		log.Debugw("modify-group was success. Storing the group", log.Fields{"group": group, "existingGroup": current})
 	} else {
 		log.Warnw("One of the group add/remove operations has failed. Cannot save group modifications",
 			log.Fields{"group": group})
+		if errAdd != nil {
+			return errAdd
+		}
+		return errRemoved
 	}
-	return added && removed
+	return nil
 }
 
 //callGroupAddRemove performs add/remove buckets operation for the indicated group
-func (f *OpenOltFlowMgr) callGroupAddRemove(group *openoltpb2.Group) bool {
+func (f *OpenOltFlowMgr) callGroupAddRemove(group *openoltpb2.Group) error {
 	if err := f.performGroupOperation(group); err != nil {
 		st, _ := status.FromError(err)
 		//ignore already exists error code
 		if st.Code() != codes.AlreadyExists {
-			return false
+			return olterrors.NewErrGroupOp("groupAddRemove", group.GroupId, log.Fields{"status": st}, err)
 		}
 	}
-	return true
+	return nil
 }
 
 //findDiff compares group members and finds members which only exists in groups2
