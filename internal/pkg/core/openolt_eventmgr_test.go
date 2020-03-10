@@ -28,16 +28,19 @@ import (
 
 func mockEventMgr() *OpenOltEventMgr {
 	ep := &mocks.MockEventProxy{}
-	dh := &DeviceHandler{}
+	dh := newMockDeviceHandler()
 	dh.onus = sync.Map{}
 	dh.onus.Store(dh.formOnuKey(1, 1), &OnuDevice{deviceID: "TEST_ONU",
 		deviceType:   "ONU",
 		serialNumber: "TEST_ONU_123",
 		onuID:        1, intfID: 1})
+	dh.onus.Store("1.3", NewOnuDevice("onu3", "onu3", "onu3", 1, 3, "onu3", false))
+	dh.onus.Store("1.4", NewOnuDevice("onu4", "onu4", "onu4", 1, 4, "onu4", false))
 	return NewEventMgr(ep, dh)
 }
 func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 	em := mockEventMgr()
+
 	type args struct {
 		alarmInd *oop.AlarmIndication
 		deviceID string
@@ -49,12 +52,16 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		// LosIndication alarms
-		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 1, Status: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
-		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 1}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
-		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 1, Status: "on"}}}}},
+		/* Pon Interface ID from Openolt agent is sent as port no while raising LoSIndication hence following same in test to have similar behavior
+		   0x2 << 28 ^ 536870913 = 1 --> pon Intf Id*/
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 536870913, Status: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 536870913}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_LosInd{LosInd: &oop.LosIndication{IntfId: 536870913, Status: "on"}}}}},
 
 		// OnuAlarmIndication alams
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LosStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LosStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
+		// Duplicate test to get onu los already cleared result
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LosStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LobStatus: "on"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
 		{"ProcessEvents-", args{alarmInd: &oop.AlarmIndication{Data: &oop.AlarmIndication_OnuAlarmInd{OnuAlarmInd: &oop.OnuAlarmIndication{IntfId: 1, OnuId: 3, LobStatus: "off"}}}, deviceID: "olt", raisedTs: time.Now().Unix()}},
