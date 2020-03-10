@@ -1199,6 +1199,9 @@ func (dh *DeviceHandler) AddUniPortToOnu(intfID, onuID, uniPort uint32) {
 //UpdateFlowsIncrementally updates the device flow
 func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	log.Debugw("Received-incremental-flowupdate-in-device-handler", log.Fields{"deviceID": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
+
+	var errorsList []error
+
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
@@ -1207,7 +1210,10 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 
 		for _, flow := range flows.ToAdd.Items {
 			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
-			dh.flowMgr.AddFlow(ctx, flow, flowMetadata)
+			err := dh.flowMgr.AddFlow(ctx, flow, flowMetadata)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
 		}
 	}
 	if groups != nil && flows != nil {
@@ -1219,14 +1225,23 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 
 	if groups != nil {
 		for _, group := range groups.ToAdd.Items {
-			dh.flowMgr.AddGroup(ctx, group)
+			err := dh.flowMgr.AddGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
 		}
 		for _, group := range groups.ToUpdate.Items {
-			dh.flowMgr.ModifyGroup(ctx, group)
+			err := dh.flowMgr.ModifyGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
 		}
 		if len(groups.ToRemove.Items) != 0 {
 			log.Debug("Group delete operation is not supported for now")
 		}
+	}
+	if len(errorsList) > 0 {
+		return fmt.Errorf("errors-installing-flows-groups, errors:%v", errorsList)
 	}
 	log.Debug("UpdateFlowsIncrementally done successfully")
 	return nil
