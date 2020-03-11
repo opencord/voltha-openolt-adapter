@@ -105,6 +105,24 @@
     },
     {
       "key": {
+        "uuid": "3eb9fde7_a21ab321",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-11T11:07:47Z",
+      "side": 1,
+      "message": "I think the idea is that the Clear for the LoS of the individual ONUs are raised when we get the Discovery Event again from the ONUs, so we don\u0027t clear them off when we get the PON LoS CLEAR.",
+      "parentUuid": "125acd37_fd4c9eee",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4228d52_0b23b9c7",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -168,6 +186,23 @@
     },
     {
       "key": {
+        "uuid": "6a4ebeba_2571039a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-11T11:07:47Z",
+      "side": 1,
+      "message": "What is the case that we receive an alarm for an ONU which does not exist in the cache? Can\u0027t understand\n\nAlso don\u0027t understand the handling... how can we based on an alarm LoS create a new ONU",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ea5322e_00d0e1d8",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -185,6 +220,40 @@
         "endLine": 309,
         "endChar": 74
       },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05a2cfec_b3c97806",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-11T11:07:47Z",
+      "side": 1,
+      "message": "Should we call this function something else which makes it easier to understand?\n\nHow about something like WasLoSRaised()? If true and we got another LoS Raise here then we do nothing... else we raise the LoS and set losRaised to true\n\nSimilarly for clear, if WasLosRaised() return false and we get a CLEAR event we do nothing else we Clear off the event and change losRaised to false",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eee13f32_d105a49f",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-11T11:07:47Z",
+      "side": 1,
+      "message": "The comment is not correct",
       "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
