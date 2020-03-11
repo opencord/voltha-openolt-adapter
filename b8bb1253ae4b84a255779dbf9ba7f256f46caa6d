@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "d01a55ae_e985bbbb",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-11T16:12:00Z",
+      "side": 1,
+      "message": "is base10 the best format for this? would have thought base16. maybe outside the context of this patch.",
+      "range": {
+        "startLine": 527,
+        "startChar": 57,
+        "endLine": 527,
+        "endChar": 63
+      },
+      "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1b69565_475c384c",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 6
@@ -18,6 +41,29 @@
         "startChar": 0,
         "endLine": 539,
         "endChar": 116
+      },
+      "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02e62744_03b126f8",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-11T16:12:00Z",
+      "side": 1,
+      "message": "This type of message is Debugw in the other funcs, so it should be consistent here.",
+      "range": {
+        "startLine": 542,
+        "startChar": 5,
+        "endLine": 542,
+        "endChar": 10
       },
       "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
