@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1b69565_475c384c",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-11T09:58:11Z",
+      "side": 1,
+      "message": "no need to rely the error if you are throwing it, please create the error through the olterrors package, remove the logging and just return it",
+      "range": {
+        "startLine": 539,
+        "startChar": 0,
+        "endLine": 539,
+        "endChar": 116
+      },
+      "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
