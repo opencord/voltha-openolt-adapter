@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4f1c35e6_41593064",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-03-11T16:17:40Z",
+      "side": 1,
+      "message": "base10 is consistent with the other alarms. If we change, should ticket that as a new issue. Also, could possibly present message compatibility issues to change, if anyone is depending on these kafka messages at this time (probably not).",
+      "parentUuid": "d01a55ae_e985bbbb",
+      "range": {
+        "startLine": 527,
+        "startChar": 57,
+        "endLine": 527,
+        "endChar": 63
+      },
+      "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1b69565_475c384c",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 6
@@ -59,6 +83,30 @@
       "writtenOn": "2020-03-11T16:12:00Z",
       "side": 1,
       "message": "This type of message is Debugw in the other funcs, so it should be consistent here.",
+      "range": {
+        "startLine": 542,
+        "startChar": 5,
+        "endLine": 542,
+        "endChar": 10
+      },
+      "revId": "b8bb1253ae4b84a255779dbf9ba7f256f46caa6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8900453_4e3f5f64",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-03-11T16:17:40Z",
+      "side": 1,
+      "message": "I think we need a ticket to address consistency throughout this file. There are several older alarms that use Infow.",
+      "parentUuid": "02e62744_03b126f8",
       "range": {
         "startLine": 542,
         "startChar": 5,
