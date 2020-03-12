@@ -495,6 +495,24 @@
     },
     {
       "key": {
+        "uuid": "feccd221_90a6776a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T12:49:45Z",
+      "side": 1,
+      "message": "Fixed as you suggested",
+      "parentUuid": "60294ccf_e2fe3d43",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eee13f32_d105a49f",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
