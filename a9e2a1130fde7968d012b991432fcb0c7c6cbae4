@@ -477,6 +477,24 @@
     },
     {
       "key": {
+        "uuid": "60294ccf_e2fe3d43",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-03-12T10:40:36Z",
+      "side": 1,
+      "message": "Functions should do what the name says... so GetChildDeviceLosStatus should not actually change the LoS status.\n\nRegarding 15+ if conditions in this function, we have to re-look and see if the code can be re-factored in a better way.\n\nfor each of these status... it can be either On or Off but not any other value right? so why so we need to check for both?",
+      "parentUuid": "50db8909_d1fefb6a",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eee13f32_d105a49f",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
