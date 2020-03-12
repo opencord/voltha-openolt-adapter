@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "369e5248_798868cf",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1655,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-12T11:13:20Z",
+      "side": 1,
+      "message": "i see that now resources are being cleaned up as soon as the heartbeat is failed, what if there was just a minor network blip for few seconds and the OLT reconected back ?",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
