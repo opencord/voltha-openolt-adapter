@@ -20,9 +20,10 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"os"
 	"time"
+
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 )
 
 // Open OLT default constants
@@ -49,9 +50,9 @@ const (
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
 	//defaultHearbeatFailReportInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
-	defaultHearbeatCheckInterval = 30 * time.Second
+	defaultHearbeatCheckInterval = 15 * time.Second
 	// defaultHearbeatFailReportInterval is the time adapter will wait before updating the state to the core.
-	defaultHearbeatFailReportInterval = 180 * time.Second
+	defaultHearbeatFailReportInterval = 0 * time.Second
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
 	defaultGrpcTimeoutInterval = 2 * time.Second
 )
