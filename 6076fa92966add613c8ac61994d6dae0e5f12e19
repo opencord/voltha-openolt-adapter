@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6715170_9de2dbfe",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-12T06:11:04Z",
+      "side": 1,
+      "message": "why was the handling of the error with a fatal log moved to the lower level function? i would think the better practice is to have the higher level function decide what to do with the error.",
+      "revId": "6076fa92966add613c8ac61994d6dae0e5f12e19",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
