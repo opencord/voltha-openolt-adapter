@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b0735546_31dc86e3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "alarm is getting reset in eventmanager",
+      "parentUuid": "a295151c_f9f228c0",
+      "range": {
+        "startLine": 932,
+        "startChar": 52,
+        "endLine": 932,
+        "endChar": 85
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52a21d04_9014c7c3",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2020-03-10T20:34:25Z",
       "side": 1,
       "message": "This I believe is a hack until Broadcom reports consistent alarms. So, it should be clearly documented in code for anyone to understand.",
+      "range": {
+        "startLine": 928,
+        "startChar": 0,
+        "endLine": 946,
+        "endChar": 4
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "242504c3_fcbf1fca",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 946,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "Will add the comments explaining the issue",
+      "parentUuid": "52a21d04_9014c7c3",
       "range": {
         "startLine": 928,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7c42ca69_8afe6bd8",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "setting it before raising the alarm in func GetchildLosStatus",
+      "parentUuid": "7adb6cc0_253ceffd",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ceb4d68a_a3e12fb6",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2020-03-10T20:34:25Z",
       "side": 1,
       "message": "This I believe is a hack until Broadcom reports consistent alarms. So, it should be clearly documented in code for anyone to understand.",
+      "range": {
+        "startLine": 212,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 3
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "620ccdfb_a6dbffad",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "Will add the comments",
+      "parentUuid": "ceb4d68a_a3e12fb6",
       "range": {
         "startLine": 212,
         "startChar": 0,
@@ -123,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "0cb6e505_b7e080f1",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "LoS clear alarm will be sent if Onu Disc indication received and also if onu present in cache with losraised status true.",
+      "parentUuid": "3eb9fde7_a21ab321",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b4228d52_0b23b9c7",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -140,6 +248,24 @@
     },
     {
       "key": {
+        "uuid": "6f8bb20c_e0373b8a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "When pon cable plugout from onu happens OnuAlarmIndication is sent based on the indication received from BAL.\nWhereas in disconnection of Pon cable from OLT happens BAL does not send OnuAlarmIndication, it just sends PON LosIndication, hence simulating OnuAlarm indication in this case.\n\nIf you have two onu\u0027s connected to PON 0 of OLT and if you plug out cable from ONU1 only Los for ONU1 will be raised and losraised state will be updated as true for ONU1 device. Then if you plug out cable from OLT end which has ONU2 still connected to it, only ONU2 LoS alarm will be raised and for ONU1 LoS event will be ignored by checking LosRaised status from onu cache for that device. SO I don\u0027t think duplicate events will be sent for same device, corret me if I am wrong.",
+      "parentUuid": "b4228d52_0b23b9c7",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a0d17fd7_264d9a78",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -151,6 +277,30 @@
       "writtenOn": "2020-03-10T20:34:25Z",
       "side": 1,
       "message": "Does this need to be an exported function?",
+      "range": {
+        "startLine": 264,
+        "startChar": 27,
+        "endLine": 264,
+        "endChar": 50
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c6c73ea_4910ece9",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "will make it unexported",
+      "parentUuid": "a0d17fd7_264d9a78",
       "range": {
         "startLine": 264,
         "startChar": 27,
@@ -186,6 +336,30 @@
     },
     {
       "key": {
+        "uuid": "4dce0508_b5a79d14",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "will update comment",
+      "parentUuid": "fb6e697a_a0448296",
+      "range": {
+        "startLine": 286,
+        "startChar": 50,
+        "endLine": 286,
+        "endChar": 54
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a4ebeba_2571039a",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -197,6 +371,24 @@
       "writtenOn": "2020-03-11T11:07:47Z",
       "side": 1,
       "message": "What is the case that we receive an alarm for an ONU which does not exist in the cache? Can\u0027t understand\n\nAlso don\u0027t understand the handling... how can we based on an alarm LoS create a new ONU",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dcb7ffe9_e6b9b5a2",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "You are right, but I will test once and confirm this.",
+      "parentUuid": "6a4ebeba_2571039a",
       "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -226,6 +418,30 @@
     },
     {
       "key": {
+        "uuid": "cc53711d_10309399",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "Will update comment",
+      "parentUuid": "9ea5322e_00d0e1d8",
+      "range": {
+        "startLine": 309,
+        "startChar": 70,
+        "endLine": 309,
+        "endChar": 74
+      },
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "05a2cfec_b3c97806",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 1
@@ -237,6 +453,24 @@
       "writtenOn": "2020-03-11T11:07:47Z",
       "side": 1,
       "message": "Should we call this function something else which makes it easier to understand?\n\nHow about something like WasLoSRaised()? If true and we got another LoS Raise here then we do nothing... else we raise the LoS and set losRaised to true\n\nSimilarly for clear, if WasLosRaised() return false and we get a CLEAR event we do nothing else we Clear off the event and change losRaised to false",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50db8909_d1fefb6a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "will change the func name as you suggested. And the logic explained is already present in GetChildDeviceLosStatus function.\nSCA tool throws error as 15+ if conditions already present in this function, hence moved the logic of checking losRaised or cleared to GetChildDeviceLosStatus function.\nIf GetChildDeviceLosStatus returns true I return nil without sending the LosRaise/LosClear event else I send it.",
+      "parentUuid": "05a2cfec_b3c97806",
       "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -260,6 +494,24 @@
     },
     {
       "key": {
+        "uuid": "dd6880e0_7761e359",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "Only in two cases Onu LoSClear event might not be raised. 1) Onu device might have deleted\n2) Onu LosClear event already raised\nPlease correct me if I am wrong",
+      "parentUuid": "eee13f32_d105a49f",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c8723c7_c3134510",
         "filename": "internal/pkg/core/openolt_eventmgr_test.go",
         "patchSetId": 1
@@ -271,6 +523,24 @@
       "writtenOn": "2020-03-10T20:34:25Z",
       "side": 1,
       "message": "I am sure there are lot more test cases given the amount of code that has come in.",
+      "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "55284113_16a02dfa",
+        "filename": "internal/pkg/core/openolt_eventmgr_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-12T06:32:52Z",
+      "side": 1,
+      "message": "Will add test cases for newly added code",
+      "parentUuid": "7c8723c7_c3134510",
       "revId": "a9e2a1130fde7968d012b991432fcb0c7c6cbae4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
