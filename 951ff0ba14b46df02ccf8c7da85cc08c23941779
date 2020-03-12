@@ -33,6 +33,23 @@
       "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bcce93f_d829ade9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1666,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-12T11:19:06Z",
+      "side": 1,
+      "message": "why is stopIndications needed ? anyway the device will be unreachable",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
