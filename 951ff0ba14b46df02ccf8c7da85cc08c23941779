@@ -16,6 +16,23 @@
       "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f9a51975_56b990fa",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1658,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-12T11:16:29Z",
+      "side": 1,
+      "message": "Are the flows removed by ONOS once the device is put to unreachable state ? if not, then adapter itself shouldnt be clearing all the resources.",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
