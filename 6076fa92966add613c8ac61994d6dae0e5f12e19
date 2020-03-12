@@ -34,6 +34,29 @@
       "revId": "6076fa92966add613c8ac61994d6dae0e5f12e19",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16ad029a_e2966752",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-12T10:28:30Z",
+      "side": 1,
+      "message": "should we return the error here ? or the whole process can go forward without ?",
+      "range": {
+        "startLine": 238,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 12
+      },
+      "revId": "6076fa92966add613c8ac61994d6dae0e5f12e19",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
