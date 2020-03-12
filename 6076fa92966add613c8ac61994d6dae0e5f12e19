@@ -16,6 +16,24 @@
       "revId": "6076fa92966add613c8ac61994d6dae0e5f12e19",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4ed806bd_94bf56da",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-03-12T09:35:27Z",
+      "side": 1,
+      "message": "Yeah. I will change that. It is just that startOpenOLT was internally going for Fatal error in event of any error and thus this err !\u003d nil condition was of no use.\n\nBut let us follow the practice. I will push a updated patch",
+      "parentUuid": "d6715170_9de2dbfe",
+      "revId": "6076fa92966add613c8ac61994d6dae0e5f12e19",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
