@@ -79,6 +79,7 @@ type DeviceHandler struct {
 	stopCollector      chan bool
 	stopHeartbeatCheck chan bool
 	activePorts        sync.Map
+	stopIndications    chan bool
 }
 
 //OnuDevice represents ONU related info
@@ -134,6 +135,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.stopHeartbeatCheck = make(chan bool, 2)
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	dh.activePorts = sync.Map{}
+	dh.stopIndications = make(chan bool, 1)
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -307,50 +309,54 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	indicationBackoff.MaxElapsedTime = 0
 	indicationBackoff.MaxInterval = 1 * time.Minute
 	for {
-		indication, err := indications.Recv()
-		if err == io.EOF {
-			log.Infow("EOF for  indications", log.Fields{"err": err})
-			// Use an exponential back off to prevent getting into a tight loop
-			duration := indicationBackoff.NextBackOff()
-			if duration == backoff.Stop {
-				// If we reach a maximum then warn and reset the backoff
-				// timer and keep attempting.
-				log.Warnw("Maximum indication backoff reached, resetting backoff timer",
-					log.Fields{"max_indication_backoff": indicationBackoff.MaxElapsedTime})
-				indicationBackoff.Reset()
+		select {
+		case <-dh.stopIndications:
+			log.Debugw("Stopping-collecting-indications-for-OLT", log.Fields{"deviceID:": dh.deviceID})
+			break
+		default:
+			indication, err := indications.Recv()
+			if err == io.EOF {
+				log.Infow("EOF for  indications", log.Fields{"err": err})
+				// Use an exponential back off to prevent getting into a tight loop
+				duration := indicationBackoff.NextBackOff()
+				if duration == backoff.Stop {
+					// If we reach a maximum then warn and reset the backoff
+					// timer and keep attempting.
+					log.Warnw("Maximum indication backoff reached, resetting backoff timer",
+						log.Fields{"max_indication_backoff": indicationBackoff.MaxElapsedTime})
+					indicationBackoff.Reset()
+				}
+				time.Sleep(indicationBackoff.NextBackOff())
+				indications, err = dh.Client.EnableIndication(ctx, new(oop.Empty))
+				if err != nil {
+					return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+				}
+				if indications == nil {
+					return olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
+				}
+				continue
 			}
-			time.Sleep(indicationBackoff.NextBackOff())
-			indications, err = dh.Client.EnableIndication(ctx, new(oop.Empty))
 			if err != nil {
-				return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+				if dh.adminState == "deleted" {
+					log.Debug("Device deleted stoping the read indication thread")
+					break
+				}
+				continue
 			}
-			continue
-		}
-		if err != nil {
-			log.Infow("Failed to read from indications", log.Fields{"err": err})
-			if dh.adminState == "deleted" {
-				log.Debug("Device deleted stoping the read indication thread")
-				break
+			// Reset backoff if we have a successful receive
+			indicationBackoff.Reset()
+			dh.lockDevice.RLock()
+			adminState := dh.adminState
+			dh.lockDevice.RUnlock()
+			// When OLT is admin down, ignore all indications.
+			if adminState == "down" {
+
+				log.Debugw("olt is admin down, ignore indication", log.Fields{"indication": indication})
+				continue
 			}
-			dh.transitionMap.Handle(ctx, DeviceDownInd)
-			dh.transitionMap.Handle(ctx, DeviceInit)
-			return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+			dh.handleIndication(ctx, indication)
 		}
-		// Reset backoff if we have a successful receive
-		indicationBackoff.Reset()
-		dh.lockDevice.RLock()
-		adminState := dh.adminState
-		dh.lockDevice.RUnlock()
-		// When OLT is admin down, ignore all indications.
-		if adminState == "down" {
-
-			log.Infow("olt is admin down, ignore indication", log.Fields{"indication": indication})
-			continue
-		}
-		dh.handleIndication(ctx, indication)
-
 	}
-	return nil
 }
 
 func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication *oop.OltIndication) error {
@@ -699,7 +705,7 @@ func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device)
 	}
 
 	go startCollector(dh)
-	go startHeartbeatCheck(dh)
+	go startHeartbeatCheck(ctx, dh)
 }
 
 //GetOfpDeviceInfo Gets the Ofp information of the given device
@@ -1436,6 +1442,30 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	   This clears up flow data and also resource map data for various
 	   other pon resources like alloc_id and gemport_id
 	*/
+	go dh.cleanupDeviceResources(ctx)
+	log.Debug("Removed-device-from-Resource-manager-KV-store")
+	// Stop the Stats collector
+	dh.stopCollector <- true
+	// stop the heartbeat check routine
+	dh.stopHeartbeatCheck <- true
+	//Reset the state
+	if dh.Client != nil {
+		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
+			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
+		}
+	}
+	cloned := proto.Clone(device).(*voltha.Device)
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
+			"device-id":      device.Id,
+			"connect-status": cloned.ConnectStatus,
+			"oper-status":    cloned.OperStatus}, err).Log()
+	}
+	return nil
+}
+func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	if dh.resourceMgr != nil {
 		noOfPonPorts := dh.resourceMgr.DevInfo.GetPonPorts()
 		var ponPort uint32
@@ -1484,26 +1514,12 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 		return true
 	})
 
-	log.Debug("Removed-device-from-Resource-manager-KV-store")
-	// Stop the Stats collector
-	dh.stopCollector <- true
-	// stop the heartbeat check routine
-	dh.stopHeartbeatCheck <- true
-	//Reset the state
-	if dh.Client != nil {
-		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
-			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.deviceID}, err).Log()
-		}
-	}
-	cloned := proto.Clone(device).(*voltha.Device)
-	cloned.OperStatus = voltha.OperStatus_UNKNOWN
-	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
-			"device-id":      device.Id,
-			"connect-status": cloned.ConnectStatus,
-			"oper-status":    cloned.OperStatus}, err).Log()
-	}
+	/*Delete discovered ONU map for the device*/
+	dh.discOnus.Range(func(key interface{}, value interface{}) bool {
+		dh.discOnus.Delete(key)
+		return true
+	})
+
 	return nil
 }
 
@@ -1635,36 +1651,34 @@ func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
 }
 
-func startHeartbeatCheck(dh *DeviceHandler) {
+func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 	// start the heartbeat check towards the OLT.
-	var timerCheck *time.Timer
 
 	for {
 		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
 		select {
 		case <-heartbeatTimer.C:
-			ctx, cancel := context.WithTimeout(context.Background(), dh.openOLT.GrpcTimeoutInterval)
-			if heartBeat, err := dh.Client.HeartbeatCheck(ctx, new(oop.Empty)); err != nil {
+			ctxWithTimeout, cancel := context.WithTimeout(context.Background(), dh.openOLT.GrpcTimeoutInterval)
+			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
 				log.Error("Hearbeat failed")
-				if timerCheck == nil {
-					// start a after func, when expired will update the state to the core
-					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, dh.updateStateUnreachable)
+				device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+				if err != nil || device == nil {
+					olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+				}
+
+				if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
+					if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+						olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+					}
+					if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, voltha.OperStatus_UNKNOWN); err != nil {
+						olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+					}
+					go dh.cleanupDeviceResources(ctx)
+
+					dh.stopIndications <- true
+					dh.transitionMap.Handle(ctx, DeviceInit)
 				}
 			} else {
-				if timerCheck != nil {
-					if timerCheck.Stop() {
-						log.Debug("We got hearbeat within the timeout")
-					} else {
-
-						log.Debug("We got hearbeat after the timeout expired, changing the states")
-						go dh.notifyChildDevices("up")
-						if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
-							voltha.OperStatus_ACTIVE); err != nil {
-							log.Errorw("Failed to update device state", log.Fields{"deviceID": dh.device.Id, "error": err})
-						}
-					}
-					timerCheck = nil
-				}
 				log.Debugw("Hearbeat", log.Fields{"signature": heartBeat})
 			}
 			cancel()
@@ -1672,14 +1686,6 @@ func startHeartbeatCheck(dh *DeviceHandler) {
 			log.Debug("Stopping heart beat check")
 			return
 		}
-	}
-}
-
-func (dh *DeviceHandler) updateStateUnreachable() {
-
-	go dh.notifyChildDevices("unreachable")
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
-		olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 	}
 }
 
