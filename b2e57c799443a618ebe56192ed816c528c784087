@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd735f59_73536f84",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-13T06:18:31Z",
+      "side": 1,
+      "message": "This should return true only if los was raised, else false (imho).\nBecause in line 362, it checks \"wasLosRaised\", but assumes it is cleared if the returned value is true.",
+      "revId": "b2e57c799443a618ebe56192ed816c528c784087",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
