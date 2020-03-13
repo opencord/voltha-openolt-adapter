@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "cbbeca21_58660751",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1655,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-13T09:06:58Z",
+      "side": 1,
+      "message": "the connectivity failure report is kept as configurable item, i think it should take care . these changes are not necessary.",
+      "parentUuid": "33209805_4b571c26",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f9a51975_56b990fa",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -136,6 +154,24 @@
       "side": 1,
       "message": "Yes,and VOLTHA core will be forcefully purging all flows on olt reboot since route computation anyhow fails ...so adapter also should clean up flows.",
       "parentUuid": "f9a51975_56b990fa",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a50b2630_27d41fdc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1658,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-13T09:06:58Z",
+      "side": 1,
+      "message": "in the earlier code, ONOS would anyway remove purge all the flows. now extra clean is not required",
+      "parentUuid": "aa40f052_11ce272e",
       "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
