@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b0aab46_3e17df1e",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-13T21:41:37Z",
+      "side": 1,
+      "message": "cleared",
+      "range": {
+        "startLine": 380,
+        "startChar": 62,
+        "endLine": 380,
+        "endChar": 68
+      },
+      "revId": "9afec3695c4c410f444e911c99ad40066b602b81",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
