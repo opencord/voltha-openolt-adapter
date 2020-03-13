@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eaefa4df_ded52edd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1468,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-13T05:35:01Z",
+      "side": 1,
+      "message": "In my tests I saw that, onu_id did not seem to get freed. So, the uni _ports after reboot was not the same. Can you please check.\nCan you check if all the resources are cleared on reboot.",
+      "revId": "30fc98b27ac20eddcea7121a90048b981db91b94",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
