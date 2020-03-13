@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "c914fc53_dba36af5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-13T05:11:53Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "999c7abd_577964ef",
+      "range": {
+        "startLine": 354,
+        "startChar": 8,
+        "endLine": 354,
+        "endChar": 13
+      },
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "369e5248_798868cf",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -59,6 +83,24 @@
       "writtenOn": "2020-03-12T11:13:20Z",
       "side": 1,
       "message": "i see that now resources are being cleaned up as soon as the heartbeat is failed, what if there was just a minor network blip for few seconds and the OLT reconected back ?",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "33209805_4b571c26",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1655,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-13T05:11:53Z",
+      "side": 1,
+      "message": "loss of network connection is not handled as part of this patch set and will be taken care in upcoming release , and we can expect code churn during the same.",
+      "parentUuid": "369e5248_798868cf",
       "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -82,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "aa40f052_11ce272e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1658,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-13T05:11:53Z",
+      "side": 1,
+      "message": "Yes,and VOLTHA core will be forcefully purging all flows on olt reboot since route computation anyhow fails ...so adapter also should clean up flows.",
+      "parentUuid": "f9a51975_56b990fa",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bcce93f_d829ade9",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -93,6 +153,24 @@
       "writtenOn": "2020-03-12T11:19:06Z",
       "side": 1,
       "message": "why is stopIndications needed ? anyway the device will be unreachable",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1520827c_637fd5e8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1666,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-13T05:11:53Z",
+      "side": 1,
+      "message": "this is to gracefully end the goroutine which will be running before OLT gets rebooted.",
+      "parentUuid": "1bcce93f_d829ade9",
       "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
