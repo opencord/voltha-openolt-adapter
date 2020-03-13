@@ -16,6 +16,24 @@
       "revId": "b2e57c799443a618ebe56192ed816c528c784087",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "04210bcf_2404706b",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1000472
+      },
+      "writtenOn": "2020-03-13T07:22:27Z",
+      "side": 1,
+      "message": "Created new function to check status for los cleared. Please have a look at it.",
+      "parentUuid": "fd735f59_73536f84",
+      "revId": "b2e57c799443a618ebe56192ed816c528c784087",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
