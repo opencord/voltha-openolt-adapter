@@ -16,6 +16,24 @@
       "revId": "c32d31c2b4b52cff356e45c02168df9985b2b927",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2e788586_730361d0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-17T16:43:16Z",
+      "side": 1,
+      "message": "The child devices are removed when OLT becomes unreachable (assuming OLT reboot). So, there is no need for any notification.\nThe case where OLT could be temporarily unavailable due to blip in network connection, this case will not be handled in voltha 2.3 release.",
+      "parentUuid": "ab2952a8_e14ababb",
+      "revId": "c32d31c2b4b52cff356e45c02168df9985b2b927",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
