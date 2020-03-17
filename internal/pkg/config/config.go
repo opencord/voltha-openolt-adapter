@@ -37,7 +37,7 @@ const (
 	defaultKvstoretimeout       = 5 //in seconds
 	defaultKvstorehost          = "127.0.0.1"
 	defaultKvstoreport          = 2379 // Consul = 8500; Etcd = 2379
-	defaultLoglevel             = "DEBUG"
+	defaultLoglevel             = "WARN"
 	defaultBanner               = false
 	defaultDisplayVersionOnly   = false
 	defaultTopic                = "openolt"
