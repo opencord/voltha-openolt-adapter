@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab2952a8_e14ababb",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-17T12:08:16Z",
+      "side": 1,
+      "message": "you are putting only the OLT device as unreachable , what about the ONU devices ? As you have removed the part where child devices are notified as down the uni ports will still be showing as up",
+      "revId": "c32d31c2b4b52cff356e45c02168df9985b2b927",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
