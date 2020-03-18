@@ -528,6 +528,7 @@ func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 		gemportID       uint32
 		flowStoreCookie uint64
 		flowCategory    string
+		vlanVid         uint32
 		vlanPcp         []uint32
 	}
 	tests := []struct {
@@ -538,14 +539,14 @@ func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
 		wantErr error
 	}{
 		{"GetFlowID-1", getResMgr(), args{1, 2, 2, 2, 2,
-			"HSIA", nil}, 0, errors.New("failed to get flows")},
+			"HSIA", 33,nil}, 0, errors.New("failed to get flows")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			got, err := RsrcMgr.GetFlowID(ctx, tt.args.ponIntfID, tt.args.ONUID, tt.args.uniID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanPcp...)
+			got, err := RsrcMgr.GetFlowID(ctx, tt.args.ponIntfID, tt.args.ONUID, tt.args.uniID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
 			if err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("GetFlowID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -969,6 +970,7 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 		gemportID       uint32
 		flowStoreCookie uint64
 		flowCategory    string
+		vlanVid         uint32
 		vlanPcp         []uint32
 	}
 	flowInfo := &[]FlowInfo{
@@ -978,7 +980,15 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 				GemportId: 1,
 				Classifier: &openolt.Classifier{
 					OPbits: 1,
-				}},
+					OVid:   33,
+				},
+				Action: &openolt.Action{
+					Cmd: &openolt.ActionCmd{
+						AddOuterTag: true,
+					},
+					OVid: 7,
+				},
+			},
 			1,
 			"HSIA_FLOW",
 			2000,
@@ -986,6 +996,14 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 		{
 			&openolt.Flow{
 				GemportId: 1,
+				Classifier: &openolt.Classifier{
+					OVid: 0,
+				},
+				Action: &openolt.Action{
+					Cmd: &openolt.ActionCmd{
+						TrapToHost: true,
+					},
+				},
 			},
 			1,
 			"EAPOL",
@@ -999,13 +1017,13 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 	}{
 		{"getFlowIdFromFlowInfo-1", args{}, errors.New("invalid flow-info")},
 		{"getFlowIdFromFlowInfo-2", args{flowInfo, 1, 1, 1,
-			"HSIA_FLOW", []uint32{1, 2}}, errors.New("invalid flow-info")},
+			"HSIA_FLOW", 33, []uint32{1, 2}}, errors.New("invalid flow-info")},
 		{"getFlowIdFromFlowInfo-2", args{flowInfo, 1, 1, 1,
-			"EAPOL", []uint32{1, 2}}, errors.New("invalid flow-info")},
+			"EAPOL", 33, []uint32{1, 2}}, errors.New("invalid flow-info")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := getFlowIDFromFlowInfo(tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanPcp...)
+			err := getFlowIDFromFlowInfo(tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
 			if reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("getFlowIDFromFlowInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
