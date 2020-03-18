@@ -506,7 +506,7 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo(ctx context.Context, ponIntf
 func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint32, ONUID int32, uniID int32,
 	gemportID uint32,
 	flowStoreCookie uint64,
-	flowCategory string, vlanPcp ...uint32) (uint32, error) {
+	flowCategory string, vlanVid uint32, vlanPcp ...uint32) (uint32, error) {
 
 	var err error
 	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, ONUID, uniID)
@@ -519,8 +519,10 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint
 		logger.Debugw("Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "ONUID": ONUID, "uniID": uniID, "KVpath": FlowPath})
 		for _, flowID := range FlowIDs {
 			FlowInfo := RsrcMgr.GetFlowIDInfo(ctx, ponIntfID, int32(ONUID), int32(uniID), uint32(flowID))
-			er := getFlowIDFromFlowInfo(FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanPcp...)
+			er := getFlowIDFromFlowInfo(FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanVid, vlanPcp...)
 			if er == nil {
+				log.Debugw("Found flowid for the vlan, pcp, and gem",
+					log.Fields{"flowID": flowID, "vlanVid": vlanVid, "vlanPcp": vlanPcp, "gemPortID": gemportID})
 				return flowID, er
 			}
 		}
@@ -1017,14 +1019,16 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveMeterIDForOnu(ctx context.Context, Dire
 	return nil
 }
 
-func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string, vlanPcp ...uint32) error {
+func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string,
+	vlanVid uint32, vlanPcp ...uint32) error {
 	if FlowInfo != nil {
 		for _, Info := range *FlowInfo {
 			if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
 				logger.Debug("Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
-				if Info.FlowCategory == "HSIA_FLOW" && Info.Flow.Classifier.OPbits == vlanPcp[0] {
-					logger.Debug("Found matching vlan pcp ", log.Fields{"flowId": flowID, "Vlanpcp": vlanPcp[0]})
-					return nil
+				if Info.FlowCategory == "HSIA_FLOW" {
+					if err := checkVlanAndPbitEqualityForFlows(vlanVid, Info, vlanPcp[0]); err == nil {
+						return nil
+					}
 				}
 			}
 			if int32(gemportID) == Info.Flow.GemportId && flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
@@ -1037,6 +1041,33 @@ func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowS
 	}
 	logger.Debugw("the flow can be related to a different service", log.Fields{"flow_info": FlowInfo})
 	return errors.New("invalid flow-info")
+}
+
+func checkVlanAndPbitEqualityForFlows(vlanVid uint32, Info FlowInfo, vlanPcp uint32) error {
+	if err := checkVlanEqualityForFlows(vlanVid, Info); err != nil {
+		return err
+	}
+
+	//flow has remark action and pbits
+	if Info.Flow.Action.Cmd.RemarkInnerPbits || Info.Flow.Action.Cmd.RemarkOuterPbits {
+		if vlanPcp == Info.Flow.Action.OPbits || vlanPcp == Info.Flow.Action.IPbits {
+			return nil
+		}
+	} else if vlanPcp == Info.Flow.Classifier.OPbits {
+		//no remark action but flow has pbits
+		return nil
+	} else if vlanPcp == 0xff || Info.Flow.Classifier.OPbits == 0xff {
+		// no pbit found
+		return nil
+	}
+	return errors.New("not found in terms of pbit equality")
+}
+
+func checkVlanEqualityForFlows(vlanVid uint32, Info FlowInfo) error {
+	if vlanVid == Info.Flow.Action.OVid || vlanVid == Info.Flow.Classifier.IVid {
+		return nil
+	}
+	return errors.New("not found in terms of vlan_id equality")
 }
 
 //AddGemToOnuGemInfo adds gemport to onugem info kvstore
