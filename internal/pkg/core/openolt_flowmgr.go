@@ -1665,22 +1665,13 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Context, flow *ofp.OfpFlowStats) {
 	classifierInfo := make(map[string]interface{})
 	formulateClassifierInfoFromFlow(classifierInfo, flow)
-	inPort, err := f.getInPortOfMulticastFlow(ctx, classifierInfo)
+	networkInterfaceID, err := f.getNNIInterfaceIDOfMulticastFlow(ctx, classifierInfo)
 
 	if err != nil {
 		log.Warnw("No inPort found. Cannot release resources of the multicast flow.", log.Fields{"flowId:": flow.Id})
 		return
 	}
 
-	networkInterfaceID, err := IntfIDFromNniPortNum(inPort)
-	if err != nil {
-		// DKB
-		log.Errorw("invalid-in-port-number",
-			log.Fields{
-				"port-number": inPort,
-				"error":       err})
-		return
-	}
 	var onuID = int32(NoneOnuID)
 	var uniID = int32(NoneUniID)
 	var flowID uint32
@@ -1904,7 +1895,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	classifierInfo[PacketTagType] = DoubleTag
 	log.Debugw("add-multicast-flow", log.Fields{"classifierInfo": classifierInfo, "actionInfo": actionInfo})
 
-	inPort, err := f.getInPortOfMulticastFlow(ctx, classifierInfo)
+	networkInterfaceID, err := f.getNNIInterfaceIDOfMulticastFlow(ctx, classifierInfo)
 	if err != nil {
 		return olterrors.NewErrNotFound("multicast-in-port", log.Fields{"classifier": classifierInfo}, err)
 	}
@@ -1929,11 +1920,6 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	onuID := NoneOnuID
 	uniID := NoneUniID
 	gemPortID := NoneGemPortID
-
-	networkInterfaceID, err := IntfIDFromNniPortNum(inPort)
-	if err != nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"nni-in-port-number": inPort}, err)
-	}
 
 	flowStoreCookie := getFlowStoreCookie(classifierInfo, uint32(0))
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(ctx, uint32(networkInterfaceID), int32(onuID), int32(uniID), flowStoreCookie); present {
@@ -1990,12 +1976,16 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	return nil
 }
 
-//getInPortOfMulticastFlow return inPort criterion if exists; returns NNI interface of the device otherwise
-func (f *OpenOltFlowMgr) getInPortOfMulticastFlow(ctx context.Context, classifierInfo map[string]interface{}) (uint32, error) {
-	if _, ok := classifierInfo[InPort]; ok {
-		return classifierInfo[InPort].(uint32), nil
+//getNNIInterfaceIDOfMulticastFlow returns associated NNI interface id of the inPort criterion if exists; returns the first NNI interface of the device otherwise
+func (f *OpenOltFlowMgr) getNNIInterfaceIDOfMulticastFlow(ctx context.Context, classifierInfo map[string]interface{}) (uint32, error) {
+	if inPort, ok := classifierInfo[InPort]; ok {
+		nniInterfaceID, err := IntfIDFromNniPortNum(inPort.(uint32))
+		if err != nil {
+			return 0, olterrors.NewErrInvalidValue(log.Fields{"nni-in-port-number": inPort}, err)
+		}
+		return nniInterfaceID, nil
 	}
-	// find first NNI port of the device
+	// find the first NNI interface id of the device
 	nniPorts, e := f.resourceMgr.GetNNIFromKVStore(ctx)
 	if e == nil && len(nniPorts) > 0 {
 		return nniPorts[0], nil
