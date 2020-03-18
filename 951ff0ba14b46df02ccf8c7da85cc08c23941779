@@ -232,6 +232,24 @@
     },
     {
       "key": {
+        "uuid": "2481c347_139d4b92",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1658,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-18T06:49:42Z",
+      "side": 1,
+      "message": "ok.. i see the behavior of core is also changed on moving the device to unreachable",
+      "parentUuid": "27d6785d_0ab0c381",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bcce93f_d829ade9",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
