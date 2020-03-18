@@ -143,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "638efb75_84653053",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1655,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-18T06:06:48Z",
+      "side": 1,
+      "message": "agreed, that is why it is a configurable item. if loss of network connection is considered as reboot, configure the timeout as 0",
+      "parentUuid": "014221b6_295d68be",
+      "revId": "951ff0ba14b46df02ccf8c7da85cc08c23941779",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f9a51975_56b990fa",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
