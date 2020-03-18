@@ -723,18 +723,23 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 		"action": action, "direction": direction, "allocId": allocID, "gemPortId": gemPortID,
 		"logicalFlow": *logicalFlow})
 	var vlanPbit uint32 = 0xff // means no pbit
+	var vlanVid uint32
 	if _, ok := classifier[VlanPcp]; ok {
 		vlanPbit = classifier[VlanPcp].(uint32)
 		logger.Debugw("Found pbit in the flow", log.Fields{"VlanPbit": vlanPbit})
 	} else {
 		logger.Debugw("pbit-not-found-in-flow", log.Fields{"vlan-pcp": VlanPcp})
 	}
+	if _, ok := classifier[VlanVid]; ok {
+		vlanVid = classifier[VlanVid].(uint32)
+		log.Debugw("Found vlan in the flow", log.Fields{"VlanVid": vlanVid})
+	}
 	flowStoreCookie := getFlowStoreCookie(classifier, gemPortID)
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(ctx, uint32(intfID), int32(onuID), int32(uniID), flowStoreCookie); present {
 		logger.Debug("flow-already-exists")
 		return nil
 	}
-	flowID, err := f.resourceMgr.GetFlowID(ctx, intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, HsiaFlow, vlanPbit)
+	flowID, err := f.resourceMgr.GetFlowID(ctx, intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, HsiaFlow, vlanVid, vlanPbit)
 	if err != nil {
 		return olterrors.NewErrNotFound("hsia-flow-id", log.Fields{"direction": direction}, err).Log()
 	}
@@ -743,7 +748,7 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err).Log()
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(action)
+	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err).Log()
 	}
@@ -827,7 +832,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err).Log()
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(action)
+	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err).Log()
 	}
@@ -912,7 +917,7 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err).Log()
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(action)
+	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err).Log()
 	}
@@ -958,6 +963,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 	uplinkClassifier[EthType] = uint32(EapEthType)
 	uplinkClassifier[PacketTagType] = SingleTag
 	uplinkClassifier[VlanVid] = vlanID
+	uplinkClassifier[VlanPcp] = classifier[VlanPcp]
 	// Fill action
 	uplinkAction[TrapToHost] = true
 	flowStoreCookie := getFlowStoreCookie(uplinkClassifier, gemPortID)
@@ -966,7 +972,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 		return nil
 	}
 	//Add Uplink EAPOL Flow
-	uplinkFlowID, err := f.resourceMgr.GetFlowID(ctx, intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, "", 0)
+	uplinkFlowID, err := f.resourceMgr.GetFlowID(ctx, intfID, int32(onuID), int32(uniID), gemPortID, flowStoreCookie, "", 0, 0)
 	if err != nil {
 		return olterrors.NewErrNotFound("flow-id", log.Fields{
 			"interface-id": intfID,
@@ -981,7 +987,7 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": uplinkClassifier}, err).Log()
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(uplinkAction)
+	actionProto, err := makeOpenOltActionField(uplinkAction, uplinkClassifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": uplinkAction}, err).Log()
 	}
@@ -1068,16 +1074,31 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 	return &classifier, nil
 }
 
-func makeOpenOltActionField(actionInfo map[string]interface{}) (*openoltpb2.Action, error) {
+func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo map[string]interface{}) (*openoltpb2.Action, error) {
 	var actionCmd openoltpb2.ActionCmd
 	var action openoltpb2.Action
 	action.Cmd = &actionCmd
 	if _, ok := actionInfo[PopVlan]; ok {
-		action.OVid = actionInfo[VlanVid].(uint32)
 		action.Cmd.RemoveOuterTag = true
+		if _, ok := actionInfo[VlanPcp]; ok {
+			action.Cmd.RemarkInnerPbits = true
+			action.IPbits = actionInfo[VlanPcp].(uint32)
+			if _, ok := actionInfo[VlanVid]; ok {
+				action.Cmd.TranslateInnerTag = true
+				action.IVid = actionInfo[VlanVid].(uint32)
+			}
+		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
 		action.OVid = actionInfo[VlanVid].(uint32)
 		action.Cmd.AddOuterTag = true
+		if _, ok := actionInfo[VlanPcp]; ok {
+			action.OPbits = actionInfo[VlanPcp].(uint32)
+			action.Cmd.RemarkOuterPbits = true
+			if _, ok := classifierInfo[VlanVid]; ok {
+				action.IVid = classifierInfo[VlanVid].(uint32)
+				action.Cmd.TranslateInnerTag = true
+			}
+		}
 	} else if _, ok := actionInfo[TrapToHost]; ok {
 		action.Cmd.TrapToHost = actionInfo[TrapToHost].(bool)
 	} else {
@@ -1320,7 +1341,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifierInfo}, err)
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(actionInfo)
+	actionProto, err := makeOpenOltActionField(actionInfo, classifierInfo)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": actionInfo}, err)
 	}
@@ -2378,33 +2399,58 @@ func installFlowOnAllGemports(ctx context.Context,
 	gemPorts []uint32,
 	TpInst *tp.TechProfile,
 	FlowType string,
+	direction string,
 	vlanID ...uint32) {
 	logger.Debugw("Installing flow on all GEM ports", log.Fields{"FlowType": FlowType, "gemPorts": gemPorts, "vlan": vlanID})
 
-	for _, gemPortAttribute := range TpInst.UpstreamGemPortAttributeList {
-		var gemPortID uint32
-		// The bit mapping for a gemport is expressed in tech-profile as a binary string. For example, 0b00000001
-		// We need to trim prefix "0b", before further processing
-		// Once the "0b" prefix is trimmed, we iterate each character in the string to identify which index
-		// in the string is set to binary bit 1 (expressed as char '1' in the binary string).
-		for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
-			// If a particular character in the string is set to '1', identify the index of this character from
-			// the LSB position which marks the PCP bit consumed by the given gem port.
-			// This PCP bit now becomes a classifier in the flow.
-			if pbitSet == BinaryBit1 {
-				classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
-				gemPortID = gemPortAttribute.GemportID
-				if FlowType == HsiaFlow || FlowType == DhcpFlow || FlowType == IgmpFlow {
-					f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
-				} else if FlowType == EapolFlow {
-					f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0])
-				} else {
-					logger.Errorw("Unrecognized Flow Type", log.Fields{"FlowType": FlowType})
-					return
+	// The bit mapping for a gemport is expressed in tech-profile as a binary string. For example, 0b00000001
+	// We need to trim prefix "0b", before further processing
+	// Once the "0b" prefix is trimmed, we iterate each character in the string to identify which index
+	// in the string is set to binary bit 1 (expressed as char '1' in the binary string).
+
+	// If a particular character in the string is set to '1', identify the index of this character from
+	// the LSB position which marks the PCP bit consumed by the given gem port.
+	// This PCP bit now becomes a classifier in the flow.
+
+	attributes := TpInst.DownstreamGemPortAttributeList
+	if direction == Upstream {
+		attributes = TpInst.UpstreamGemPortAttributeList
+	}
+
+	for _, gemPortAttribute := range attributes {
+		if direction == Downstream && strings.ToUpper(gemPortAttribute.IsMulticast) == "TRUE" {
+			continue
+		}
+		gemPortID := gemPortAttribute.GemportID
+		if allPbitsMarked(gemPortAttribute.PbitMap) {
+			classifier[VlanPcp] = uint32(VlanPCPMask)
+			if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+				f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
+			} else if FlowType == EapolFlow {
+				f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0])
+			}
+		} else {
+			for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
+				if pbitSet == BinaryBit1 {
+					classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
+					if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+						f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
+					} else if FlowType == EapolFlow {
+						f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0])
+					}
 				}
 			}
 		}
 	}
+}
+
+func allPbitsMarked(pbitMap string) bool {
+	for pos, pBit := range pbitMap {
+		if pos >= 2 && pBit != BinaryBit1 {
+			return false
+		}
+	}
+	return true
 }
 
 func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
@@ -2440,7 +2486,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		logger.Debug("Flow-exists-not-re-adding")
 		return nil
 	}
-	flowID, err := f.resourceMgr.GetFlowID(ctx, uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0)
+	flowID, err := f.resourceMgr.GetFlowID(ctx, uint32(networkInterfaceID), int32(onuID), int32(uniID), uint32(gemPortID), flowStoreCookie, "", 0, 0)
 	if err != nil {
 		return olterrors.NewErrNotFound("dhcp-trap-nni-flow-id", log.Fields{
 			"interface-id": networkInterfaceID,
@@ -2455,7 +2501,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err)
 	}
 	logger.Debugw("Created classifier proto", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(action)
+	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err)
 	}
@@ -2561,7 +2607,7 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err)
 	}
 	logger.Debugw("Created classifier proto for the IGMP flow", log.Fields{"classifier": *classifierProto})
-	actionProto, err := makeOpenOltActionField(action)
+	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err)
 	}
@@ -2622,10 +2668,11 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 					tp_pb.Direction_UPSTREAM,
 					pcp.(uint32))
 				//Adding DHCP upstream flow
+
 				f.addDHCPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
 			} else {
 				//Adding DHCP upstream flow to all gemports
-				installFlowOnAllGemports(ctx, f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow)
+				installFlowOnAllGemports(ctx, f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow, Upstream)
 			}
 
 		} else if ipProto == IgmpProto {
@@ -2637,7 +2684,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				f.addIGMPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
 			} else {
 				//Adding IGMP upstream flow to all gem ports
-				installFlowOnAllGemports(ctx, f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, IgmpFlow)
+				installFlowOnAllGemports(ctx, f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, IgmpFlow, Upstream)
 			}
 		} else {
 			logger.Errorw("Invalid-Classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
@@ -2659,7 +2706,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 
 				f.addEAPOLFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID)
 			} else {
-				installFlowOnAllGemports(ctx, nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, EapolFlow, vlanID)
+				installFlowOnAllGemports(ctx, nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, EapolFlow, Upstream, vlanID)
 			}
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
@@ -2672,7 +2719,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			f.addUpstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
 		} else {
 			//Adding HSIA upstream flow to all gemports
-			installFlowOnAllGemports(ctx, f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow)
+			installFlowOnAllGemports(ctx, f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Upstream)
 		}
 	} else if _, ok := actionInfo[PopVlan]; ok {
 		logger.Info("Adding Downstream data rule")
@@ -2684,7 +2731,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			f.addDownstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
 		} else {
 			//Adding HSIA downstream flow to all gemports
-			installFlowOnAllGemports(ctx, f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow)
+			installFlowOnAllGemports(ctx, f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Downstream)
 		}
 	} else {
 		logger.Errorw("Invalid-flow-type-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo, "flow": flow})
