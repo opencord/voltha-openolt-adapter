@@ -34,6 +34,24 @@
       "revId": "c32d31c2b4b52cff356e45c02168df9985b2b927",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "76ef5944_840caa1a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-03-18T06:52:53Z",
+      "side": 1,
+      "message": "ok. i see your changeset for the core regarding deleting child deviceson device unreachbale.\nRegarding the network connection timeout, would still prefer it to be a configurable item. for achieving the desired behavor we can make the defaultHeartbeatFailReportInterval as 0. i spoke to chaitarshree regarding this.",
+      "parentUuid": "2e788586_730361d0",
+      "revId": "c32d31c2b4b52cff356e45c02168df9985b2b927",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
