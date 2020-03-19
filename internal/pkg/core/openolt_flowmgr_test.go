@@ -231,7 +231,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 			fu.Output(1),
 		},
 	}
-	ofpstats := fu.MkFlowStat(fa)
+	ofpstats, _ := fu.MkFlowStat(fa)
 	ofpstats.Cookie = ofpstats.Id
 	lldpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
@@ -244,7 +244,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
-	lldpofpstats := fu.MkFlowStat(lldpFa)
+	lldpofpstats, _ := fu.MkFlowStat(lldpFa)
 	//lldpofpstats.Cookie = lldpofpstats.Id
 
 	dhcpFa := &fu.FlowArgs{
@@ -259,7 +259,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
-	dhcpofpstats := fu.MkFlowStat(dhcpFa)
+	dhcpofpstats, _ := fu.MkFlowStat(dhcpFa)
 	//dhcpofpstats.Cookie = dhcpofpstats.Id
 
 	//multicast flow
@@ -275,7 +275,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 			fu.Group(1),
 		},
 	}
-	multicastOfpStats := fu.MkFlowStat(multicastFa)
+	multicastOfpStats, _ := fu.MkFlowStat(multicastFa)
 	multicastOfpStats.Id = 1
 
 	type args struct {
@@ -494,18 +494,18 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		},
 		KV: kw6,
 	}
-	ofpstats := fu.MkFlowStat(fa)
-	ofpstats2 := fu.MkFlowStat(fa2)
-	ofpstats3 := fu.MkFlowStat(fa3)
-	ofpstats4 := fu.MkFlowStat(fa4)
-	ofpstats5 := fu.MkFlowStat(fa5)
-	ofpstats6 := fu.MkFlowStat(fa6)
-	ofpstats7 := fu.MkFlowStat(lldpFa)
-	ofpstats8 := fu.MkFlowStat(dhcpFa)
-	ofpstats9 := fu.MkFlowStat(fa9)
-	ofpstats10 := fu.MkFlowStat(fa10)
-	igmpstats := fu.MkFlowStat(igmpFa)
-	ofpstats11 := fu.MkFlowStat(fa11)
+	ofpstats, _ := fu.MkFlowStat(fa)
+	ofpstats2, _ := fu.MkFlowStat(fa2)
+	ofpstats3, _ := fu.MkFlowStat(fa3)
+	ofpstats4, _ := fu.MkFlowStat(fa4)
+	ofpstats5, _ := fu.MkFlowStat(fa5)
+	ofpstats6, _ := fu.MkFlowStat(fa6)
+	ofpstats7, _ := fu.MkFlowStat(lldpFa)
+	ofpstats8, _ := fu.MkFlowStat(dhcpFa)
+	ofpstats9, _ := fu.MkFlowStat(fa9)
+	ofpstats10, _ := fu.MkFlowStat(fa10)
+	igmpstats, _ := fu.MkFlowStat(igmpFa)
+	ofpstats11, _ := fu.MkFlowStat(fa11)
 
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
@@ -799,10 +799,10 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	actionInfo3 := make(map[string]interface{})
 	classifierInfo4 := make(map[string]interface{})
 	actionInfo4 := make(map[string]interface{})
-	flowState := fu.MkFlowStat(fa)
-	flowState2 := fu.MkFlowStat(fa2)
-	flowState3 := fu.MkFlowStat(fa3)
-	flowState4 := fu.MkFlowStat(fa4)
+	flowState, _ := fu.MkFlowStat(fa)
+	flowState2, _ := fu.MkFlowStat(fa2)
+	flowState3, _ := fu.MkFlowStat(fa3)
+	flowState4, _ := fu.MkFlowStat(fa4)
 	formulateClassifierInfoFromFlow(classifierInfo, flowState)
 	formulateClassifierInfoFromFlow(classifierInfo2, flowState2)
 	formulateClassifierInfoFromFlow(classifierInfo3, flowState3)
@@ -986,7 +986,7 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 			fu.Group(1),
 		},
 	}
-	ofpStats := fu.MkFlowStat(multicastFlowArgs)
+	ofpStats, _ := fu.MkFlowStat(multicastFlowArgs)
 	flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
 
 	//add bucket to the group
