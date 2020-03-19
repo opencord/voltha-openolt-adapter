@@ -181,6 +181,14 @@ func (ooc *MockOpenoltClient) EnableIndication(ctx context.Context, in *openolt.
 	return nil, errors.New("invalid method invocation")
 }
 
+// OnuItuPonAlarmSet mocks the OnuItuPonAlarmSet function of Openoltclient.
+func (ooc *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *openolt.OnuItuPonAlarm, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	if in == nil {
+		return nil, errors.New("empty itu pon alarm set")
+	}
+	return &openolt.Empty{}, nil
+}
+
 type mockOpenoltEnableIndicationClient struct {
 	count int
 }
