@@ -324,7 +324,7 @@ func TestFlowExtractInfo(t *testing.T) {
 			fu.Output(1),
 		},
 	}
-	ofpstats := fu.MkFlowStat(fa)
+	ofpstats, _ := fu.MkFlowStat(fa)
 	type args struct {
 		flow          *ofp.OfpFlowStats
 		flowDirection string
