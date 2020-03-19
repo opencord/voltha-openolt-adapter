@@ -56,6 +56,7 @@ const (
 	onuLossOfGEMChannelDelineationEvent = "ONU_LOSS_OF_GEM_CHANNEL_DELINEATION"
 	onuPhysicalEquipmentErrorEvent      = "ONU_PHYSICAL_EQUIPMENT_ERROR"
 	onuLossOfAcknowledgementEvent       = "ONU_LOSS_OF_ACKNOWLEDGEMENT"
+	onuDifferentialReachExceededEvent   = "ONU_DIFFERENTIAL_REACH_EXCEEDED"
 )
 
 const (
@@ -155,6 +156,9 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	case *oop.AlarmIndication_OnuLossOfAckInd:
 		logger.Debugw("Received onu loss of acknowledgement indication ", log.Fields{"alarm_ind": alarmInd})
 		err = em.onuLossOfAcknowledgementIndication(alarmInd.GetOnuLossOfAckInd(), deviceID, raisedTs)
+	case *oop.AlarmIndication_OnuDiffReachExceededInd:
+		logger.Debugw("Received onu differential reach exceeded indication ", log.Fields{"alarm_ind": alarmInd})
+		err = em.onuDifferentialReachExceededIndication(alarmInd.GetOnuDiffReachExceededInd(), deviceID, raisedTs)
 	default:
 		err = olterrors.NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
 	}
@@ -702,5 +706,30 @@ func (em *OpenOltEventMgr) onuLossOfAcknowledgementIndication(onuLOA *oop.OnuLos
 		return err
 	}
 	logger.Debugw("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuDifferentialReachExceededIndication(onuDRE *oop.OnuDifferentialReachExceededIndication, deviceID string, raisedTs int64) error {
+	/* Populating event context */
+	context := map[string]string{
+		"onu-id":                strconv.FormatUint(uint64(onuDRE.OnuId), base10),
+		"intf-id":               strconv.FormatUint(uint64(onuDRE.IntfId), base10),
+		"differential-distance": strconv.FormatUint(uint64(onuDRE.Distance), base10),
+	}
+	/* Populating device event body */
+	de := &voltha.DeviceEvent{
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if onuDRE.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDifferentialReachExceededEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDifferentialReachExceededEvent, "CLEAR_EVENT")
+	}
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
+		return err
+	}
+	log.Debugw("ONU differential reach exceeded event sent to KAFKA", log.Fields{"onu-id": onuDRE.OnuId, "intf-id": onuDRE.IntfId})
 	return nil
 }
