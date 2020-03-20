@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f3e3df74_5ed800e5",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-03-20T15:59:04Z",
+      "side": 1,
+      "message": "this method is now called: StartLogLevelConfigProcessing",
+      "range": {
+        "startLine": 105,
+        "startChar": 9,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "59b98b915429ef04ada082ba7d1db80bcb9e9a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
