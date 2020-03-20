@@ -18,17 +18,12 @@
 package core
 
 import (
-	"reflect"
-	"testing"
-
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"reflect"
+	"testing"
 )
 
-func init() {
-	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
-}
 func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 	device := &voltha.Device{
 		Id:       "olt",
