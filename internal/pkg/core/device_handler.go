@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"io"
 	"net"
 	"strconv"
@@ -51,7 +52,14 @@ import (
 const (
 	MaxRetry       = 10
 	MaxTimeOutInMs = 500
+	InvalidPort    = -1
 )
+
+type actvFlRemCntPerSubsKey struct {
+	intfID uint32
+	onuID  uint32
+	uniID  uint32
+}
 
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
@@ -80,6 +88,8 @@ type DeviceHandler struct {
 	stopHeartbeatCheck chan bool
 	activePorts        sync.Map
 	stopIndications    chan bool
+
+	actvFlRemCntPerSubs map[actvFlRemCntPerSubsKey]uint32
 }
 
 //OnuDevice represents ONU related info
@@ -138,6 +148,8 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	dh.activePorts = sync.Map{}
 	dh.stopIndications = make(chan bool, 1)
+	dh.actvFlRemCntPerSubs = make(map[actvFlRemCntPerSubsKey]uint32)
+
 	//TODO initialize the support classes.
 	return &dh
 }
@@ -1258,12 +1270,18 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
+			dh.incrementActiveFlowRemoveCount(flow)
+
 			log.Debug("Removing flow", log.Fields{"deviceId": device.Id, "flowToRemove": flow})
 			dh.flowMgr.RemoveFlow(ctx, flow)
+
+			dh.decrementActiveFlowRemoveCount(flow)
 		}
 
 		for _, flow := range flows.ToAdd.Items {
 			log.Debug("Adding flow", log.Fields{"deviceId": device.Id, "flowToAdd": flow})
+			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
+			dh.waitForFlowRemoveToFinish(flow)
 			err := dh.flowMgr.AddFlow(ctx, flow, flowMetadata)
 			if err != nil {
 				errorsList = append(errorsList, err)
@@ -1277,6 +1295,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 		}
 	}
 
+	// Whether we need to synchronize multicast group adds and modifies like flow add and delete needs to be investigated
 	if groups != nil {
 		for _, group := range groups.ToAdd.Items {
 			err := dh.flowMgr.AddGroup(ctx, group)
@@ -1909,4 +1928,108 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	dh.onus.Delete(onuKey)
 	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
 	return nil
+}
+
+func getInPortFromFlow(flow *of.OfpFlowStats) int64 {
+	for _, field := range flows.GetOfbFields(flow) {
+		if field.Type == flows.IN_PORT {
+			return int64(field.GetPort())
+		}
+	}
+	return InvalidPort
+}
+
+func getOutPortFromFlow(flow *of.OfpFlowStats) int64 {
+	for _, action := range flows.GetActions(flow) {
+		if action.Type == flows.OUTPUT {
+			if out := action.GetOutput(); out != nil {
+				return int64(out.GetPort())
+			}
+		}
+	}
+	return InvalidPort
+}
+
+func (dh *DeviceHandler) incrementActiveFlowRemoveCount(flow *of.OfpFlowStats) {
+	inPort, outPort := getPorts(flow)
+	log.Debugw("ggc-incrementActiveFlowRemoveCount-inport-outport", log.Fields{"inPort": inPort, "outPort": outPort})
+
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(uint32(inPort), uint32(outPort))
+		key := actvFlRemCntPerSubsKey{intfID: intfID, onuID: onuID, uniID: uniID}
+		log.Debugw("ggc-incrementActiveFlowRemoveCount-intf-onu-uni", log.Fields{"intf": intfID, "onuID": onuID, "uniID": uniID})
+
+		dh.lockDevice.Lock()
+		dh.actvFlRemCntPerSubs[key]++
+		dh.lockDevice.Unlock()
+	}
+}
+
+func (dh *DeviceHandler) decrementActiveFlowRemoveCount(flow *of.OfpFlowStats) {
+	inPort, outPort := getPorts(flow)
+	log.Debugw("ggc-decrementActiveFlowRemoveCount-inport-outport", log.Fields{"inPort": inPort, "outPort": outPort})
+
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(uint32(inPort), uint32(outPort))
+		log.Debugw("ggc-decrementActiveFlowRemoveCount-intf-onu-uni", log.Fields{"intf": intfID, "onuID": onuID, "uniID": uniID})
+
+		key := actvFlRemCntPerSubsKey{intfID: intfID, onuID: onuID, uniID: uniID}
+		dh.lockDevice.Lock()
+		dh.actvFlRemCntPerSubs[key]--
+		dh.lockDevice.Unlock()
+	}
+}
+
+func (dh *DeviceHandler) waitForFlowRemoveToFinish(flow *of.OfpFlowStats) {
+	inPort, outPort := getPorts(flow)
+	log.Debugw("ggc-waitForFlowRemoveToFinish-inport-outport", log.Fields{"inPort": inPort, "outPort": outPort})
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(uint32(inPort), uint32(outPort))
+		log.Debugw("ggc-waitForFlowRemoveToFinish-intf-onu-uni", log.Fields{"intf": intfID, "onuID": onuID, "uniID": uniID})
+		key := actvFlRemCntPerSubsKey{intfID: intfID, onuID: onuID, uniID: uniID}
+
+		for {
+			dh.lockDevice.RLock()
+			currFlowRemCnt := dh.actvFlRemCntPerSubs[key]
+			dh.lockDevice.RUnlock()
+			if currFlowRemCnt == 0 {
+				break
+			}
+			log.Debugw("waiting for active flow remove to complete", log.Fields{"key": key})
+			// Sleep for a short interval before retry again..
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+}
+
+func getPorts(flow *of.OfpFlowStats) (int64, int64) {
+	inPort := getInPortFromFlow(flow)
+	outPort := getOutPortFromFlow(flow)
+
+	if inPort == InvalidPort || outPort == InvalidPort {
+		return inPort, outPort
+	}
+
+	if isControllerFlow := IsControllerBoundFlow(uint32(outPort)); isControllerFlow {
+		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
+		if portType := IntfIDToPortTypeName(uint32(inPort)); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return int64(uniPort), outPort
+			}
+		}
+	} else {
+		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
+		if portType := IntfIDToPortTypeName(uint32(outPort)); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return inPort, int64(uniPort)
+			}
+			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
+		} else if portType := IntfIDToPortTypeName(uint32(inPort)); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return int64(uniPort), outPort
+			}
+		}
+	}
+
+	return InvalidPort, InvalidPort
 }
