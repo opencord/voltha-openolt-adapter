@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "239efe31_7660a725",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-20T16:56:57Z",
+      "side": 1,
+      "message": "not to be a pain, but the name of this variable is impossibly convoluted",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13dabb8c_631dbdcc",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -64,6 +87,29 @@
         "startChar": 0,
         "endLine": 1957,
         "endChar": 53
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3066eaa7_bcd07d3d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-20T16:56:57Z",
+      "side": 1,
+      "message": "I\u0027m not convinced by this, is there a way we can have a callback to launch code when the removal is node ?",
+      "range": {
+        "startLine": 2000,
+        "startChar": 3,
+        "endLine": 2000,
+        "endChar": 36
       },
       "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
