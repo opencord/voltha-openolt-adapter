@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13dabb8c_631dbdcc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-20T16:55:23Z",
+      "side": 1,
+      "message": "have to be honest, a comment in the code describing the purpose of this map would be helpful for the next person that has to maintain this code.",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 20
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "99a3b0d7_00a7c2c8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1266,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-20T16:55:23Z",
+      "side": 1,
+      "message": "Is this invoked as a go routine? If not then all processing adapter is stopped when waitForFlowRemoveToFinish\" is called? Wondering if this can be done as more of a state machine/event driven approach as opposed to a serialize execution mode.",
+      "range": {
+        "startLine": 1266,
+        "startChar": 25,
+        "endLine": 1266,
+        "endChar": 49
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc9275e8_2ab1da86",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1957,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-20T16:55:23Z",
+      "side": 1,
+      "message": "Should there be an error case, panic, of ?? if we get in invalidPort back? Or is this perfectly ok and it just means that we are not dealing with a subscriber?",
+      "range": {
+        "startLine": 1957,
+        "startChar": 0,
+        "endLine": 1957,
+        "endChar": 53
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
