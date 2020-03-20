@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "03cb2880_3780885c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "Should just spell the whole thing out, even if it ends up being pretty long.",
+      "parentUuid": "239efe31_7660a725",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13dabb8c_631dbdcc",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -83,6 +107,30 @@
       "writtenOn": "2020-03-20T17:10:00Z",
       "side": 1,
       "message": "Agree. Note to me.. never submit things in a hurry.",
+      "parentUuid": "13dabb8c_631dbdcc",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 20
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f72687a4_8404a23f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "(Include both count and a signal channel `chan struct{}` as values in this map.)",
       "parentUuid": "13dabb8c_631dbdcc",
       "range": {
         "startLine": 92,
@@ -143,6 +191,29 @@
     },
     {
       "key": {
+        "uuid": "ff8152d0_b015c0a3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1936,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "Consider just returning the type from field.GetPort()?",
+      "range": {
+        "startLine": 1936,
+        "startChar": 10,
+        "endLine": 1936,
+        "endChar": 15
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc9275e8_2ab1da86",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -190,6 +261,40 @@
     },
     {
       "key": {
+        "uuid": "453c8ad1_04a4f24e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1963,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "(Create signal channel here if count was zero.)",
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0f5f20f1_e23f9c68",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1978,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "(Close signal channel here if count \u003d\u003d 0).",
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3066eaa7_bcd07d3d",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -230,6 +335,53 @@
         "startChar": 3,
         "endLine": 2000,
         "endChar": 36
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40788fbe_da31ab38",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "This should probably be implemented with a signal channel (closed asyncronously when the currFlowRemCnt reaches zero.)\n\n(Will still need to loop in case another thread starts removing flows again first.)",
+      "parentUuid": "3066eaa7_bcd07d3d",
+      "range": {
+        "startLine": 2000,
+        "startChar": 3,
+        "endLine": 2000,
+        "endChar": 36
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e97ce51_1916049e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2015,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T17:28:53Z",
+      "side": 1,
+      "message": "Should use the same int type for all uses of \u0027port\u0027, rather than casting all the time.\n\n(More like this.)",
+      "range": {
+        "startLine": 2015,
+        "startChar": 38,
+        "endLine": 2015,
+        "endChar": 44
       },
       "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
