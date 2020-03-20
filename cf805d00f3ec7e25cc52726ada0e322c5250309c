@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a11b8973_2698f1d1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1978,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T21:09:39Z",
+      "side": 1,
+      "message": "Use \n`flowRemoveData, ok :\u003d dh.pendingFlowRemoveDataPerSubscriber[key]`\nfollowed by\n`if !ok {`\nCurrently, in the `ok` case, flowRemoveData will not be queried from the map.",
+      "revId": "cf805d00f3ec7e25cc52726ada0e322c5250309c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
