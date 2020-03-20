@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d0d10fc_8dcfdfcd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1979,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T20:15:48Z",
+      "side": 1,
+      "message": "Can use `:\u003d` to avoid pre-declaring flowRemoveData, or alternatively, just reuse `val`.\n\nConsider only having one if block for the !ok case, followed by an increment \u0026 save that runs no matter what.",
+      "revId": "df539ef435a756547d54c4708e4ad3cac74ff152",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "059cb6e7_63d1e5b3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2043,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T20:15:48Z",
+      "side": 1,
+      "message": "Will this function be re-run if the number of current flowRemove requests is incremented again?\n\nConversely, will we have this same issue if a flowRemove request arrives while the flowAdd is still running?",
+      "range": {
+        "startLine": 2043,
+        "startChar": 2,
+        "endLine": 2043,
+        "endChar": 34
+      },
+      "revId": "df539ef435a756547d54c4708e4ad3cac74ff152",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
