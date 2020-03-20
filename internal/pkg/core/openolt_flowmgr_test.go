@@ -218,7 +218,7 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 
 func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	// flowMgr := newMockFlowmgr()
-	log.Debug("Info Warning Error: Starting RemoveFlow() test")
+	logger.Debug("Info Warning Error: Starting RemoveFlow() test")
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(2),

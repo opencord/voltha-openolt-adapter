@@ -76,16 +76,16 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 
 //Start starts (logs) the device manager
 func (oo *OpenOLT) Start(ctx context.Context) error {
-	log.Info("starting-device-manager")
-	log.Info("device-manager-started")
+	logger.Info("starting-device-manager")
+	logger.Info("device-manager-started")
 	return nil
 }
 
 //Stop terminates the session
 func (oo *OpenOLT) Stop(ctx context.Context) error {
-	log.Info("stopping-device-manager")
+	logger.Info("stopping-device-manager")
 	oo.exitChannel <- 1
-	log.Info("device-manager-stopped")
+	logger.Info("device-manager-stopped")
 	return nil
 }
 
@@ -94,10 +94,10 @@ func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) 
 		// Returned response only of the ctx has not been canceled/timeout/etc
 		// Channel is automatically closed when a context is Done
 		ch <- result
-		log.Debugw("sendResponse", log.Fields{"result": result})
+		logger.Debugw("sendResponse", log.Fields{"result": result})
 	} else {
 		// Should the transaction be reverted back?
-		log.Debugw("sendResponse-context-error", log.Fields{"context-error": ctx.Err()})
+		logger.Debugw("sendResponse-context-error", log.Fields{"context-error": ctx.Err()})
 	}
 }
 
@@ -126,7 +126,7 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 
 //createDeviceTopic returns
 func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
-	log.Infow("create-device-topic", log.Fields{"deviceId": device.Id})
+	logger.Infow("create-device-topic", log.Fields{"deviceId": device.Id})
 	defaultTopic := oo.kafkaICProxy.GetDefaultTopic()
 	deviceTopic := kafka.Topic{Name: defaultTopic.Name + "_" + device.Id}
 	// TODO for the offset
@@ -142,7 +142,7 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 	if device == nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}
-	log.Infow("adopt-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("adopt-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
@@ -156,7 +156,7 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 
 //Get_ofp_device_info returns OFP information for the given device
 func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapability, error) {
-	log.Infow("Get_ofp_device_info", log.Fields{"deviceId": device.Id})
+	logger.Infow("Get_ofp_device_info", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpDeviceInfo(device)
 	}
@@ -165,7 +165,7 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 
 //Get_ofp_port_info returns OFP port information for the given device
 func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.PortCapability, error) {
-	log.Infow("Get_ofp_port_info", log.Fields{"deviceId": device.Id})
+	logger.Infow("Get_ofp_port_info", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpPortInfo(device, portNo)
 	}
@@ -174,7 +174,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
 func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
-	log.Infow("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
+	logger.Infow("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
 	targetDevice := msg.Header.ProxyDeviceId // Request?
 	if targetDevice == "" && msg.Header.ToDeviceId != "" {
 		// Typical response
@@ -207,7 +207,7 @@ func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
 	if device == nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	}
-	log.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
@@ -225,7 +225,7 @@ func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
 
 //Disable_device disables the given device
 func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
-	log.Infow("disable-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("disable-device", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.DisableDevice(device)
 	}
@@ -234,7 +234,7 @@ func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
 
 //Reenable_device enables the olt device after disable
 func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
-	log.Infow("reenable-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("reenable-device", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.ReenableDevice(device)
 	}
@@ -243,7 +243,7 @@ func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
 
 //Reboot_device reboots the given device
 func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
-	log.Infow("reboot-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("reboot-device", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.RebootDevice(device)
 	}
@@ -257,11 +257,11 @@ func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
 
 //Delete_device unimplemented
 func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
-	log.Infow("delete-device", log.Fields{"deviceId": device.Id})
+	logger.Infow("delete-device", log.Fields{"deviceId": device.Id})
 	ctx := context.Background()
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.DeleteDevice(ctx, device); err != nil {
-			log.Errorw("failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
+			logger.Errorw("failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
 		}
 		oo.deleteDeviceHandlerToMap(handler)
 		return nil
@@ -281,7 +281,7 @@ func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows,
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
 func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
-	log.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows, "flowMetadata": flowMetadata})
+	logger.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows, "flowMetadata": flowMetadata})
 	ctx := context.Background()
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
@@ -296,7 +296,7 @@ func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmC
 
 //Receive_packet_out sends packet out to the device
 func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet *openflow_13.OfpPacketOut) error {
-	log.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceID, "egress_port_no": egressPortNo, "pkt": packet})
+	logger.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceID, "egress_port_no": egressPortNo, "pkt": packet})
 	ctx := context.Background()
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.PacketOut(ctx, egressPortNo, packet)
@@ -341,19 +341,19 @@ func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.Im
 
 // Enable_port to Enable PON/NNI interface
 func (oo *OpenOLT) Enable_port(deviceID string, port *voltha.Port) error {
-	log.Infow("Enable_port", log.Fields{"deviceId": deviceID, "port": port})
+	logger.Infow("Enable_port", log.Fields{"deviceId": deviceID, "port": port})
 	return oo.enableDisablePort(deviceID, port, true)
 }
 
 // Disable_port to Disable pon/nni interface
 func (oo *OpenOLT) Disable_port(deviceID string, port *voltha.Port) error {
-	log.Infow("Disable_port", log.Fields{"deviceId": deviceID, "port": port})
+	logger.Infow("Disable_port", log.Fields{"deviceId": deviceID, "port": port})
 	return oo.enableDisablePort(deviceID, port, false)
 }
 
 // enableDisablePort to Disable pon or Enable PON interface
 func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enablePort bool) error {
-	log.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
+	logger.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
 	if port == nil {
 		return olterrors.NewErrInvalidValue(log.Fields{
 			"reason":    "port cannot be nil",
@@ -361,7 +361,7 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 			"port":      nil}, nil)
 	}
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
-		log.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
+		logger.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
 		if enablePort {
 			if err := handler.EnablePort(port); err != nil {
 				return olterrors.NewErrAdapter("error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
@@ -377,7 +377,7 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 
 //Child_device_lost deletes the ONU and its references from PONResources
 func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint32) error {
-	log.Infow("Child-device-lost", log.Fields{"parentId": deviceID})
+	logger.Infow("Child-device-lost", log.Fields{"parentId": deviceID})
 	ctx := context.Background()
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		return handler.ChildDeviceLost(ctx, pPortNo, onuID)

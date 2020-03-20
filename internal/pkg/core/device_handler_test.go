@@ -43,10 +43,6 @@ import (
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
-func init() {
-	_, _ = log.AddPackage(log.JSON, log.DebugLevel, nil)
-}
-
 func newMockCoreProxy() *mocks.MockCoreProxy {
 	mcp := mocks.MockCoreProxy{}
 	mcp.Devices = make(map[string]*voltha.Device)
@@ -404,18 +400,18 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	var err error
 
 	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
-		log.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
 	}
 
 	var marshalledData1 *any.Any
 
 	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
-		log.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
 	}
 	var marshalledData2 *any.Any
 
 	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
-		log.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
 	}
 	type args struct {
 		msg *ic.InterAdapterMessage
