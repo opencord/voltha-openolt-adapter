@@ -22,6 +22,29 @@
       "revId": "59b98b915429ef04ada082ba7d1db80bcb9e9a14",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "59ec9ed9_5734d9b1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-03-20T16:54:16Z",
+      "side": 1,
+      "message": "I suspect this is not related to the multi-adapter changes, but I noticed that in multiple runs without removing kafka sometimes you receive stale messages, adding this prevent the issue:\n\nif (dh.Client \u003d\u003d nil || dh.Client.OmciMsgOut \u003d\u003d nil) {\n\t\t// some messages are left on kafka from a previous run\n\t\treturn nil\n\t}",
+      "range": {
+        "startLine": 882,
+        "startChar": 1,
+        "endLine": 882,
+        "endChar": 66
+      },
+      "revId": "59b98b915429ef04ada082ba7d1db80bcb9e9a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
