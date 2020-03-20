@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "10290ac9_dd3c931f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T17:10:00Z",
+      "side": 1,
+      "message": "Agree. I sometimes have a tough time naming a variable. I will see what I can find.",
+      "parentUuid": "239efe31_7660a725",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13dabb8c_631dbdcc",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2020-03-20T16:55:23Z",
       "side": 1,
       "message": "have to be honest, a comment in the code describing the purpose of this map would be helpful for the next person that has to maintain this code.",
+      "range": {
+        "startLine": 92,
+        "startChar": 1,
+        "endLine": 92,
+        "endChar": 20
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5fc7ebd4_2dae0817",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T17:10:00Z",
+      "side": 1,
+      "message": "Agree. Note to me.. never submit things in a hurry.",
+      "parentUuid": "13dabb8c_631dbdcc",
       "range": {
         "startLine": 92,
         "startChar": 1,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e628947d_e0fec97d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1266,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T17:10:00Z",
+      "side": 1,
+      "message": "This is called in a go routine.\nI am in favor of state machine. But since this was executed in a go routine, I was not worried about it.\nLet me know what you think.",
+      "parentUuid": "99a3b0d7_00a7c2c8",
+      "range": {
+        "startLine": 1266,
+        "startChar": 25,
+        "endLine": 1266,
+        "endChar": 49
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc9275e8_2ab1da86",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "efe015d6_1ff13197",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1957,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T17:10:00Z",
+      "side": 1,
+      "message": "If there is an invalid port, you are right, we are not dealing with subscriber. It could be a trap-from-nni flow (not pertaining to any subscriber).",
+      "parentUuid": "bc9275e8_2ab1da86",
+      "range": {
+        "startLine": 1957,
+        "startChar": 0,
+        "endLine": 1957,
+        "endChar": 53
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3066eaa7_bcd07d3d",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2020-03-20T16:56:57Z",
       "side": 1,
       "message": "I\u0027m not convinced by this, is there a way we can have a callback to launch code when the removal is node ?",
+      "range": {
+        "startLine": 2000,
+        "startChar": 3,
+        "endLine": 2000,
+        "endChar": 36
+      },
+      "revId": "26a1190f9b89eae70979216659e38c9ea8a7c90c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ed0878f1_3a7cac57",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T17:10:00Z",
+      "side": 1,
+      "message": "I cannot agree with you more. It was a quick fix.\nGo channels could help here. I will see what I can do.",
+      "parentUuid": "3066eaa7_bcd07d3d",
       "range": {
         "startLine": 2000,
         "startChar": 3,
