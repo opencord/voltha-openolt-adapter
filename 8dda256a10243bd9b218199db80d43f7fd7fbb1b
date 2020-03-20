@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e442ae8_81ad7d49",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1985,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-20T21:49:29Z",
+      "side": 1,
+      "message": "Can remove this if initialized to 0 instead of 1 on line 1980.",
+      "range": {
+        "startLine": 1983,
+        "startChar": 3,
+        "endLine": 1985,
+        "endChar": 9
+      },
+      "revId": "8dda256a10243bd9b218199db80d43f7fd7fbb1b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
