@@ -39,6 +39,30 @@
       "revId": "df539ef435a756547d54c4708e4ad3cac74ff152",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8c4b955_af997fa6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2043,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-20T20:49:34Z",
+      "side": 1,
+      "message": "ONOS always sends Flow Removes first (if any) before FlowAdd for a subscriber. The order is also guaranteed at adapter, meaning that flow removes arrive first. \nThere is no practical scenario where flow deletes can come for subscriber while flow add is happening. In theory this could happen if the subscriber is provisioned (this is when flow adds are happening) and within fraction of seconds you un-provision the subscriber (this is when flow deletes start happening). \nIf someone were to attempt this, it could cause problems we have seen in regression, but I am not sure if this is a practical scenario. However, we can recover from this state with a ONU delete and re-provision",
+      "parentUuid": "059cb6e7_63d1e5b3",
+      "range": {
+        "startLine": 2043,
+        "startChar": 2,
+        "endLine": 2043,
+        "endChar": 34
+      },
+      "revId": "df539ef435a756547d54c4708e4ad3cac74ff152",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
