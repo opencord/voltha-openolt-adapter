@@ -20,18 +20,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"net/http"
 	_ "net/http/pprof"
 )
 
 func realMain() {
 	go func() {
-		log.Info("TEO starting PProf server")
+		logger.Info("TEO starting PProf server")
 		http.HandleFunc("/teo", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "Hello, teo")
 		})
-		log.Fatal(http.ListenAndServe("0.0.0.0:6060", nil))
+		logger.Fatal(http.ListenAndServe("0.0.0.0:6060", nil))
 	}()
 
 }

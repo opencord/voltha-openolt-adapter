@@ -20,7 +20,6 @@ package mocks
 import (
 	"context"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v3/pkg/techprofile"
 	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
 )
@@ -43,7 +42,7 @@ func (m MockTechProfile) GetTechProfileInstanceKVPath(techProfiletblID uint32, u
 
 // GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
 func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (*tp.TechProfile, error) {
-	log.Debug("Warning Warning Warning: GetTPInstanceFromKVStore")
+	logger.Debug("Warning Warning Warning: GetTPInstanceFromKVStore")
 	return nil, nil
 
 }

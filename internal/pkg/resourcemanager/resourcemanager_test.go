@@ -125,7 +125,7 @@ func (kvclient *MockResKVClient) List(ctx context.Context, key string) (map[stri
 
 // Get mock function implementation for KVClient
 func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
-	log.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
+	logger.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		if strings.Contains(key, MeterConfig) {
 			var bands []*ofp.OfpMeterBandHeader
@@ -146,7 +146,7 @@ func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.
 			return nil, errors.New("invalid meter")
 		}
 		if strings.Contains(key, FlowIDpool) || strings.Contains(key, GemportIDPool) || strings.Contains(key, AllocIDPool) {
-			log.Debug("Error Error Error Key:", FlowIDpool, GemportIDPool, AllocIDPool)
+			logger.Debug("Error Error Error Key:", FlowIDpool, GemportIDPool, AllocIDPool)
 			data := make(map[string]interface{})
 			data["pool"] = "1024"
 			data["start_idx"] = 1
@@ -155,17 +155,17 @@ func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowIDInfo) || strings.Contains(key, FlowIDs) {
-			log.Debug("Error Error Error Key:", FlowIDs, FlowIDInfo)
+			logger.Debug("Error Error Error Key:", FlowIDs, FlowIDInfo)
 			str, _ := json.Marshal([]uint32{1, 2})
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, AllocIDs) || strings.Contains(key, GemportIDs) {
-			log.Debug("Error Error Error Key:", AllocIDs, GemportIDs)
+			logger.Debug("Error Error Error Key:", AllocIDs, GemportIDs)
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, McastQueuesForIntf) {
-			log.Debug("Error Error Error Key:", McastQueuesForIntf)
+			logger.Debug("Error Error Error Key:", McastQueuesForIntf)
 			mcastQueues := make(map[uint32][]uint32)
 			mcastQueues[10] = []uint32{4000, 0}
 			str, _ := json.Marshal(mcastQueues)

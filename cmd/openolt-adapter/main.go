@@ -58,10 +58,6 @@ type adapter struct {
 	receiverChannels []<-chan *ic.InterContainerMessage
 }
 
-func init() {
-	_, _ = log.AddPackage(log.CONSOLE, log.DebugLevel, nil)
-}
-
 func newAdapter(cf *config.AdapterFlags) *adapter {
 	var a adapter
 	a.instanceID = cf.InstanceID
@@ -73,7 +69,7 @@ func newAdapter(cf *config.AdapterFlags) *adapter {
 }
 
 func (a *adapter) start(ctx context.Context) {
-	log.Info("Starting Core Adapter components")
+	logger.Info("Starting Core Adapter components")
 	var err error
 
 	var p *probe.Probe
@@ -91,9 +87,9 @@ func (a *adapter) start(ctx context.Context) {
 	}
 
 	// Setup KV Client
-	log.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
+	logger.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
 	if err = a.setKVClient(); err != nil {
-		log.Fatalw("error-setting-kv-client", log.Fields{"error": err})
+		logger.Fatalw("error-setting-kv-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
@@ -106,7 +102,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup Kafka Client
 	if a.kafkaClient, err = newKafkaClient("sarama", a.config.KafkaAdapterHost, a.config.KafkaAdapterPort); err != nil {
-		log.Fatalw("Unsupported-common-client", log.Fields{"error": err})
+		logger.Fatalw("Unsupported-common-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
@@ -115,7 +111,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Start the common InterContainer Proxy - retries indefinitely
 	if a.kip, err = a.startInterContainerProxy(ctx, -1); err != nil {
-		log.Fatal("error-starting-inter-container-proxy")
+		logger.Fatal("error-starting-inter-container-proxy")
 	}
 
 	// Create the core proxy to handle requests to the Core
@@ -129,17 +125,17 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Create the open OLT adapter
 	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config); err != nil {
-		log.Fatalw("error-starting-openolt", log.Fields{"error": err})
+		logger.Fatalw("error-starting-openolt", log.Fields{"error": err})
 	}
 
 	// Register the core request handler
 	if err = a.setupRequestHandler(ctx, a.instanceID, a.iAdapter); err != nil {
-		log.Fatalw("error-setting-core-request-handler", log.Fields{"error": err})
+		logger.Fatalw("error-setting-core-request-handler", log.Fields{"error": err})
 	}
 
 	// Register this adapter to the Core - retries indefinitely
 	if err = a.registerWithCore(ctx, -1); err != nil {
-		log.Fatal("error-registering-with-core")
+		logger.Fatal("error-registering-with-core")
 	}
 
 	// check the readiness and liveliness and update the probe status
@@ -188,7 +184,7 @@ func (a *adapter) checkKvStoreReadiness(ctx context.Context) {
 			}
 		case <-timeoutTimer.C:
 			// Check the status of the kv-store. Use timeout of 2 seconds to avoid forever blocking
-			log.Info("kv-store liveliness-recheck")
+			logger.Info("kv-store liveliness-recheck")
 			timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
 
 			kvStoreChannel <- a.kvClient.IsConnectionUp(timeoutCtx)
@@ -241,13 +237,13 @@ func (a *adapter) checkKafkaReadiness(ctx context.Context) {
 				<-timeoutTimer.C
 			}
 		case <-timeoutTimer.C:
-			log.Info("kafka-proxy-liveness-recheck")
+			logger.Info("kafka-proxy-liveness-recheck")
 			// send the liveness probe in a goroutine; we don't want to deadlock ourselves as
 			// the liveness probe may wait (and block) writing to our channel.
 			err := a.kafkaClient.SendLiveness()
 			if err != nil {
 				// Catch possible error case if sending liveness after Sarama has been stopped.
-				log.Warnw("error-kafka-send-liveness", log.Fields{"error": err})
+				logger.Warnw("error-kafka-send-liveness", log.Fields{"error": err})
 			}
 		}
 	}
@@ -264,7 +260,7 @@ func (a *adapter) stop(ctx context.Context) {
 	if a.kvClient != nil {
 		// Release all reservations
 		if err := a.kvClient.ReleaseAllReservations(ctx); err != nil {
-			log.Infow("fail-to-release-all-reservations", log.Fields{"error": err})
+			logger.Infow("fail-to-release-all-reservations", log.Fields{"error": err})
 		}
 		// Close the DB connection
 		a.kvClient.Close()
@@ -279,7 +275,7 @@ func (a *adapter) stop(ctx context.Context) {
 
 func newKVClient(storeType, address string, timeout int) (kvstore.Client, error) {
 
-	log.Infow("kv-store-type", log.Fields{"store": storeType})
+	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
 		return kvstore.NewConsulClient(address, timeout)
@@ -291,7 +287,7 @@ func newKVClient(storeType, address string, timeout int) (kvstore.Client, error)
 
 func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
 
-	log.Infow("common-client-type", log.Fields{"client": clientType})
+	logger.Infow("common-client-type", log.Fields{"client": clientType})
 	switch clientType {
 	case "sarama":
 		return kafka.NewSaramaClient(
@@ -320,7 +316,7 @@ func (a *adapter) setKVClient() error {
 }
 
 func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (kafka.InterContainerProxy, error) {
-	log.Infow("starting-intercontainer-messaging-proxy", log.Fields{"host": a.config.KafkaAdapterHost,
+	logger.Infow("starting-intercontainer-messaging-proxy", log.Fields{"host": a.config.KafkaAdapterHost,
 		"port": a.config.KafkaAdapterPort, "topic": a.config.Topic})
 	var err error
 	kip := kafka.NewInterContainerProxy(
@@ -331,7 +327,7 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 	count := 0
 	for {
 		if err = kip.Start(); err != nil {
-			log.Warnw("error-starting-messaging-proxy", log.Fields{"error": err})
+			logger.Warnw("error-starting-messaging-proxy", log.Fields{"error": err})
 			if retries == count {
 				return nil, err
 			}
@@ -343,14 +339,14 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 		}
 	}
 	probe.UpdateStatusFromContext(ctx, "container-proxy", probe.ServiceStatusRunning)
-	log.Info("common-messaging-proxy-created")
+	logger.Info("common-messaging-proxy-created")
 	return kip, nil
 }
 
 func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProxy,
 	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
 	cfg *config.AdapterFlags) (*ac.OpenOLT, error) {
-	log.Info("starting-open-olt")
+	logger.Info("starting-open-olt")
 	var err error
 	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, cfg)
 
@@ -358,24 +354,24 @@ func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProx
 		return nil, err
 	}
 
-	log.Info("open-olt-started")
+	logger.Info("open-olt-started")
 	return sOLT, nil
 }
 
 func (a *adapter) setupRequestHandler(ctx context.Context, coreInstanceID string, iadapter adapters.IAdapter) error {
-	log.Info("setting-request-handler")
+	logger.Info("setting-request-handler")
 	requestProxy := com.NewRequestHandlerProxy(coreInstanceID, iadapter, a.coreProxy)
 	if err := a.kip.SubscribeWithRequestHandlerInterface(kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
 		return err
 
 	}
 	probe.UpdateStatusFromContext(ctx, "core-request-handler", probe.ServiceStatusRunning)
-	log.Info("request-handler-setup-done")
+	logger.Info("request-handler-setup-done")
 	return nil
 }
 
 func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
-	log.Info("registering-with-core")
+	logger.Info("registering-with-core")
 	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
 		Vendor:  "VOLTHA OpenOLT",
 		Version: version.VersionInfo.Version}
@@ -387,7 +383,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	count := 0
 	for {
 		if err := a.coreProxy.RegisterAdapter(context.TODO(), adapterDescription, deviceTypes); err != nil {
-			log.Warnw("registering-with-core-failed", log.Fields{"error": err})
+			logger.Warnw("registering-with-core-failed", log.Fields{"error": err})
 			if retries == count {
 				return err
 			}
@@ -399,7 +395,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 		}
 	}
 	probe.UpdateStatusFromContext(ctx, "register-with-core", probe.ServiceStatusRunning)
-	log.Info("registered-with-core")
+	logger.Info("registered-with-core")
 	return nil
 }
 
@@ -420,10 +416,10 @@ func waitForExit() int {
 			syscall.SIGINT,
 			syscall.SIGTERM,
 			syscall.SIGQUIT:
-			log.Infow("closing-signal-received", log.Fields{"signal": s})
+			logger.Infow("closing-signal-received", log.Fields{"signal": s})
 			exitChannel <- 0
 		default:
-			log.Infow("unexpected-signal-received", log.Fields{"signal": s})
+			logger.Infow("unexpected-signal-received", log.Fields{"signal": s})
 			exitChannel <- 1
 		}
 	}()
@@ -459,7 +455,7 @@ func main() {
 
 	logLevel, err := log.StringToLogLevel(cf.LogLevel)
 	if err != nil {
-		log.Fatalf("Cannot setup logging, %s", err)
+		logger.Fatalf("Cannot setup logging, %s", err)
 	}
 
 	// Setup default logger - applies for packages that do not have specific logger set
@@ -489,7 +485,7 @@ func main() {
 		printBanner()
 	}
 
-	log.Infow("config", log.Fields{"config": *cf})
+	logger.Infow("config", log.Fields{"config": *cf})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -504,11 +500,11 @@ func main() {
 	go ad.start(probeCtx)
 
 	code := waitForExit()
-	log.Infow("received-a-closing-signal", log.Fields{"code": code})
+	logger.Infow("received-a-closing-signal", log.Fields{"code": code})
 
 	// Cleanup before leaving
 	ad.stop(ctx)
 
 	elapsed := time.Since(start)
-	log.Infow("run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
+	logger.Infow("run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
 }

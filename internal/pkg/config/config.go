@@ -22,8 +22,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 )
 
 // Open OLT default constants
@@ -83,10 +81,6 @@ type AdapterFlags struct {
 	HeartbeatCheckInterval      time.Duration
 	HeartbeatFailReportInterval time.Duration
 	GrpcTimeoutInterval         time.Duration
-}
-
-func init() {
-	_, _ = log.AddPackage(log.JSON, log.WarnLevel, nil)
 }
 
 // NewAdapterFlags returns a new RWCore config
