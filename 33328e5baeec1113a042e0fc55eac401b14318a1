@@ -22,6 +22,52 @@
       "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a290cb9_78d4bd75",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-23T21:18:56Z",
+      "side": 1,
+      "message": "if checkPbit..() \u003d\u003d nil {\nreturn nil\n}",
+      "range": {
+        "startLine": 971,
+        "startChar": 0,
+        "endLine": 974,
+        "endChar": 6
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "abf26ce6_928ef8a2",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-23T21:18:56Z",
+      "side": 1,
+      "message": "Can we describe these as generic use cases or patterns as opposed to tie the code to a specific provider/carrier.",
+      "range": {
+        "startLine": 991,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 2
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
