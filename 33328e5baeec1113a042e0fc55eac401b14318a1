@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dfa842f_ca0b0d5c",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-23T21:13:10Z",
+      "side": 1,
+      "message": "in the case where classifier[VlanVid] is not found vlanVid will be the value 0. Is that ok?",
+      "range": {
+        "startLine": 742,
+        "startChar": 119,
+        "endLine": 742,
+        "endChar": 126
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
