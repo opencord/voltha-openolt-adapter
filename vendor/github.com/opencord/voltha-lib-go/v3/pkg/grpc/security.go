@@ -1,5 +1,3 @@
-// +build profile
-
 /*
  * Copyright 2018-present Open Networking Foundation
 
@@ -15,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package grpc
 
-package main
-
-import (
-	"fmt"
-	"net/http"
-	_ "net/http/pprof"
-)
-
-func realMain() {
-	go func() {
-		logger.Fatal(http.ListenAndServe("0.0.0.0:6060", nil))
-	}()
-
+type GrpcSecurity struct {
+	KeyFile  string
+	CertFile string
+	CaFile   string
 }

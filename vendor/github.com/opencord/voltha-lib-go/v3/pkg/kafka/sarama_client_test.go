@@ -1,5 +1,3 @@
-// +build profile
-
 /*
  * Copyright 2018-present Open Networking Foundation
 
@@ -15,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package main
+package kafka
 
 import (
-	"fmt"
-	"net/http"
-	_ "net/http/pprof"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func realMain() {
-	go func() {
-		logger.Fatal(http.ListenAndServe("0.0.0.0:6060", nil))
-	}()
+func TestSaramaClientEnableLivenessChannel(t *testing.T) {
+	// Note: This doesn't actually start the client
+	client := NewSaramaClient()
 
+	ch := client.EnableLivenessChannel(true)
+
+	// The channel should have one "true" message on it
+	assert.NotEmpty(t, ch)
+
+	select {
+	case stuff := <-ch:
+		assert.True(t, stuff)
+	default:
+		t.Error("Failed to read from the channel")
+	}
 }
