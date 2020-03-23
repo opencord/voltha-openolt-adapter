@@ -26,10 +26,6 @@ import (
 
 func realMain() {
 	go func() {
-		logger.Info("TEO starting PProf server")
-		http.HandleFunc("/teo", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintf(w, "Hello, teo")
-		})
 		logger.Fatal(http.ListenAndServe("0.0.0.0:6060", nil))
 	}()
 
