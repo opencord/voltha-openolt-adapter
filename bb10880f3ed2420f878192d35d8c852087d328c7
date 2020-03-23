@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1c921bc_0d89358b",
+        "filename": "cmd/openolt-adapter/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-23T17:40:16Z",
+      "side": 1,
+      "message": "Should this be using a \"globally\"-defined constant instead, instead of per-package defaults? (defined in voltha-lib-go/pkg/log/ ?)  (I understand if one usage needs to be different, but there\u0027s no need to re-define the same default value in may places.)\n\n(More like this.)",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 9
+      },
+      "revId": "bb10880f3ed2420f878192d35d8c852087d328c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
