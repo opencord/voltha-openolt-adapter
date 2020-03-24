@@ -308,12 +308,10 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	defer logger.Debugw("indications-ended", log.Fields{"device-id": dh.device.Id})
-	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
-	if err != nil {
-		return olterrors.NewErrCommunication("fail-to-read-indications", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	if indications == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil)
+	var indications oop.Openolt_EnableIndicationClient
+	var err error
+	if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+		return err
 	}
 	/* get device state */
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
@@ -336,11 +334,13 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	indicationBackoff := backoff.NewExponentialBackOff()
 	indicationBackoff.MaxElapsedTime = 0
 	indicationBackoff.MaxInterval = 1 * time.Minute
+
+Loop:
 	for {
 		select {
 		case <-dh.stopIndications:
 			logger.Debugw("Stopping-collecting-indications-for-OLT", log.Fields{"deviceID:": dh.deviceID})
-			break
+			break Loop
 		default:
 			indication, err := indications.Recv()
 			if err == io.EOF {
@@ -355,20 +355,24 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 					indicationBackoff.Reset()
 				}
 				time.Sleep(indicationBackoff.NextBackOff())
-				indications, err = dh.Client.EnableIndication(ctx, new(oop.Empty))
-				if err != nil {
-					return olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
-				}
-				if indications == nil {
-					return olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
+				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+					return err
 				}
 				continue
 			}
 			if err != nil {
 				if dh.adminState == "deleted" {
-					logger.Debug("Device deleted stoping the read indication thread")
-					break
+					logger.Debug("Device deleted stopping the read indication thread")
+					break Loop
 				}
+				// Close the stream, and re-initialize it
+				if err = indications.CloseSend(); err != nil {
+					return olterrors.NewErrCommunication("stream-close-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+				}
+				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+					return err
+				}
+				// once we re-initialized the indication stream, continue to read indications
 				continue
 			}
 			// Reset backoff if we have a successful receive
@@ -384,6 +388,20 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 			dh.handleIndication(ctx, indication)
 		}
 	}
+	return nil
+}
+
+func (dh *DeviceHandler) startOpenOltIndicationStream(ctx context.Context) (oop.Openolt_EnableIndicationClient, error) {
+
+	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
+	if err != nil {
+		return nil, olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+	}
+	if indications == nil {
+		return nil, olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
+	}
+
+	return indications, nil
 }
 
 // isIndicationAllowedDuringOltAdminDown returns true if the indication is allowed during OLT Admin down, else false
