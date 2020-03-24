@@ -336,6 +336,8 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	indicationBackoff := backoff.NewExponentialBackOff()
 	indicationBackoff.MaxElapsedTime = 0
 	indicationBackoff.MaxInterval = 1 * time.Minute
+
+Loop:
 	for {
 		select {
 		case <-dh.stopIndications:
@@ -367,7 +369,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 			if err != nil {
 				if dh.adminState == "deleted" {
 					logger.Debug("Device deleted stoping the read indication thread")
-					break
+					break Loop
 				}
 				continue
 			}
@@ -384,6 +386,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 			dh.handleIndication(ctx, indication)
 		}
 	}
+	return nil
 }
 
 // isIndicationAllowedDuringOltAdminDown returns true if the indication is allowed during OLT Admin down, else false
