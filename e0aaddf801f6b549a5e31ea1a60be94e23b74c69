@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "10a213ba_e23acf4e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-24T05:19:02Z",
+      "side": 1,
+      "message": "Yes, we should in this case too.",
+      "parentUuid": "095ee24f_16dfc458",
+      "range": {
+        "startLine": 345,
+        "startChar": 3,
+        "endLine": 345,
+        "endChar": 8
+      },
+      "revId": "e0aaddf801f6b549a5e31ea1a60be94e23b74c69",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93015293_8a9aac8e",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
