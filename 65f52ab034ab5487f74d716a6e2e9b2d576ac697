@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c003e4f7_c44e2f05",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-24T18:41:15Z",
+      "side": 1,
+      "message": "we get here if there was an error, but if \"adminState\" is \"deleted\" we then return nil and there is no record of the error in the log. might want to add a debug/warn message to surface the error that brought us here?",
+      "range": {
+        "startLine": 364,
+        "startChar": 0,
+        "endLine": 364,
+        "endChar": 35
+      },
+      "revId": "65f52ab034ab5487f74d716a6e2e9b2d576ac697",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "74c40d2f_543f0f66",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-24T18:41:15Z",
+      "side": 1,
+      "message": "if the stream is broken. won\u0027t this typically fail and if so the func returns. Should we be ignoring an error on CloseSend here (i.e. log and move on)?",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 370,
+        "endChar": 50
+      },
+      "revId": "65f52ab034ab5487f74d716a6e2e9b2d576ac697",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4ad01448_ed3d32c1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-24T18:41:15Z",
+      "side": 1,
+      "message": "the two places the outer loop breaks both call indications.CloseSend(). wondering if it make sense to move that cleanup code there.",
+      "range": {
+        "startLine": 392,
+        "startChar": 1,
+        "endLine": 392,
+        "endChar": 7
+      },
+      "revId": "65f52ab034ab5487f74d716a6e2e9b2d576ac697",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
