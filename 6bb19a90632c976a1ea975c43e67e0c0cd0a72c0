@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5cbec96a_f4b45c0d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-24T05:49:08Z",
+      "side": 1,
+      "message": "indications, err :\u003d dh.startOpenOltIndicationStream(ctx)\nif err !\u003d nil {\nreturn err\n}",
+      "range": {
+        "startLine": 311,
+        "startChar": 0,
+        "endLine": 314,
+        "endChar": 12
+      },
+      "revId": "6bb19a90632c976a1ea975c43e67e0c0cd0a72c0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9d1f156d_1a3da03e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-24T05:49:08Z",
+      "side": 1,
+      "message": "in the case when the loop is broken, might it still be possible that the stream is open? Do we need to close or try to close if with a CloseSend?",
+      "range": {
+        "startLine": 338,
+        "startChar": 0,
+        "endLine": 338,
+        "endChar": 4
+      },
+      "revId": "6bb19a90632c976a1ea975c43e67e0c0cd0a72c0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
