@@ -89,14 +89,15 @@ type DeviceHandler struct {
 	eventMgr      *OpenOltEventMgr
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
 
-	discOnus           sync.Map
-	onus               sync.Map
-	portStats          *OpenOltStatisticsMgr
-	metrics            *pmmetrics.PmMetrics
-	stopCollector      chan bool
-	stopHeartbeatCheck chan bool
-	activePorts        sync.Map
-	stopIndications    chan bool
+	discOnus                      sync.Map
+	onus                          sync.Map
+	portStats                     *OpenOltStatisticsMgr
+	metrics                       *pmmetrics.PmMetrics
+	stopCollector                 chan bool
+	stopHeartbeatCheck            chan bool
+	activePorts                   sync.Map
+	stopIndications               chan bool
+	isReadIndicationRoutineActive bool
 
 	// pendingFlowRemoveDataPerSubscriber map is used to maintain the context on a per
 	// subscriber basis for the number of pending flow removes. This data is used
@@ -308,6 +309,11 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	defer logger.Debugw("indications-ended", log.Fields{"device-id": dh.device.Id})
+	defer func() {
+		dh.lockDevice.Lock()
+		dh.isReadIndicationRoutineActive = false
+		dh.lockDevice.Unlock()
+	}()
 	indications, err := dh.startOpenOltIndicationStream(ctx)
 	if err != nil {
 		return err
@@ -333,6 +339,10 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	indicationBackoff := backoff.NewExponentialBackOff()
 	indicationBackoff.MaxElapsedTime = 0
 	indicationBackoff.MaxInterval = 1 * time.Minute
+
+	dh.lockDevice.Lock()
+	dh.isReadIndicationRoutineActive = true
+	dh.lockDevice.Unlock()
 
 Loop:
 	for {
@@ -392,6 +402,11 @@ Loop:
 	}
 	// Close the send stream
 	_ = indications.CloseSend() // Ok to ignore error, as we stopping the readIndication anyway
+
+	dh.lockDevice.Lock()
+	dh.isReadIndicationRoutineActive = false
+	dh.lockDevice.Unlock()
+
 	return nil
 }
 
@@ -1804,7 +1819,16 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		}
 		go dh.cleanupDeviceResources(ctx)
 
-		dh.stopIndications <- true
+		dh.lockDevice.RLock()
+		// Stop the read indication only if it the routine is active
+		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+		// on next execution of the readIndication routine.
+		if dh.isReadIndicationRoutineActive {
+			dh.stopIndications <- true
+		}
+		dh.lockDevice.RUnlock()
+
 		dh.transitionMap.Handle(ctx, DeviceInit)
 
 	}
