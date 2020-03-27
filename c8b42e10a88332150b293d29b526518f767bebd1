@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "82991ccf_b0eee4f5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 977,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-03-27T19:26:41Z",
+      "side": 1,
+      "message": "can we call this omciTransactionId?\nin many places we log transactionId as the kafka inter-container message transaction ID and it can be confusing",
+      "range": {
+        "startLine": 977,
+        "startChar": 3,
+        "endLine": 977,
+        "endChar": 16
+      },
+      "revId": "c8b42e10a88332150b293d29b526518f767bebd1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
