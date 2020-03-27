@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
@@ -502,7 +503,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_OmciInd:
 		omciInd := indication.GetOmciInd()
-		logger.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId, "pkt": hex.EncodeToString(omciInd.Pkt)})
+		logger.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId})
 		go func() {
 			if err := dh.omciIndication(omciInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "omci"}, err).Log()
@@ -839,6 +840,10 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	var deviceID string
 	var proxyDeviceID string
 
+	transid := extractOmciTransactionID(omciInd.Pkt)
+	logger.Debugw("recv-omci-msg", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId,
+		"omciTransactionID": transid, "omciMsg": hex.EncodeToString(omciInd.Pkt)})
+
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
 
 	if onuInCache, ok := dh.onus.Load(onuKey); !ok {
@@ -951,22 +956,12 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 			"onu-id":       onuID}, nil)
 	}
 
-	// TODO: Once we are sure openonu/openomci is sending only binary in omciMsg.Message, we can remove this check
-	isHexString := false
-	_, decodeerr := hex.DecodeString(string(omciMsg.Message))
-	if decodeerr == nil {
-		isHexString = true
-	}
-
-	// TODO: OpenOLT Agent expects a hex string for OMCI packets rather than binary.  Fix this in the agent and then we can pass binary Pkt: omciMsg.Message.
+	// TODO: OpenOLT Agent oop.OmciMsg expects a hex encoded string for OMCI packets rather than the actual bytes.
+	//  Fix this in the agent and then we can pass byte array as Pkt: omciMsg.Message.
 	var omciMessage *oop.OmciMsg
-	if isHexString {
-		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: omciMsg.Message}
-	} else {
-		hexPkt := make([]byte, hex.EncodedLen(len(omciMsg.Message)))
-		hex.Encode(hexPkt, omciMsg.Message)
-		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: hexPkt}
-	}
+	hexPkt := make([]byte, hex.EncodedLen(len(omciMsg.Message)))
+	hex.Encode(hexPkt, omciMsg.Message)
+	omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: hexPkt}
 
 	_, err := dh.Client.OmciMsgOut(context.Background(), omciMessage)
 	if err != nil {
@@ -975,7 +970,12 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 			"onu-id":       onuID,
 			"message":      omciMessage}, err)
 	}
-	logger.Debugw("Sent Omci message", log.Fields{"intfID": intfID, "onuID": onuID, "omciMsg": hex.EncodeToString(omciMsg.Message)})
+
+	// TODO: Below logging illustrates the "stringify" of the omci Pkt. once above is fixed this can change
+	transid := extractOmciTransactionID(omciMsg.Message)
+	logger.Debugw("sent-omci-msg", log.Fields{"intfID": intfID, "onuID": onuID,
+		"omciTransactionID": transid, "omciMsg": string(omciMessage.Pkt)})
+
 	return nil
 }
 
@@ -2121,4 +2121,13 @@ func getPorts(flow *of.OfpFlowStats) (uint32, uint32) {
 	}
 
 	return InvalidPort, InvalidPort
+}
+
+func extractOmciTransactionID(omciPkt []byte) uint16 {
+	if len(omciPkt) > 3 {
+		d := omciPkt[0:2]
+		transid := binary.BigEndian.Uint16(d)
+		return transid
+	}
+	return 0
 }
