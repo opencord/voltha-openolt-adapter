@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c1bb864_62b671a4",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-03-30T15:24:51Z",
+      "side": 1,
+      "message": "why not just log the local variable portPonStat?",
+      "range": {
+        "startLine": 459,
+        "startChar": 0,
+        "endLine": 459,
+        "endChar": 85
+      },
+      "revId": "f295dc882ae0bef6f23b1ce7ddd60f2215ddf13b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
