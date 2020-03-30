@@ -456,8 +456,8 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 			portPonStat.TxBcastPackets = PortStats.TxBcastPackets
 			mutex.Lock()
 			StatMgr.SouthBoundPort[i] = &portPonStat
-			mutex.Unlock()
 			logger.Debugf("Received-PON-Stats-for-Port %v : %v", i, StatMgr.SouthBoundPort[i])
+			mutex.Unlock()
 		}
 	}
 
