@@ -2218,18 +2218,17 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 }
 
 //UpdateOnuInfo function adds onu info to cache and kvstore
-func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID uint32, serialNum string) {
+func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
 
 	f.lockCache.Lock()
 	defer f.lockCache.Unlock()
 	onu := rsrcMgr.OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
 	f.onuGemInfo[intfID] = append(f.onuGemInfo[intfID], onu)
 	if err := f.resourceMgr.AddOnuGemInfo(ctx, intfID, onu); err != nil {
-		// TODO: VOL-2638
-		logger.Errorw("failed to add onu info", log.Fields{"onu": onu})
-		return
+		return err
 	}
 	logger.Debugw("Updated onuinfo", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum})
+	return nil
 }
 
 //addGemPortToOnuInfoMap function adds GEMport to ONU map
