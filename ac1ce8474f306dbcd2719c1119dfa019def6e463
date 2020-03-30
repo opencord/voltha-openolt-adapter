@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "278713c8_b53372bd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-03-30T14:44:18Z",
+      "side": 1,
+      "message": "Will be good to add intfID also to log.Fields",
+      "revId": "ac1ce8474f306dbcd2719c1119dfa019def6e463",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
