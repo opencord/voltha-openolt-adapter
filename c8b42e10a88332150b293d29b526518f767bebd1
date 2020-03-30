@@ -22,6 +22,30 @@
       "revId": "c8b42e10a88332150b293d29b526518f767bebd1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "81e39be5_82cb645b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 977,
+      "author": {
+        "id": 1000666
+      },
+      "writtenOn": "2020-03-30T07:50:24Z",
+      "side": 1,
+      "message": "Agreed, could as well be named \u0027transCorrId\u0027, but I could as well live without specific \u0027highlightening\u0027 of this OMCI element",
+      "parentUuid": "82991ccf_b0eee4f5",
+      "range": {
+        "startLine": 977,
+        "startChar": 3,
+        "endLine": 977,
+        "endChar": 16
+      },
+      "revId": "c8b42e10a88332150b293d29b526518f767bebd1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
