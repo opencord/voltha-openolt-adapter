@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"strconv"
 	"strings"
 
@@ -1037,17 +1038,19 @@ func (RsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, IntfID uin
 
 	if err = RsrcMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
 		logger.Errorf("failed to get onuifo for intfid %d", IntfID)
-		return err
+		return olterrors.NewErrPersistence("get", "OnuGemInfo", IntfID,
+			log.Fields{"onuGem": onuGem, "intfID": IntfID}, err)
 	}
 	onuGemData = append(onuGemData, onuGem)
 	err = RsrcMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGemData)
 	if err != nil {
 		logger.Error("Failed to add onugem to kv store")
-		return err
+		return olterrors.NewErrPersistence("set", "OnuGemInfo", IntfID,
+			log.Fields{"onuGemData": onuGemData, "intfID": IntfID}, err)
 	}
 
 	logger.Debugw("added onu to onugeminfo", log.Fields{"intf": IntfID, "onugem": onuGem})
-	return err
+	return nil
 }
 
 // UpdateOnuGemInfo updates Onuinfo on the kvstore per interface
