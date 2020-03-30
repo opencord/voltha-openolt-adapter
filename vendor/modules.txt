@@ -63,7 +63,7 @@ github.com/jcmturner/gofork/x/crypto/pbkdf2
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/opencord/voltha-lib-go/v3 v3.0.23
+# github.com/opencord/voltha-lib-go/v3 v3.1.0
 github.com/opencord/voltha-lib-go/v3/pkg/adapters
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/v3/pkg/adapters/common
@@ -78,7 +78,7 @@ github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v3/pkg/probe
 github.com/opencord/voltha-lib-go/v3/pkg/techprofile
 github.com/opencord/voltha-lib-go/v3/pkg/version
-# github.com/opencord/voltha-protos/v3 v3.2.7
+# github.com/opencord/voltha-protos/v3 v3.2.8
 github.com/opencord/voltha-protos/v3/go/common
 github.com/opencord/voltha-protos/v3/go/inter_container
 github.com/opencord/voltha-protos/v3/go/omci

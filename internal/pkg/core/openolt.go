@@ -384,3 +384,8 @@ func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint
 	}
 	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
 }
+
+//Start_omci_test not implemented
+func (oo *OpenOLT) Start_omci_test(device *voltha.Device, request *voltha.OmciTestRequest) (*voltha.TestResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
