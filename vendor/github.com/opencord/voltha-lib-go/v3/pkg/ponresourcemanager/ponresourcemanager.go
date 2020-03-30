@@ -156,7 +156,7 @@ type PONResourceManager struct {
 }
 
 func newKVClient(storeType string, address string, timeout int) (kvstore.Client, error) {
-	log.Infow("kv-store-type", log.Fields{"store": storeType})
+	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
 		return kvstore.NewConsulClient(address, timeout)
@@ -172,7 +172,7 @@ func SetKVClient(Technology string, Backend string, Host string, Port int, confi
 	// issue between kv store and backend , core is not calling NewBackend directly
 	kvClient, err := newKVClient(Backend, addr, KVSTORE_RETRY_TIMEOUT)
 	if err != nil {
-		log.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
+		logger.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
 	}
 
@@ -205,18 +205,18 @@ func NewPONResourceManager(Technology string, DeviceType string, DeviceID string
 	PONMgr.Port = Port
 	PONMgr.KVStore = SetKVClient(Technology, Backend, Host, Port, false)
 	if PONMgr.KVStore == nil {
-		log.Error("KV Client initilization failed")
+		logger.Error("KV Client initilization failed")
 		return nil, errors.New("Failed to init KV client")
 	}
 	// init kv client to read from the config path
 	PONMgr.KVStoreForConfig = SetKVClient(Technology, Backend, Host, Port, true)
 	if PONMgr.KVStoreForConfig == nil {
-		log.Error("KV Config Client initilization failed")
+		logger.Error("KV Config Client initilization failed")
 		return nil, errors.New("Failed to init KV Config client")
 	}
 	// Initialize techprofile for this technology
 	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(&PONMgr, Backend, Host, Port); PONMgr.TechProfileMgr == nil {
-		log.Error("Techprofile initialization failed")
+		logger.Error("Techprofile initialization failed")
 		return nil, errors.New("Failed to init tech profile")
 	}
 	PONMgr.PonResourceRanges = make(map[string]interface{})
@@ -244,32 +244,32 @@ func (PONRMgr *PONResourceManager) InitResourceRangesFromKVStore(ctx context.Con
 	// Try to initialize the PON Resource Ranges from KV store based on the
 	// OLT model key, if available
 	if PONRMgr.OLTModel == "" {
-		log.Error("Failed to get OLT model")
+		logger.Error("Failed to get OLT model")
 		return false
 	}
 	Path := fmt.Sprintf(PON_RESOURCE_RANGE_CONFIG_PATH, PONRMgr.OLTModel)
 	//get resource from kv store
 	Result, err := PONRMgr.KVStore.Get(ctx, Path)
 	if err != nil {
-		log.Debugf("Error in fetching resource %s from KV strore", Path)
+		logger.Debugf("Error in fetching resource %s from KV strore", Path)
 		return false
 	}
 	if Result == nil {
-		log.Debug("There may be no resources in the KV store in case of fresh bootup, return true")
+		logger.Debug("There may be no resources in the KV store in case of fresh bootup, return true")
 		return false
 	}
 	//update internal ranges from kv ranges. If there are missing
 	// values in the KV profile, continue to use the defaults
 	Value, err := ToByte(Result.Value)
 	if err != nil {
-		log.Error("Failed to convert kvpair to byte string")
+		logger.Error("Failed to convert kvpair to byte string")
 		return false
 	}
 	if err := json.Unmarshal(Value, &PONRMgr.PonResourceRanges); err != nil {
-		log.Error("Failed to Unmarshal json byte")
+		logger.Error("Failed to Unmarshal json byte")
 		return false
 	}
-	log.Debug("Init resource ranges from kvstore success")
+	logger.Debug("Init resource ranges from kvstore success")
 	return true
 }
 
@@ -285,7 +285,7 @@ func (PONRMgr *PONResourceManager) UpdateRanges(StartIDx string, StartID uint32,
 	   param: shared pool id
 	   param: global resource manager
 	*/
-	log.Debugf("update ranges for %s, %d", StartIDx, StartID)
+	logger.Debugf("update ranges for %s, %d", StartIDx, StartID)
 
 	if StartID != 0 {
 		if (PONRMgr.PonResourceRanges[StartIDx] == nil) || (PONRMgr.PonResourceRanges[StartIDx].(uint32) < StartID) {
@@ -344,7 +344,7 @@ func (PONRMgr *PONResourceManager) InitDefaultPONResourceRanges(ONUIDStart uint3
 	PONRMgr.UpdateRanges(GEMPORT_ID_START_IDX, GEMPortIDStart, GEMPORT_ID_END_IDX, GEMPortIDEnd, GEMPORT_ID_SHARED_IDX, GEMPortIDSharedPoolID, nil)
 	PONRMgr.UpdateRanges(FLOW_ID_START_IDX, FlowIDStart, FLOW_ID_END_IDX, FlowIDEnd, FLOW_ID_SHARED_IDX, FlowIDSharedPoolID, nil)
 	PONRMgr.UpdateRanges(UNI_ID_START_IDX, UNIIDStart, UNI_ID_END_IDX, UNIIDEnd, "", 0, nil)
-	log.Debug("Initialize default range values")
+	logger.Debug("Initialize default range values")
 	var i uint32
 	if IntfIDs == nil {
 		for i = 0; i < NoOfPONPorts; i++ {
@@ -360,7 +360,7 @@ func (PONRMgr *PONResourceManager) InitDeviceResourcePool(ctx context.Context) e
 
 	//Initialize resource pool for all PON ports.
 
-	log.Debug("Init resource ranges")
+	logger.Debug("Init resource ranges")
 
 	var err error
 	for _, Intf := range PONRMgr.IntfIDs {
@@ -371,7 +371,7 @@ func (PONRMgr *PONResourceManager) InitDeviceResourcePool(ctx context.Context) e
 		if err = PONRMgr.InitResourceIDPool(ctx, Intf, ONU_ID,
 			PONRMgr.PonResourceRanges[ONU_ID_START_IDX].(uint32),
 			PONRMgr.PonResourceRanges[ONU_ID_END_IDX].(uint32)); err != nil {
-			log.Error("Failed to init ONU ID resource pool")
+			logger.Error("Failed to init ONU ID resource pool")
 			return err
 		}
 		if SharedPoolID != 0 {
@@ -387,7 +387,7 @@ func (PONRMgr *PONResourceManager) InitDeviceResourcePool(ctx context.Context) e
 		if err = PONRMgr.InitResourceIDPool(ctx, Intf, ALLOC_ID,
 			PONRMgr.PonResourceRanges[ALLOC_ID_START_IDX].(uint32),
 			PONRMgr.PonResourceRanges[ALLOC_ID_END_IDX].(uint32)); err != nil {
-			log.Error("Failed to init ALLOC ID resource pool ")
+			logger.Error("Failed to init ALLOC ID resource pool ")
 			return err
 		}
 		if SharedPoolID != 0 {
@@ -402,7 +402,7 @@ func (PONRMgr *PONResourceManager) InitDeviceResourcePool(ctx context.Context) e
 		if err = PONRMgr.InitResourceIDPool(ctx, Intf, GEMPORT_ID,
 			PONRMgr.PonResourceRanges[GEMPORT_ID_START_IDX].(uint32),
 			PONRMgr.PonResourceRanges[GEMPORT_ID_END_IDX].(uint32)); err != nil {
-			log.Error("Failed to init GEMPORT ID resource pool")
+			logger.Error("Failed to init GEMPORT ID resource pool")
 			return err
 		}
 		if SharedPoolID != 0 {
@@ -418,7 +418,7 @@ func (PONRMgr *PONResourceManager) InitDeviceResourcePool(ctx context.Context) e
 		if err = PONRMgr.InitResourceIDPool(ctx, Intf, FLOW_ID,
 			PONRMgr.PonResourceRanges[FLOW_ID_START_IDX].(uint32),
 			PONRMgr.PonResourceRanges[FLOW_ID_END_IDX].(uint32)); err != nil {
-			log.Error("Failed to init FLOW ID resource pool")
+			logger.Error("Failed to init FLOW ID resource pool")
 			return err
 		}
 		if SharedPoolID != 0 {
@@ -432,7 +432,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 
 	//Clear resource pool for all PON ports.
 
-	log.Debug("Clear resource ranges")
+	logger.Debug("Clear resource ranges")
 
 	for _, Intf := range PONRMgr.IntfIDs {
 		SharedPoolID := PONRMgr.PonResourceRanges[ONU_ID_SHARED_IDX].(uint32)
@@ -440,7 +440,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 			Intf = SharedPoolID
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, ONU_ID); !status {
-			log.Error("Failed to clear ONU ID resource pool")
+			logger.Error("Failed to clear ONU ID resource pool")
 			return errors.New("Failed to clear ONU ID resource pool")
 		}
 		if SharedPoolID != 0 {
@@ -454,7 +454,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 			Intf = SharedPoolID
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, ALLOC_ID); !status {
-			log.Error("Failed to clear ALLOC ID resource pool ")
+			logger.Error("Failed to clear ALLOC ID resource pool ")
 			return errors.New("Failed to clear ALLOC ID resource pool")
 		}
 		if SharedPoolID != 0 {
@@ -467,7 +467,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 			Intf = SharedPoolID
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, GEMPORT_ID); !status {
-			log.Error("Failed to clear GEMPORT ID resource pool")
+			logger.Error("Failed to clear GEMPORT ID resource pool")
 			return errors.New("Failed to clear GEMPORT ID resource pool")
 		}
 		if SharedPoolID != 0 {
@@ -481,7 +481,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 			Intf = SharedPoolID
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, FLOW_ID); !status {
-			log.Error("Failed to clear FLOW ID resource pool")
+			logger.Error("Failed to clear FLOW ID resource pool")
 			return errors.New("Failed to clear FLOW ID resource pool")
 		}
 		if SharedPoolID != 0 {
@@ -510,7 +510,7 @@ func (PONRMgr *PONResourceManager) InitResourceIDPool(ctx context.Context, Intf 
 
 	Path := PONRMgr.GetPath(Intf, ResourceType)
 	if Path == "" {
-		log.Errorf("Failed to get path for resource type %s", ResourceType)
+		logger.Errorf("Failed to get path for resource type %s", ResourceType)
 		return fmt.Errorf("Failed to get path for resource type %s", ResourceType)
 	}
 
@@ -518,7 +518,7 @@ func (PONRMgr *PONResourceManager) InitResourceIDPool(ctx context.Context, Intf 
 	//checked for its presence if not kv store update happens
 	Res, err := PONRMgr.GetResource(ctx, Path)
 	if (err == nil) && (Res != nil) {
-		log.Debugf("Resource %s already present in store ", Path)
+		logger.Debugf("Resource %s already present in store ", Path)
 		return nil
 	} else {
 		var excluded []uint32
@@ -526,23 +526,23 @@ func (PONRMgr *PONResourceManager) InitResourceIDPool(ctx context.Context, Intf 
 			//get gem port ids defined in the KV store, if any, and exclude them from the gem port id pool
 			if reservedGemPortIds, defined := PONRMgr.getReservedGemPortIdsFromKVStore(ctx); defined {
 				excluded = reservedGemPortIds
-				log.Debugw("Excluding some ports from GEM port id pool", log.Fields{"excluded gem ports": excluded})
+				logger.Debugw("Excluding some ports from GEM port id pool", log.Fields{"excluded gem ports": excluded})
 			}
 		}
 		FormatResult, err := PONRMgr.FormatResource(Intf, StartID, EndID, excluded)
 		if err != nil {
-			log.Errorf("Failed to format resource")
+			logger.Errorf("Failed to format resource")
 			return err
 		}
 		// Add resource as json in kv store.
 		err = PONRMgr.KVStore.Put(ctx, Path, FormatResult)
 		if err == nil {
-			log.Debug("Successfuly posted to kv store")
+			logger.Debug("Successfuly posted to kv store")
 			return err
 		}
 	}
 
-	log.Debug("Error initializing pool")
+	logger.Debug("Error initializing pool")
 
 	return err
 }
@@ -552,7 +552,7 @@ func (PONRMgr *PONResourceManager) getReservedGemPortIdsFromKVStore(ctx context.
 	// read reserved gem ports from the config path
 	KvPair, err := PONRMgr.KVStoreForConfig.Get(ctx, RESERVED_GEMPORT_IDS_PATH)
 	if err != nil {
-		log.Errorw("Unable to get reserved GEM port ids from the kv store", log.Fields{"err": err})
+		logger.Errorw("Unable to get reserved GEM port ids from the kv store", log.Fields{"err": err})
 		return reservedGemPortIds, false
 	}
 	if KvPair == nil || KvPair.Value == nil {
@@ -561,11 +561,11 @@ func (PONRMgr *PONResourceManager) getReservedGemPortIdsFromKVStore(ctx context.
 	}
 	Val, err := kvstore.ToByte(KvPair.Value)
 	if err != nil {
-		log.Errorw("Failed to convert reserved gem port ids into byte array", log.Fields{"err": err})
+		logger.Errorw("Failed to convert reserved gem port ids into byte array", log.Fields{"err": err})
 		return reservedGemPortIds, false
 	}
 	if err = json.Unmarshal(Val, &reservedGemPortIds); err != nil {
-		log.Errorw("Failed to unmarshal reservedGemPortIds", log.Fields{"err": err})
+		logger.Errorw("Failed to unmarshal reservedGemPortIds", log.Fields{"err": err})
 		return reservedGemPortIds, false
 	}
 	return reservedGemPortIds, true
@@ -593,12 +593,12 @@ func (PONRMgr *PONResourceManager) FormatResource(IntfID uint32, StartIDx uint32
 	*/
 	var TSData *bitmap.Threadsafe
 	if TSData = bitmap.NewTS(int(EndIDx)); TSData == nil {
-		log.Error("Failed to create a bitmap")
+		logger.Error("Failed to create a bitmap")
 		return nil, errors.New("Failed to create bitmap")
 	}
 	for _, excludedID := range Excluded {
 		if excludedID < StartIDx || excludedID > EndIDx {
-			log.Warnf("Cannot reserve %d. It must be in the range of [%d, %d]", excludedID,
+			logger.Warnf("Cannot reserve %d. It must be in the range of [%d, %d]", excludedID,
 				StartIDx, EndIDx)
 			continue
 		}
@@ -608,7 +608,7 @@ func (PONRMgr *PONResourceManager) FormatResource(IntfID uint32, StartIDx uint32
 
 	Value, err := json.Marshal(Resource)
 	if err != nil {
-		log.Errorf("Failed to marshall resource")
+		logger.Errorf("Failed to marshall resource")
 		return nil, err
 	}
 	return Value, err
@@ -628,7 +628,7 @@ func (PONRMgr *PONResourceManager) GetResource(ctx context.Context, Path string)
 
 	Resource, err := PONRMgr.KVStore.Get(ctx, Path)
 	if (err != nil) || (Resource == nil) {
-		log.Debugf("Resource  unavailable at %s", Path)
+		logger.Debugf("Resource  unavailable at %s", Path)
 		return nil, err
 	}
 
@@ -640,7 +640,7 @@ func (PONRMgr *PONResourceManager) GetResource(ctx context.Context, Path string)
 	// decode resource fetched from backend store to dictionary
 	err = json.Unmarshal(Value, &Result)
 	if err != nil {
-		log.Error("Failed to decode resource")
+		logger.Error("Failed to decode resource")
 		return Result, err
 	}
 	/*
@@ -650,13 +650,13 @@ func (PONRMgr *PONResourceManager) GetResource(ctx context.Context, Path string)
 	*/
 	Str, err = ToString(Result[POOL])
 	if err != nil {
-		log.Error("Failed to conver to kv pair to string")
+		logger.Error("Failed to conver to kv pair to string")
 		return Result, err
 	}
 	Decode64, _ := base64.StdEncoding.DecodeString(Str)
 	Result[POOL], err = ToByte(Decode64)
 	if err != nil {
-		log.Error("Failed to convert resource pool to byte")
+		logger.Error("Failed to convert resource pool to byte")
 		return Result, err
 	}
 
@@ -689,7 +689,7 @@ func (PONRMgr *PONResourceManager) GetPath(IntfID uint32, ResourceType string) s
 	} else if ResourceType == FLOW_ID {
 		Path = fmt.Sprintf(FLOW_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
 	} else {
-		log.Error("Invalid resource pool identifier")
+		logger.Error("Invalid resource pool identifier")
 	}
 	return Path
 }
@@ -704,7 +704,7 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 	    alloc_id/gemport_id, onu_id or invalid type respectively
 	*/
 	if NumIDs < 1 {
-		log.Error("Invalid number of resources requested")
+		logger.Error("Invalid number of resources requested")
 		return nil, fmt.Errorf("Invalid number of resources requested %d", NumIDs)
 	}
 	// delegate to the master instance if sharing enabled across instances
@@ -713,34 +713,34 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 	if SharedResourceMgr != nil && PONRMgr != SharedResourceMgr {
 		return SharedResourceMgr.GetResourceID(ctx, IntfID, ResourceType, NumIDs)
 	}
-	log.Debugf("Fetching resource from %s rsrc mgr for resource %s", PONRMgr.Globalorlocal, ResourceType)
+	logger.Debugf("Fetching resource from %s rsrc mgr for resource %s", PONRMgr.Globalorlocal, ResourceType)
 
 	Path := PONRMgr.GetPath(IntfID, ResourceType)
 	if Path == "" {
-		log.Errorf("Failed to get path for resource type %s", ResourceType)
+		logger.Errorf("Failed to get path for resource type %s", ResourceType)
 		return nil, fmt.Errorf("Failed to get path for resource type %s", ResourceType)
 	}
-	log.Debugf("Get resource for type %s on path %s", ResourceType, Path)
+	logger.Debugf("Get resource for type %s on path %s", ResourceType, Path)
 	var Result []uint32
 	var NextID uint32
 	Resource, err := PONRMgr.GetResource(ctx, Path)
 	if (err == nil) && (ResourceType == ONU_ID) || (ResourceType == FLOW_ID) {
 		if NextID, err = PONRMgr.GenerateNextID(Resource); err != nil {
-			log.Error("Failed to Generate ID")
+			logger.Error("Failed to Generate ID")
 			return Result, err
 		}
 		Result = append(Result, NextID)
 	} else if (err == nil) && ((ResourceType == GEMPORT_ID) || (ResourceType == ALLOC_ID)) {
 		if NumIDs == 1 {
 			if NextID, err = PONRMgr.GenerateNextID(Resource); err != nil {
-				log.Error("Failed to Generate ID")
+				logger.Error("Failed to Generate ID")
 				return Result, err
 			}
 			Result = append(Result, NextID)
 		} else {
 			for NumIDs > 0 {
 				if NextID, err = PONRMgr.GenerateNextID(Resource); err != nil {
-					log.Error("Failed to Generate ID")
+					logger.Error("Failed to Generate ID")
 					return Result, err
 				}
 				Result = append(Result, NextID)
@@ -748,13 +748,13 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 			}
 		}
 	} else {
-		log.Error("get resource failed")
+		logger.Error("get resource failed")
 		return Result, err
 	}
 
 	//Update resource in kv store
 	if PONRMgr.UpdateResource(ctx, Path, Resource) != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return nil, fmt.Errorf("Failed to update resource %s", Path)
 	}
 	return Result, nil
@@ -780,11 +780,11 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 	   :return boolean: True if all IDs in given release_content release else False
 	*/
 	if !checkValidResourceType(ResourceType) {
-		log.Error("Invalid resource type")
+		logger.Error("Invalid resource type")
 		return false
 	}
 	if ReleaseContent == nil {
-		log.Debug("Nothing to release")
+		logger.Debug("Nothing to release")
 		return true
 	}
 	// delegate to the master instance if sharing enabled across instances
@@ -794,19 +794,19 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 	}
 	Path := PONRMgr.GetPath(IntfID, ResourceType)
 	if Path == "" {
-		log.Error("Failed to get path")
+		logger.Error("Failed to get path")
 		return false
 	}
 	Resource, err := PONRMgr.GetResource(ctx, Path)
 	if err != nil {
-		log.Error("Failed to get resource")
+		logger.Error("Failed to get resource")
 		return false
 	}
 	for _, Val := range ReleaseContent {
 		PONRMgr.ReleaseID(Resource, Val)
 	}
 	if PONRMgr.UpdateResource(ctx, Path, Resource) != nil {
-		log.Errorf("Free resource for %s failed", Path)
+		logger.Errorf("Free resource for %s failed", Path)
 		return false
 	}
 	return true
@@ -822,12 +822,12 @@ func (PONRMgr *PONResourceManager) UpdateResource(ctx context.Context, Path stri
 	// TODO resource[POOL] = resource[POOL].bin
 	Value, err := json.Marshal(Resource)
 	if err != nil {
-		log.Error("failed to Marshal")
+		logger.Error("failed to Marshal")
 		return err
 	}
 	err = PONRMgr.KVStore.Put(ctx, Path, Value)
 	if err != nil {
-		log.Error("failed to put data to kv store %s", Path)
+		logger.Error("failed to put data to kv store %s", Path)
 		return err
 	}
 	return nil
@@ -846,15 +846,15 @@ func (PONRMgr *PONResourceManager) ClearResourceIDPool(ctx context.Context, cont
 	}
 	Path := PONRMgr.GetPath(contIntfID, ResourceType)
 	if Path == "" {
-		log.Error("Failed to get path")
+		logger.Error("Failed to get path")
 		return false
 	}
 
 	if err := PONRMgr.KVStore.Delete(ctx, Path); err != nil {
-		log.Errorf("Failed to delete resource %s", Path)
+		logger.Errorf("Failed to delete resource %s", Path)
 		return false
 	}
-	log.Debugf("Cleared resource %s", Path)
+	logger.Debugf("Cleared resource %s", Path)
 	return true
 }
 
@@ -868,7 +868,7 @@ func (PONRMgr PONResourceManager) InitResourceMap(ctx context.Context, PONIntfON
 	var AllocIDs []byte
 	Result := PONRMgr.KVStore.Put(ctx, AllocIDPath, AllocIDs)
 	if Result != nil {
-		log.Error("Failed to update the KV store")
+		logger.Error("Failed to update the KV store")
 		return
 	}
 	// initialize pon_intf_onu_id tuple to gemport_ids map
@@ -876,7 +876,7 @@ func (PONRMgr PONResourceManager) InitResourceMap(ctx context.Context, PONIntfON
 	var GEMPortIDs []byte
 	Result = PONRMgr.KVStore.Put(ctx, GEMPortIDPath, GEMPortIDs)
 	if Result != nil {
-		log.Error("Failed to update the KV store")
+		logger.Error("Failed to update the KV store")
 		return
 	}
 }
@@ -890,14 +890,14 @@ func (PONRMgr PONResourceManager) RemoveResourceMap(ctx context.Context, PONIntf
 	var err error
 	AllocIDPath := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
 	if err = PONRMgr.KVStore.Delete(ctx, AllocIDPath); err != nil {
-		log.Errorf("Failed to remove resource %s", AllocIDPath)
+		logger.Errorf("Failed to remove resource %s", AllocIDPath)
 		return false
 	}
 	// remove pon_intf_onu_id tuple to gemport_ids map
 	GEMPortIDPath := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
 	err = PONRMgr.KVStore.Delete(ctx, GEMPortIDPath)
 	if err != nil {
-		log.Errorf("Failed to remove resource %s", GEMPortIDPath)
+		logger.Errorf("Failed to remove resource %s", GEMPortIDPath)
 		return false
 	}
 
@@ -906,14 +906,14 @@ func (PONRMgr PONResourceManager) RemoveResourceMap(ctx context.Context, PONIntf
 		for _, Flow := range FlowIDs {
 			FlowIDInfoPath := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, PONIntfONUID, Flow.Value)
 			if err = PONRMgr.KVStore.Delete(ctx, FlowIDInfoPath); err != nil {
-				log.Errorf("Failed to remove resource %s", FlowIDInfoPath)
+				logger.Errorf("Failed to remove resource %s", FlowIDInfoPath)
 				return false
 			}
 		}
 	}
 
 	if err = PONRMgr.KVStore.Delete(ctx, FlowIDPath); err != nil {
-		log.Errorf("Failed to remove resource %s", FlowIDPath)
+		logger.Errorf("Failed to remove resource %s", FlowIDPath)
 		return false
 	}
 
@@ -934,11 +934,11 @@ func (PONRMgr *PONResourceManager) GetCurrentAllocIDForOnu(ctx context.Context, 
 		if Value != nil {
 			Val, err := ToByte(Value.Value)
 			if err != nil {
-				log.Errorw("Failed to convert into byte array", log.Fields{"error": err})
+				logger.Errorw("Failed to convert into byte array", log.Fields{"error": err})
 				return Data
 			}
 			if err = json.Unmarshal(Val, &Data); err != nil {
-				log.Error("Failed to unmarshal", log.Fields{"error": err})
+				logger.Error("Failed to unmarshal", log.Fields{"error": err})
 				return Data
 			}
 		}
@@ -954,19 +954,19 @@ func (PONRMgr *PONResourceManager) GetCurrentGEMPortIDsForOnu(ctx context.Contex
 	*/
 
 	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
-	log.Debugf("Getting current gemports for %s", Path)
+	logger.Debugf("Getting current gemports for %s", Path)
 	var Data []uint32
 	Value, err := PONRMgr.KVStore.Get(ctx, Path)
 	if err == nil {
 		if Value != nil {
 			Val, _ := ToByte(Value.Value)
 			if err = json.Unmarshal(Val, &Data); err != nil {
-				log.Errorw("Failed to unmarshal", log.Fields{"error": err})
+				logger.Errorw("Failed to unmarshal", log.Fields{"error": err})
 				return Data
 			}
 		}
 	} else {
-		log.Errorf("Failed to get data from kvstore for %s", Path)
+		logger.Errorf("Failed to get data from kvstore for %s", Path)
 	}
 	return Data
 }
@@ -986,7 +986,7 @@ func (PONRMgr *PONResourceManager) GetCurrentFlowIDsForOnu(ctx context.Context, 
 		if Value != nil {
 			Val, _ := ToByte(Value.Value)
 			if err = json.Unmarshal(Val, &Data); err != nil {
-				log.Error("Failed to unmarshal")
+				logger.Error("Failed to unmarshal")
 				return Data
 			}
 		}
@@ -1010,11 +1010,11 @@ func (PONRMgr *PONResourceManager) GetFlowIDInfo(ctx context.Context, IntfONUID 
 		if Value != nil {
 			Val, err := ToByte(Value.Value)
 			if err != nil {
-				log.Errorw("Failed to convert flowinfo into byte array", log.Fields{"error": err})
+				logger.Errorw("Failed to convert flowinfo into byte array", log.Fields{"error": err})
 				return err
 			}
 			if err = json.Unmarshal(Val, Data); err != nil {
-				log.Errorw("Failed to unmarshal", log.Fields{"error": err})
+				logger.Errorw("Failed to unmarshal", log.Fields{"error": err})
 				return err
 			}
 		}
@@ -1031,7 +1031,7 @@ func (PONRMgr *PONResourceManager) RemoveFlowIDInfo(ctx context.Context, IntfONU
 	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
 
 	if err := PONRMgr.KVStore.Delete(ctx, Path); err != nil {
-		log.Errorf("Falied to remove resource %s", Path)
+		logger.Errorf("Falied to remove resource %s", Path)
 		return false
 	}
 	return true
@@ -1048,12 +1048,12 @@ func (PONRMgr *PONResourceManager) UpdateAllocIdsForOnu(ctx context.Context, Int
 	Path := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
 	Value, err = json.Marshal(AllocIDs)
 	if err != nil {
-		log.Error("failed to Marshal")
+		logger.Error("failed to Marshal")
 		return err
 	}
 
 	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return err
 	}
 	return err
@@ -1069,15 +1069,15 @@ func (PONRMgr *PONResourceManager) UpdateGEMPortIDsForOnu(ctx context.Context, I
 	var Value []byte
 	var err error
 	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
-	log.Debugf("Updating gemport ids for %s", Path)
+	logger.Debugf("Updating gemport ids for %s", Path)
 	Value, err = json.Marshal(GEMPortIDs)
 	if err != nil {
-		log.Error("failed to Marshal")
+		logger.Error("failed to Marshal")
 		return err
 	}
 
 	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return err
 	}
 	return err
@@ -1128,12 +1128,12 @@ func (PONRMgr *PONResourceManager) UpdateFlowIDForOnu(ctx context.Context, IntfO
 	}
 	Value, err = json.Marshal(FlowIDs)
 	if err != nil {
-		log.Error("Failed to Marshal")
+		logger.Error("Failed to Marshal")
 		return err
 	}
 
 	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return err
 	}
 	return err
@@ -1152,12 +1152,12 @@ func (PONRMgr *PONResourceManager) UpdateFlowIDInfoForOnu(ctx context.Context, I
 	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
 	Value, err = json.Marshal(FlowData)
 	if err != nil {
-		log.Error("failed to Marshal")
+		logger.Error("failed to Marshal")
 		return err
 	}
 
 	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return err
 	}
 	return err
@@ -1171,12 +1171,12 @@ func (PONRMgr *PONResourceManager) GenerateNextID(Resource map[string]interface{
 	*/
 	ByteArray, err := ToByte(Resource[POOL])
 	if err != nil {
-		log.Error("Failed to convert resource to byte array")
+		logger.Error("Failed to convert resource to byte array")
 		return 0, err
 	}
 	Data := bitmap.TSFromData(ByteArray, false)
 	if Data == nil {
-		log.Error("Failed to get data from byte array")
+		logger.Error("Failed to get data from byte array")
 		return 0, errors.New("Failed to get data from byte array")
 	}
 
@@ -1190,7 +1190,7 @@ func (PONRMgr *PONResourceManager) GenerateNextID(Resource map[string]interface{
 	Data.Set(Idx, true)
 	res := uint32(Resource[START_IDX].(float64))
 	Resource[POOL] = Data.Data(false)
-	log.Debugf("Generated ID for %d", (uint32(Idx) + res))
+	logger.Debugf("Generated ID for %d", (uint32(Idx) + res))
 	return (uint32(Idx) + res), err
 }
 
@@ -1202,12 +1202,12 @@ func (PONRMgr *PONResourceManager) ReleaseID(Resource map[string]interface{}, Id
 	*/
 	ByteArray, err := ToByte(Resource[POOL])
 	if err != nil {
-		log.Error("Failed to convert resource to byte array")
+		logger.Error("Failed to convert resource to byte array")
 		return false
 	}
 	Data := bitmap.TSFromData(ByteArray, false)
 	if Data == nil {
-		log.Error("Failed to get resource pool")
+		logger.Error("Failed to get resource pool")
 		return false
 	}
 	Idx := Id - uint32(Resource[START_IDX].(float64))
@@ -1224,7 +1224,7 @@ func (PONRMgr *PONResourceManager) ReleaseID(Resource map[string]interface{}, Id
 func (PONRMgr *PONResourceManager) reserveID(TSData *bitmap.Threadsafe, StartIndex uint32, Id uint32) bool {
 	Data := bitmap.TSFromData(TSData.Data(false), false)
 	if Data == nil {
-		log.Error("Failed to get resource pool")
+		logger.Error("Failed to get resource pool")
 		return false
 	}
 	Idx := Id - StartIndex
@@ -1281,12 +1281,12 @@ func (PONRMgr *PONResourceManager) AddOnuGemInfo(ctx context.Context, intfID uin
 	Path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfID)
 	Value, err = json.Marshal(onuGemData)
 	if err != nil {
-		log.Error("failed to Marshal")
+		logger.Error("failed to Marshal")
 		return err
 	}
 
 	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		log.Errorf("Failed to update resource %s", Path)
+		logger.Errorf("Failed to update resource %s", Path)
 		return err
 	}
 	return err
@@ -1303,22 +1303,22 @@ func (PONRMgr *PONResourceManager) GetOnuGemInfo(ctx context.Context, IntfId uin
 	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, IntfId)
 	value, err := PONRMgr.KVStore.Get(ctx, path)
 	if err != nil {
-		log.Errorw("Failed to get from kv store", log.Fields{"path": path})
+		logger.Errorw("Failed to get from kv store", log.Fields{"path": path})
 		return err
 	} else if value == nil {
-		log.Debug("No onuinfo for path", log.Fields{"path": path})
+		logger.Debug("No onuinfo for path", log.Fields{"path": path})
 		return nil // returning nil as this could happen if there are no onus for the interface yet
 	}
 	if Val, err = kvstore.ToByte(value.Value); err != nil {
-		log.Error("Failed to convert to byte array")
+		logger.Error("Failed to convert to byte array")
 		return err
 	}
 
 	if err = json.Unmarshal(Val, &onuGemInfo); err != nil {
-		log.Error("Failed to unmarshall")
+		logger.Error("Failed to unmarshall")
 		return err
 	}
-	log.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemInfo})
+	logger.Debugw("found onuinfo from path", log.Fields{"path": path, "onuinfo": onuGemInfo})
 	return err
 }
 
@@ -1330,7 +1330,7 @@ func (PONRMgr *PONResourceManager) DelOnuGemInfoForIntf(ctx context.Context, int
 
 	path := fmt.Sprintf(ONU_GEM_INFO_PATH, PONRMgr.DeviceID, intfId)
 	if err := PONRMgr.KVStore.Delete(ctx, path); err != nil {
-		log.Errorf("Falied to remove resource %s", path)
+		logger.Errorf("Falied to remove resource %s", path)
 		return err
 	}
 	return nil

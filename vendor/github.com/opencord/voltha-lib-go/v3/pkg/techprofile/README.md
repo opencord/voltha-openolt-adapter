@@ -158,13 +158,13 @@ ETCD version 3 is being used in techprofile module : Export this variable before
 Assuming the Technology template is stored in a local file 4QueueHybridProfileMap1.json the following commands could be used to store or update the technical template into the proper location in the etcd key/value store:
 
 # Store a Technology template using etcdctl
-jq -c . 4QueueHybridProfileMap1.json | kubectl exec -i etcd-cluster-0000 -- etcdctl set service/voltha/technology_profiles/xgspon/64
+jq -c . 4QueueHybridProfileMap1.json | kubectl exec -i etcd-cluster-0000 -- etcdctl set service/voltha/technology_profiles/XGS-PON/64
 
-jq -c . 4QueueHybridProfileMap1.json |  etcdctl --endpoints=<ETCDIP>:2379 put service/voltha/technology_profiles/xgspon/64
+jq -c . 4QueueHybridProfileMap1.json |  etcdctl --endpoints=<ETCDIP>:2379 put service/voltha/technology_profiles/XGS-PON/64
 
 
 # Store a Technology template using curl
-curl -sSL -XPUT http://10.233.53.161:2379/v2/keys/service/voltha/technology_profiles/xgspon/64 -d value="$(jq -c . 4QueueHybridProfileMap1.json)"
+curl -sSL -XPUT http://10.233.53.161:2379/v2/keys/service/voltha/technology_profiles/XGS-PON/64 -d value="$(jq -c . 4QueueHybridProfileMap1.json)"
 In the examples above, the command jq is used. This command can be installed using standard package management tools on most Linux systems. In the examples the "-c" option is used to compress the JSON. Using this tool is not necessary, and if you choose not to use the tool, you can replace "jq -c ," in the above examples with the "cat" command. More on jq can be found at https://stedolan.github.io/jq/.
 
 Listing Technical Profiles for a given Technology
@@ -172,18 +172,18 @@ While both curl and etcdctl (via kubectl) can be used to list or view the availa
 
 
 #List Tech profile 
-etcdctl --endpoints=<EtcdIPAddres>:2379 get  service/voltha/technology_profiles/xgspon/64
+etcdctl --endpoints=<EtcdIPAddres>:2379 get  service/voltha/technology_profiles/XGS-PON/64
 
 
 # Example output
 A specified Technology profile can be viewed with the etcdctl get command. (Again, jq is used for presentation purposes, and is not required)
 
 # Display a specified Technology profile, using jq to pretty print
-kubectl exec -i etcd-cluster-0000 -- etcdctl get /xgspon/64 | jq .
+kubectl exec -i etcd-cluster-0000 -- etcdctl get service/voltha/technology_profiles/XGS-PON/64 | jq .
 
-etcdctl --endpoints=<ETCDIP>:2379 get  service/voltha/technology_profiles/xgspon/64
+etcdctl --endpoints=<ETCDIP>:2379 get  service/voltha/technology_profiles/XGS-PON/64
 # Example outpout
-service/voltha/technology_profiles/xgspon/64/uni-1
+service/voltha/technology_profiles/XGS-PON/64/uni-1
 {
   "name": "4QueueHybridProfileMap1",
   "profile_type": "XPON",
@@ -326,11 +326,19 @@ service/voltha/technology_profiles/xgspon/64/uni-1
   ]
 }
 
-#Deleting Technology Profiles
+# Display a specified Technology profile instance, using jq to pretty print
+kubectl exec -i etcd-cluster-0000 -- etcdctl get service/voltha/technology_profiles/XGS-PON/64/pon-{0}/onu-{1}/uni-{0} | jq .
+
+etcdctl --endpoints=<ETCDIP>:2379 get  service/voltha/technology_profiles/XGS-PON/64/pon-{0}/onu-{1}/uni-{0}
+# Example outpout
+service/voltha/technology_profiles/XGS-PON/64/pon-{0}/onu-{1}/uni-{0}
+{"name":"Default_1tcont_1gem_Profile","subscriber_identifier":"pon-{0}/onu-{1}/uni-{0}","profile_type":"XGS-PON","version":1,"num_gem_ports":1,"instance_control":{"ONU":"multi-instance","uni":"single-instance","max_gem_payload_size":"auto"},"us_scheduler":{"alloc_id":1024,"direction":"UPSTREAM","additional_bw":"AdditionalBW_BestEffort","priority":0,"weight":0,"q_sched_policy":"Hybrid"},"ds_scheduler":{"alloc_id":1024,"direction":"DOWNSTREAM","additional_bw":"AdditionalBW_BestEffort","priority":0,"weight":0,"q_sched_policy":"Hybrid"},"upstream_gem_port_attribute_list":[{"gemport_id":1024,"max_q_size":"auto","pbit_map":"0b11111111","aes_encryption":"True","scheduling_policy":"WRR","priority_q":0,"weight":0,"discard_policy":"TailDrop","discard_config":{"min_threshold":0,"max_threshold":0,"max_probability":0},"is_multicast":"","dynamic_access_control_list":"","static_access_control_list":"","multicast_gem_id":0}],"downstream_gem_port_attribute_list":[{"gemport_id":1024,"max_q_size":"auto","pbit_map":"0b11111111","aes_encryption":"True","scheduling_policy":"WRR","priority_q":0,"weight":0,"discard_policy":"TailDrop","discard_config":{"min_threshold":0,"max_threshold":0,"max_probability":0},"is_multicast":"","dynamic_access_control_list":"","static_access_control_list":"","multicast_gem_id":0}]}
+
+# Deleting Technology Profiles
 A technology profile or a technology profile tree can be removed using etcdctl rm.
 
 # Remove a specific technology profile
-kubectl exec -i etcd-cluster-0000 -- etcdctl rm /xgspon/64
+kubectl exec -i etcd-cluster-0000 -- etcdctl rm /XGS-PON/64
 
 # Remove all technology profiles associated with Technology xgspon and ID 64(including the profile ID key)
-kubectl exec -i etcd-cluster-0000 -- etcdctl rm --dir -r /xgspon/64
+kubectl exec -i etcd-cluster-0000 -- etcdctl rm --dir -r /XGS-PON/64
