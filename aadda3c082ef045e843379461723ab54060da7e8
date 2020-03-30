@@ -22,6 +22,30 @@
       "revId": "aadda3c082ef045e843379461723ab54060da7e8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "92058828_6315cf52",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 987,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-03-30T14:36:27Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "5ab42fed_7c6c362b",
+      "range": {
+        "startLine": 984,
+        "startChar": 0,
+        "endLine": 987,
+        "endChar": 2
+      },
+      "revId": "aadda3c082ef045e843379461723ab54060da7e8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
