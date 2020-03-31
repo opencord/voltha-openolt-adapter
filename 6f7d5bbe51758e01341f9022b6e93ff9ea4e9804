@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "8b72ba74_c0ba3346",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-31T08:44:51Z",
+      "side": 1,
+      "message": "change the comment as per definition",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e716d58_49703046",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-31T08:44:51Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d17c06eb_baec9daf",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 2
