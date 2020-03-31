@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78761ef5_433a8e02",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-31T16:48:49Z",
+      "side": 1,
+      "message": "Start_omci_test",
+      "range": {
+        "startLine": 388,
+        "startChar": 2,
+        "endLine": 388,
+        "endChar": 20
+      },
+      "revId": "93e36de65d4c47d8d897bc73ccba11399c013027",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
