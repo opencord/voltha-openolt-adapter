@@ -1979,8 +1979,15 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 					dh.resourceMgr.DeleteFlowIDsForGem(ctx, IntfID, gem)
 				}
 				onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
-				dh.resourceMgr.UpdateOnuGemInfo(ctx, IntfID, onuGemData)
-
+				err := dh.resourceMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGemData)
+				if err != nil {
+					logger.Debugw("Persistence-update-failed", log.Fields{
+						"interface-id": IntfID,
+						"onuFemInfo":   onu,
+						"error":        err})
+					//Not returning error on cleanup.
+				}
+				logger.Debugw("removed-onu-gem-info", log.Fields{"intf": IntfID, "onu-device": onu, "onugem": onuGemData})
 				dh.resourceMgr.FreeonuID(ctx, IntfID, []uint32{onu.OnuID})
 				break
 			}
