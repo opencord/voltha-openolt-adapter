@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bee97269_fa20819c",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-31T23:14:50Z",
+      "side": 1,
+      "message": "Oh! It is a copy paste error. First one protects concurrent access of gemport_id resource pool. The 2nd one is meant to use for concurrent access of allocID resource pool and 3rd one for onuID resource pool",
+      "parentUuid": "be47d5da_4d5a144f",
+      "range": {
+        "startLine": 113,
+        "startChar": 1,
+        "endLine": 113,
+        "endChar": 85
+      },
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "905ce987_b20dac34",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2020-03-31T13:26:43Z",
       "side": 1,
       "message": "Are these identifiers guaranteed to be sequential?\nIf not, use a map instead.",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d943ad3_319b0121",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-31T23:14:50Z",
+      "side": 1,
+      "message": "They are guaranteed to be sequential. Each index corresponds to a pon port index (starting from 0).",
+      "parentUuid": "905ce987_b20dac34",
       "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -156,6 +198,30 @@
       "writtenOn": "2020-03-31T07:20:10Z",
       "side": 1,
       "message": "Should this be locked too ? the ID might be identical but what happens if you over-write the list with another one ?",
+      "range": {
+        "startLine": 575,
+        "startChar": 1,
+        "endLine": 575,
+        "endChar": 86
+      },
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bb79a28f_1a398660",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-03-31T23:14:50Z",
+      "side": 1,
+      "message": "This does not need lock. There are couple of things at play here.\n1. The key being modified is unique per subscriber\n2. On a given subscriber flow operations are serialized. Alloc ID updates (add/remove) happen only as a result of flow operation.\n\nGiven the above two guarantees, this does not need lock protection. Same in other cases.",
+      "parentUuid": "a53ede16_214c9546",
       "range": {
         "startLine": 575,
         "startChar": 1,
