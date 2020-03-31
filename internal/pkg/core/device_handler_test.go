@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"reflect"
 	"sync"
@@ -149,11 +150,22 @@ func newMockDeviceHandler() *DeviceHandler {
 	ep := &mocks.MockEventProxy{}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
-	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: nil, Model: "openolt", DeviceId: dh.deviceID}
-	dh.resourceMgr = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf,
+	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
+		IntfIds:    []uint32{0, 1},
+		Technology: "xgs-pon",
+		Pools:      []*oop.DeviceInfo_DeviceResourceRanges_Pool{{}},
+	}}
+
+	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.deviceID, PonPorts: 2}
+	rsrMgr := resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf,
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
 		}}
+	rsrMgr.AllocIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
+	rsrMgr.GemPortIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
+	rsrMgr.OnuIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
+
+	dh.resourceMgr = &rsrMgr
 	dh.resourceMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
 	ranges := make(map[string]interface{})
 	sharedIdxByType := make(map[string]string)
@@ -172,18 +184,21 @@ func newMockDeviceHandler() *DeviceHandler {
 
 	ponmgr := &ponrmgr.PONResourceManager{
 		DeviceID: "onu-1",
-		IntfIDs:  []uint32{1, 2},
+		IntfIDs:  []uint32{0, 1},
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
 		},
 		PonResourceRanges: ranges,
 		SharedIdxByType:   sharedIdxByType,
 	}
+	dh.resourceMgr.ResourceMgrs[0] = ponmgr
 	dh.resourceMgr.ResourceMgrs[1] = ponmgr
-	dh.resourceMgr.ResourceMgrs[2] = ponmgr
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr)
+	if dh.flowMgr == nil {
+		fmt.Printf("********* GGC: flow manager is nil **********\n")
+	}
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}, handler: dh}
 	dh.transitionMap = &TransitionMap{}
@@ -864,10 +879,10 @@ func TestDeviceHandler_activateONU(t *testing.T) {
 		devicehandler *DeviceHandler
 		args          args
 	}{
-		{"activateONU-1", dh, args{intfID: 1, onuID: 1, serialNum: &oop.SerialNumber{VendorId: []byte("onu1")}}},
-		{"activateONU-2", dh, args{intfID: 2, onuID: 2, serialNum: &oop.SerialNumber{VendorId: []byte("onu2")}}},
-		{"activateONU-3", dh1, args{intfID: 1, onuID: 1, serialNum: &oop.SerialNumber{VendorId: []byte("onu1")}}},
-		{"activateONU-4", dh1, args{intfID: 2, onuID: 2, serialNum: &oop.SerialNumber{VendorId: []byte("onu2")}}},
+		{"activateONU-1", dh, args{intfID: 0, onuID: 1, serialNum: &oop.SerialNumber{VendorId: []byte("onu1")}}},
+		{"activateONU-2", dh, args{intfID: 1, onuID: 2, serialNum: &oop.SerialNumber{VendorId: []byte("onu2")}}},
+		{"activateONU-3", dh1, args{intfID: 0, onuID: 1, serialNum: &oop.SerialNumber{VendorId: []byte("onu1")}}},
+		{"activateONU-4", dh1, args{intfID: 1, onuID: 2, serialNum: &oop.SerialNumber{VendorId: []byte("onu2")}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
