@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf00ffb6_56ee7a2d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1962,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T15:40:38Z",
+      "side": 1,
+      "message": "By convention, should handle !ok case first.",
+      "range": {
+        "startLine": 1962,
+        "startChar": 55,
+        "endLine": 1962,
+        "endChar": 57
+      },
+      "revId": "f84c614ea0324714c28620a77571243b7ae421b5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
