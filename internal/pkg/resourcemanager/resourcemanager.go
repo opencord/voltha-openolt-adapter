@@ -25,6 +25,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
@@ -108,6 +109,19 @@ type OpenOltResourceMgr struct {
 	DevInfo     *openolt.DeviceInfo // device information
 	// array of pon resource managers per interface technology
 	ResourceMgrs map[uint32]*ponrmgr.PONResourceManager
+
+	// This protects concurrent gemport_id allocate/delete calls on a per PON port basis
+	gemPortIDMgmtLock []sync.RWMutex
+	// This protects concurrent gemport_id allocate/delete calls on a per PON port basis
+	allocIDMgmtLock []sync.RWMutex
+	// This protects concurrent gemport_id allocate/delete calls on a per PON port basis
+	onuIDMgmtLock []sync.RWMutex
+	// This protects concurrent flow_id allocate/delete calls. We do not need this on a
+	// per PON port basis as flow IDs are unique across the OLT.
+	flowIDMgmtLock sync.RWMutex
+
+	// This protects concurrent access to flowids_per_gem info stored on KV store
+	flowIDToGemInfoLock sync.RWMutex
 }
 
 func newKVClient(storeType string, address string, timeout uint32) (kvstore.Client, error) {
@@ -154,6 +168,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 	IPPort := strings.Split(KVStoreHostPort, ":")
 	ResourceMgr.Host = IPPort[0]
 	ResourceMgr.Port, _ = strconv.Atoi(IPPort[1])
+	NumPONPorts := devInfo.GetPonPorts()
 
 	Backend := kvStoreType
 	ResourceMgr.KVStore = SetKVClient(Backend, ResourceMgr.Host,
@@ -164,6 +179,19 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 	Ranges := make(map[string]*openolt.DeviceInfo_DeviceResourceRanges)
 	RsrcMgrsByTech := make(map[string]*ponrmgr.PONResourceManager)
 	ResourceMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
+
+	ResourceMgr.flowIDMgmtLock = sync.RWMutex{}
+	ResourceMgr.allocIDMgmtLock = make([]sync.RWMutex, NumPONPorts)
+	ResourceMgr.gemPortIDMgmtLock = make([]sync.RWMutex, NumPONPorts)
+	ResourceMgr.onuIDMgmtLock = make([]sync.RWMutex, NumPONPorts)
+
+	for idx := 0; idx < int(NumPONPorts); idx++ {
+		ResourceMgr.allocIDMgmtLock[idx] = sync.RWMutex{}
+		ResourceMgr.gemPortIDMgmtLock[idx] = sync.RWMutex{}
+		ResourceMgr.onuIDMgmtLock[idx] = sync.RWMutex{}
+	}
+
+	ResourceMgr.flowIDToGemInfoLock = sync.RWMutex{}
 
 	// TODO self.args = registry('main').get_args()
 
@@ -176,7 +204,6 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 		var ranges openolt.DeviceInfo_DeviceResourceRanges
 		ranges.Technology = devInfo.GetTechnology()
 
-		NumPONPorts := devInfo.GetPonPorts()
 		var index uint32
 		for index = 0; index < NumPONPorts; index++ {
 			ranges.IntfIds = append(ranges.IntfIds, index)
@@ -425,9 +452,11 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, ponIntfID uint3
 		err := errors.New("invalid-pon-interface-" + strconv.Itoa(int(ponIntfID)))
 		return 0, err
 	}
+	RsrcMgr.onuIDMgmtLock[ponIntfID].Lock()
 	// Get ONU id for a provided pon interface ID.
 	ONUID, err := RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
 		ponrmgr.ONU_ID, 1)
+	RsrcMgr.onuIDMgmtLock[ponIntfID].Unlock()
 	if err != nil {
 		logger.Errorf("Failed to get resource for interface %d for type %s",
 			ponIntfID, ponrmgr.ONU_ID)
@@ -500,8 +529,10 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint
 		}
 	}
 	logger.Debug("No matching flows with flow cookie or flow category, allocating new flowid")
+	RsrcMgr.flowIDMgmtLock.Lock()
 	FlowIDs, err = RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
 		ponrmgr.FLOW_ID, 1)
+	RsrcMgr.flowIDMgmtLock.Unlock()
 	if err != nil {
 		logger.Errorf("Failed to get resource for interface %d for type %s",
 			ponIntfID, ponrmgr.FLOW_ID)
@@ -530,8 +561,10 @@ func (RsrcMgr *OpenOltResourceMgr) GetAllocID(ctx context.Context, intfID uint32
 		logger.Debugw("Retrieved alloc ID from pon resource mgr", log.Fields{"AllocID": AllocID})
 		return AllocID[0]
 	}
+	RsrcMgr.allocIDMgmtLock[intfID].Lock()
 	AllocID, err = RsrcMgr.ResourceMgrs[intfID].GetResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID, 1)
+	RsrcMgr.allocIDMgmtLock[intfID].Unlock()
 
 	if AllocID == nil || err != nil {
 		logger.Error("Failed to allocate alloc id")
@@ -660,8 +693,10 @@ func (RsrcMgr *OpenOltResourceMgr) GetGEMPortID(ctx context.Context, ponPort uin
 		return GEMPortList, nil
 	}
 
+	RsrcMgr.gemPortIDMgmtLock[ponPort].Lock()
 	GEMPortList, err = RsrcMgr.ResourceMgrs[ponPort].GetResourceID(ctx, ponPort,
 		ponrmgr.GEMPORT_ID, NumOfPorts)
+	RsrcMgr.gemPortIDMgmtLock[ponPort].Unlock()
 	if err != nil && GEMPortList == nil {
 		logger.Errorf("Failed to get gem port id for %s", IntfOnuIDUniID)
 		return nil, err
@@ -692,7 +727,9 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateGEMPortIDsForOnu(ctx context.Context, p
 // FreeonuID releases(make free) onu id for a particular pon-port
 func (RsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32, onuID []uint32) {
 
+	RsrcMgr.onuIDMgmtLock[intfID].Lock()
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID, ponrmgr.ONU_ID, onuID)
+	RsrcMgr.onuIDMgmtLock[intfID].Unlock()
 
 	/* Free onu id for a particular interface.*/
 	var IntfonuID string
@@ -716,14 +753,17 @@ func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(ctx context.Context, IntfID uint32
 		logger.Errorw("Failed to Update flow id  for", log.Fields{"intf": IntfONUID})
 	}
 	RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(ctx, IntfONUID, FlowID)
+	RsrcMgr.flowIDMgmtLock.Lock()
 	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.FLOW_ID, FlowIds)
+	RsrcMgr.flowIDMgmtLock.Unlock()
 }
 
 // FreeFlowIDs releases the flow Ids
 func (RsrcMgr *OpenOltResourceMgr) FreeFlowIDs(ctx context.Context, IntfID uint32, onuID uint32,
 	uniID uint32, FlowID []uint32) {
-
+	RsrcMgr.flowIDMgmtLock.Lock()
 	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.FLOW_ID, FlowID)
+	RsrcMgr.flowIDMgmtLock.Unlock()
 
 	var IntfOnuIDUniID string
 	var err error
@@ -744,7 +784,9 @@ func (RsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, IntfID uint3
 	RsrcMgr.RemoveAllocIDForOnu(ctx, IntfID, onuID, uniID, allocID)
 	allocIDs := make([]uint32, 0)
 	allocIDs = append(allocIDs, allocID)
+	RsrcMgr.allocIDMgmtLock[IntfID].Lock()
 	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.ALLOC_ID, allocIDs)
+	RsrcMgr.allocIDMgmtLock[IntfID].Unlock()
 }
 
 // FreeGemPortID frees GemPortID on the PON resource pool and also frees the gemPortID association
@@ -754,7 +796,9 @@ func (RsrcMgr *OpenOltResourceMgr) FreeGemPortID(ctx context.Context, IntfID uin
 	RsrcMgr.RemoveGemPortIDForOnu(ctx, IntfID, onuID, uniID, gemPortID)
 	gemPortIDs := make([]uint32, 0)
 	gemPortIDs = append(gemPortIDs, gemPortID)
+	RsrcMgr.gemPortIDMgmtLock[IntfID].Lock()
 	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.GEMPORT_ID, gemPortIDs)
+	RsrcMgr.gemPortIDMgmtLock[IntfID].Unlock()
 }
 
 // FreePONResourcesForONU make the pon resources free for a given pon interface and onu id, and the clears the
@@ -765,19 +809,26 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(ctx, IntfOnuIDUniID)
 
+	RsrcMgr.allocIDMgmtLock[onuID].Lock()
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID,
 		AllocIDs)
+	RsrcMgr.allocIDMgmtLock[onuID].Unlock()
 
+	RsrcMgr.gemPortIDMgmtLock[onuID].Lock()
 	GEMPortIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentGEMPortIDsForOnu(ctx, IntfOnuIDUniID)
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.GEMPORT_ID,
 		GEMPortIDs)
+	RsrcMgr.gemPortIDMgmtLock[onuID].Unlock()
 
+	RsrcMgr.flowIDMgmtLock.Lock()
 	FlowIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentFlowIDsForOnu(ctx, IntfOnuIDUniID)
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.FLOW_ID,
 		FlowIDs)
+	RsrcMgr.flowIDMgmtLock.Unlock()
+
 	// Clear resource map associated with (pon_intf_id, gemport_id) tuple.
 	RsrcMgr.ResourceMgrs[intfID].RemoveResourceMap(ctx, IntfOnuIDUniID)
 	// Clear the ONU Id associated with the (pon_intf_id, gemport_id) tuple.
@@ -1247,6 +1298,8 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 		logger.Error("Failed to marshal data", log.Fields{"error": err})
 		return err
 	}
+	RsrcMgr.flowIDToGemInfoLock.Lock()
+	defer RsrcMgr.flowIDToGemInfoLock.Unlock()
 	if err = RsrcMgr.KVStore.Put(ctx, path, val); err != nil {
 		logger.Errorw("Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
 		return err
@@ -1277,6 +1330,10 @@ func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 		logger.Error("Failed to marshal data", log.Fields{"error": err})
 		return
 	}
+
+	RsrcMgr.flowIDToGemInfoLock.Lock()
+	defer RsrcMgr.flowIDToGemInfoLock.Unlock()
+
 	if err = RsrcMgr.KVStore.Put(ctx, path, val); err != nil {
 		logger.Errorw("Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
 		return
@@ -1289,8 +1346,9 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Cont
 	path := fmt.Sprintf(FlowIDsForGem, intf)
 	var flowsForGem map[uint32][]uint32
 	var val []byte
-
+	RsrcMgr.flowIDToGemInfoLock.RLock()
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
+	RsrcMgr.flowIDToGemInfoLock.RUnlock()
 	if err != nil {
 		logger.Error("failed to get data from kv store")
 		return nil, err
@@ -1311,6 +1369,8 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Cont
 //DeleteIntfIDGempMapPath deletes the intf id path used to store flow ids per gem to kvstore.
 func (RsrcMgr *OpenOltResourceMgr) DeleteIntfIDGempMapPath(ctx context.Context, intf uint32) {
 	path := fmt.Sprintf(FlowIDsForGem, intf)
+	RsrcMgr.flowIDToGemInfoLock.Lock()
+	defer RsrcMgr.flowIDToGemInfoLock.Unlock()
 	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorw("Failed to delete nni interfaces from kv store", log.Fields{"path": path})
 		return
