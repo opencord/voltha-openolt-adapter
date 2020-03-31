@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "949845c1_479e2d70",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1984,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-03-31T12:44:03Z",
+      "side": 1,
+      "message": "isn\u0027t this need to be logged at WARN level ?\nand can we have meaningful log so as to say what got failed",
+      "revId": "5b3c38925addb8f07ece911d00536ecd6c6c1844",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
