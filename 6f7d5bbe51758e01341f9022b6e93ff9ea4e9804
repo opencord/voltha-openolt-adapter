@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "be47d5da_4d5a144f",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "The comments on all these slices are identical, what makes each slice of mutexes unique?  What does each handle?",
+      "range": {
+        "startLine": 113,
+        "startChar": 1,
+        "endLine": 113,
+        "endChar": 85
+      },
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "905ce987_b20dac34",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "Are these identifiers guaranteed to be sequential?\nIf not, use a map instead.",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b72ba74_c0ba3346",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 2
@@ -30,6 +70,52 @@
       "writtenOn": "2020-03-31T08:44:51Z",
       "side": 1,
       "message": "same here",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d88e066c_2faff9e3",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "No need to re-assign zero value.  (mutexes are initialized by default.)",
+      "range": {
+        "startLine": 183,
+        "startChar": 1,
+        "endLine": 183,
+        "endChar": 44
+      },
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "39c9eb79_c0b746cb",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "No need to re-assign zero value.  (mutexes are initialized by default.)",
+      "range": {
+        "startLine": 194,
+        "startChar": 1,
+        "endLine": 194,
+        "endChar": 49
+      },
       "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -99,6 +185,57 @@
         "endLine": 708,
         "endChar": 14
       },
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c07e471_f1f956a4",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "defer unlock?",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef9181ef_70d93f30",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 787,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "defer unlock?",
+      "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cfa11298_8bd254d9",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 799,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:26:43Z",
+      "side": 1,
+      "message": "defer unlock?",
       "revId": "6f7d5bbe51758e01341f9022b6e93ff9ea4e9804",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
