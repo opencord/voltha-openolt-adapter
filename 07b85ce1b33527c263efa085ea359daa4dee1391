@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20c80843_1e67a5fc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1982,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-03-31T13:29:38Z",
+      "side": 1,
+      "message": "Should this check if the ResourceManager exists first?\nIf it doesn\u0027t exist, this will panic.",
+      "range": {
+        "startLine": 1982,
+        "startChar": 26,
+        "endLine": 1982,
+        "endChar": 46
+      },
+      "revId": "07b85ce1b33527c263efa085ea359daa4dee1391",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
