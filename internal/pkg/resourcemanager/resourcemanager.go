@@ -1053,23 +1053,6 @@ func (RsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, IntfID uin
 	return nil
 }
 
-// UpdateOnuGemInfo updates Onuinfo on the kvstore per interface
-func (RsrcMgr *OpenOltResourceMgr) UpdateOnuGemInfo(ctx context.Context, IntfID uint32, onuGem []OnuGemInfo) error {
-
-	// TODO: VOL-2643
-	err := RsrcMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGem)
-	if err != nil {
-		logger.Debugw("persistence-update-failed", log.Fields{
-			"interface-id": IntfID,
-			"gem-info":     onuGem,
-			"error":        err})
-		return err
-	}
-
-	logger.Debugw("updated onugeminfo", log.Fields{"intf": IntfID, "onugem": onuGem})
-	return nil
-}
-
 // AddUniPortToOnuInfo adds uni port to the onuinfo kvstore. check if the uni is already present if not update the kv store.
 func (RsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, portNo uint32) {
 	var onuGemData []OnuGemInfo
