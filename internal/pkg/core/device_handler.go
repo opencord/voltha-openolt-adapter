@@ -1959,32 +1959,46 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	}
 	//clear PON resources associated with ONU
 	var onuGemData []rsrcMgr.OnuGemInfo
-	if err := dh.resourceMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
-		logger.Warnw("Failed-to-get-onu-info-for-pon-port ", log.Fields{
-			"device-id":    dh.deviceID,
-			"interface-id": IntfID,
-			"error":        err})
-	} else {
-		for i, onu := range onuGemData {
-			if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
-				logger.Debugw("onu-data ", log.Fields{"onu": onu})
-				if err := dh.clearUNIData(ctx, &onu); err != nil {
-					logger.Warnw("Failed-to-clear-uni-data-for-onu", log.Fields{
-						"device-id":  dh.deviceID,
-						"onu-device": onu,
-						"error":      err})
+	if onuMgr, ok := dh.resourceMgr.ResourceMgrs[IntfID]; ok {
+		if err := onuMgr.GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
+			logger.Warnw("failed-to-get-onu-info-for-pon-port ", log.Fields{
+				"device-id":    dh.deviceID,
+				"interface-id": IntfID,
+				"error":        err})
+		} else {
+			for i, onu := range onuGemData {
+				if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
+					logger.Debugw("onu-data ", log.Fields{"onu": onu})
+					if err := dh.clearUNIData(ctx, &onu); err != nil {
+						logger.Warnw("failed-to-clear-uni-data-for-onu", log.Fields{
+							"device-id":  dh.deviceID,
+							"onu-device": onu,
+							"error":      err})
+					}
+					// Clear flowids for gem cache.
+					for _, gem := range onu.GemPorts {
+						dh.resourceMgr.DeleteFlowIDsForGem(ctx, IntfID, gem)
+					}
+					onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
+					err := onuMgr.AddOnuGemInfo(ctx, IntfID, onuGemData)
+					if err != nil {
+						logger.Warnw("persistence-update-onu-gem-info-failed", log.Fields{
+							"interface-id": IntfID,
+							"onu-device":   onu,
+							"onu-gem":      onuGemData,
+							"error":        err})
+						//Not returning error on cleanup.
+					}
+					logger.Debugw("removed-onu-gem-info", log.Fields{"intf": IntfID, "onu-device": onu, "onugem": onuGemData})
+					dh.resourceMgr.FreeonuID(ctx, IntfID, []uint32{onu.OnuID})
+					break
 				}
-				// Clear flowids for gem cache.
-				for _, gem := range onu.GemPorts {
-					dh.resourceMgr.DeleteFlowIDsForGem(ctx, IntfID, gem)
-				}
-				onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
-				dh.resourceMgr.UpdateOnuGemInfo(ctx, IntfID, onuGemData)
-
-				dh.resourceMgr.FreeonuID(ctx, IntfID, []uint32{onu.OnuID})
-				break
 			}
 		}
+	} else {
+		logger.Warnw("failed-to-get-resource-manager-for-interface-Id", log.Fields{
+			"device-id":    dh.deviceID,
+			"interface-id": IntfID})
 	}
 	dh.onus.Delete(onuKey)
 	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
