@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fc1b534_bfad528f",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 709,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-01T04:59:42Z",
+      "side": 1,
+      "message": "I have left some comments on the voltha-protos review. I think the BAL platform would expect us to configure some thresholds to report these indications. Have you checked this? If so, what is that threshold? How is it configured?",
+      "revId": "3086725f8233934c87fae7ef5090623207de7ec9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
