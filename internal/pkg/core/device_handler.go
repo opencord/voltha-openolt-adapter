@@ -511,7 +511,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
+		logger.Debugw("Received packet indication ", log.Fields{"PktInd": pktInd, "deviceId": dh.device.Id})
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
@@ -1271,7 +1271,7 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) (*voltha.Devic
 			"interface-id": parentPort,
 			"onu-id":       onuID}, err)
 	}
-	logger.Debugw("Successfully received child device from core", log.Fields{"child_device": *onuDevice})
+	logger.Debugw("Successfully received child device from core", log.Fields{"child_device_id": onuDevice.Id, "child_device_sn": onuDevice.SerialNumber})
 	return onuDevice, nil
 }
 
@@ -1656,6 +1656,7 @@ func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
 	logger.Debugw("Received packet-in", log.Fields{
 		"packet-indication": *packetIn,
+		"device-id":         dh.device.Id,
 		"packet":            hex.EncodeToString(packetIn.Pkt),
 	})
 	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
@@ -1664,16 +1665,20 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	}
 	logger.Debugw("sending packet-in to core", log.Fields{
 		"logicalPortNum": logicalPortNum,
+		"device-id":      dh.device.Id,
 		"packet":         hex.EncodeToString(packetIn.Pkt),
 	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
 		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
 			"destination": "core",
 			"source":      dh.deviceType,
-			"packet":      hex.EncodeToString(packetIn.Pkt)}, err)
+			"device-id":   dh.device.Id,
+			"packet":      hex.EncodeToString(packetIn.Pkt),
+		}, err)
 	}
 	logger.Debugw("Success sending packet-in to core!", log.Fields{
-		"packet": hex.EncodeToString(packetIn.Pkt),
+		"packet":    hex.EncodeToString(packetIn.Pkt),
+		"device-id": dh.device.Id,
 	})
 	return nil
 }
@@ -1684,6 +1689,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		"deviceID":       dh.deviceID,
 		"egress_port_no": egressPortNo,
 		"pkt-length":     len(packet.Data),
+		"device-id":      dh.device.Id,
 		"packet":         hex.EncodeToString(packet.Data),
 	})
 
@@ -1696,7 +1702,9 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			// ONOS has no clue about uni/nni ports, it just packets out on all
 			// available ports on the Logical Switch. It should not be interested
 			// in the UNI links.
-			logger.Debug("dropping-lldp-packet-out-on-uni")
+			logger.Debugw("dropping-lldp-packet-out-on-uni", log.Fields{
+				"device-id": dh.device.Id,
+			})
 			return nil
 		}
 		if outerEthType == 0x88a8 || outerEthType == 0x8100 {
@@ -1704,7 +1712,10 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 				// q-in-q 802.1ad or 802.1q double tagged packet.
 				// slice out the outer tag.
 				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
-				logger.Debugw("packet-now-single-tagged", log.Fields{"packetData": hex.EncodeToString(packet.Data)})
+				logger.Debugw("packet-now-single-tagged", log.Fields{
+					"packetData": hex.EncodeToString(packet.Data),
+					"device-id":  dh.device.Id,
+				})
 			}
 		}
 		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
@@ -1717,7 +1728,8 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			// The agent tries to retrieve the gemPortID in this case.
 			// This may not always succeed at the agent and packetOut may fail.
 			logger.Errorw("failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
-				"packet": hex.EncodeToString(packet.Data),
+				"packet":    hex.EncodeToString(packet.Data),
+				"device-id": dh.device.Id,
 			})
 		}
 
@@ -1730,6 +1742,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			"uniID":          uniID,
 			"gemPortID":      gemPortID,
 			"packet":         hex.EncodeToString(packet.Data),
+			"device-id":      dh.device.Id,
 		})
 
 		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
@@ -1741,28 +1754,38 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 				"oni-id":             onuID,
 				"uni-id":             uniID,
 				"gem-port-id":        gemPortID,
-				"packet":             hex.EncodeToString(packet.Data)}, err)
+				"packet":             hex.EncodeToString(packet.Data),
+				"device-id":          dh.device.Id,
+			}, err)
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
 		nniIntfID, err := IntfIDFromNniPortNum(uint32(egressPortNo))
 		if err != nil {
-			return olterrors.NewErrInvalidValue(log.Fields{"egress-nni-port": egressPortNo}, err)
+			return olterrors.NewErrInvalidValue(log.Fields{
+				"egress-nni-port": egressPortNo,
+				"device-id":       dh.device.Id,
+			}, err)
 		}
 		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
 		logger.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,
 			"packet":     hex.EncodeToString(packet.Data),
+			"device-id":  dh.device.Id,
 		})
 
 		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
-			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{"packet": hex.EncodeToString(packet.Data)}, err)
+			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
+				"packet":    hex.EncodeToString(packet.Data),
+				"device-id": dh.device.Id,
+			}, err)
 		}
 	} else {
 		logger.Warnw("Packet-out-to-this-interface-type-not-implemented", log.Fields{
 			"egress_port_no": egressPortNo,
 			"egressPortType": egressPortType,
 			"packet":         hex.EncodeToString(packet.Data),
+			"device-id":      dh.device.Id,
 		})
 	}
 	return nil
