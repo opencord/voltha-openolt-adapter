@@ -100,7 +100,7 @@ var DiscardPolicy_name = map[DiscardPolicy]string{
 }
 
 // Required uniPortName format
-var uniPortNameFormat = regexp.MustCompile(`^pon-{[0-9]+}/onu-{[0-9]+}/uni-{[0-9]+}$`)
+var uniPortNameFormat = regexp.MustCompile(`^olt-{[a-z0-9\-]+}/pon-{[0-9]+}/onu-{[0-9]+}/uni-{[0-9]+}$`)
 
 /*
 type InferredAdditionBWIndication int32
@@ -295,6 +295,10 @@ func NewTechProfile(resourceMgr iPonResourceMgr, KVStoreType string, KVStoreHost
 }
 
 func (t *TechProfileMgr) GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string {
+	logger.Debugw("get-tp-instance-kv-path", log.Fields{
+		"uniPortName": uniPortName,
+		"tpId":        techProfiletblID,
+	})
 	return fmt.Sprintf(t.config.TPInstanceKVPath, t.resourceMgr.GetTechnology(), techProfiletblID, uniPortName)
 }
 
@@ -303,6 +307,8 @@ func (t *TechProfileMgr) GetTPInstanceFromKVStore(ctx context.Context, techProfi
 	var resPtr *TechProfile = &KvTpIns
 	var err error
 	var kvResult *kvstore.KVPair
+
+	logger.Infow("get-tp-instance-form-kv-store", log.Fields{"path": path, "tpid": techProfiletblID})
 
 	kvResult, _ = t.config.KVBackend.Get(ctx, path)
 	if kvResult == nil {
