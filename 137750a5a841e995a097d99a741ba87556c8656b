@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3531065b_540cf88f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2041,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-02T18:33:16Z",
+      "side": 1,
+      "message": "This check is already done above. I think removing \u0027\"groupDesc\": group.Desc\u0027 was enough in the above log.",
+      "range": {
+        "startLine": 2039,
+        "startChar": 0,
+        "endLine": 2041,
+        "endChar": 1
+      },
+      "revId": "137750a5a841e995a097d99a741ba87556c8656b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
