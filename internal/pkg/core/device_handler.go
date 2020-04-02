@@ -511,7 +511,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
+		logger.Infow("Received packet indication ", log.Fields{"PktInd": pktInd, "deviceId": dh.device.Id})
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
@@ -1272,7 +1272,7 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) (*voltha.Devic
 			"interface-id": parentPort,
 			"onu-id":       onuID}, err)
 	}
-	logger.Debugw("Successfully received child device from core", log.Fields{"child_device": *onuDevice})
+	logger.Debugw("Successfully received child device from core", log.Fields{"child_device_id": onuDevice.Id, "child_device_sn": onuDevice.SerialNumber})
 	return onuDevice, nil
 }
 
@@ -1497,7 +1497,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		for _, flowID := range flowIDs {
 			dh.resourceMgr.FreeFlowID(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID), flowID)
 		}
-		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(ctx, onu.IntfID, onu.OnuID, uniID)
+		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(ctx, dh.device.Id, onu.IntfID, onu.OnuID, uniID)
 		for _, tpID := range tpIDList {
 			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "upstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
 				logger.Debugw("Failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
@@ -1509,7 +1509,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 			logger.Debugw("Removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
 		}
 		dh.resourceMgr.FreePONResourcesForONU(ctx, onu.IntfID, onu.OnuID, uniID)
-		if err = dh.resourceMgr.RemoveTechProfileIDsForOnu(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
+		if err = dh.resourceMgr.RemoveTechProfileIDsForOnu(ctx, dh.device.Id, onu.IntfID, onu.OnuID, uniID); err != nil {
 			logger.Debugw("Failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		logger.Debugw("Removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
@@ -1653,6 +1653,7 @@ func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 
 func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
 	logger.Debugw("Received packet-in", log.Fields{
+		"deviceId": dh.device.Id,
 		"packet-indication": *packetIn,
 		"packet":            hex.EncodeToString(packetIn.Pkt),
 	})

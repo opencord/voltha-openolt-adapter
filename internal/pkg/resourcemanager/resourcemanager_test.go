@@ -738,6 +738,7 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 
 func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 	type args struct {
+		OltId  string
 		IntfID uint32
 		OnuID  uint32
 		UniID  uint32
@@ -749,7 +750,7 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"RemoveTechProfileIDForOnu-1", getResMgr(), args{1, 2, 2, 64},
+		{"RemoveTechProfileIDForOnu-1", getResMgr(), args{"test-olt-id", 1, 2, 2, 64},
 			errors.New("failed to delete techprofile id resource %s in KV store")},
 	}
 	for _, tt := range tests {
@@ -757,7 +758,7 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.RemoveTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			if err := RsrcMgr.RemoveTechProfileIDForOnu(ctx, tt.args.OltId, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveTechProfileIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -912,6 +913,7 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 
 func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 	type args struct {
+		OltId string
 		IntfID uint32
 		OnuID  uint32
 		UniID  uint32
@@ -923,7 +925,7 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"UpdateTechProfileIDForOnu-1", getResMgr(), args{1, 2, 2,
+		{"UpdateTechProfileIDForOnu-1", getResMgr(), args{"test-olt-id",1, 2, 2,
 			2}, errors.New("failed to update resource")},
 	}
 	for _, tt := range tests {
@@ -931,7 +933,7 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.UpdateTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			if err := RsrcMgr.UpdateTechProfileIDForOnu(ctx, tt.args.OltId, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateTechProfileIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
 		})
