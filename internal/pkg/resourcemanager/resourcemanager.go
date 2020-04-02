@@ -145,6 +145,7 @@ func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Bac
 		logger.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
 	}
+
 	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  backend,
@@ -812,6 +813,7 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 	RsrcMgr.AllocIDMgmtLock[intfID].Lock()
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(ctx, IntfOnuIDUniID)
+
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID,
 		AllocIDs)
@@ -865,8 +867,8 @@ func (RsrcMgr *OpenOltResourceMgr) IsFlowCookieOnKVStore(ctx context.Context, po
 }
 
 // GetTechProfileIDForOnu fetches Tech-Profile-ID from the KV-Store for the given onu based on the path
-// This path is formed as the following: {IntfID, OnuID, UniID}/tp_id
-func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(ctx context.Context, IntfID uint32, OnuID uint32, UniID uint32) []uint32 {
+// This path is formed as the following: {OltID, IntfID, OnuID, UniID}/tp_id
+func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(ctx context.Context, oltID string, IntfID uint32, OnuID uint32, UniID uint32) []uint32 {
 	Path := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
 	var Data []uint32
 	Value, err := RsrcMgr.KVStore.Get(ctx, Path)
@@ -892,7 +894,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(ctx context.Context, I
 
 // RemoveTechProfileIDsForOnu deletes all tech profile ids from the KV-Store for the given onu based on the path
 // This path is formed as the following: {IntfID, OnuID, UniID}/tp_id
-func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDsForOnu(ctx context.Context, IntfID uint32, OnuID uint32, UniID uint32) error {
+func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDsForOnu(ctx context.Context, OltID string, IntfID uint32, OnuID uint32, UniID uint32) error {
 	IntfOnuUniID := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
 	if err := RsrcMgr.KVStore.Delete(ctx, IntfOnuUniID); err != nil {
 		logger.Errorw("Failed to delete techprofile id resource in KV store", log.Fields{"path": IntfOnuUniID})
@@ -903,8 +905,8 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDsForOnu(ctx context.Contex
 
 // RemoveTechProfileIDForOnu deletes a specific tech profile id from the KV-Store for the given onu based on the path
 // This path is formed as the following: {IntfID, OnuID, UniID}/tp_id
-func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(ctx context.Context, IntfID uint32, OnuID uint32, UniID uint32, TpID uint32) error {
-	tpIDList := RsrcMgr.GetTechProfileIDForOnu(ctx, IntfID, OnuID, UniID)
+func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(ctx context.Context, OltID string, IntfID uint32, OnuID uint32, UniID uint32, TpID uint32) error {
+	tpIDList := RsrcMgr.GetTechProfileIDForOnu(ctx, OltID, IntfID, OnuID, UniID)
 	for i, tpIDInList := range tpIDList {
 		if tpIDInList == TpID {
 			tpIDList = append(tpIDList[:i], tpIDList[i+1:]...)
@@ -925,14 +927,14 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(ctx context.Context
 
 // UpdateTechProfileIDForOnu updates (put) already present tech-profile-id for the given onu based on the path
 // This path is formed as the following: {IntfID, OnuID, UniID}/tp_id
-func (RsrcMgr *OpenOltResourceMgr) UpdateTechProfileIDForOnu(ctx context.Context, IntfID uint32, OnuID uint32,
+func (RsrcMgr *OpenOltResourceMgr) UpdateTechProfileIDForOnu(ctx context.Context, OltID string, IntfID uint32, OnuID uint32,
 	UniID uint32, TpID uint32) error {
 	var Value []byte
 	var err error
 
 	IntfOnuUniID := fmt.Sprintf(TpIDPathSuffix, IntfID, OnuID, UniID)
 
-	tpIDList := RsrcMgr.GetTechProfileIDForOnu(ctx, IntfID, OnuID, UniID)
+	tpIDList := RsrcMgr.GetTechProfileIDForOnu(ctx, OltID, IntfID, OnuID, UniID)
 	for _, value := range tpIDList {
 		if value == TpID {
 			logger.Debugf("TpID %d is already in tpIdList for the path %s", TpID, IntfOnuUniID)
