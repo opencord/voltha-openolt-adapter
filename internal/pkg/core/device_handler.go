@@ -511,7 +511,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
+		logger.Infow("Received packet indication ", log.Fields{"PktInd": pktInd, "deviceId": dh.device.Id})
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
@@ -1653,6 +1653,7 @@ func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 
 func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
 	logger.Debugw("Received packet-in", log.Fields{
+		"deviceId": dh.device.Id,
 		"packet-indication": *packetIn,
 		"packet":            hex.EncodeToString(packetIn.Pkt),
 	})
