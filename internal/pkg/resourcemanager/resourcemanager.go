@@ -812,6 +812,7 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 	RsrcMgr.AllocIDMgmtLock[intfID].Lock()
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(ctx, IntfOnuIDUniID)
+
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID,
 		AllocIDs)
