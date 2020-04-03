@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	"os"
 	"os/signal"
 	"strconv"
@@ -109,6 +110,8 @@ func (a *adapter) start(ctx context.Context) {
 		p.UpdateStatus("message-bus", probe.ServiceStatusRunning)
 	}
 
+	// setup endpointManager
+
 	// Start the common InterContainer Proxy - retries indefinitely
 	if a.kip, err = a.startInterContainerProxy(ctx, -1); err != nil {
 		logger.Fatal("error-starting-inter-container-proxy")
@@ -118,7 +121,15 @@ func (a *adapter) start(ctx context.Context) {
 	a.coreProxy = com.NewCoreProxy(a.kip, a.config.Topic, a.config.CoreTopic)
 
 	// Create the adaptor proxy to handle request between olt and onu
-	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
+	backend := db.Backend{
+		Client:     a.kvClient,
+		StoreType:  a.config.KVStoreType,
+		Host:       a.config.KVStoreHost,
+		Port:       a.config.KVStorePort,
+		Timeout:    a.config.KVStoreTimeout,
+		PathPrefix: "service/voltha",
+	}
+	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic, &backend)
 
 	// Create the event proxy to post events to KAFKA
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
@@ -374,7 +385,8 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	logger.Info("registering-with-core")
 	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
 		Vendor:  "VOLTHA OpenOLT",
-		Version: version.VersionInfo.Version}
+		Version: version.VersionInfo.Version,
+		Endpoint: "openolt"}
 	types := []*voltha.DeviceType{{Id: "openolt",
 		Adapter:                     "openolt", // Name of the adapter that handles device type
 		AcceptsBulkFlowUpdate:       false,     // Currently openolt adapter does not support bulk flow handling
