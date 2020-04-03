@@ -1,0 +1,8 @@
+Code-Review+1: Girish Gowdra <girish@opennetworking.org>
+Verified+1: Jenkins Jenkins <do-not-reply@opencord.org>
+Code-Review+2: Andrea Campanella <andrea@opennetworking.org>
+Submitted-by: Andrea Campanella <andrea@opennetworking.org>
+Submitted-at: Fri, 03 Apr 2020 12:53:54 +0000
+Reviewed-on: https://gerrit.opencord.org/18413
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
