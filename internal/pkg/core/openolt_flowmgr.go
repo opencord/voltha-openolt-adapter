@@ -2033,7 +2033,7 @@ func (f *OpenOltFlowMgr) buildGroupAction() *openoltpb2.Action {
 func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEntry) error {
 	logger.Infow("modify-group", log.Fields{"group": group})
 	if group == nil || group.Desc == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"group": group}, nil)
+		return olterrors.NewErrInvalidValue(log.Fields{"group": group, "groupDesc": group.Desc}, nil)
 	}
 
 	newGroup := f.buildGroup(group.Desc.GroupId, group.Desc.Buckets)

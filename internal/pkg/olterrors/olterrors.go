@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultLogAndReturnLevel = log.DebugLevel
+	defaultLogAndReturnLevel = log.ErrorLevel
 )
 
 func copy(src log.Fields) log.Fields {
