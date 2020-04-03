@@ -53,6 +53,8 @@ const (
 	defaultHearbeatFailReportInterval = 0 * time.Second
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
 	defaultGrpcTimeoutInterval = 2 * time.Second
+	defaultCurrentReplica      = 1
+	defaultTotalReplicas       = 1
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -81,6 +83,8 @@ type AdapterFlags struct {
 	HeartbeatCheckInterval      time.Duration
 	HeartbeatFailReportInterval time.Duration
 	GrpcTimeoutInterval         time.Duration
+	CurrentReplica              int
+	TotalReplicas               int
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -181,6 +185,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Number of seconds for GRPC timeout.")
 	flag.DurationVar(&(so.GrpcTimeoutInterval), "grpc_timeout_interval", defaultGrpcTimeoutInterval, help)
+
+	help = "Replica number of this particular instance (default: %s)"
+	flag.IntVar(&(so.CurrentReplica), "current_replica", defaultCurrentReplica, help)
+
+	help = "Total number of instances for this adapter"
+	flag.IntVar(&(so.TotalReplicas), "total_replica", defaultTotalReplicas, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
