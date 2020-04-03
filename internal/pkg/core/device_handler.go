@@ -532,6 +532,9 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
+	//starting the stat collector
+	go startCollector(dh)
+
 	// Synchronous call to update device state - this method is run in its own go routine
 	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
@@ -744,9 +747,7 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 }
 
 func startCollector(dh *DeviceHandler) {
-	// Initial delay for OLT initialization
-	time.Sleep(1 * time.Minute)
-	logger.Debugf("Starting-Collector")
+	log.Debugf("Starting-Collector")
 	context := make(map[string]string)
 	for {
 		select {
@@ -769,7 +770,6 @@ func startCollector(dh *DeviceHandler) {
 				if val, ok := dh.activePorts.Load(i); ok && val == true {
 					cmpon := dh.portStats.collectPONMetrics(i)
 					logger.Debugf("Collect-PON-Metrics %v", cmpon)
-
 					go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
 					logger.Debugf("Publish-PON-Metrics")
 				}
@@ -789,7 +789,6 @@ func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device)
 		olterrors.NewErrAdapter("error-updating-performance-metrics", log.Fields{"device-id": device.Id}, err).LogAt(log.ErrorLevel)
 	}
 
-	go startCollector(dh)
 	go startHeartbeatCheck(ctx, dh)
 }
 
@@ -1399,6 +1398,9 @@ func (dh *DeviceHandler) DisableDevice(device *voltha.Device) error {
 
 	dh.discOnus = sync.Map{}
 	dh.onus = sync.Map{}
+
+	//stopping the stats collector
+	dh.stopCollector <- true
 
 	go dh.notifyChildDevices("unreachable")
 	cloned := proto.Clone(device).(*voltha.Device)
