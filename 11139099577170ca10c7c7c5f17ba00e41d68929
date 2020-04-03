@@ -22,6 +22,30 @@
       "revId": "11139099577170ca10c7c7c5f17ba00e41d68929",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "704b45d8_a4662675",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1000619
+      },
+      "writtenOn": "2020-04-03T14:16:52Z",
+      "side": 1,
+      "message": "Thank you for the comments. When I was checking the device operational state in startCollector method, it was coming as ACTIVATING although it was actually ACTIVE as per voltctl device list. It seems that the operational status is not getting updated in openolt-adapter. Hence we made the changes like this.\n\nWe have modified the code as per your suggestions wherein we are not explicitly updating the device state, instead we are calling start and stop collector as per device states",
+      "parentUuid": "6512dd3a_3cbc01ce",
+      "range": {
+        "startLine": 535,
+        "startChar": 0,
+        "endLine": 548,
+        "endChar": 19
+      },
+      "revId": "11139099577170ca10c7c7c5f17ba00e41d68929",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
