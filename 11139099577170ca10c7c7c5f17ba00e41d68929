@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6512dd3a_3cbc01ce",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-04-03T12:37:56Z",
+      "side": 1,
+      "message": "instead of doing this here, coudl you move this to the startCollector method ? it seems useful just there and I\u0027d avoid locking at startup, this method shoudl be done as soon as possibile. Also why are you setting the ACTIVE state ?  that should be done by the core and you shoudl be able just to query the state in the startCollector method without having to lock and/or clone",
+      "range": {
+        "startLine": 535,
+        "startChar": 0,
+        "endLine": 548,
+        "endChar": 19
+      },
+      "revId": "11139099577170ca10c7c7c5f17ba00e41d68929",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
