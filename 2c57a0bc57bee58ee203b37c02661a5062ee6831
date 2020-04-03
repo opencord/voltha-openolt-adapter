@@ -49,6 +49,23 @@
     },
     {
       "key": {
+        "uuid": "634bc1f8_dc8bba93",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 750,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-03T16:24:27Z",
+      "side": 1,
+      "message": "Change this logger\n\nlogger.Debugf(\"..\")",
+      "revId": "2c57a0bc57bee58ee203b37c02661a5062ee6831",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "80f6010b_e22c931f",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
