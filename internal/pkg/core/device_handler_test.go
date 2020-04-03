@@ -1177,7 +1177,7 @@ func Test_startCollector(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go func() {
-				time.Sleep(66 * time.Second) // startCollector inside waits for 1 min, so we stop it after 6 secs of running
+				time.Sleep(5 * time.Second) // simulated wait time to stop startCollector
 				tt.args.dh.stopCollector <- true
 			}()
 			startCollector(tt.args.dh)
