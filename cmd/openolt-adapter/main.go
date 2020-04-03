@@ -109,6 +109,9 @@ func (a *adapter) start(ctx context.Context) {
 		p.UpdateStatus("message-bus", probe.ServiceStatusRunning)
 	}
 
+	// setup endpointManager
+	endpointManager := kafka.NewEndpointManager(cm.Backend)
+
 	// Start the common InterContainer Proxy - retries indefinitely
 	if a.kip, err = a.startInterContainerProxy(ctx, -1); err != nil {
 		logger.Fatal("error-starting-inter-container-proxy")
@@ -118,7 +121,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.coreProxy = com.NewCoreProxy(a.kip, a.config.Topic, a.config.CoreTopic)
 
 	// Create the adaptor proxy to handle request between olt and onu
-	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
+	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic, endpointManager)
 
 	// Create the event proxy to post events to KAFKA
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
