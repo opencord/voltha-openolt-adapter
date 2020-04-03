@@ -20,12 +20,13 @@ package olterrors
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"strings"
+
+	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 )
 
 const (
-	defaultLogAndReturnLevel = log.DebugLevel
+	defaultLogAndReturnLevel = log.ErrorLevel
 )
 
 func copy(src log.Fields) log.Fields {
