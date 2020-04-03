@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae3b796f_7e0f39f5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-04-03T14:22:21Z",
+      "side": 1,
+      "message": "minor comment: this is not really a reduction of the unit test time while instead an adaptation on the starting of the collector.",
+      "range": {
+        "startLine": 7,
+        "startChar": 10,
+        "endLine": 7,
+        "endChar": 37
+      },
+      "revId": "2c57a0bc57bee58ee203b37c02661a5062ee6831",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "80f6010b_e22c931f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-04-03T14:22:21Z",
+      "side": 1,
+      "message": "wrong formatting",
+      "range": {
+        "startLine": 760,
+        "startChar": 3,
+        "endLine": 776,
+        "endChar": 5
+      },
+      "revId": "2c57a0bc57bee58ee203b37c02661a5062ee6831",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
