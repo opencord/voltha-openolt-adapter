@@ -532,6 +532,20 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	logger.Debug("do-state-up-start")
+
+	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
+	}
+
+	cloned := proto.Clone(device).(*voltha.Device)
+	//Update the device oper state and connection status
+	cloned.OperStatus = voltha.OperStatus_ACTIVE
+	dh.device = cloned
 	// Synchronous call to update device state - this method is run in its own go routine
 	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
@@ -744,9 +758,7 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 }
 
 func startCollector(dh *DeviceHandler) {
-	// Initial delay for OLT initialization
-	time.Sleep(1 * time.Minute)
-	logger.Debugf("Starting-Collector")
+	log.Debugf("Starting-Collector")
 	context := make(map[string]string)
 	for {
 		select {
@@ -756,22 +768,23 @@ func startCollector(dh *DeviceHandler) {
 		default:
 			freq := dh.metrics.ToPmConfigs().DefaultFreq
 			time.Sleep(time.Duration(freq) * time.Second)
-			context["oltid"] = dh.deviceID
-			context["devicetype"] = dh.deviceType
-			// NNI Stats
-			cmnni := dh.portStats.collectNNIMetrics(uint32(0))
-			logger.Debugf("Collect-NNI-Metrics %v", cmnni)
-			go dh.portStats.publishMetrics("NNIStats", cmnni, uint32(0), context, dh.deviceID)
-			logger.Debugf("Publish-NNI-Metrics")
-			// PON Stats
-			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
-			for i := uint32(0); i < NumPonPORTS; i++ {
-				if val, ok := dh.activePorts.Load(i); ok && val == true {
-					cmpon := dh.portStats.collectPONMetrics(i)
-					logger.Debugf("Collect-PON-Metrics %v", cmpon)
-
-					go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
-					logger.Debugf("Publish-PON-Metrics")
+			if dh.device.OperStatus == voltha.OperStatus_ACTIVE {
+				context["oltid"] = dh.deviceID
+				context["devicetype"] = dh.deviceType
+				// NNI Stats
+				cmnni := dh.portStats.collectNNIMetrics(uint32(0))
+				logger.Debugf("Collect-NNI-Metrics %v", cmnni)
+				go dh.portStats.publishMetrics("NNIStats", cmnni, uint32(0), context, dh.deviceID)
+				logger.Debugf("Publish-NNI-Metrics")
+				// PON Stats
+				NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
+				for i := uint32(0); i < NumPonPORTS; i++ {
+					if val, ok := dh.activePorts.Load(i); ok && val == true {
+						cmpon := dh.portStats.collectPONMetrics(i)
+						logger.Debugf("Collect-PON-Metrics %v", cmpon)
+						go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
+						logger.Debugf("Publish-PON-Metrics")
+					}
 				}
 			}
 		}
