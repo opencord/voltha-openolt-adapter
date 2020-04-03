@@ -109,6 +109,8 @@ func (a *adapter) start(ctx context.Context) {
 		p.UpdateStatus("message-bus", probe.ServiceStatusRunning)
 	}
 
+	// setup endpointManager
+
 	// Start the common InterContainer Proxy - retries indefinitely
 	if a.kip, err = a.startInterContainerProxy(ctx, -1); err != nil {
 		logger.Fatal("error-starting-inter-container-proxy")
@@ -118,7 +120,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.coreProxy = com.NewCoreProxy(a.kip, a.config.Topic, a.config.CoreTopic)
 
 	// Create the adaptor proxy to handle request between olt and onu
-	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic)
+	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic, cm.Backend)
 
 	// Create the event proxy to post events to KAFKA
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
@@ -371,12 +373,26 @@ func (a *adapter) setupRequestHandler(ctx context.Context, coreInstanceID string
 }
 
 func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
-	logger.Info("registering-with-core")
-	adapterDescription := &voltha.Adapter{Id: "openolt", // Unique name for the device type
+	adapterID := fmt.Sprintf("openolt_%d", a.config.CurrentReplica)
+	logger.Infow("registering-with-core", log.Fields{
+		"adapterID":      adapterID,
+		"currentReplica": a.config.CurrentReplica,
+		"totalReplicas":  a.config.TotalReplicas,
+	})
+	adapterDescription := &voltha.Adapter{
+		Id:      adapterID, // Unique name for the device type
 		Vendor:  "VOLTHA OpenOLT",
-		Version: version.VersionInfo.Version}
-	types := []*voltha.DeviceType{{Id: "openolt",
-		Adapter:                     "openolt", // Name of the adapter that handles device type
+		Version: version.VersionInfo.Version,
+		// TODO once we'll be ready to support multiple versions of the OpenOLT adapter
+		// the Endpoint will have to change to `openolt_<currentReplica`>
+		Endpoint:       "openolt",
+		Type:           "openolt",
+		CurrentReplica: int32(a.config.CurrentReplica),
+		TotalReplicas:  int32(a.config.TotalReplicas),
+	}
+	types := []*voltha.DeviceType{{
+		Id:                          "openolt",
+		Adapter:                     "openolt", // Type of the adapter that handles device type
 		AcceptsBulkFlowUpdate:       false,     // Currently openolt adapter does not support bulk flow handling
 		AcceptsAddRemoveFlowUpdates: true}}
 	deviceTypes := &voltha.DeviceTypes{Items: types}
