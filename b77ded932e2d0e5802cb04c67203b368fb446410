@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0b901c2_2881a67c",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-04-08T19:14:10Z",
+      "side": 1,
+      "message": "For read operation it\u0027s better to use rlock and runlock.",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10cacb7f_e4487cd2",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-04-08T19:14:10Z",
+      "side": 1,
+      "message": "Should there be protection of the ResourceMgrs map?  In some cases it appears we are using the RsrcMgr.OnuIDMgmtLock[ponIntfID].Lock() to protect it.  Is that correct?",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
