@@ -254,7 +254,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	}
 	flowMgr.lockCache = sync.RWMutex{}
 	flowMgr.pendingFlowDelete = sync.Map{}
-	flowMgr.perUserFlowHandleLock = mapmutex.NewMapMutex()
+	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
 	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//load interface to multicast queue map from kv store
 	flowMgr.loadInterfaceToMulticastQueueMap(ctx)
