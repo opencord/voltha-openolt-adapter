@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "523eb4e2_a4d2fd89",
+        "filename": "internal/pkg/olterrors/olterrors.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-08T13:46:56Z",
+      "side": 1,
+      "message": "we should alway log the deviceId with",
+      "range": {
+        "startLine": 66,
+        "startChar": 5,
+        "endLine": 66,
+        "endChar": 81
+      },
+      "revId": "80baca5ea7a89a3f0756493aa4bb4bda83fb5b32",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
