@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8bc719e6_b923639f",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-08T20:08:59Z",
+      "side": 1,
+      "message": "The GetResourceID actually does a R/W operation on the KV store. It first gets the resource pool. Finds a free resource id. Then marks that resource and allocated, and then writes back the resource pool to KV store.",
+      "parentUuid": "e0b901c2_2881a67c",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10cacb7f_e4487cd2",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2020-04-08T19:14:10Z",
       "side": 1,
       "message": "Should there be protection of the ResourceMgrs map?  In some cases it appears we are using the RsrcMgr.OnuIDMgmtLock[ponIntfID].Lock() to protect it.  Is that correct?",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9d5b086e_71b00f61",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-08T20:08:59Z",
+      "side": 1,
+      "message": "it depends on what resource is being accessed. There are different locks used for different resources. FlowIDMgmtLock is used for flow_id and related resources, OnuIDMgmtLock is being used for ONU ID management, GemPortIDMgmtLock for gemports and AllocIDMgmtLock for alloc_id.",
+      "parentUuid": "10cacb7f_e4487cd2",
       "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
