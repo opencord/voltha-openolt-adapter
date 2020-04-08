@@ -69,6 +69,24 @@
       "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "787be9c8_ceaaa702",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-04-08T20:19:05Z",
+      "side": 1,
+      "message": "ok.  So there won\u0027t be a possibility of RsrcMgr.ResourceMgrs[ponIntfID] being changed while a function on it is being invoked, correct?",
+      "parentUuid": "9d5b086e_71b00f61",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
