@@ -87,6 +87,24 @@
       "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "174d6d36_c2f62ff0",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-08T20:40:11Z",
+      "side": 1,
+      "message": "The correct statement would be - no two simultaneous invocation should be able to change/work on the resources of the same type (i.e., flow_id/onu_id/alloc_id/gemport_id). The RsrMgr.ResourceMgrs[ponIntfID] holds resource pools of various types. Conversely, I could re-phrase my first statement as, simultaneous access/modification of resource pools of different types are allowed.",
+      "parentUuid": "787be9c8_ceaaa702",
+      "revId": "b77ded932e2d0e5802cb04c67203b368fb446410",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
