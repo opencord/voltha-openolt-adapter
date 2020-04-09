@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "873ce4fc_aaa3253b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-09T14:46:52Z",
+      "side": 1,
+      "message": "deviceId is missing here (and for all the other \"handle-indication-error\")",
+      "range": {
+        "startLine": 494,
+        "startChar": 55,
+        "endLine": 494,
+        "endChar": 90
+      },
+      "revId": "56e8a2fcd9f2b878b09129ca3f730e4253f19a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "540915c6_f25683d1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-09T14:46:52Z",
+      "side": 1,
+      "message": "deviceID?",
+      "range": {
+        "startLine": 553,
+        "startChar": 56,
+        "endLine": 553,
+        "endChar": 65
+      },
+      "revId": "56e8a2fcd9f2b878b09129ca3f730e4253f19a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "767975d8_4f8b5a31",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-09T14:46:52Z",
+      "side": 1,
+      "message": "log messages shouldn\u0027t have spaces, see guidelines: https://docs.google.com/document/d/1oXkhBPTA3fW35d--OcZTORgIBInixkTiMLLL0K5Ry_4/edit#heading\u003dh.h78kul5d3hed",
+      "range": {
+        "startLine": 871,
+        "startChar": 17,
+        "endLine": 871,
+        "endChar": 54
+      },
+      "revId": "56e8a2fcd9f2b878b09129ca3f730e4253f19a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
