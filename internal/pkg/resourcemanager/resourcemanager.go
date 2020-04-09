@@ -809,19 +809,19 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 	IntfOnuIDUniID := fmt.Sprintf("%d,%d,%d", intfID, onuID, uniID)
 
-	RsrcMgr.AllocIDMgmtLock[onuID].Lock()
+	RsrcMgr.AllocIDMgmtLock[intfID].Lock()
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(ctx, IntfOnuIDUniID)
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID,
 		AllocIDs)
-	RsrcMgr.AllocIDMgmtLock[onuID].Unlock()
+	RsrcMgr.AllocIDMgmtLock[intfID].Unlock()
 
-	RsrcMgr.GemPortIDMgmtLock[onuID].Lock()
+	RsrcMgr.GemPortIDMgmtLock[intfID].Lock()
 	GEMPortIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentGEMPortIDsForOnu(ctx, IntfOnuIDUniID)
 	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
 		ponrmgr.GEMPORT_ID,
 		GEMPortIDs)
-	RsrcMgr.GemPortIDMgmtLock[onuID].Unlock()
+	RsrcMgr.GemPortIDMgmtLock[intfID].Unlock()
 
 	RsrcMgr.FlowIDMgmtLock.Lock()
 	FlowIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentFlowIDsForOnu(ctx, IntfOnuIDUniID)
