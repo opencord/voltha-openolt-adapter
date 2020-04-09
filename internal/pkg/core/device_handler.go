@@ -22,13 +22,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"io"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 
 	"google.golang.org/grpc/codes"
 
@@ -354,7 +355,7 @@ Loop:
 		default:
 			indication, err := indications.Recv()
 			if err == io.EOF {
-				logger.Infow("EOF for  indications", log.Fields{"err": err})
+				logger.Infow("EOF for  indications", log.Fields{"err": err, "deviceID": dh.deviceID})
 				// Use an exponential back off to prevent getting into a tight loop
 				duration := indicationBackoff.NextBackOff()
 				if duration == backoff.Stop {
@@ -395,7 +396,7 @@ Loop:
 			dh.lockDevice.RUnlock()
 			// When OLT is admin down, ignore all indications.
 			if adminState == "down" && !isIndicationAllowedDuringOltAdminDown(indication) {
-				logger.Debugw("olt is admin down, ignore indication", log.Fields{"indication": indication})
+				logger.Debugw("olt is admin down, ignore indication", log.Fields{"indication": indication, "deviceID": dh.deviceID})
 				continue
 			}
 			dh.handleIndication(ctx, indication)
@@ -463,7 +464,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface"}, err).Log()
 			}
 		}()
-		logger.Infow("Received interface indication ", log.Fields{"InterfaceInd": intfInd})
+		logger.Infow("Received interface indication ", log.Fields{"InterfaceInd": intfInd, "deviceID": dh.deviceID})
 	case *oop.Indication_IntfOperInd:
 		intfOperInd := indication.GetIntfOperInd()
 		if intfOperInd.GetType() == "nni" {
@@ -486,7 +487,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		logger.Infow("Received interface oper indication ", log.Fields{"InterfaceOperInd": intfOperInd})
 	case *oop.Indication_OnuDiscInd:
 		onuDiscInd := indication.GetOnuDiscInd()
-		logger.Infow("Received Onu discovery indication ", log.Fields{"OnuDiscInd": onuDiscInd})
+		logger.Infow("Received Onu discovery indication ", log.Fields{"OnuDiscInd": onuDiscInd, "deviceID": dh.deviceID})
 		sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 		go func() {
 			if err := dh.onuDiscIndication(ctx, onuDiscInd, sn); err != nil {
@@ -495,7 +496,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_OnuInd:
 		onuInd := indication.GetOnuInd()
-		logger.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd})
+		logger.Infow("Received Onu indication ", log.Fields{"OnuInd": onuInd, "deviceID": dh.deviceID})
 		go func() {
 			if err := dh.onuIndication(onuInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "onu"}, err).Log()
@@ -503,7 +504,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_OmciInd:
 		omciInd := indication.GetOmciInd()
-		logger.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId})
+		logger.Debugw("Received Omci indication ", log.Fields{"IntfId": omciInd.IntfId, "OnuId": omciInd.OnuId, "deviceID": dh.deviceID})
 		go func() {
 			if err := dh.omciIndication(omciInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "omci"}, err).Log()
@@ -511,7 +512,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd})
+		logger.Infow("Received pakcet indication ", log.Fields{"PktInd": pktInd, "deviceID": dh.deviceID})
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet"}, err).Log()
@@ -522,10 +523,10 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		go dh.portStats.PortStatisticsIndication(portStats, dh.resourceMgr.DevInfo.GetPonPorts())
 	case *oop.Indication_FlowStats:
 		flowStats := indication.GetFlowStats()
-		logger.Infow("Received flow stats", log.Fields{"FlowStats": flowStats})
+		logger.Infow("Received flow stats", log.Fields{"FlowStats": flowStats, "deviceID": dh.deviceID})
 	case *oop.Indication_AlarmInd:
 		alarmInd := indication.GetAlarmInd()
-		logger.Infow("Received alarm indication ", log.Fields{"AlarmInd": alarmInd})
+		logger.Infow("Received alarm indication ", log.Fields{"AlarmInd": alarmInd, "deviceID": dh.deviceID})
 		go dh.eventMgr.ProcessEvents(alarmInd, dh.deviceID, raisedTs)
 	}
 }
@@ -547,7 +548,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	dh.lockDevice.Lock()
 	defer dh.lockDevice.Unlock()
-	logger.Debug("do-state-down-start")
+	logger.Debug("do-state-down-start", log.Fields{"deviceID": dh.deviceID})
 
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
@@ -613,7 +614,7 @@ func (dh *DeviceHandler) postInit(ctx context.Context) error {
 
 // doStateConnected get the device info and update to voltha core
 func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
-	logger.Debug("OLT device has been connected")
+	logger.Debug("OLT device has been connected", log.Fields{"deviceID": dh.deviceID})
 
 	// Case where OLT is disabled and then rebooted.
 	if dh.adminState == "down" {
@@ -717,7 +718,7 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	}
 
-	logger.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo})
+	logger.Debugw("Fetched device info", log.Fields{"deviceInfo": deviceInfo, "deviceID": dh.deviceID})
 	dh.device.Root = true
 	dh.device.Vendor = deviceInfo.Vendor
 	dh.device.Model = deviceInfo.Model
@@ -834,20 +835,20 @@ func (dh *DeviceHandler) GetOfpPortInfo(device *voltha.Device, portNo int64) (*i
 }
 
 func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
-	logger.Debugw("omci indication", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
+	logger.Debugw("omci indication", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "deviceID": dh.deviceID})
 	var deviceType string
 	var deviceID string
 	var proxyDeviceID string
 
 	transid := extractOmciTransactionID(omciInd.Pkt)
-	logger.Debugw("recv-omci-msg", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId,
+	logger.Debugw("recv-omci-msg", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "deviceID": dh.deviceID,
 		"omciTransactionID": transid, "omciMsg": hex.EncodeToString(omciInd.Pkt)})
 
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
 
 	if onuInCache, ok := dh.onus.Load(onuKey); !ok {
 
-		logger.Debugw("omci indication for a device not in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
+		logger.Debugw("omci indication for a device not in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "deviceID": dh.deviceID})
 		ponPort := IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 		kwargs := make(map[string]interface{})
 		kwargs["onu_id"] = omciInd.OnuId
@@ -866,7 +867,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 		dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDevice.SerialNumber, omciInd.OnuId, omciInd.IntfId, proxyDeviceID, false))
 	} else {
 		//found in cache
-		logger.Debugw("omci indication for a device in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId})
+		logger.Debugw("omci indication for a device in cache.", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "deviceID": dh.deviceID})
 		deviceType = onuInCache.(*OnuDevice).deviceType
 		deviceID = onuInCache.(*OnuDevice).deviceID
 		proxyDeviceID = onuInCache.(*OnuDevice).proxyDeviceID
@@ -979,7 +980,7 @@ func (dh *DeviceHandler) sendProxiedMessage(onuDevice *voltha.Device, omciMsg *i
 }
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
-	logger.Debugw("activate-onu", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum, "serialNumber": serialNumber})
+	logger.Debugw("activate-onu", log.Fields{"intfID": intfID, "onuID": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "deviceID": dh.deviceID})
 	if err := dh.flowMgr.UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intfID": intfID}, err)
 	}
@@ -989,12 +990,12 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 	if _, err := dh.Client.ActivateOnu(ctx, &Onu); err != nil {
 		st, _ := status.FromError(err)
 		if st.Code() == codes.AlreadyExists {
-			logger.Debug("ONU activation is in progress", log.Fields{"SerialNumber": serialNumber})
+			logger.Debug("ONU activation is in progress", log.Fields{"SerialNumber": serialNumber, "deviceID": dh.deviceID})
 		} else {
-			return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": Onu}, err)
+			return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": Onu, "deviceID": dh.deviceID}, err)
 		}
 	} else {
-		logger.Infow("activated-onu", log.Fields{"SerialNumber": serialNumber})
+		logger.Infow("activated-onu", log.Fields{"SerialNumber": serialNumber, "deviceID": dh.deviceID})
 	}
 	return nil
 }
@@ -1093,7 +1094,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"serial-number":    sn}, err)
 		}
 		dh.eventMgr.OnuDiscoveryIndication(onuDiscInd, onuDevice.Id, onuID, sn, time.Now().UnixNano())
-		logger.Infow("onu-child-device-added", log.Fields{"onuDevice": onuDevice, "sn": sn})
+		logger.Infow("onu-child-device-added", log.Fields{"onuDevice": onuDevice, "sn": sn, "deviceID": dh.deviceID})
 	}
 
 	// we can now use the existing ONU Id
@@ -1657,6 +1658,7 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	logger.Debugw("Received packet-in", log.Fields{
 		"packet-indication": *packetIn,
 		"packet":            hex.EncodeToString(packetIn.Pkt),
+		"deviceID":          dh.deviceID,
 	})
 	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
 	if err != nil {
@@ -1665,6 +1667,7 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	logger.Debugw("sending packet-in to core", log.Fields{
 		"logicalPortNum": logicalPortNum,
 		"packet":         hex.EncodeToString(packetIn.Pkt),
+		"deviceID":       dh.deviceID,
 	})
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
 		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
@@ -1673,7 +1676,8 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 			"packet":      hex.EncodeToString(packetIn.Pkt)}, err)
 	}
 	logger.Debugw("Success sending packet-in to core!", log.Fields{
-		"packet": hex.EncodeToString(packetIn.Pkt),
+		"packet":   hex.EncodeToString(packetIn.Pkt),
+		"deviceID": dh.deviceID,
 	})
 	return nil
 }
@@ -1704,7 +1708,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 				// q-in-q 802.1ad or 802.1q double tagged packet.
 				// slice out the outer tag.
 				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
-				logger.Debugw("packet-now-single-tagged", log.Fields{"packetData": hex.EncodeToString(packet.Data)})
+				logger.Debugw("packet-now-single-tagged", log.Fields{"packetData": hex.EncodeToString(packet.Data), "deviceID": dh.deviceID})
 			}
 		}
 		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
@@ -1717,7 +1721,8 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			// The agent tries to retrieve the gemPortID in this case.
 			// This may not always succeed at the agent and packetOut may fail.
 			logger.Errorw("failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
-				"packet": hex.EncodeToString(packet.Data),
+				"packet":   hex.EncodeToString(packet.Data),
+				"deviceID": dh.deviceID,
 			})
 		}
 
@@ -1730,6 +1735,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			"uniID":          uniID,
 			"gemPortID":      gemPortID,
 			"packet":         hex.EncodeToString(packet.Data),
+			"deviceID":       dh.deviceID,
 		})
 
 		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
@@ -1753,6 +1759,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		logger.Debugw("sending-packet-to-nni", log.Fields{
 			"uplink_pkt": uplinkPkt,
 			"packet":     hex.EncodeToString(packet.Data),
+			"deviceID":   dh.deviceID,
 		})
 
 		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
@@ -1763,6 +1770,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			"egress_port_no": egressPortNo,
 			"egressPortType": egressPortType,
 			"packet":         hex.EncodeToString(packet.Data),
+			"deviceID":       dh.deviceID,
 		})
 	}
 	return nil
@@ -1782,7 +1790,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 		case <-heartbeatTimer.C:
 			ctxWithTimeout, cancel := context.WithTimeout(context.Background(), dh.openOLT.GrpcTimeoutInterval)
 			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
-				logger.Error("Hearbeat failed")
+				logger.Error("Hearbeat failed", log.Fields{"deviceID": dh.deviceID})
 				if timerCheck == nil {
 					// start a after func, when expired will update the state to the core
 					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
@@ -1790,15 +1798,15 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 			} else {
 				if timerCheck != nil {
 					if timerCheck.Stop() {
-						logger.Debug("We got hearbeat within the timeout")
+						logger.Debug("We got hearbeat within the timeout", log.Fields{"deviceID": dh.deviceID})
 					}
 					timerCheck = nil
 				}
-				logger.Debugw("Hearbeat", log.Fields{"signature": heartBeat})
+				logger.Debugw("Hearbeat", log.Fields{"signature": heartBeat, "deviceID": dh.deviceID})
 			}
 			cancel()
 		case <-dh.stopHeartbeatCheck:
-			logger.Debug("Stopping heart beat check")
+			logger.Debug("Stopping heart beat check", log.Fields{"deviceID": dh.deviceID})
 			return
 		}
 	}
@@ -1849,7 +1857,7 @@ func (dh *DeviceHandler) DisablePort(port *voltha.Port) error {
 //modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
 func (dh *DeviceHandler) modifyPhyPort(port *voltha.Port, enablePort bool) error {
 	ctx := context.Background()
-	logger.Infow("modifyPhyPort", log.Fields{"port": port, "Enable": enablePort})
+	logger.Infow("modifyPhyPort", log.Fields{"port": port, "Enable": enablePort, "deviceID": dh.deviceID})
 	if port.GetType() == voltha.Port_ETHERNET_NNI {
 		// Bug is opened for VOL-2505 to support NNI disable feature.
 		logger.Infow("voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
