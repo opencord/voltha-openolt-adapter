@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f36dfda_02f61369",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "in other places we log deviceID as \"device-id\"",
+      "range": {
+        "startLine": 358,
+        "startChar": 64,
+        "endLine": 358,
+        "endChar": 72
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac81c1e6_98454323",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 364,
+        "startChar": 5,
+        "endLine": 364,
+        "endChar": 17
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "213175db_c1b5fee4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 375,
+        "startChar": 14,
+        "endLine": 375,
+        "endChar": 30
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c4cbf6c_58445e57",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 384,
+        "startChar": 30,
+        "endLine": 384,
+        "endChar": 43
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "561555ef_120946b4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 487,
+        "startChar": 67,
+        "endLine": 487,
+        "endChar": 80
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef8a2cd7_5f38b334",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 994,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "is this the device ID of the OLT or the ONU?",
+      "range": {
+        "startLine": 994,
+        "startChar": 88,
+        "endLine": 994,
+        "endChar": 96
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc3e1b9e_53d13efe",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "is this the device ID of the OLT or the ONU?",
+      "range": {
+        "startLine": 1098,
+        "startChar": 87,
+        "endLine": 1098,
+        "endChar": 95
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "19d5677b_6d4606b8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1135,
+        "startChar": 8,
+        "endLine": 1135,
+        "endChar": 14
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "65f30b4b_71e455db",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1171,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1171,
+        "startChar": 14,
+        "endLine": 1171,
+        "endChar": 26
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "242f5243_02a2da3f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1266,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1266,
+        "startChar": 8,
+        "endLine": 1266,
+        "endChar": 14
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c2d41265_7435e678",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1276,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1276,
+        "startChar": 8,
+        "endLine": 1276,
+        "endChar": 14
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe2bd0e4_04f4df34",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1296,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1296,
+        "startChar": 8,
+        "endLine": 1296,
+        "endChar": 14
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "209ed502_63d1ab85",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1366,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing, this seems like a Warn more than Debug",
+      "range": {
+        "startLine": 1366,
+        "startChar": 10,
+        "endLine": 1366,
+        "endChar": 15
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6e86e130_68d835a3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1372,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-10T14:30:37Z",
+      "side": 1,
+      "message": "deviceId is missing",
+      "range": {
+        "startLine": 1372,
+        "startChar": 8,
+        "endLine": 1372,
+        "endChar": 13
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
