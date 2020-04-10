@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "2f2a929f_bc420879",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "Consider consistency of capitalization throughout. Some messages start with an upper case letter whereas some start with lower case. Another example, some use \"onu\" whereas some use \"ONU\" or \"Onu\". Consider adopting a convention of all lower case (perhaps ask for an opinion in #voltha-stabilization or #voltha to ensure consensus)",
+      "range": {
+        "startLine": 364,
+        "startChar": 19,
+        "endLine": 364,
+        "endChar": 26
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "213175db_c1b5fee4",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -87,6 +110,29 @@
         "startChar": 30,
         "endLine": 384,
         "endChar": 43
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "070525a4_80e4abaa",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "dashes, and remove trailing space? Also look for trailing spaces on other messages, I see a few more throughout the file.",
+      "range": {
+        "startLine": 467,
+        "startChar": 16,
+        "endLine": 467,
+        "endChar": 46
       },
       "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
@@ -209,6 +255,29 @@
     },
     {
       "key": {
+        "uuid": "7e0098f9_10b87558",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1172,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "underscore?",
+      "range": {
+        "startLine": 1172,
+        "startChar": 31,
+        "endLine": 1172,
+        "endChar": 32
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "242f5243_02a2da3f",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -278,6 +347,29 @@
     },
     {
       "key": {
+        "uuid": "b29310c8_62fd75a7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "Should these be Debugw instead of Debug?",
+      "range": {
+        "startLine": 1325,
+        "startChar": 3,
+        "endLine": 1325,
+        "endChar": 15
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "209ed502_63d1ab85",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -317,6 +409,52 @@
         "startChar": 8,
         "endLine": 1372,
         "endChar": 13
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f3d8c24c_4e25ef59",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1791,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "Errorw instead of Error? Also, please review https://docs.google.com/document/d/1oXkhBPTA3fW35d--OcZTORgIBInixkTiMLLL0K5Ry_4/edit# and consider whether this should be at Error or Warn level? There\u0027s room for some discretion in deciding between warn and error, but dropped heartbeat to me seems like it may be more worthy of a warning.",
+      "range": {
+        "startLine": 1791,
+        "startChar": 4,
+        "endLine": 1791,
+        "endChar": 16
+      },
+      "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab102aaa_faf32816",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1799,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-10T15:20:59Z",
+      "side": 1,
+      "message": "Debugw, not Debug?",
+      "range": {
+        "startLine": 1799,
+        "startChar": 13,
+        "endLine": 1799,
+        "endChar": 18
       },
       "revId": "dcf25cb0b0c9b25994482191b2b28e22c595579a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
