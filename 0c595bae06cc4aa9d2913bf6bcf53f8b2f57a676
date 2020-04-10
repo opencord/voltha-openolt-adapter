@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d76e0dff_5745c53a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 610,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-10T17:31:52Z",
+      "side": 0,
+      "message": "This check should not be removed imho.",
+      "revId": "0c595bae06cc4aa9d2913bf6bcf53f8b2f57a676",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
