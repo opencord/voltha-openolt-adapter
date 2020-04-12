@@ -1356,6 +1356,34 @@ func getUniPortPath(intfID uint32, onuID int32, uniID int32) string {
 	return fmt.Sprintf("pon-{%d}/onu-{%d}/uni-{%d}", intfID, onuID, uniID)
 }
 
+//getOnuChildDeviceTypeAndID to fetch onu from cache or core.
+func (f *OpenOltFlowMgr) getOnuChildDeviceTypeAndID(intfID uint32, onuID uint32) (string, string, string, error) {
+	var toAdapter string
+	var toDeviceID string
+	var proxyDeviceID string
+	var onuDevice *voltha.Device
+	var err error
+	onuKey := f.deviceHandler.formOnuKey(intfID, onuID)
+	if onuInCache, ok := f.deviceHandler.onus.Load(onuKey); !ok {
+		logger.Infow("couldnt-find-onu-in-cache", log.Fields{"intfID": intfID, "onuID": onuID})
+		if onuDevice, err = f.getOnuChildDevice(intfID, onuID); err != nil {
+			return "", "", "", olterrors.NewErrNotFound("onu-child-device", log.Fields{"onuId": onuID, "intfID": intfID}, err)
+		}
+		toAdapter = onuDevice.Type
+		toDeviceID = onuDevice.Id
+		proxyDeviceID = onuDevice.ProxyAddress.DeviceId
+		//May be better to ad the device to cache here.
+		f.deviceHandler.StoreOnuDevice(onuDevice, false)
+	} else {
+		logger.Infow("Found-onu-in-cache", log.Fields{"intfID": intfID, "onuID": onuID})
+		toAdapter = onuInCache.(*OnuDevice).deviceType
+		toDeviceID = onuInCache.(*OnuDevice).deviceID
+		proxyDeviceID = onuInCache.(*OnuDevice).proxyDeviceID
+	}
+
+	return toAdapter, toDeviceID, proxyDeviceID, nil
+}
+
 //getOnuChildDevice to fetch onu
 func (f *OpenOltFlowMgr) getOnuChildDevice(intfID uint32, onuID uint32) (*voltha.Device, error) {
 	logger.Debugw("GetChildDevice", log.Fields{"pon port": intfID, "onuId": onuID})
@@ -1388,9 +1416,10 @@ func (f *OpenOltFlowMgr) decodeStoredID(id uint64) (uint64, string) {
 }
 
 func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(intfID uint32, onuID uint32, uniID uint32, gemPortID uint32, tpPath string) error {
-	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
+	toAdapter, toDeviceID, proxyDeviceID, err := f.getOnuChildDeviceTypeAndID(intfID, onuID)
 	if err != nil {
-		return olterrors.NewErrNotFound("onu-child-device", log.Fields{"onuId": onuID, "intfID": intfID}, err)
+		logger.Infow("couldnt-find-onu-child-device", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID})
+		return err
 	}
 
 	delGemPortMsg := &ic.InterAdapterDeleteGemPortMessage{UniId: uniID, TpPath: tpPath, GemPortId: gemPortID}
@@ -1399,21 +1428,22 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(intfID uint32, onuID uint32, u
 		delGemPortMsg,
 		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
 		f.deviceHandler.deviceType,
-		onuDevice.Type,
-		onuDevice.Id,
-		onuDevice.ProxyAddress.DeviceId, ""); sendErr != nil {
+		toAdapter,
+		toDeviceID,
+		proxyDeviceID, ""); sendErr != nil {
 		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId}, sendErr)
+			"toAdapter": toAdapter, "onuId": toDeviceID,
+			"proxyDeviceID": proxyDeviceID}, sendErr)
 	}
 	logger.Debugw("success sending del gem port to onu adapter", log.Fields{"msg": delGemPortMsg})
 	return nil
 }
 
 func (f *OpenOltFlowMgr) sendDeleteTcontToChild(intfID uint32, onuID uint32, uniID uint32, allocID uint32, tpPath string) error {
-	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
+	toAdapter, toDeviceID, proxyDeviceID, err := f.getOnuChildDeviceTypeAndID(intfID, onuID)
 	if err != nil {
-		return olterrors.NewErrNotFound("onu-child-device", log.Fields{"onuId": onuID, "intfID": intfID}, err)
+		logger.Infow("couldnt-find-onu-child-device", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID})
+		return err
 	}
 
 	delTcontMsg := &ic.InterAdapterDeleteTcontMessage{UniId: uniID, TpPath: tpPath, AllocId: allocID}
@@ -1422,12 +1452,12 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(intfID uint32, onuID uint32, uni
 		delTcontMsg,
 		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
 		f.deviceHandler.deviceType,
-		onuDevice.Type,
-		onuDevice.Id,
-		onuDevice.ProxyAddress.DeviceId, ""); sendErr != nil {
+		toAdapter,
+		toDeviceID,
+		proxyDeviceID, ""); sendErr != nil {
 		return olterrors.NewErrCommunication("send-delete-tcont-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId}, sendErr)
+			"toAdapter": toAdapter, "onuId": toDeviceID,
+			"proxyDeviceID": proxyDeviceID}, sendErr)
 	}
 	logger.Debugw("success sending del tcont to onu adapter", log.Fields{"msg": delTcontMsg})
 	return nil
@@ -2192,11 +2222,12 @@ func (f *OpenOltFlowMgr) buildMember(ofBucket *ofp.OfpBucket) *openoltpb2.GroupM
 //sendTPDownloadMsgToChild send payload
 func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, uniID uint32, uni string, TpID uint32) error {
 
-	onuDevice, err := f.getOnuChildDevice(intfID, onuID)
+	toAdapter, toDeviceID, proxyDeviceID, err := f.getOnuChildDeviceTypeAndID(intfID, onuID)
 	if err != nil {
-		return olterrors.NewErrNotFound("onu-child-device", log.Fields{"onuId": onuID, "intfID": intfID}, err)
+		logger.Infow("couldnt-find-onu-child-device", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID})
+		return err
 	}
-	logger.Debugw("Got child device from OLT device handler", log.Fields{"device": *onuDevice})
+	logger.Debugw("Got child device from OLT device handler", log.Fields{"deviceId": toDeviceID})
 
 	tpPath := f.getTPpath(intfID, uni, TpID)
 	tpDownloadMsg := &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID, Path: tpPath}
@@ -2205,13 +2236,13 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 		tpDownloadMsg,
 		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
 		f.deviceHandler.deviceType,
-		onuDevice.Type,
-		onuDevice.Id,
-		onuDevice.ProxyAddress.DeviceId, "")
+		toAdapter,
+		toDeviceID,
+		proxyDeviceID, "")
 	if sendErr != nil {
 		return olterrors.NewErrCommunication("send-techprofile-download-request", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
-			"toAdapter": onuDevice.Type, "onuId": onuDevice.Id,
-			"proxyDeviceId": onuDevice.ProxyAddress.DeviceId}, sendErr)
+			"toAdapter": toAdapter, "onuId": toDeviceID,
+			"proxyDeviceID": proxyDeviceID}, sendErr)
 	}
 	logger.Debugw("success Sending Load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"msg": tpDownloadMsg})
 	return nil
