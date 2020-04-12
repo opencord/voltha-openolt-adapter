@@ -2149,3 +2149,9 @@ func extractOmciTransactionID(omciPkt []byte) uint16 {
 	}
 	return 0
 }
+
+// StoreOnuDevice stores the onu parameters to the local cache.
+func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
+	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
+	dh.onus.Store(onuKey, onuDevice)
+}
