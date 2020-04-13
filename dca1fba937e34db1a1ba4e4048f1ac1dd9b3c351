@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "32e60174_064a88c2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-13T22:35:32Z",
+      "side": 1,
+      "message": "No this was a wrong assumption. Gemports where not created as the TP key was found in ETCD",
+      "parentUuid": "3b4c51a2_f8fd85ad",
+      "revId": "dca1fba937e34db1a1ba4e4048f1ac1dd9b3c351",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2949a416_f40078c2",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2020-04-13T19:42:23Z",
       "side": 1,
       "message": "log-\u003elogger",
+      "revId": "dca1fba937e34db1a1ba4e4048f1ac1dd9b3c351",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c123bc7b_5b80d319",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-13T22:35:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2949a416_f40078c2",
       "revId": "dca1fba937e34db1a1ba4e4048f1ac1dd9b3c351",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
