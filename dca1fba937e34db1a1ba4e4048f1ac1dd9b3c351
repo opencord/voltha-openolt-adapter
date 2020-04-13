@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b4c51a2_f8fd85ad",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-13T19:42:23Z",
+      "side": 1,
+      "message": "Is this still true? If so, can you please create a Jira to track this issue.",
+      "revId": "dca1fba937e34db1a1ba4e4048f1ac1dd9b3c351",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2949a416_f40078c2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-13T19:42:23Z",
+      "side": 1,
+      "message": "log-\u003elogger",
+      "revId": "dca1fba937e34db1a1ba4e4048f1ac1dd9b3c351",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
