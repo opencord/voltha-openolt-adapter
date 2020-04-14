@@ -16,6 +16,24 @@
       "revId": "2a515b88d3e48f0dcbff4eed738aec41711d1775",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc3c5872_56eb478d",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-04-14T18:22:15Z",
+      "side": 1,
+      "message": "Good point, that was redundant",
+      "parentUuid": "e956ffbe_2d9019c9",
+      "revId": "2a515b88d3e48f0dcbff4eed738aec41711d1775",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
