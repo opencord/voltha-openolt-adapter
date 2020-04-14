@@ -202,7 +202,7 @@ func (kvclient *MockResKVClient) Delete(ctx context.Context, key string) error {
 }
 
 // Reserve mock function implementation for KVClient
-func (kvclient *MockResKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl int64) (interface{}, error) {
+func (kvclient *MockResKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl time.Duration) (interface{}, error) {
 	return nil, errors.New("key didn't find")
 }
 
@@ -227,7 +227,7 @@ func (kvclient *MockResKVClient) Watch(ctx context.Context, key string, withPref
 }
 
 // AcquireLock mock function implementation for KVClient
-func (kvclient *MockResKVClient) AcquireLock(ctx context.Context, lockName string, timeout int) error {
+func (kvclient *MockResKVClient) AcquireLock(ctx context.Context, lockName string, timeout time.Duration) error {
 	return nil
 }
 
@@ -1038,7 +1038,7 @@ func Test_newKVClient(t *testing.T) {
 	type args struct {
 		storeType string
 		address   string
-		timeout   uint32
+		timeout   time.Duration
 	}
 	var kvClient kvstore.Client
 	tests := []struct {
