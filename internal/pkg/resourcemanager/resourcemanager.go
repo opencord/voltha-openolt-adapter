@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
@@ -37,7 +38,7 @@ import (
 
 const (
 	// KvstoreTimeout specifies the time out for KV Store Connection
-	KvstoreTimeout = 5
+	KvstoreTimeout = 5 * time.Second
 	// BasePathKvStore - service/voltha/openolt/<device_id>
 	BasePathKvStore = "service/voltha/openolt/{%s}"
 	// TpIDPathSuffix - <(pon_id, onu_id, uni_id)>/tp_id
@@ -124,13 +125,13 @@ type OpenOltResourceMgr struct {
 	flowIDToGemInfoLock sync.RWMutex
 }
 
-func newKVClient(storeType string, address string, timeout uint32) (kvstore.Client, error) {
+func newKVClient(storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
 	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
-		return kvstore.NewConsulClient(address, int(timeout))
+		return kvstore.NewConsulClient(address, timeout)
 	case "etcd":
-		return kvstore.NewEtcdClient(address, int(timeout), log.FatalLevel)
+		return kvstore.NewEtcdClient(address, timeout, log.FatalLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
