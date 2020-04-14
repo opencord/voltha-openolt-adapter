@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 
@@ -268,7 +269,7 @@ func (t *TechProfileMgr) SetKVClient() *db.Backend {
 	*/
 }
 
-func newKVClient(storeType string, address string, timeout int) (kvstore.Client, error) {
+func newKVClient(storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
 
 	logger.Infow("kv-store", log.Fields{"storeType": storeType, "address": address})
 	switch storeType {
