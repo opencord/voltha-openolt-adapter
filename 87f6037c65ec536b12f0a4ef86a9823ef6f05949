@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3fcc8ed7_8709a37d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1376,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-14T00:09:36Z",
+      "side": 1,
+      "message": "Because of onuDev, ok :\u003d f.deviceHandler.onus.Load(onuKey), onuDev is in interface{} type. So needed to be casted to OnuDevice.",
+      "parentUuid": "5a7bec25_20f6d0eb",
+      "range": {
+        "startLine": 1376,
+        "startChar": 8,
+        "endLine": 1376,
+        "endChar": 27
+      },
+      "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca95f5d9_6498ef84",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 9
@@ -36,6 +60,24 @@
       "writtenOn": "2020-04-13T23:42:30Z",
       "side": 1,
       "message": "The caller is logging the error, so you should not log here as per current convention.",
+      "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f603ab6_f80af620",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1413,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-14T00:09:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca95f5d9_6498ef84",
       "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "27127545_55209d7b",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1437,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-14T00:09:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ccc531f_c1dd4aa1",
+      "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92d781e4_cc8caed3",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 9
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "5532a16a_a6dcf6d1",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1584,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-14T00:09:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92d781e4_cc8caed3",
+      "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0a1a25d_a4ab9a8d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 9
@@ -87,6 +165,24 @@
       "writtenOn": "2020-04-13T23:42:30Z",
       "side": 1,
       "message": "The caller is logging here",
+      "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63cf20a8_d74653a5",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1598,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-14T00:09:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0a1a25d_a4ab9a8d",
       "revId": "87f6037c65ec536b12f0a4ef86a9823ef6f05949",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
