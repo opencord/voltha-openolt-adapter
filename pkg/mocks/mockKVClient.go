@@ -189,7 +189,7 @@ func (kvclient *MockKVClient) Delete(ctx context.Context, key string) error {
 }
 
 // Reserve mock function implementation for KVClient
-func (kvclient *MockKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl int64) (interface{}, error) {
+func (kvclient *MockKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl time.Duration) (interface{}, error) {
 	if key != "" {
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
@@ -231,7 +231,7 @@ func (kvclient *MockKVClient) Watch(ctx context.Context, key string, withPrefix 
 }
 
 // AcquireLock mock function implementation for KVClient
-func (kvclient *MockKVClient) AcquireLock(ctx context.Context, lockName string, timeout int) error {
+func (kvclient *MockKVClient) AcquireLock(ctx context.Context, lockName string, timeout time.Duration) error {
 	return nil
 }
 
