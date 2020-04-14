@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e956ffbe_2d9019c9",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-04-14T15:41:34Z",
+      "side": 1,
+      "message": "basepath of resourcemanger kv connection already has device_id , how different is olt id from device id",
+      "revId": "2a515b88d3e48f0dcbff4eed738aec41711d1775",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
