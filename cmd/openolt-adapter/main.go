@@ -273,7 +273,7 @@ func (a *adapter) stop(ctx context.Context) {
 	// TODO:  More cleanup
 }
 
-func newKVClient(storeType, address string, timeout int) (kvstore.Client, error) {
+func newKVClient(storeType, address string, timeout time.Duration) (kvstore.Client, error) {
 
 	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
