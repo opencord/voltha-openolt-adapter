@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "29e96edc_7b555bdc",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "I think the value 0 indicates that the frame/packet/flow does not carry a VLAN ID. So, it seems ok. By the way, is there a scenario that the VLAN ID is not found in the classifier?",
+      "parentUuid": "6dfa842f_ca0b0d5c",
+      "range": {
+        "startLine": 742,
+        "startChar": 119,
+        "endLine": 742,
+        "endChar": 126
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a290cb9_78d4bd75",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5ffe7010_33c1e721",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a290cb9_78d4bd75",
+      "range": {
+        "startLine": 971,
+        "startChar": 0,
+        "endLine": 974,
+        "endChar": 6
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "abf26ce6_928ef8a2",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 9
@@ -59,6 +107,30 @@
       "writtenOn": "2020-03-23T21:18:56Z",
       "side": 1,
       "message": "Can we describe these as generic use cases or patterns as opposed to tie the code to a specific provider/carrier.",
+      "range": {
+        "startLine": 991,
+        "startChar": 0,
+        "endLine": 1007,
+        "endChar": 2
+      },
+      "revId": "33328e5baeec1113a042e0fc55eac401b14318a1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f5829c13_cd226c6c",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1007,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "abf26ce6_928ef8a2",
       "range": {
         "startLine": 991,
         "startChar": 0,
