@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1022f90d_532c64e4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "Yes, that is fine. We delete the VlanVid from the flow (line 810), and also this is a trap flow, not symmetric one. We can get a new flow-id from the resource manager.",
+      "parentUuid": "b82dfcd1_e059041f",
+      "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16b6f694_5fbc0ea2",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 10
@@ -30,6 +48,24 @@
       "writtenOn": "2020-03-25T15:37:40Z",
       "side": 1,
       "message": "Does having a classifier in the upstream mean that we have to translate the inner vid? Is this a general rule? I am not sure.",
+      "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad74bc3_55e449dd",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1097,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "Actually, we discovered this! :) TT use-case requires pbit remarking. So, if we want to remark pbits, we need to use translate inner vid. Otherwise, it seems that BAL does not work properly. For the ATT use-case, the action does not include vlanPcp, so its flow is still the same.",
+      "parentUuid": "16b6f694_5fbc0ea2",
       "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "13faca6a_96d32b9e",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 971,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "David also have a comment for this line. I updated it as he suggested. Now, is it ok for you?",
+      "parentUuid": "932393b8_d428fe35",
+      "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4989d5d9_d68a1802",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 10
@@ -64,6 +118,24 @@
       "writtenOn": "2020-03-25T15:37:40Z",
       "side": 1,
       "message": "If the o_vid \u003d\u003d i_vid, can you check if there is anything that could go wrong.",
+      "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dcbb8f96_faa460e3",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 990,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-15T14:25:34Z",
+      "side": 1,
+      "message": "I tested using o_vid\u003d33 and i_vid\u003d33, it seems fine.",
+      "parentUuid": "4989d5d9_d68a1802",
       "revId": "e9a21c1620184858aad6f2187c4dcba3f99c867e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
