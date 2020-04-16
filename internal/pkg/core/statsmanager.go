@@ -19,13 +19,15 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
+	"strconv"
+
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var mutex = &sync.Mutex{}
@@ -234,7 +236,7 @@ func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}
 		}
 		return PONPorts, nil
 	} else {
-		logger.Errorf("Invalid type of interface %s", Intftype)
+		logger.Errorw("invalid-type-of-interface", log.Fields{"interface-type": Intftype})
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
 }
@@ -255,17 +257,23 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	if IntfType == "nni" {
 		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
 		nniID := PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
-		logger.Debugf("NniID %v", nniID)
+		logger.Debugw("interface-type-nni",
+			log.Fields{
+				"nni-id":    nniID,
+				"intf-type": IntfType})
 		return NewNniPort(PortNum, nniID)
 	} else if IntfType == "pon" {
 		// PON ports require a different configuration
 		//  intf_id and pon_id are currently equal.
 		IntfID := IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
 		PONID := PortNoToIntfID(IntfID, voltha.Port_PON_OLT)
-		logger.Debugf("PonID %v", PONID)
+		logger.Debugw("interface-type-pon",
+			log.Fields{
+				"pon-id":    PONID,
+				"intf-type": IntfType})
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
 	} else {
-		logger.Errorf("Invalid type of interface %s", IntfType)
+		logger.Errorw("invalid-type-of-interface", log.Fields{"intf-type": IntfType})
 		return nil
 	}
 }
@@ -352,7 +360,10 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 // publishMatrics will publish the pon port metrics
 func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
 	port *voltha.Port, devID string, devType string) {
-	logger.Debugw("publish-metrics", log.Fields{"port": port.Label, "metrics": val})
+	logger.Debugw("publish-metrics",
+		log.Fields{
+			"port":    port.Label,
+			"metrics": val})
 
 	var metricInfo voltha.MetricInformation
 	var ke voltha.KpiEvent2
@@ -385,20 +396,20 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
 	ke.Ts = float64(time.Now().UnixNano())
 
 	if err := StatMgr.Device.EventProxy.SendKpiEvent("STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
-		logger.Errorw("Failed to send Pon stats", log.Fields{"err": err})
+		logger.Errorw("failed-to-send-pon-stats", log.Fields{"err": err})
 	}
 }
 
 // PortStatisticsIndication handles the port statistics indication
 func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 	StatMgr.PortsStatisticsKpis(PortStats, NumPonPorts)
-	logger.Debugw("Received port stats indication", log.Fields{"PortStats": PortStats})
+	logger.Debugw("received-port-stats-indication", log.Fields{"port-stats": PortStats})
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 
 // FlowStatisticsIndication to be implemented
 func FlowStatisticsIndication(self, FlowStats *openolt.FlowStatistics) {
-	logger.Debugf("flow-stats-collected %v", FlowStats)
+	logger.Debugw("flow-stats-collected", log.Fields{"flow-stats": FlowStats})
 	//TODO send to kafka ?
 }
 
@@ -440,7 +451,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 		mutex.Lock()
 		StatMgr.NorthBoundPort[0] = &portNNIStat
 		mutex.Unlock()
-		logger.Debugf("Received-NNI-Stats: %v", StatMgr.NorthBoundPort)
+		logger.Debugw("received-nni-stats", log.Fields{"nni-stats": StatMgr.NorthBoundPort})
 	}
 	for i := uint32(0); i < NumPonPorts; i++ {
 
@@ -462,7 +473,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 			mutex.Lock()
 			StatMgr.SouthBoundPort[i] = &portPonStat
 			mutex.Unlock()
-			logger.Debugf("Received-PON-Stats-for-Port %v : %v", i, portPonStat)
+			logger.Debugw("received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
 		}
 	}
 

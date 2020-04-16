@@ -106,58 +106,58 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 	var err error
 	switch alarmInd.Data.(type) {
 	case *oop.AlarmIndication_LosInd:
-		logger.Debugw("Received LOS indication", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-los-indication", log.Fields{"alarm-ind": alarmInd})
 		err = em.oltLosIndication(alarmInd.GetLosInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuAlarmInd:
-		logger.Debugw("Received onu alarm indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-alarm-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuAlarmIndication(alarmInd.GetOnuAlarmInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_DyingGaspInd:
-		logger.Debugw("Received dying gasp indication", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-dying-gasp-indication", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDyingGaspIndication(alarmInd.GetDyingGaspInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuActivationFailInd:
-		logger.Debugw("Received onu activation fail indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-activation-fail-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuActivationFailIndication(alarmInd.GetOnuActivationFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuLossOmciInd:
-		logger.Debugw("Received onu loss omci indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-loss-omci-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuLossOmciIndication(alarmInd.GetOnuLossOmciInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuDriftOfWindowInd:
-		logger.Debugw("Received onu drift of window indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-drift-of-window-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDriftOfWindowIndication(alarmInd.GetOnuDriftOfWindowInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuSignalDegradeInd:
-		logger.Debugw("Received onu signal degrade indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-signal-degrade-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuSignalDegradeIndication(alarmInd.GetOnuSignalDegradeInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuSignalsFailInd:
-		logger.Debugw("Received onu signal fail indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-signal-fail-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuSignalsFailIndication(alarmInd.GetOnuSignalsFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuStartupFailInd:
-		logger.Debugw("Received onu startup fail indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-startup-fail-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuStartupFailedIndication(alarmInd.GetOnuStartupFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuTiwiInd:
-		logger.Debugw("Received onu transmission warning indication ", log.Fields{"alarm_ind": alarmInd})
-		logger.Debugw("Not implemented yet", log.Fields{"alarm_ind": "Onu-Transmission-indication"})
+		logger.Debugw("received-onu-transmission-warning-indication ", log.Fields{"alarm-ind": alarmInd})
+		logger.Warnw("not-implemented-yet", log.Fields{"alarm-ind": "Onu-Transmission-indication"})
 	case *oop.AlarmIndication_OnuLossOfSyncFailInd:
-		logger.Debugw("Received onu Loss of Sync Fail indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-loss-of-sync-fail-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuLossOfSyncIndication(alarmInd.GetOnuLossOfSyncFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuItuPonStatsInd:
-		logger.Debugw("Received onu Itu Pon Stats indication ", log.Fields{"alarm_ind": alarmInd})
-		logger.Debugw("Not implemented yet", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-itu-pon-stats-indication ", log.Fields{"alarm-ind": alarmInd})
+		logger.Warnw("not-implemented-yet", log.Fields{"alarm-ind": alarmInd})
 	case *oop.AlarmIndication_OnuRemoteDefectInd:
-		logger.Debugw("Received onu remote defect indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-remote-defect-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuRemoteDefectIndication(alarmInd.GetOnuRemoteDefectInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuDeactivationFailureInd:
-		logger.Debugw("Received onu deactivation failure indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-deactivation-failure-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuLossGemDelineationInd:
-		logger.Debugw("Received onu loss of GEM channel delineation indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-loss-of-gem-channel-delineation-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuLossOfGEMChannelDelineationIndication(alarmInd.GetOnuLossGemDelineationInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuPhysicalEquipmentErrorInd:
-		logger.Debugw("Received onu physical equipment error indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-physical-equipment-error-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuPhysicalEquipmentErrorIndication(alarmInd.GetOnuPhysicalEquipmentErrorInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuLossOfAckInd:
-		logger.Debugw("Received onu loss of acknowledgement indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-loss-of-acknowledgement-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuLossOfAcknowledgementIndication(alarmInd.GetOnuLossOfAckInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuDiffReachExceededInd:
-		logger.Debugw("Received onu differential reach exceeded indication ", log.Fields{"alarm_ind": alarmInd})
+		logger.Debugw("received-onu-differential-reach-exceeded-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDifferentialReachExceededIndication(alarmInd.GetOnuDiffReachExceededInd(), deviceID, raisedTs)
 	default:
 		err = olterrors.NewErrInvalidValue(log.Fields{"indication-type": alarmInd}, nil)
@@ -186,7 +186,7 @@ func (em *OpenOltEventMgr) oltUpDownIndication(oltIndication *oop.OltIndication,
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
 		return olterrors.NewErrCommunication("send-olt-event", log.Fields{"device-id": deviceID}, err)
 	}
-	logger.Debugw("OLT UpDown event sent to KAFKA", log.Fields{})
+	logger.Debugw("olt-updown-event-sent-to-kafka", log.Fields{})
 	return nil
 }
 
@@ -204,9 +204,15 @@ func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication
 	de.DeviceEventName = fmt.Sprintf("%s_%s", onuDiscoveryEvent, "RAISE_EVENT")
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, pon, raisedTs); err != nil {
-		return olterrors.NewErrCommunication("send-onu-discovery-event", log.Fields{"serial-number": serialNumber, "intf-id": onuDisc.IntfId}, err)
+		return olterrors.NewErrCommunication("send-onu-discovery-event",
+			log.Fields{
+				"serial-number": serialNumber,
+				"intf-id":       onuDisc.IntfId}, err)
 	}
-	logger.Debugw("ONU discovery event sent to KAFKA", log.Fields{"serial-number": serialNumber, "intf-id": onuDisc.IntfId})
+	logger.Debugw("onu-discovery-event-sent-to-kafka",
+		log.Fields{
+			"serial-number": serialNumber,
+			"intf-id":       onuDisc.IntfId})
 	return nil
 }
 
@@ -249,7 +255,7 @@ func (em *OpenOltEventMgr) oltLosIndication(oltLos *oop.LosIndication, deviceID 
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, olt, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("OLT LOS event sent to KAFKA", log.Fields{"intf-id": oltLos.IntfId})
+	logger.Debugw("olt-los-event-sent-to-kafka", log.Fields{"intf-id": oltLos.IntfId})
 	return nil
 }
 
@@ -274,7 +280,7 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(dgi *oop.DyingGaspIndication, 
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU dying gasp event sent to KAFKA", log.Fields{"intf-id": dgi.IntfId})
+	logger.Debugw("onu-dying-gasp-event-sent-to-kafka", log.Fields{"intf-id": dgi.IntfId})
 	return nil
 }
 
@@ -396,7 +402,7 @@ func (em *OpenOltEventMgr) onuAlarmIndication(onuAlarm *oop.OnuAlarmIndication, 
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU LOS event sent to KAFKA", log.Fields{"onu-id": onuAlarm.OnuId, "intf-id": onuAlarm.IntfId})
+	logger.Debugw("onu-los-event-sent-to-kafka", log.Fields{"onu-id": onuAlarm.OnuId, "intf-id": onuAlarm.IntfId})
 	return nil
 }
 
@@ -415,7 +421,7 @@ func (em *OpenOltEventMgr) onuActivationFailIndication(oaf *oop.OnuActivationFai
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU activation failure event sent to KAFKA", log.Fields{"onu-id": oaf.OnuId, "intf-id": oaf.IntfId})
+	logger.Debugw("onu-activation-failure-event-sent-to-kafka", log.Fields{"onu-id": oaf.OnuId, "intf-id": oaf.IntfId})
 	return nil
 }
 
@@ -437,7 +443,7 @@ func (em *OpenOltEventMgr) onuLossOmciIndication(onuLossOmci *oop.OnuLossOfOmciC
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU loss of OMCI channel event sent to KAFKA", log.Fields{"onu-id": onuLossOmci.OnuId, "intf-id": onuLossOmci.IntfId})
+	logger.Debugw("onu-loss-of-omci-channel-event-sent-to-kafka", log.Fields{"onu-id": onuLossOmci.OnuId, "intf-id": onuLossOmci.IntfId})
 	return nil
 }
 
@@ -461,7 +467,7 @@ func (em *OpenOltEventMgr) onuDriftOfWindowIndication(onuDriftWindow *oop.OnuDri
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU drift of window event sent to KAFKA", log.Fields{"onu-id": onuDriftWindow.OnuId, "intf-id": onuDriftWindow.IntfId})
+	logger.Debugw("onu-drift-of-window-event-sent-to-kafka", log.Fields{"onu-id": onuDriftWindow.OnuId, "intf-id": onuDriftWindow.IntfId})
 	return nil
 }
 
@@ -484,7 +490,7 @@ func (em *OpenOltEventMgr) onuSignalDegradeIndication(onuSignalDegrade *oop.OnuS
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU signal degrade event sent to KAFKA", log.Fields{"onu-id": onuSignalDegrade.OnuId, "intf-id": onuSignalDegrade.IntfId})
+	logger.Debugw("onu-signal-degrade-event-sent-to-kafka", log.Fields{"onu-id": onuSignalDegrade.OnuId, "intf-id": onuSignalDegrade.IntfId})
 	return nil
 }
 
@@ -507,7 +513,7 @@ func (em *OpenOltEventMgr) onuSignalsFailIndication(onuSignalsFail *oop.OnuSigna
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU signals fail event sent to KAFKA", log.Fields{"onu-id": onuSignalsFail.OnuId, "intf-id": onuSignalsFail.IntfId})
+	logger.Debugw("onu-signals-fail-event-sent-to-kafka", log.Fields{"onu-id": onuSignalsFail.OnuId, "intf-id": onuSignalsFail.IntfId})
 	return nil
 }
 
@@ -530,7 +536,7 @@ func (em *OpenOltEventMgr) onuStartupFailedIndication(onuStartupFail *oop.OnuSta
 	if err := em.eventProxy.SendDeviceEvent(&de, communication, pon, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU startup fail event sent to KAFKA", log.Fields{"onu-id": onuStartupFail.OnuId, "intf-id": onuStartupFail.IntfId})
+	logger.Debugw("onu-startup-fail-event-sent-to-kafka", log.Fields{"onu-id": onuStartupFail.OnuId, "intf-id": onuStartupFail.IntfId})
 	return nil
 }
 
@@ -553,7 +559,7 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(onuLOKI *oop.OnuLossOfKeySync
 	if err := em.eventProxy.SendDeviceEvent(&de, security, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU loss of key sync event sent to KAFKA", log.Fields{"onu-id": onuLOKI.OnuId, "intf-id": onuLOKI.IntfId})
+	logger.Debugw("onu-loss-of-key-sync-event-sent-to-kafka", log.Fields{"onu-id": onuLOKI.OnuId, "intf-id": onuLOKI.IntfId})
 	return nil
 }
 
@@ -564,13 +570,13 @@ func (em *OpenOltEventMgr) oltIntfOperIndication(ifindication *oop.IntfOperIndic
 	portID := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
 	device, err := em.handler.coreProxy.GetDevice(ctx.Background(), deviceID, deviceID)
 	if err != nil {
-		return olterrors.NewErrAdapter("Error while fetching Device object", log.Fields{"DeviceId": deviceID}, err)
+		return olterrors.NewErrAdapter("error-while-fetching-device-object", log.Fields{"DeviceId": deviceID}, err)
 	}
 	for _, port := range device.Ports {
 		if port.PortNo == portID {
 			// Events are suppressed if the Port Adminstate is not enabled.
 			if port.AdminState != common.AdminState_ENABLED {
-				logger.Debugw("Port disable/enable event not generated because, The port is not enabled by operator", log.Fields{"deviceId": deviceID, "port": port})
+				logger.Debugw("port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"deviceId": deviceID, "port": port})
 				return nil
 			}
 			break
@@ -611,7 +617,7 @@ func (em *OpenOltEventMgr) onuDeactivationFailureIndication(onuDFI *oop.OnuDeact
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU deactivation failure event sent to KAFKA", log.Fields{"onu-id": onuDFI.OnuId, "intf-id": onuDFI.IntfId})
+	logger.Debugw("onu-deactivation-failure-event-sent-to-kafka", log.Fields{"onu-id": onuDFI.OnuId, "intf-id": onuDFI.IntfId})
 	return nil
 }
 
@@ -632,7 +638,7 @@ func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefect
 	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU remote defect event sent to KAFKA", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+	logger.Debugw("onu-remote-defect-event-sent-to-kafka", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
 	return nil
 }
 
@@ -657,7 +663,7 @@ func (em *OpenOltEventMgr) onuLossOfGEMChannelDelineationIndication(onuGCD *oop.
 	if err := em.eventProxy.SendDeviceEvent(de, communication, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU loss of GEM channel delineation event sent to KAFKA", log.Fields{"onu-id": onuGCD.OnuId, "intf-id": onuGCD.IntfId})
+	logger.Debugw("onu-loss-of-gem-channel-delineation-event-sent-to-kafka", log.Fields{"onu-id": onuGCD.OnuId, "intf-id": onuGCD.IntfId})
 	return nil
 }
 
@@ -681,7 +687,7 @@ func (em *OpenOltEventMgr) onuPhysicalEquipmentErrorIndication(onuErr *oop.OnuPh
 	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuErr.OnuId, "intf-id": onuErr.IntfId})
+	logger.Debugw("onu-physical-equipment-error-event-sent-to-kafka", log.Fields{"onu-id": onuErr.OnuId, "intf-id": onuErr.IntfId})
 	return nil
 }
 
@@ -705,7 +711,7 @@ func (em *OpenOltEventMgr) onuLossOfAcknowledgementIndication(onuLOA *oop.OnuLos
 	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("ONU physical equipment error event sent to KAFKA", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
+	logger.Debugw("onu-physical-equipment-error-event-sent-to-kafka", log.Fields{"onu-id": onuLOA.OnuId, "intf-id": onuLOA.IntfId})
 	return nil
 }
 
@@ -730,6 +736,6 @@ func (em *OpenOltEventMgr) onuDifferentialReachExceededIndication(onuDRE *oop.On
 	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	log.Debugw("ONU differential reach exceeded event sent to KAFKA", log.Fields{"onu-id": onuDRE.OnuId, "intf-id": onuDRE.IntfId})
+	log.Debugw("onu-differential-reach-exceeded–event-sent-to-kafka", log.Fields{"onu-id": onuDRE.OnuId, "intf-id": onuDRE.IntfId})
 	return nil
 }
