@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f0ed42a_18773511",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-16T22:24:24Z",
+      "side": 1,
+      "message": "Better to make it Debug. It generates a lot of info log.",
+      "range": {
+        "startLine": 514,
+        "startChar": 9,
+        "endLine": 514,
+        "endChar": 14
+      },
+      "revId": "6bbc9f766b043b8d991ea2d4ef0c0bff71785372",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf5d00c4_fbc0d85e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1660,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-04-16T22:24:24Z",
+      "side": 1,
+      "message": "Seems duplicated.",
+      "range": {
+        "startLine": 1660,
+        "startChar": 0,
+        "endLine": 1660,
+        "endChar": 28
+      },
+      "revId": "6bbc9f766b043b8d991ea2d4ef0c0bff71785372",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
