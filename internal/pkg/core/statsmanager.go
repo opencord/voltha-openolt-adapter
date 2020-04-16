@@ -19,13 +19,15 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
+	"strconv"
+
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var mutex = &sync.Mutex{}
@@ -234,7 +236,7 @@ func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}
 		}
 		return PONPorts, nil
 	} else {
-		logger.Errorf("Invalid type of interface %s", Intftype)
+		logger.Errorf("invalid-type-of-interface %s", Intftype)
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
 }
@@ -265,7 +267,7 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 		logger.Debugf("PonID %v", PONID)
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
 	} else {
-		logger.Errorf("Invalid type of interface %s", IntfType)
+		logger.Errorf("invalid-type-of-interface %s", IntfType)
 		return nil
 	}
 }
@@ -382,14 +384,14 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
 	ke.Ts = float64(time.Now().UnixNano())
 
 	if err := StatMgr.Device.EventProxy.SendKpiEvent("STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
-		logger.Errorw("Failed to send Pon stats", log.Fields{"err": err})
+		logger.Errorw("failed-to-send-pon-stats", log.Fields{"err": err})
 	}
 }
 
 // PortStatisticsIndication handles the port statistics indication
 func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 	StatMgr.PortsStatisticsKpis(PortStats, NumPonPorts)
-	logger.Debugw("Received port stats indication", log.Fields{"PortStats": PortStats})
+	logger.Debugw("received-port-stats-indication", log.Fields{"PortStats": PortStats})
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 
@@ -437,7 +439,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 		mutex.Lock()
 		StatMgr.NorthBoundPort[0] = &portNNIStat
 		mutex.Unlock()
-		logger.Debugf("Received-NNI-Stats: %v", StatMgr.NorthBoundPort)
+		logger.Debugf("received-nni-stats: %v", StatMgr.NorthBoundPort)
 	}
 	for i := uint32(0); i < NumPonPorts; i++ {
 
@@ -459,7 +461,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 			mutex.Lock()
 			StatMgr.SouthBoundPort[i] = &portPonStat
 			mutex.Unlock()
-			logger.Debugf("Received-PON-Stats-for-Port %v : %v", i, portPonStat)
+			logger.Debugf("received-pon-stats-for-port %v : %v", i, portPonStat)
 		}
 	}
 

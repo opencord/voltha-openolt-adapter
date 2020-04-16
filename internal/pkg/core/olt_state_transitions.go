@@ -149,14 +149,14 @@ func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 
 	// Check whether the transtion is valid from current state
 	if !tMap.isValidTransition(trigger) {
-		logger.Errorw("Invalid transition triggered ", log.Fields{"CurrentState": tMap.currentDeviceState, "Trigger": trigger})
+		logger.Errorw("invalid-transition-triggered", log.Fields{"CurrentState": tMap.currentDeviceState, "Trigger": trigger})
 		return
 	}
 
 	// Invoke the before handlers
 	beforeHandlers := tMap.transitions[trigger].before
 	if beforeHandlers == nil {
-		logger.Debugw("No handlers for before", log.Fields{"trigger": trigger})
+		logger.Debugw("no-handlers-for-before", log.Fields{"trigger": trigger})
 	}
 	for _, handler := range beforeHandlers {
 		logger.Debugw("running-before-handler", log.Fields{"handler": funcName(handler)})
@@ -169,12 +169,12 @@ func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 
 	// Update the state
 	tMap.currentDeviceState = tMap.transitions[trigger].currentState
-	logger.Debugw("Updated device state ", log.Fields{"CurrentDeviceState": tMap.currentDeviceState})
+	logger.Debugw("updated-device-state ", log.Fields{"CurrentDeviceState": tMap.currentDeviceState})
 
 	// Invoke the after handlers
 	afterHandlers := tMap.transitions[trigger].after
 	if afterHandlers == nil {
-		logger.Debugw("No handlers for after", log.Fields{"trigger": trigger})
+		logger.Debugw("no-handlers-for-after", log.Fields{"trigger": trigger})
 	}
 	for _, handler := range afterHandlers {
 		logger.Debugw("running-after-handler", log.Fields{"handler": funcName(handler)})
