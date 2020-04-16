@@ -1,0 +1,306 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63ca5858_f480925e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "small \u0027f\u0027",
+      "range": {
+        "startLine": 250,
+        "startChar": 17,
+        "endLine": 250,
+        "endChar": 18
+      },
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e581997_abf599b3",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This should be logger.Debugw",
+      "range": {
+        "startLine": 281,
+        "startChar": 2,
+        "endLine": 281,
+        "endChar": 13
+      },
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0754fef6_6867f798",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "log format",
+      "range": {
+        "startLine": 501,
+        "startChar": 16,
+        "endLine": 501,
+        "endChar": 58
+      },
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ac74cdc_7608fb43",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "log format",
+      "range": {
+        "startLine": 514,
+        "startChar": 16,
+        "endLine": 514,
+        "endChar": 55
+      },
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bfaf848d_9d00b6bc",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "Quoting from the logging guideline for INFO log. \n\"This level serves for events which constitute major state changes or business process transition within a software component -- such as initialization, shutdown, persistent resource allocation, etc\".\n\nThis log indicates the start/initialization step towards removing scheduler and queues on the OLT device. This should me an Info log.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2882c4a_1dba5472",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This should be warn log in my opinion. We are trying to remove a scheduler and queues on the OLT, but the referenced meter band is not found on the KV store. It also meets the guide line for warning documented here -\u003e https://docs.google.com/document/d/1oXkhBPTA3fW35d--OcZTORgIBInixkTiMLLL0K5Ry_4/edit?pli\u003d1#",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "11121b82_a5d1e1f3",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 620,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This should be an info log as this marks an important transition/event on the device, where we have successfully completed one of the procedures.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2fe137c_13e58ed4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This should be an info log as this marks an important transition/event on the device, where we have successfully completed one of the procedures.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f04cc57_f9a49ba2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This already is Info which is good.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5c106158_fab4fca8",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "This should be Info as it marks an important event where we have been allocated the gem ports and tconts.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6c4a8bb6_a2cf0d37",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "You have taken the right decision to retain this as a Debug.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c430c191_a933c6ff",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 833,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "log format and also make this Infow",
+      "range": {
+        "startLine": 833,
+        "startChar": 16,
+        "endLine": 833,
+        "endChar": 32
+      },
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "20489943_e907792d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "I would make this Info. We are exiting an important routine (adding hsia flow) with a message on why flow is not added to device.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f19f5276_99d13ae3",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "can you also add flow to the argument list here. We need to know which flow added successfully.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0aeabe5e_7b7bc503",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 934,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "Info.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02c6b034_03c04875",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T20:08:42Z",
+      "side": 1,
+      "message": "Good decision. Also log the flow.",
+      "revId": "6b59ba743242065ba1454ecf4f5c78e297150a28",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
