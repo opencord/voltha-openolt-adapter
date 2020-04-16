@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8665adbb_21444b18",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "I do not think this was necessary. The tpLockKey applies on perUserFlowHandleLock which is part of OpenOltFlowMgr and is single instance per device.",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "267ae05e_59e861bb",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1601,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "As commented in another file, we can remove references to deviceID wherever we deal with managing TP ID List on a per device basis.",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcdd7805_ce636981",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 871,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "oltID not used",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4151e30b_3c67e302",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "oltID not used",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b858cd0e_bb1d0180",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 909,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "`TpIDPathSuffix` does not consume OltID is what was decided.",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "06082a89_6dd0bf06",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 937,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-16T00:40:33Z",
+      "side": 1,
+      "message": "`TpIDPathSuffix` does not consume OltID is what was decided.",
+      "revId": "239263bdb24ff374edb4441dc374e20039d88a2d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
