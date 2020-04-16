@@ -126,7 +126,7 @@ var controllerPorts = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
 func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
 	var limit = int(onuID)
 	if limit > MaxOnusPerPon {
-		logger.Warn("Warning: exceeded the MAX ONUS per PON")
+		logger.Warn("exceeded-the-max-onus-per-pon")
 	}
 	return (intfID << (bitsForUniID + bitsForONUID)) | (onuID << bitsForUniID) | uniID
 }
@@ -171,7 +171,7 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 //IntfIDFromNniPortNum returns Intf ID derived from portNum
 func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
 	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
-		logger.Errorw("NNIPortNumber is not in valid range", log.Fields{"portNum": portNum})
+		logger.Errorw("nniportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
 		return uint32(0), olterrors.ErrInvalidPortRange
 	}
 	return (portNum & 0xFFFF), nil
@@ -261,17 +261,21 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound("pon-interface", log.Fields{
-			"flow-direction": flowDirection}, nil)
+		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound("pon-interface", log.Fields{"flow-direction": flowDirection}, nil)
 	}
 
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
 
-	logger.Debugw("flow extract info result",
-		log.Fields{"uniPortNo": uniPortNo, "ponIntf": ponIntf,
-			"onuID": onuID, "uniID": uniID, "inPort": inPort, "ethType": ethType})
+	logger.Debugw("flow-extract-info-result",
+		log.Fields{
+			"uniportno": uniPortNo,
+			"pon-intf":  ponIntf,
+			"onu-id":    onuID,
+			"uni-id":    uniID,
+			"inport":    inPort,
+			"ethtype":   ethType})
 
 	return uniPortNo, ponIntf, onuID, uniID, inPort, ethType, nil
 }
