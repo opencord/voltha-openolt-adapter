@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"testing"
+	"time"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
@@ -224,6 +225,6 @@ func (kc *mockKafkaClient) EnableHealthinessChannel(enable bool) chan bool {
 	return nil
 }
 
-func (kc *mockKafkaClient) SubscribeForMetadata(func(fromTopic string, timestamp int64)) {
+func (kc *mockKafkaClient) SubscribeForMetadata(func(fromTopic string, timestamp time.Time)) {
 	return
 }
