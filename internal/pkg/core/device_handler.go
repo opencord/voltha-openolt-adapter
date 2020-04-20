@@ -118,6 +118,7 @@ type OnuDevice struct {
 	proxyDeviceID string
 	uniPorts      map[uint32]struct{}
 	losRaised     bool
+	rdiRaised     bool
 }
 
 var pmNames = []string{
