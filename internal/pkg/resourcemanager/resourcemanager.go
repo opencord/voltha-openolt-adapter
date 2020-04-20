@@ -130,7 +130,7 @@ func newKVClient(storeType string, address string, timeout uint32) (kvstore.Clie
 	case "consul":
 		return kvstore.NewConsulClient(address, int(timeout))
 	case "etcd":
-		return kvstore.NewEtcdClient(address, int(timeout))
+		return kvstore.NewEtcdClient(address, int(timeout), log.WarnLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
