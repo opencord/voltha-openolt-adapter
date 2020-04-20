@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"io"
@@ -73,23 +74,23 @@ type pendingFlowRemoveData struct {
 
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
-	deviceID      string
-	deviceType    string
-	adminState    string
-	device        *voltha.Device
-	coreProxy     adapterif.CoreProxy
-	AdapterProxy  adapterif.AdapterProxy
-	EventProxy    adapterif.EventProxy
-	openOLT       *OpenOLT
-	exitChannel   chan int
-	lockDevice    sync.RWMutex
-	Client        oop.OpenoltClient
-	transitionMap *TransitionMap
-	clientCon     *grpc.ClientConn
-	flowMgr       *OpenOltFlowMgr
-	eventMgr      *OpenOltEventMgr
-	resourceMgr   *rsrcMgr.OpenOltResourceMgr
-
+	deviceID                      string
+	deviceType                    string
+	adminState                    string
+	device                        *voltha.Device
+	coreProxy                     adapterif.CoreProxy
+	AdapterProxy                  adapterif.AdapterProxy
+	EventProxy                    adapterif.EventProxy
+	openOLT                       *OpenOLT
+	exitChannel                   chan int
+	lockDevice                    sync.RWMutex
+	Client                        oop.OpenoltClient
+	transitionMap                 *TransitionMap
+	clientCon                     *grpc.ClientConn
+	flowMgr                       *OpenOltFlowMgr
+	eventMgr                      *OpenOltEventMgr
+	resourceMgr                   *rsrcMgr.OpenOltResourceMgr
+	rdiThreshold                  uint64
 	discOnus                      sync.Map
 	onus                          sync.Map
 	portStats                     *OpenOltStatisticsMgr
@@ -118,6 +119,8 @@ type OnuDevice struct {
 	proxyDeviceID string
 	uniPorts      map[uint32]struct{}
 	losRaised     bool
+	rdiRaised     bool
+	rdThreshold   uint64
 }
 
 var pmNames = []string{
@@ -142,6 +145,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	device.proxyDeviceID = proxyDevID
 	device.uniPorts = make(map[uint32]struct{})
 	device.losRaised = losRaised
+	device.rdThreshold = defaultONURemoteDefectEventThreshold
 	return &device
 }
 
@@ -2177,6 +2181,20 @@ func extractOmciTransactionID(omciPkt []byte) uint16 {
 func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
 	dh.onus.Store(onuKey, onuDevice)
+}
+
+// StoreOnuDevice stores the onu parameters to the local cache.
+func (dh *DeviceHandler) setOnuITUPonAlarmConfig(config *oop.OnuItuPonAlarm) error {
+	onuDevice, found := dh.onus.Load(dh.formOnuKey(config.PonNi, config.OnuId))
+	if !found {
+		return errors.New("unknown-onu-device")
+	}
+	if _, err := dh.Client.OnuItuPonAlarmSet(context.Background(), config); err != nil {
+		return olterrors.NewErrAdapter("failed-to-set-onu-itu-pon-alarm-config", log.Fields{"device-id": dh.deviceID}, err)
+	}
+	onuDevice.(*OnuDevice).rdThreshold = config.ThresholdLimit
+	logger.Debugw("onu itu pon alarm config set successful", log.Fields{"config": config})
+	return nil
 }
 
 func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
