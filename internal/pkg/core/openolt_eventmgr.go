@@ -19,6 +19,7 @@ package core
 
 import (
 	ctx "context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -140,10 +141,7 @@ func (em *OpenOltEventMgr) ProcessEvents(alarmInd *oop.AlarmIndication, deviceID
 		err = em.onuLossOfSyncIndication(alarmInd.GetOnuLossOfSyncFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuItuPonStatsInd:
 		logger.Debugw("received-onu-itu-pon-stats-indication ", log.Fields{"alarm-ind": alarmInd})
-		logger.Warnw("not-implemented-yet", log.Fields{"alarm-ind": alarmInd})
-	case *oop.AlarmIndication_OnuRemoteDefectInd:
-		logger.Debugw("received-onu-remote-defect-indication ", log.Fields{"alarm-ind": alarmInd})
-		err = em.onuRemoteDefectIndication(alarmInd.GetOnuRemoteDefectInd(), deviceID, raisedTs)
+		err = em.onuItuPonStatsIndication(alarmInd.GetOnuItuPonStatsInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuDeactivationFailureInd:
 		logger.Debugw("received-onu-deactivation-failure-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDeactivationFailureIndication(alarmInd.GetOnuDeactivationFailureInd(), deviceID, raisedTs)
@@ -607,12 +605,14 @@ func (em *OpenOltEventMgr) onuDeactivationFailureIndication(onuDFI *oop.OnuDeact
 	/* Populating event context */
 	context["onu-id"] = strconv.FormatUint(uint64(onuDFI.OnuId), base10)
 	context["intf-id"] = strconv.FormatUint(uint64(onuDFI.IntfId), base10)
-	context["failure-reason"] = strconv.FormatUint(uint64(onuDFI.FailReason), base10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	de.DeviceEventName = onuDeactivationFailureEvent
-
+	if onuDFI.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDeactivationFailureEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDeactivationFailureEvent, "CLEAR_EVENT")
+	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, onu, raisedTs); err != nil {
 		return err
@@ -620,25 +620,51 @@ func (em *OpenOltEventMgr) onuDeactivationFailureIndication(onuDFI *oop.OnuDeact
 	logger.Debugw("onu-deactivation-failure-event-sent-to-kafka", log.Fields{"onu-id": onuDFI.OnuId, "intf-id": onuDFI.IntfId})
 	return nil
 }
-
-func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuRDI *oop.OnuRemoteDefectIndication, deviceID string, raisedTs int64) error {
+func (em *OpenOltEventMgr) onuRemoteDefectIndication(onuID uint32, intfID uint32, rdiCount uint64, status string, deviceID string, raisedTs int64) error {
 	/* Populating event context */
 	context := map[string]string{
-		"onu-id":     strconv.FormatUint(uint64(onuRDI.OnuId), base10),
-		"intf-id":    strconv.FormatUint(uint64(onuRDI.IntfId), base10),
-		"rdi-errors": strconv.FormatUint(uint64(onuRDI.RdiErrors), base10),
+		"onu-id":    strconv.FormatUint(uint64(onuID), base10),
+		"intf-id":   strconv.FormatUint(uint64(intfID), base10),
+		"rdi-count": strconv.FormatUint(rdiCount, base10),
 	}
 	/* Populating device event body */
 	de := &voltha.DeviceEvent{
-		Context:         context,
-		ResourceId:      deviceID,
-		DeviceEventName: onuRemoteDefectIndication,
+		Context:    context,
+		ResourceId: deviceID,
+	}
+	if status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuRemoteDefectIndication, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuRemoteDefectIndication, "CLEAR_EVENT")
 	}
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(de, equipment, onu, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw("onu-remote-defect-event-sent-to-kafka", log.Fields{"onu-id": onuRDI.OnuId, "intf-id": onuRDI.IntfId})
+	logger.Debugw("onu-remote-defect-event-sent-to-kafka", log.Fields{"onu-id": onuID, "intf-id": intfID})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuItuPonStatsIndication(onuIPS *oop.OnuItuPonStatsIndication, deviceID string, raisedTs int64) error {
+	onuDevice, found := em.handler.onus.Load(em.handler.formOnuKey(onuIPS.IntfId, onuIPS.OnuId))
+	if !found {
+		return errors.New("unknown-onu-device")
+	}
+	if onuIPS.GetRdiErrorInd().Status == statusCheckOn {
+		if !onuDevice.(*OnuDevice).rdiRaised {
+			if err := em.onuRemoteDefectIndication(onuIPS.OnuId, onuIPS.IntfId, onuIPS.GetRdiErrorInd().RdiErrorCount, statusCheckOn, deviceID, raisedTs); err != nil {
+				return err
+			}
+			onuDevice.(*OnuDevice).rdiRaised = true
+			return nil
+		}
+		logger.Debugw("onu-remote-defect-already-raised", log.Fields{"onu-id": onuIPS.OnuId, "intf-id": onuIPS.IntfId})
+	} else {
+		if err := em.onuRemoteDefectIndication(onuIPS.OnuId, onuIPS.IntfId, onuIPS.GetRdiErrorInd().RdiErrorCount, statusCheckOff, deviceID, raisedTs); err != nil {
+			return err
+		}
+		onuDevice.(*OnuDevice).rdiRaised = false
+	}
 	return nil
 }
 

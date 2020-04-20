@@ -82,7 +82,7 @@ github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v3/pkg/probe
 github.com/opencord/voltha-lib-go/v3/pkg/techprofile
 github.com/opencord/voltha-lib-go/v3/pkg/version
-# github.com/opencord/voltha-protos/v3 v3.3.5
+# github.com/opencord/voltha-protos/v3 v3.3.6
 github.com/opencord/voltha-protos/v3/go/common
 github.com/opencord/voltha-protos/v3/go/inter_container
 github.com/opencord/voltha-protos/v3/go/omci
