@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"sync"
 	"time"
 
@@ -403,4 +404,14 @@ func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, valuepa
 		}
 	}
 	return resp, nil
+}
+
+// Set_onu_ITU_pon_alar_config sets the parameters based on which the onu rdi alarm is raised
+func (oo *OpenOLT) Set_onu_ITU_pon_alarm_config(deviceID string, config *oop.OnuItuPonAlarm) error{
+	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+		if err := handler.setOnuITUPonAlarmConfig(config); err != nil {
+			return olterrors.NewErrAdapter("failed-to-set-itu-pon-stats", log.Fields{"deviceID": deviceID, "onu-id": config.OnuId, "intf-id": config.PonNi}, err)
+		}
+	}
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil)
 }
