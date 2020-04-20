@@ -404,3 +404,4 @@ func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, valuepa
 	}
 	return resp, nil
 }
+

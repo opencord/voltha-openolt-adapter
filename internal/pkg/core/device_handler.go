@@ -32,7 +32,6 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 
 	"google.golang.org/grpc/codes"
-
 	"github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -116,6 +115,7 @@ type OnuDevice struct {
 	proxyDeviceID string
 	uniPorts      map[uint32]struct{}
 	losRaised     bool
+	rdiRaised     bool
 }
 
 var pmNames = []string{
@@ -1252,6 +1252,20 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err)
 		}
+		if err = dh.setOnuITUPonAlarmConfig(&oop.OnuItuPonAlarm{
+			OnuId: onuInd.OnuId,
+			PonNi: onuInd.IntfId,
+			AlarmId: oop.OnuItuPonAlarm_RDI_ERRORS,
+			AlarmReportingCondition: oop.OnuItuPonAlarm_RATE_THRESHOLD,
+			Config: &oop.OnuItuPonAlarm_RateThresholdConfig_{
+				RateThresholdConfig: &oop.OnuItuPonAlarm_RateThresholdConfig {
+					RateThresholdFalling: 1,
+					RateThresholdRising: 3,
+				},
+			},
+		}); err != nil {
+			return err
+		}
 	default:
 		return olterrors.NewErrInvalidValue(log.Fields{"oper-state": onuInd.OperState}, nil)
 	}
@@ -2197,6 +2211,15 @@ func extractOmciTransactionID(omciPkt []byte) uint16 {
 func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
 	dh.onus.Store(onuKey, onuDevice)
+}
+
+// StoreOnuDevice stores the onu parameters to the local cache.
+func (dh *DeviceHandler) setOnuITUPonAlarmConfig(config *oop.OnuItuPonAlarm) error {
+	if _, err := dh.Client.OnuItuPonAlarmSet(context.Background(), config); err != nil {
+		return err
+	}
+	logger.Debugw("onu itu pon alarm config set successful", log.Fields{"config": config})
+	return nil
 }
 
 func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
