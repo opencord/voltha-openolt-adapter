@@ -1,0 +1,8 @@
+Code-Review+2: Scott Baker <scottb@opennetworking.org>
+Code-Review+1: David Bainbridge <dbainbri@ciena.com>
+Verified+1: Jenkins Jenkins <do-not-reply@opencord.org>
+Submitted-by: Scott Baker <scottb@opennetworking.org>
+Submitted-at: Tue, 21 Apr 2020 23:38:22 +0000
+Reviewed-on: https://gerrit.opencord.org/18622
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
