@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7010d93a_bc50179b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 2188,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "getExtValue",
+      "range": {
+        "startLine": 2188,
+        "startChar": 12,
+        "endLine": 2188,
+        "endChar": 20
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "747f0dcc_55115f45",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 2191,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "The caller logs error, so you can drop this error log.",
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56adaef9_76e79955",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 2212,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "onu-id",
+      "range": {
+        "startLine": 2212,
+        "startChar": 77,
+        "endLine": 2212,
+        "endChar": 82
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adc911c0_fd11c799",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 2212,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 2212,
+        "startChar": 54,
+        "endLine": 2212,
+        "endChar": 62
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05a61d87_d871fef0",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "device-id, onu-id",
+      "range": {
+        "startLine": 396,
+        "startChar": 37,
+        "endLine": 396,
+        "endChar": 65
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9330a41d_714d3698",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "Get_ext_value",
+      "range": {
+        "startLine": 396,
+        "startChar": 12,
+        "endLine": 396,
+        "endChar": 22
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "be8e6b3a_f417a4cb",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 398,
+        "startChar": 38,
+        "endLine": 398,
+        "endChar": 46
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "afc4e67e_e98eeec1",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-23T04:08:50Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 400,
+        "startChar": 65,
+        "endLine": 400,
+        "endChar": 73
+      },
+      "revId": "b04db6d29181e33719f1a6818975fb0af3234b4a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
