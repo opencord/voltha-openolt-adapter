@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9007c76d_563f62ca",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 2181,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-23T03:50:52Z",
+      "side": 1,
+      "message": "Do we still need to pass this parameter? Is it redundant with `device` ?",
+      "range": {
+        "startLine": 2181,
+        "startChar": 57,
+        "endLine": 2181,
+        "endChar": 73
+      },
+      "revId": "3770ac2cfe7faf527949347ede5d08c3a5104d93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
