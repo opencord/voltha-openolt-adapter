@@ -2181,8 +2181,8 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 
 func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
-	var ID uint32
 	var sn *oop.SerialNumber
+	var ID uint32
 	resp := new(voltha.ReturnValues)
 	valueparam := new(oop.ValueParam)
 	ctx := context.Background()
