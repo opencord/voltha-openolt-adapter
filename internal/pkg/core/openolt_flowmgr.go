@@ -426,6 +426,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched[0].TechProfileId = sq.tpID
 
 	if err := f.pushSchedulerQueuesToDevice(ctx, sq, TrafficShaping, TrafficSched); err != nil {
 		return olterrors.NewErrAdapter("failure-pushing-traffic-scheduler-and-queues-to-device", log.Fields{"intfID": sq.intfID, "direction": sq.direction}, err)
@@ -464,7 +465,8 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 	if _, err := f.deviceHandler.Client.CreateTrafficQueues(ctx,
 		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
 			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficQueues: trafficQueues}); err != nil {
+			TrafficQueues: trafficQueues,
+			TechProfileId: TrafficSched[0].TechProfileId}); err != nil {
 		return olterrors.NewErrAdapter("failed-to-create-traffic-queues-in-device", log.Fields{"TrafficQueues": trafficQueues}, err)
 	}
 
@@ -528,6 +530,7 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched[0].TechProfileId = sq.tpID
 
 	TrafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
 	if err != nil {
@@ -537,7 +540,8 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 	if _, err = f.deviceHandler.Client.RemoveTrafficQueues(ctx,
 		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
 			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficQueues: TrafficQueues}); err != nil {
+			TrafficQueues: TrafficQueues,
+			TechProfileId: TrafficSched[0].TechProfileId}); err != nil {
 		return olterrors.NewErrAdapter("unable-to-remove-traffic-queues-from-device",
 			log.Fields{"intfID": sq.intfID, "TrafficQueues": TrafficQueues}, err)
 	}
@@ -676,18 +680,18 @@ func (f *OpenOltFlowMgr) populateTechProfilePerPonPort() error {
 func (f *OpenOltFlowMgr) addUpstreamDataFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32,
 	portNo uint32, uplinkClassifier map[string]interface{},
 	uplinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32) error {
+	allocID uint32, gemportID uint32, tpID uint32) error {
 	uplinkClassifier[PacketTagType] = SingleTag
 	logger.Debugw("Adding upstream data flow", log.Fields{"uplinkClassifier": uplinkClassifier, "uplinkAction": uplinkAction})
 	return f.addHSIAFlow(ctx, intfID, onuID, uniID, portNo, uplinkClassifier, uplinkAction,
-		Upstream, logicalFlow, allocID, gemportID)
+		Upstream, logicalFlow, allocID, gemportID, tpID)
 	/* TODO: Install Secondary EAP on the subscriber vlan */
 }
 
 func (f *OpenOltFlowMgr) addDownstreamDataFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32,
 	portNo uint32, downlinkClassifier map[string]interface{},
 	downlinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32) error {
+	allocID uint32, gemportID uint32, tpID uint32) error {
 	downlinkClassifier[PacketTagType] = DoubleTag
 	logger.Debugw("Adding downstream data flow", log.Fields{"downlinkClassifier": downlinkClassifier,
 		"downlinkAction": downlinkAction})
@@ -716,12 +720,12 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(ctx context.Context, intfID uint3
 	}
 
 	return f.addHSIAFlow(ctx, intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
-		Downstream, logicalFlow, allocID, gemportID)
+		Downstream, logicalFlow, allocID, gemportID, tpID)
 }
 
 func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
 	action map[string]interface{}, direction string, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemPortID uint32) error {
+	allocID uint32, gemPortID uint32, tpID uint32) error {
 	/* One of the OLT platform (Broadcom BAL) requires that symmetric
 	   flows require the same flow_id to be used across UL and DL.
 	   Since HSIA flow is the only symmetric flow currently, we need to
@@ -783,7 +787,9 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo}
+		PortNo:        portNo,
+		TechProfileId: tpID,
+	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
 		return olterrors.NewErrFlowOp("add", flowID, nil, err).Log()
 	}
@@ -798,7 +804,9 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) error {
+func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
+	classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32,
+	gemPortID uint32, tpID uint32) error {
 
 	networkIntfID, err := getNniIntfID(classifier, action)
 	if err != nil {
@@ -859,8 +867,9 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo}
-
+		PortNo:        portNo,
+		TechProfileId: tpID,
+	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &dhcpFlow); err != nil {
 		return olterrors.NewErrFlowOp("add", flowID, log.Fields{"dhcp-flow": dhcpFlow}, err).Log()
 	}
@@ -878,13 +887,13 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 
 //addIGMPTrapFlow creates IGMP trap-to-host flow
 func (f *OpenOltFlowMgr) addIGMPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32) error {
-	return f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, IgmpFlow)
+	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, tpID uint32) error {
+	return f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, IgmpFlow, tpID)
 }
 
 //addUpstreamTrapFlow creates a trap-to-host flow
 func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, flowType string) error {
+	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, flowType string, tpID uint32) error {
 
 	networkIntfID, err := getNniIntfID(classifier, action)
 	if err != nil {
@@ -944,7 +953,9 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo}
+		PortNo:        portNo,
+		TechProfileId: tpID,
+	}
 
 	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
 		return olterrors.NewErrFlowOp("add", flowID, log.Fields{"flow": flow}, err).Log()
@@ -963,7 +974,9 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 }
 
 // Add EAPOL flow to  device with mac, vlanId as classifier for upstream and downstream
-func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, vlanID uint32) error {
+func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
+	classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32,
+	gemPortID uint32, vlanID uint32, tpID uint32) error {
 	logger.Debugw("Adding EAPOL to device", log.Fields{"intfId": intfID, "onuId": onuID, "portNo": portNo, "allocId": allocID, "gemPortId": gemPortID, "vlanId": vlanID, "flow": logicalFlow})
 
 	uplinkClassifier := make(map[string]interface{})
@@ -1022,7 +1035,9 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo}
+		PortNo:        portNo,
+		TechProfileId: tpID,
+	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); err != nil {
 		return olterrors.NewErrFlowOp("add", uplinkFlowID, log.Fields{"flow": upstreamFlow}, err).Log()
 	}
@@ -2428,11 +2443,11 @@ func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint3
 func installFlowOnAllGemports(ctx context.Context,
 	f1 func(ctx context.Context, intfId uint32, onuId uint32, uniId uint32,
 		portNo uint32, classifier map[string]interface{}, action map[string]interface{},
-		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32) error,
+		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32, tpID uint32) error,
 	f2 func(ctx context.Context, intfId uint32, onuId uint32, uniId uint32, portNo uint32,
 		classifier map[string]interface{}, action map[string]interface{},
 		logicalFlow *ofp.OfpFlowStats, allocId uint32, gemPortId uint32, vlanId uint32,
-	) error,
+		tpID uint32) error,
 	args map[string]uint32,
 	classifier map[string]interface{}, action map[string]interface{},
 	logicalFlow *ofp.OfpFlowStats,
@@ -2440,6 +2455,7 @@ func installFlowOnAllGemports(ctx context.Context,
 	TpInst *tp.TechProfile,
 	FlowType string,
 	direction string,
+	tpID uint32,
 	vlanID ...uint32) {
 	logger.Debugw("Installing flow on all GEM ports", log.Fields{"FlowType": FlowType, "gemPorts": gemPorts, "vlan": vlanID})
 
@@ -2465,18 +2481,18 @@ func installFlowOnAllGemports(ctx context.Context,
 		if allPbitsMarked(gemPortAttribute.PbitMap) {
 			classifier[VlanPcp] = uint32(VlanPCPMask)
 			if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-				f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
+				f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
 			} else if FlowType == EapolFlow {
-				f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0])
+				f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
 			}
 		} else {
 			for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
 				if pbitSet == BinaryBit1 {
 					classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
 					if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-						f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID)
+						f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
 					} else if FlowType == EapolFlow {
-						f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0])
+						f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
 					}
 				}
 			}
@@ -2693,7 +2709,7 @@ func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, 
 
 func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]uint32, classifierInfo map[string]interface{},
 	actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpInst *tp.TechProfile, gemPorts []uint32,
-	TpID uint32, uni string) {
+	tpID uint32, uni string) {
 	var gemPort uint32
 	intfID := args[IntfID]
 	onuID := args[OnuID]
@@ -2709,10 +2725,10 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 					pcp.(uint32))
 				//Adding DHCP upstream flow
 
-				f.addDHCPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+				f.addDHCPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID)
 			} else {
 				//Adding DHCP upstream flow to all gemports
-				installFlowOnAllGemports(ctx, f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow, Upstream)
+				installFlowOnAllGemports(ctx, f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow, Upstream, tpID)
 			}
 
 		} else if ipProto == IgmpProto {
@@ -2721,10 +2737,10 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
 					tp_pb.Direction_UPSTREAM,
 					pcp.(uint32))
-				f.addIGMPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+				f.addIGMPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID)
 			} else {
 				//Adding IGMP upstream flow to all gem ports
-				installFlowOnAllGemports(ctx, f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, IgmpFlow, Upstream)
+				installFlowOnAllGemports(ctx, f.addIGMPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, IgmpFlow, Upstream, tpID)
 			}
 		} else {
 			logger.Errorw("Invalid-Classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
@@ -2744,9 +2760,9 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 					tp_pb.Direction_UPSTREAM,
 					pcp.(uint32))
 
-				f.addEAPOLFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID)
+				f.addEAPOLFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID)
 			} else {
-				installFlowOnAllGemports(ctx, nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, EapolFlow, Upstream, vlanID)
+				installFlowOnAllGemports(ctx, nil, f.addEAPOLFlow, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, EapolFlow, Upstream, tpID, vlanID)
 			}
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
@@ -2756,10 +2772,10 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				tp_pb.Direction_UPSTREAM,
 				pcp.(uint32))
 			//Adding HSIA upstream flow
-			f.addUpstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+			f.addUpstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID)
 		} else {
 			//Adding HSIA upstream flow to all gemports
-			installFlowOnAllGemports(ctx, f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Upstream)
+			installFlowOnAllGemports(ctx, f.addUpstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Upstream, tpID)
 		}
 	} else if _, ok := actionInfo[PopVlan]; ok {
 		logger.Info("Adding Downstream data rule")
@@ -2768,17 +2784,17 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				tp_pb.Direction_DOWNSTREAM,
 				pcp.(uint32))
 			//Adding HSIA downstream flow
-			f.addDownstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort)
+			f.addDownstreamDataFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID)
 		} else {
 			//Adding HSIA downstream flow to all gemports
-			installFlowOnAllGemports(ctx, f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Downstream)
+			installFlowOnAllGemports(ctx, f.addDownstreamDataFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, HsiaFlow, Downstream, tpID)
 		}
 	} else {
 		logger.Errorw("Invalid-flow-type-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo, "flow": flow})
 		return
 	}
 	// Send Techprofile download event to child device in go routine as it takes time
-	go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, TpID)
+	go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, tpID)
 }
 
 func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) bool {
