@@ -390,6 +390,7 @@ func (oo *OpenOLT) Start_omci_test(device *voltha.Device, request *voltha.OmciTe
 	return nil, olterrors.ErrNotImplemented
 }
 
+//Get_ext_value gets a specific value from the agent
 func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
 	resp := new(voltha.ReturnValues)
