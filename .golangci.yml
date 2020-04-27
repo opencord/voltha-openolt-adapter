@@ -83,4 +83,5 @@ issues:
     - "don't use underscores in Go names; method Enable_port"
     - "don't use underscores in Go names; method Child_device_lost"
     - "don't use underscores in Go names; method Start_omci_test"
+    - "don't use underscores in Go names; method Get_ext_value"
   exclude-use-default: false
