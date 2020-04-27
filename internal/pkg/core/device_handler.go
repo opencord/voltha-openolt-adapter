@@ -2181,12 +2181,12 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 
 func (dh *DeviceHandler) getExtValue(device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
+	var sn *oop.SerialNumber
 	var ID uint32
 	resp := new(voltha.ReturnValues)
 	valueparam := new(oop.ValueParam)
 	ctx := context.Background()
 	log.Infow("getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
-	sn := new(oop.SerialNumber)
 	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
 		return nil, err
 	}
