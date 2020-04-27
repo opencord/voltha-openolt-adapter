@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f4d77d20_cb7a0c58",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2765,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-27T16:07:46Z",
+      "side": 1,
+      "message": "dont we need tpID here?",
+      "revId": "67db4f226aa658f27a2973c014ebeae7026ffcb5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
