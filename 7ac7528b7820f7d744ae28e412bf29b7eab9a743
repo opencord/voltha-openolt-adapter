@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "96025db2_32adf8ae",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-27T14:47:31Z",
+      "side": 1,
+      "message": "If multiple indications occur where the errors exceed the threshold (for example, one indication where eonuUPS.RdiErrors\u003d4, and then a second \u003d5), will multiple RAISED alarms be sent? If so, do we want to suppress those multiple messages?",
+      "range": {
+        "startLine": 638,
+        "startChar": 1,
+        "endLine": 638,
+        "endChar": 47
+      },
+      "revId": "7ac7528b7820f7d744ae28e412bf29b7eab9a743",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
