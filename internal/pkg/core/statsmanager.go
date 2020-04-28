@@ -385,9 +385,8 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[stri
 
 // PortStatisticsIndication handles the port statistics indication
 func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
-	logger.Debugf("port-stats-collected %v", PortStats)
 	StatMgr.PortsStatisticsKpis(PortStats, NumPonPorts)
-	logger.Infow("Received port stats indication", log.Fields{"PortStats": PortStats})
+	logger.Debugw("Received port stats indication", log.Fields{"PortStats": PortStats})
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 

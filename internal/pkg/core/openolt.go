@@ -174,7 +174,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
 func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
-	logger.Infow("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
+	logger.Debugw("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
 	targetDevice := msg.Header.ProxyDeviceId // Request?
 	if targetDevice == "" && msg.Header.ToDeviceId != "" {
 		// Typical response
