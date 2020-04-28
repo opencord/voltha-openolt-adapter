@@ -227,3 +227,7 @@ func (mock *mockOpenoltEnableIndicationClient) RecvMsg(m interface{}) error {
 func (ooc *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
 	return &openolt.Empty{}, nil
 }
+
+func (ooc *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.ValueParam, opts ...grpc.CallOption) (*openolt.ReturnValues, error) {
+	return &openolt.ReturnValues{}, nil
+}
