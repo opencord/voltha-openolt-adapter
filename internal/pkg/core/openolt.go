@@ -174,7 +174,7 @@ func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.P
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
 func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
-	logger.Infow("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
+	logger.Debugw("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
 	targetDevice := msg.Header.ProxyDeviceId // Request?
 	if targetDevice == "" && msg.Header.ToDeviceId != "" {
 		// Typical response
@@ -390,6 +390,7 @@ func (oo *OpenOLT) Start_omci_test(device *voltha.Device, request *voltha.OmciTe
 	return nil, olterrors.ErrNotImplemented
 }
 
+//Get_ext_value retrieves a value on a particular ONU
 func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
 	resp := new(voltha.ReturnValues)
