@@ -81,7 +81,7 @@ docker-build: local-protos local-lib-go ## Build openolt adapter docker image
 	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 
 docker-build-profile: local-protos local-lib-go ## Build openolt adapter docker image with profiling enabled
-	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt_profile .
+	docker build $(DOCKER_BUILD_ARGS) --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt .
 
 docker-push: ## Push the docker images to an external repository
 	docker push ${ADAPTER_IMAGENAME}

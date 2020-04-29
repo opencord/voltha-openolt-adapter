@@ -24,6 +24,8 @@ RUN apk add --no-cache build-base=0.5-r1
 WORKDIR /go/src/github.com/opencord/voltha-openolt-adapter
 COPY . .
 
+ARG EXTRA_GO_BUILD_TAGS=""
+
 ARG org_label_schema_version=unknown
 ARG org_label_schema_vcs_url=unknown
 ARG org_label_schema_vcs_ref=unknown
@@ -33,7 +35,7 @@ ARG org_opencord_vcs_dirty=unknown
 
 # Build openolt
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
-RUN go build -mod=vendor -o /go/bin/openolt \
+RUN go build $EXTRA_GO_BUILD_TAGS -mod=vendor -o /go/bin/openolt \
 	-ldflags \
 	"-X github.com/opencord/voltha-lib-go/v3/pkg/version.version=$org_label_schema_version \
 	 -X github.com/opencord/voltha-lib-go/v3/pkg/version.vcsRef=$org_label_schema_vcs_ref  \
