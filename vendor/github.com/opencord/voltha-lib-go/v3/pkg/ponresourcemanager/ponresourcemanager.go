@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	bitmap "github.com/boljen/go-bitmap"
@@ -140,8 +139,7 @@ type PONResourceManager struct {
 	DeviceType       string
 	DeviceID         string
 	Backend          string // ETCD, or consul
-	Host             string // host ip of the KV store
-	Port             int    // port number for the KV store
+	Address          string // address of the KV store
 	OLTModel         string
 	KVStore          *db.Backend
 	KVStoreForConfig *db.Backend
@@ -167,11 +165,10 @@ func newKVClient(storeType string, address string, timeout time.Duration) (kvsto
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func SetKVClient(Technology string, Backend string, Host string, Port int, configClient bool) *db.Backend {
-	addr := Host + ":" + strconv.Itoa(Port)
+func SetKVClient(Technology string, Backend string, Addr string, configClient bool) *db.Backend {
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
-	kvClient, err := newKVClient(Backend, addr, KVSTORE_RETRY_TIMEOUT)
+	kvClient, err := newKVClient(Backend, Addr, KVSTORE_RETRY_TIMEOUT)
 	if err != nil {
 		logger.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
@@ -187,8 +184,7 @@ func SetKVClient(Technology string, Backend string, Host string, Port int, confi
 	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  Backend,
-		Host:       Host,
-		Port:       Port,
+		Address:    Addr,
 		Timeout:    KVSTORE_RETRY_TIMEOUT,
 		PathPrefix: pathPrefix}
 
@@ -196,27 +192,26 @@ func SetKVClient(Technology string, Backend string, Host string, Port int, confi
 }
 
 // NewPONResourceManager creates a new PON resource manager.
-func NewPONResourceManager(Technology string, DeviceType string, DeviceID string, Backend string, Host string, Port int) (*PONResourceManager, error) {
+func NewPONResourceManager(Technology string, DeviceType string, DeviceID string, Backend string, Address string) (*PONResourceManager, error) {
 	var PONMgr PONResourceManager
 	PONMgr.Technology = Technology
 	PONMgr.DeviceType = DeviceType
 	PONMgr.DeviceID = DeviceID
 	PONMgr.Backend = Backend
-	PONMgr.Host = Host
-	PONMgr.Port = Port
-	PONMgr.KVStore = SetKVClient(Technology, Backend, Host, Port, false)
+	PONMgr.Address = Address
+	PONMgr.KVStore = SetKVClient(Technology, Backend, Address, false)
 	if PONMgr.KVStore == nil {
 		logger.Error("KV Client initilization failed")
 		return nil, errors.New("Failed to init KV client")
 	}
 	// init kv client to read from the config path
-	PONMgr.KVStoreForConfig = SetKVClient(Technology, Backend, Host, Port, true)
+	PONMgr.KVStoreForConfig = SetKVClient(Technology, Backend, Address, true)
 	if PONMgr.KVStoreForConfig == nil {
 		logger.Error("KV Config Client initilization failed")
 		return nil, errors.New("Failed to init KV Config client")
 	}
 	// Initialize techprofile for this technology
-	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(&PONMgr, Backend, Host, Port); PONMgr.TechProfileMgr == nil {
+	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(&PONMgr, Backend, Address); PONMgr.TechProfileMgr == nil {
 		logger.Error("Techprofile initialization failed")
 		return nil, errors.New("Failed to init tech profile")
 	}
