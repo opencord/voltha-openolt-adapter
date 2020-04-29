@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "854af411_39c8b928",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 2765,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-04-29T13:48:30Z",
+      "side": 1,
+      "message": "isn\u0027t vlanID then tpID",
+      "range": {
+        "startLine": 2765,
+        "startChar": 134,
+        "endLine": 2765,
+        "endChar": 146
+      },
+      "revId": "9931125d6baf3ed72e09d88a077b3f4a031395c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
