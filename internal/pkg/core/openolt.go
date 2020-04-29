@@ -41,8 +41,7 @@ type OpenOLT struct {
 	kafkaICProxy                kafka.InterContainerProxy
 	config                      *config.AdapterFlags
 	numOnus                     int
-	KVStoreHost                 string
-	KVStorePort                 int
+	KVStoreAddress              string
 	KVStoreType                 string
 	exitChannel                 chan int
 	HeartbeatCheckInterval      time.Duration
@@ -64,8 +63,7 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	openOLT.coreProxy = coreProxy
 	openOLT.adapterProxy = adapterProxy
 	openOLT.eventProxy = eventProxy
-	openOLT.KVStoreHost = cfg.KVStoreHost
-	openOLT.KVStorePort = cfg.KVStorePort
+	openOLT.KVStoreAddress = cfg.KVStoreAddress
 	openOLT.KVStoreType = cfg.KVStoreType
 	openOLT.HeartbeatCheckInterval = cfg.HeartbeatCheckInterval
 	openOLT.HeartbeatFailReportInterval = cfg.HeartbeatFailReportInterval
