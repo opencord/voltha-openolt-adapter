@@ -682,9 +682,8 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	if err != nil {
 		return olterrors.NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
-	KVStoreHostPort := fmt.Sprintf("%s:%d", dh.openOLT.KVStoreHost, dh.openOLT.KVStorePort)
 	// Instantiate resource manager
-	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.deviceID, KVStoreHostPort, dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
+	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.deviceID, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.deviceType, deviceInfo); dh.resourceMgr == nil {
 		return olterrors.ErrResourceManagerInstantiating
 	}
 
