@@ -48,8 +48,7 @@ type fields struct {
 	eventProxy            *com.EventProxy
 	kafkaICProxy          kafka.InterContainerProxy
 	numOnus               int
-	KVStoreHost           string
-	KVStorePort           int
+	KVStoreAddress        string
 	KVStoreType           string
 	exitChannel           chan int
 	lockDeviceHandlersMap sync.RWMutex
@@ -74,8 +73,7 @@ func testOltObject(testOlt *fields) *OpenOLT {
 		eventProxy:     testOlt.eventProxy,
 		kafkaICProxy:   testOlt.kafkaICProxy,
 		numOnus:        testOlt.numOnus,
-		KVStoreHost:    testOlt.KVStoreHost,
-		KVStorePort:    testOlt.KVStorePort,
+		KVStoreAddress: testOlt.KVStoreAddress,
 		KVStoreType:    testOlt.KVStoreType,
 		exitChannel:    testOlt.exitChannel,
 	}
@@ -109,12 +107,12 @@ func TestNewOpenOLT(t *testing.T) {
 		configFlags *config.AdapterFlags
 		want        *OpenOLT
 	}{
-		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStorePort: 1, KVStoreType: "consul", KVStoreHost: "1.1.1.1"},
-			&OpenOLT{numOnus: 1, KVStorePort: 1, KVStoreType: "consul", KVStoreHost: "1.1.1.1"}},
-		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStorePort: 2, KVStoreType: "etcd", KVStoreHost: "2.2.2.2"},
-			&OpenOLT{numOnus: 2, KVStorePort: 2, KVStoreType: "etcd", KVStoreHost: "2.2.2.2"}},
-		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStorePort: 3, KVStoreType: "consul", KVStoreHost: "3.3.3.3"},
-			&OpenOLT{numOnus: 3, KVStorePort: 3, KVStoreType: "consul", KVStoreHost: "3.3.3.3"}},
+		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"},
+			&OpenOLT{numOnus: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"}},
+		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"},
+			&OpenOLT{numOnus: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}},
+		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"},
+			&OpenOLT{numOnus: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
