@@ -243,12 +243,11 @@ type TechProfile struct {
 }
 
 func (t *TechProfileMgr) SetKVClient() *db.Backend {
-	addr := t.config.KVStoreHost + ":" + strconv.Itoa(t.config.KVStorePort)
-	kvClient, err := newKVClient(t.config.KVStoreType, addr, t.config.KVStoreTimeout)
+	kvClient, err := newKVClient(t.config.KVStoreType, t.config.KVStoreAddress, t.config.KVStoreTimeout)
 	if err != nil {
 		logger.Errorw("failed-to-create-kv-client",
 			log.Fields{
-				"type": t.config.KVStoreType, "host": t.config.KVStoreHost, "port": t.config.KVStorePort,
+				"type": t.config.KVStoreType, "address": t.config.KVStoreAddress,
 				"timeout": t.config.KVStoreTimeout, "prefix": t.config.TPKVPathPrefix,
 				"error": err.Error(),
 			})
@@ -257,8 +256,7 @@ func (t *TechProfileMgr) SetKVClient() *db.Backend {
 	return &db.Backend{
 		Client:     kvClient,
 		StoreType:  t.config.KVStoreType,
-		Host:       t.config.KVStoreHost,
-		Port:       t.config.KVStorePort,
+		Address:    t.config.KVStoreAddress,
 		Timeout:    t.config.KVStoreTimeout,
 		PathPrefix: t.config.TPKVPathPrefix}
 
@@ -281,10 +279,10 @@ func newKVClient(storeType string, address string, timeout time.Duration) (kvsto
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func NewTechProfile(resourceMgr iPonResourceMgr, KVStoreType string, KVStoreHost string, KVStorePort int) (*TechProfileMgr, error) {
+func NewTechProfile(resourceMgr iPonResourceMgr, KVStoreType string, KVStoreAddress string) (*TechProfileMgr, error) {
 	var techprofileObj TechProfileMgr
 	logger.Debug("Initializing techprofile Manager")
-	techprofileObj.config = NewTechProfileFlags(KVStoreType, KVStoreHost, KVStorePort)
+	techprofileObj.config = NewTechProfileFlags(KVStoreType, KVStoreAddress)
 	techprofileObj.config.KVBackend = techprofileObj.SetKVClient()
 	if techprofileObj.config.KVBackend == nil {
 		logger.Error("Failed to initialize KV backend\n")
