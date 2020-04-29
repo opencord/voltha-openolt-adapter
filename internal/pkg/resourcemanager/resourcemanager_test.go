@@ -70,12 +70,10 @@ const (
 // fields mocks  OpenOltResourceMgr struct.
 type fields struct {
 	DeviceID      string
-	HostAndPort   string
+	Address       string
 	Args          string
 	KVStore       *db.Backend
 	DeviceType    string
-	Host          string
-	Port          int
 	DevInfo       *openolt.DeviceInfo
 	ResourceMgrs  map[uint32]*ponrmgr.PONResourceManager
 	NumOfPonPorts uint32
@@ -253,12 +251,10 @@ func (kvclient *MockResKVClient) Close() {
 func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 	var rsrMgr = OpenOltResourceMgr{
 		DeviceID:     testResMgr.DeviceID,
-		HostAndPort:  testResMgr.HostAndPort,
 		Args:         testResMgr.Args,
 		KVStore:      testResMgr.KVStore,
 		DeviceType:   testResMgr.DeviceType,
-		Host:         testResMgr.Host,
-		Port:         testResMgr.Port,
+		Address:      testResMgr.Address,
 		DevInfo:      testResMgr.DevInfo,
 		ResourceMgrs: testResMgr.ResourceMgrs,
 	}
@@ -272,11 +268,11 @@ func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 
 func TestNewResourceMgr(t *testing.T) {
 	type args struct {
-		deviceID        string
-		KVStoreHostPort string
-		kvStoreType     string
-		deviceType      string
-		devInfo         *openolt.DeviceInfo
+		deviceID       string
+		KVStoreAddress string
+		kvStoreType    string
+		deviceType     string
+		devInfo        *openolt.DeviceInfo
 	}
 	tests := []struct {
 		name string
@@ -292,7 +288,7 @@ func TestNewResourceMgr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if got := NewResourceMgr(ctx, tt.args.deviceID, tt.args.KVStoreHostPort, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := NewResourceMgr(ctx, tt.args.deviceID, tt.args.KVStoreAddress, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("NewResourceMgr() = %v, want %v", got, tt.want)
 			}
 		})
@@ -942,8 +938,7 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 func TestSetKVClient(t *testing.T) {
 	type args struct {
 		backend  string
-		Host     string
-		Port     int
+		address  string
 		DeviceID string
 	}
 	tests := []struct {
@@ -951,12 +946,12 @@ func TestSetKVClient(t *testing.T) {
 		args args
 		want *db.Backend
 	}{
-		{"setKVClient-1", args{"consul", "1.1.1.1", 1, "olt1"}, &db.Backend{}},
-		{"setKVClient-1", args{"etcd", "2.2.2.2", 2, "olt2"}, &db.Backend{}},
+		{"setKVClient-1", args{"consul", "1.1.1.1:1", "olt1"}, &db.Backend{}},
+		{"setKVClient-1", args{"etcd", "2.2.2.2:2", "olt2"}, &db.Backend{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SetKVClient(tt.args.backend, tt.args.Host, tt.args.Port, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := SetKVClient(tt.args.backend, tt.args.address, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("SetKVClient() = %v, want %v", got, tt.want)
 			}
 		})
