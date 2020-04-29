@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -100,14 +99,12 @@ type GroupInfo struct {
 
 // OpenOltResourceMgr holds resource related information as provided below for each field
 type OpenOltResourceMgr struct {
-	DeviceID    string      // OLT device id
-	HostAndPort string      // Host and port of the kv store to connect to
-	Args        string      // args
-	KVStore     *db.Backend // backend kv store connection handle
-	DeviceType  string
-	Host        string              // Host ip of the kv store
-	Port        int                 // port of the kv store
-	DevInfo     *openolt.DeviceInfo // device information
+	DeviceID   string      // OLT device id
+	Address    string      // Host and port of the kv store to connect to
+	Args       string      // args
+	KVStore    *db.Backend // backend kv store connection handle
+	DeviceType string
+	DevInfo    *openolt.DeviceInfo // device information
 	// array of pon resource managers per interface technology
 	ResourceMgrs map[uint32]*ponrmgr.PONResourceManager
 
@@ -137,8 +134,7 @@ func newKVClient(storeType string, address string, timeout time.Duration) (kvsto
 }
 
 // SetKVClient sets the KV client and return a kv backend
-func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Backend {
-	addr := Host + ":" + strconv.Itoa(Port)
+func SetKVClient(backend string, addr string, DeviceID string) *db.Backend {
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
 	kvClient, err := newKVClient(backend, addr, KvstoreTimeout)
@@ -150,8 +146,7 @@ func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Bac
 	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  backend,
-		Host:       Host,
-		Port:       Port,
+		Address:    addr,
 		Timeout:    KvstoreTimeout,
 		PathPrefix: fmt.Sprintf(BasePathKvStore, DeviceID)}
 
@@ -161,20 +156,16 @@ func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Bac
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
-func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo) *OpenOltResourceMgr {
+func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
-	logger.Debugf("Init new resource manager , host_port: %s, deviceid: %s", KVStoreHostPort, deviceID)
-	ResourceMgr.HostAndPort = KVStoreHostPort
+	logger.Debugf("Init new resource manager , address: %s, deviceid: %s", KVStoreAddress, deviceID)
+	ResourceMgr.Address = KVStoreAddress
 	ResourceMgr.DeviceType = deviceType
 	ResourceMgr.DevInfo = devInfo
-	IPPort := strings.Split(KVStoreHostPort, ":")
-	ResourceMgr.Host = IPPort[0]
-	ResourceMgr.Port, _ = strconv.Atoi(IPPort[1])
 	NumPONPorts := devInfo.GetPonPorts()
 
 	Backend := kvStoreType
-	ResourceMgr.KVStore = SetKVClient(Backend, ResourceMgr.Host,
-		ResourceMgr.Port, deviceID)
+	ResourceMgr.KVStore = SetKVClient(Backend, ResourceMgr.Address, deviceID)
 	if ResourceMgr.KVStore == nil {
 		logger.Error("Failed to setup KV store")
 	}
@@ -242,7 +233,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 		logger.Debugf("Device info technology %s", technology)
 		Ranges[technology] = TechRange
 		RsrcMgrsByTech[technology], err = ponrmgr.NewPONResourceManager(technology, deviceType, deviceID,
-			Backend, ResourceMgr.Host, ResourceMgr.Port)
+			Backend, ResourceMgr.Address)
 		if err != nil {
 			logger.Errorf("Failed to create pon resource manager instance for technology %s", technology)
 			return nil
