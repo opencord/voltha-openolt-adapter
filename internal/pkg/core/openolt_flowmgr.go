@@ -2715,7 +2715,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				installFlowOnAllGemports(ctx, f.addDHCPTrapFlow, nil, args, classifierInfo, actionInfo, flow, gemPorts, TpInst, DhcpFlow, Upstream)
 			}
 
-		} else if ipProto == IgmpProto {
+		} else if ipProto.(uint32) == IgmpProto {
 			logger.Infow("Adding Us IGMP flow", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "classifierInfo:": classifierInfo})
 			if pcp, ok := classifierInfo[VlanPcp]; ok {
 				gemPort = f.techprofile[intfID].GetGemportIDForPbit(TpInst,
