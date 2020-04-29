@@ -22,6 +22,30 @@
       "revId": "9931125d6baf3ed72e09d88a077b3f4a031395c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1768b0a5_611df7e4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 2765,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2020-04-29T13:53:25Z",
+      "side": 1,
+      "message": "No.\nThe signature of installFlowOnAllGemports is (.... \tFlowType string,\ndirection string,\ntpID uint32,\nvlanID ...uint32)",
+      "parentUuid": "854af411_39c8b928",
+      "range": {
+        "startLine": 2765,
+        "startChar": 134,
+        "endLine": 2765,
+        "endChar": 146
+      },
+      "revId": "9931125d6baf3ed72e09d88a077b3f4a031395c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
