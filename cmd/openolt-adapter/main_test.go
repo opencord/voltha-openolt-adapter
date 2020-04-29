@@ -124,8 +124,7 @@ func Test_newKafkaClient(t *testing.T) {
 	adapter := newMockAdapter()
 	type args struct {
 		clientType string
-		host       string
-		port       int
+		address    string
 	}
 	tests := []struct {
 		name    string
@@ -133,12 +132,12 @@ func Test_newKafkaClient(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"newKafkaClient", args{clientType: "sarama", host: adapter.config.KafkaAdapterHost, port: adapter.config.KafkaAdapterPort}, false},
-		{"newKafkaClient", args{clientType: "sarama", host: adapter.config.KafkaAdapterHost, port: adapter.config.KafkaAdapterPort}, false},
+		{"newKafkaClient", args{clientType: "sarama", address: adapter.config.KafkaAdapterAddress}, false},
+		{"newKafkaClient", args{clientType: "sarama", address: adapter.config.KafkaAdapterAddress}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := newKafkaClient(tt.args.clientType, tt.args.host, tt.args.port)
+			_, err := newKafkaClient(tt.args.clientType, tt.args.address)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newKafkaClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -153,8 +152,7 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 	ad := newMockAdapter()
 
 	kip := kafka.NewInterContainerProxy(
-		kafka.InterContainerHost(ad.config.KafkaAdapterHost),
-		kafka.InterContainerPort(ad.config.KafkaAdapterPort),
+		kafka.InterContainerAddress(ad.config.KafkaAdapterAddress),
 		kafka.MsgClient(&mockKafkaClient{}),
 		kafka.DefaultTopic(&kafka.Topic{Name: ad.config.Topic}))
 

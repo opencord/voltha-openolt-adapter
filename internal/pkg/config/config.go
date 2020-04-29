@@ -28,14 +28,11 @@ import (
 const (
 	EtcdStoreName               = "etcd"
 	defaultInstanceid           = "openOlt001"
-	defaultKafkaadapterhost     = "127.0.0.1"
-	defaultKafkaadapterport     = 9092
-	defaultKafkaclusterhost     = "127.0.0.1"
-	defaultKafkaclusterport     = 9094
+	defaultKafkaadapteraddress  = "127.0.0.1:9092"
+	defaultKafkaclusteraddress  = "127.0.0.1:9094"
 	defaultKvstoretype          = EtcdStoreName
-	defaultKvstoretimeout       = 5 * time.Second //in seconds
-	defaultKvstorehost          = "127.0.0.1"
-	defaultKvstoreport          = 2379 // Consul = 8500; Etcd = 2379
+	defaultKvstoretimeout       = 5 * time.Second
+	defaultKvstoreaddress       = "127.0.0.1:2379" // Port: Consul = 8500; Etcd = 2379
 	defaultLoglevel             = "WARN"
 	defaultBanner               = false
 	defaultDisplayVersionOnly   = false
@@ -43,8 +40,7 @@ const (
 	defaultCoretopic            = "rwcore"
 	defaultEventtopic           = "voltha.events"
 	defaultOnunumber            = 1
-	defaultProbeHost            = ""
-	defaultProbePort            = 8080
+	defaultProbeAddress         = ":8080"
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
 	//defaultHearbeatFailReportInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
@@ -61,14 +57,11 @@ const (
 type AdapterFlags struct {
 	// Command line parameters
 	InstanceID                  string
-	KafkaAdapterHost            string
-	KafkaAdapterPort            int
-	KafkaClusterHost            string
-	KafkaClusterPort            int
+	KafkaAdapterAddress         string
+	KafkaClusterAddress         string
 	KVStoreType                 string
-	KVStoreTimeout              time.Duration // in seconds
-	KVStoreHost                 string
-	KVStorePort                 int
+	KVStoreTimeout              time.Duration
+	KVStoreAddress              string
 	Topic                       string
 	CoreTopic                   string
 	EventTopic                  string
@@ -76,8 +69,7 @@ type AdapterFlags struct {
 	OnuNumber                   int
 	Banner                      bool
 	DisplayVersionOnly          bool
-	ProbeHost                   string
-	ProbePort                   int
+	ProbeAddress                string
 	LiveProbeInterval           time.Duration
 	NotLiveProbeInterval        time.Duration
 	HeartbeatCheckInterval      time.Duration
@@ -91,14 +83,11 @@ type AdapterFlags struct {
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
 		InstanceID:                  defaultInstanceid,
-		KafkaAdapterHost:            defaultKafkaadapterhost,
-		KafkaAdapterPort:            defaultKafkaadapterport,
-		KafkaClusterHost:            defaultKafkaclusterhost,
-		KafkaClusterPort:            defaultKafkaclusterport,
+		KafkaAdapterAddress:         defaultKafkaadapteraddress,
+		KafkaClusterAddress:         defaultKafkaclusteraddress,
 		KVStoreType:                 defaultKvstoretype,
 		KVStoreTimeout:              defaultKvstoretimeout,
-		KVStoreHost:                 defaultKvstorehost,
-		KVStorePort:                 defaultKvstoreport,
+		KVStoreAddress:              defaultKvstoreaddress,
 		Topic:                       defaultTopic,
 		CoreTopic:                   defaultCoretopic,
 		EventTopic:                  defaultEventtopic,
@@ -106,8 +95,7 @@ func NewAdapterFlags() *AdapterFlags {
 		OnuNumber:                   defaultOnunumber,
 		Banner:                      defaultBanner,
 		DisplayVersionOnly:          defaultDisplayVersionOnly,
-		ProbeHost:                   defaultProbeHost,
-		ProbePort:                   defaultProbePort,
+		ProbeAddress:                defaultProbeAddress,
 		LiveProbeInterval:           defaultLiveProbeInterval,
 		NotLiveProbeInterval:        defaultNotLiveProbeInterval,
 		HeartbeatCheckInterval:      defaultHearbeatCheckInterval,
@@ -120,17 +108,11 @@ func NewAdapterFlags() *AdapterFlags {
 // ParseCommandArguments parses the arguments when running read-write adaptercore service
 func (so *AdapterFlags) ParseCommandArguments() {
 
-	help := fmt.Sprintf("Kafka - Adapter messaging host")
-	flag.StringVar(&(so.KafkaAdapterHost), "kafka_adapter_host", defaultKafkaadapterhost, help)
+	help := fmt.Sprintf("Kafka - Adapter messaging address")
+	flag.StringVar(&(so.KafkaAdapterAddress), "kafka_adapter_address", defaultKafkaadapteraddress, help)
 
-	help = fmt.Sprintf("Kafka - Adapter messaging port")
-	flag.IntVar(&(so.KafkaAdapterPort), "kafka_adapter_port", defaultKafkaadapterport, help)
-
-	help = fmt.Sprintf("Kafka - Cluster messaging host")
-	flag.StringVar(&(so.KafkaClusterHost), "kafka_cluster_host", defaultKafkaclusterhost, help)
-
-	help = fmt.Sprintf("Kafka - Cluster messaging port")
-	flag.IntVar(&(so.KafkaClusterPort), "kafka_cluster_port", defaultKafkaclusterport, help)
+	help = fmt.Sprintf("Kafka - Cluster messaging address")
+	flag.StringVar(&(so.KafkaClusterAddress), "kafka_cluster_address", defaultKafkaclusteraddress, help)
 
 	help = fmt.Sprintf("Open OLT topic")
 	flag.StringVar(&(so.Topic), "adapter_topic", defaultTopic, help)
@@ -147,11 +129,8 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	help = fmt.Sprintf("The default timeout when making a kv store request")
 	flag.DurationVar(&(so.KVStoreTimeout), "kv_store_request_timeout", defaultKvstoretimeout, help)
 
-	help = fmt.Sprintf("KV store host")
-	flag.StringVar(&(so.KVStoreHost), "kv_store_host", defaultKvstorehost, help)
-
-	help = fmt.Sprintf("KV store port")
-	flag.IntVar(&(so.KVStorePort), "kv_store_port", defaultKvstoreport, help)
+	help = fmt.Sprintf("KV store address")
+	flag.StringVar(&(so.KVStoreAddress), "kv_store_address", defaultKvstoreaddress, help)
 
 	help = fmt.Sprintf("Log level")
 	flag.StringVar(&(so.LogLevel), "log_level", defaultLoglevel, help)
@@ -166,10 +145,7 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	flag.BoolVar(&(so.DisplayVersionOnly), "version", defaultDisplayVersionOnly, help)
 
 	help = fmt.Sprintf("The address on which to listen to answer liveness and readiness probe queries over HTTP.")
-	flag.StringVar(&(so.ProbeHost), "probe_host", defaultProbeHost, help)
-
-	help = fmt.Sprintf("The port on which to listen to answer liveness and readiness probe queries over HTTP.")
-	flag.IntVar(&(so.ProbePort), "probe_port", defaultProbePort, help)
+	flag.StringVar(&(so.ProbeAddress), "probe_address", defaultProbeAddress, help)
 
 	help = fmt.Sprintf("Number of seconds for the default liveliness check")
 	flag.DurationVar(&(so.LiveProbeInterval), "live_probe_interval", defaultLiveProbeInterval, help)
