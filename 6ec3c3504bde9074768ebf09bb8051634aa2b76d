@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a58d785_e8ddc5d8",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-04-30T15:05:27Z",
+      "side": 1,
+      "message": "Would it be cleaner to add the extra --build-arg to DOCKER_BUILD_ARGS if this is defined?",
+      "range": {
+        "startLine": 82,
+        "startChar": 6,
+        "endLine": 82,
+        "endChar": 20
+      },
+      "revId": "6ec3c3504bde9074768ebf09bb8051634aa2b76d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
