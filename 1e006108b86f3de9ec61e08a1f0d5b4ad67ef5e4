@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "4fbd1217_d4424c37",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-04T19:29:15Z",
+      "side": 1,
+      "message": "why is this? Isn\u0027t this the OLT adapter? did you mean replace OLT with \"olt\"?",
+      "parentUuid": "c78bcc3c_44fc0b13",
+      "range": {
+        "startLine": 632,
+        "startChar": 16,
+        "endLine": 632,
+        "endChar": 19
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c4610a8_65562f94",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 8
