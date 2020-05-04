@@ -1197,6 +1197,8 @@ func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.O
 	switch onuInd.OperState {
 	case "down":
 		logger.Debugw("sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "DeviceId": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
+		// The ONU has gone "down" and we expect the ONU to send discovery again
+		dh.discOnus.Delete(onuDevice.SerialNumber)
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
 			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
