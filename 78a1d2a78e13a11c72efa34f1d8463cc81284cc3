@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23ca8722_c6fb3f67",
+        "filename": "go.sum",
+        "patchSetId": 11
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-05-04T15:39:00Z",
+      "side": 0,
+      "message": "Was something force-merged before?",
+      "range": {
+        "startLine": 207,
+        "startChar": 0,
+        "endLine": 207,
+        "endChar": 91
+      },
+      "revId": "78a1d2a78e13a11c72efa34f1d8463cc81284cc3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
