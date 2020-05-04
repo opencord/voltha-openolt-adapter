@@ -23,6 +23,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -349,14 +350,17 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 }
 
 // publishMatrics will publish the pon port metrics
-func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[string]float32, portnum uint32, context map[string]string, devID string) {
-	logger.Debugf("Post-%v %v", portType, val)
+func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
+	port *voltha.Port, context map[string]string, devID string) {
+	logger.Debugf("Post-%v %v", port.Type, val)
 
 	var metricInfo voltha.MetricInformation
 	var ke voltha.KpiEvent2
 	var volthaEventSubCatgry voltha.EventSubCategory_Types
+	context["portlabel"] = port.Label
+	context["portno"] = strconv.Itoa(int(port.PortNo))
 
-	if portType == "NNIStats" {
+	if port.Type == voltha.Port_ETHERNET_NNI {
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI
 	} else {
 		volthaEventSubCatgry = voltha.EventSubCategory_PON
@@ -364,7 +368,7 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[stri
 
 	raisedTs := time.Now().UnixNano()
 	mmd := voltha.MetricMetaData{
-		Title:    portType,
+		Title:    port.Type.String(),
 		Ts:       float64(raisedTs),
 		Context:  context,
 		DeviceId: devID,
@@ -380,7 +384,6 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(portType string, val map[stri
 	if err := StatMgr.Device.EventProxy.SendKpiEvent("STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
 		logger.Errorw("Failed to send Pon stats", log.Fields{"err": err})
 	}
-
 }
 
 // PortStatisticsIndication handles the port statistics indication
