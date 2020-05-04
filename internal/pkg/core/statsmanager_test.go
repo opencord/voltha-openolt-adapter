@@ -18,6 +18,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 	"reflect"
@@ -70,9 +71,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		SouthBoundPort map[uint32]*PonPort
 	}
 	type args struct {
-		portType string
+		portType voltha.Port_PortType
 		val      map[string]float32
-		portnum  uint32
+		port     *voltha.Port
 		context  map[string]string
 	}
 	ctx := map[string]string{}
@@ -144,10 +145,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: nil,
 			},
 			args: args{
-				portType: "NNIStats",
-				val:      nval,
-				portnum:  0,
-				context:  ctx,
+				val:     nval,
+				port:    &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
+				context: ctx,
 			},
 		},
 		{
@@ -158,10 +158,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: ponmap,
 			},
 			args: args{
-				portType: "PONStats",
-				val:      pval,
-				portnum:  0,
-				context:  ctx,
+				val:     pval,
+				port:    &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
+				context: ctx,
 			},
 		},
 		// TODO: Add test cases.
@@ -173,8 +172,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			StatMgr.publishMetrics(tt.args.portType, tt.args.val, tt.args.portnum, tt.args.context, "onu1")
-
+			StatMgr.publishMetrics(tt.args.val, tt.args.port, tt.args.context, "onu1")
 		})
 	}
 }
