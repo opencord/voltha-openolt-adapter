@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a316a062_e9faffe8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 609,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T22:05:51Z",
+      "side": 1,
+      "message": "I think you should return error here, otherwise it will panic in the next line due to nil pointer access.\nIn fact we should be returning error at a lot of places in this functional. We simply seem to continue.",
+      "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e37295f1_0534f767",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1367,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T22:05:51Z",
+      "side": 1,
+      "message": "the device structure is not updated here. Is that fine?",
+      "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bfdf4f62_601d59da",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1432,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T22:05:51Z",
+      "side": 1,
+      "message": "the device structure is not updated here. Is that fine?",
+      "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
