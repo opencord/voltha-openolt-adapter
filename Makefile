@@ -85,6 +85,9 @@ endif
 
 docker-push: ## Push the docker images to an external repository
 	docker push ${ADAPTER_IMAGENAME}
+ifdef BUILD_PROFILED
+	docker push ${ADAPTER_IMAGENAME}-profile
+endif BUILD_PROFILED
 
 docker-kind-load: ## Load docker images into a KinD cluster
 	@if [ "`kind get clusters | grep voltha-$(TYPE)`" = '' ]; then echo "no voltha-$(TYPE) cluster found" && exit 1; fi
