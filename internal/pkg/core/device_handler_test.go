@@ -1161,8 +1161,13 @@ func Test_startCollector(t *testing.T) {
 		dh *DeviceHandler
 	}
 	dh := newMockDeviceHandler()
+	ports := []*voltha.Port{
+		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
+		{PortNo: 1048578, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+	}
+	dh.device.Ports = ports
 	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
-	dh.portStats.NorthBoundPort[0] = &NniPort{Name: "OLT-1"}
+	dh.portStats.NorthBoundPort[2] = &NniPort{Name: "OLT-1"}
 	dh.portStats.SouthBoundPort = make(map[uint32]*PonPort)
 	dh.portStats.Device = dh
 	for i := 0; i < 16; i++ {

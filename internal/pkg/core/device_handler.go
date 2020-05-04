@@ -304,6 +304,19 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 			"device-id": dh.device.Id,
 			"port-type": portType}, err)
 	}
+	go dh.updateLocalDevice()
+	return nil
+}
+
+func (dh *DeviceHandler) updateLocalDevice() error {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		logger.Errorf("device", log.Fields{"device-id": dh.device.Id}, err)
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	dh.device = device
 	return nil
 }
 
@@ -673,6 +686,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 			olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}()
+	go dh.updateLocalDevice()
 	return nil
 }
 
@@ -759,18 +773,34 @@ func startCollector(dh *DeviceHandler) {
 			time.Sleep(time.Duration(freq) * time.Second)
 			context["oltid"] = dh.deviceID
 			context["devicetype"] = dh.deviceType
+			ports := make([]*voltha.Port, len(dh.device.Ports))
+			copy(ports, dh.device.Ports)
 			// NNI Stats
-			cmnni := dh.portStats.collectNNIMetrics(uint32(0))
-			logger.Debugf("Collect-NNI-Metrics %v", cmnni)
-			go dh.portStats.publishMetrics("NNIStats", cmnni, uint32(0), context, dh.deviceID)
-			logger.Debugf("Publish-NNI-Metrics")
+			var nniPort *voltha.Port
+			for _, port := range ports {
+				if port.Type == voltha.Port_ETHERNET_NNI {
+					nniPort = port
+					intfID := PortNoToIntfID(nniPort.PortNo, voltha.Port_ETHERNET_NNI)
+					cmnni := dh.portStats.collectNNIMetrics(intfID)
+					logger.Debugf("Collect-NNI-Metrics %v", cmnni)
+					go dh.portStats.publishMetrics(cmnni, nniPort, context, dh.deviceID)
+					logger.Debugf("Publish-NNI-Metrics")
+				}
+			}
+
 			// PON Stats
 			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
 			for i := uint32(0); i < NumPonPORTS; i++ {
 				if val, ok := dh.activePorts.Load(i); ok && val == true {
+					portNum := IntfIDToPortNo(i, voltha.Port_PON_OLT)
 					cmpon := dh.portStats.collectPONMetrics(i)
 					logger.Debugf("Collect-PON-Metrics %v", cmpon)
-					go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
+					for _, port := range ports {
+						if port.PortNo == portNum {
+							go dh.portStats.publishMetrics(cmpon, port, context, dh.deviceID)
+							break
+						}
+					}
 					logger.Debugf("Publish-PON-Metrics")
 				}
 			}
