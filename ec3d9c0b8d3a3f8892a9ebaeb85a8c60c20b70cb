@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef813690_4c60b0ea",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T17:13:58Z",
+      "side": 1,
+      "message": "Handling for OnuDifferentialReachExceededIndication is missing here.",
+      "revId": "ec3d9c0b8d3a3f8892a9ebaeb85a8c60c20b70cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
