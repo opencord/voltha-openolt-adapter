@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aca2eb5f_73902b54",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 466,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "Several log start with capital letters. Replace with small.\nFor example: \"Received-...\"",
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d931cc3_7c8b8265",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "packet",
+      "range": {
+        "startLine": 530,
+        "startChar": 25,
+        "endLine": 530,
+        "endChar": 31
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c78bcc3c_44fc0b13",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "replace \"OLT\" in the logs with \"ONU\" all through this file.",
+      "range": {
+        "startLine": 632,
+        "startChar": 16,
+        "endLine": 632,
+        "endChar": 19
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3c4610a8_65562f94",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 736,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "start with small letter. Please take care of this everywhere in this file.",
+      "range": {
+        "startLine": 736,
+        "startChar": 16,
+        "endLine": 736,
+        "endChar": 17
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d687d139_0102e13f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "adopt-device",
+      "range": {
+        "startLine": 800,
+        "startChar": 15,
+        "endLine": 800,
+        "endChar": 27
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "44b3721c_3fbf80d9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "Replace \"ONU\" with \"onu\" in the logs everywhere in this file.",
+      "range": {
+        "startLine": 967,
+        "startChar": 17,
+        "endLine": 967,
+        "endChar": 20
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f186df33_d347ffdc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "use \u0027-\u0027",
+      "range": {
+        "startLine": 1325,
+        "startChar": 20,
+        "endLine": 1325,
+        "endChar": 21
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "45de3e53_101242ce",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1385,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "This is not related to your changes. But can you remove this code snippet. We are really not doing anything here.",
+      "range": {
+        "startLine": 1378,
+        "startChar": 0,
+        "endLine": 1385,
+        "endChar": 2
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facb8e44_1a5f4a4e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1695,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "use \u0027-\u0027",
+      "range": {
+        "startLine": 1695,
+        "startChar": 16,
+        "endLine": 1695,
+        "endChar": 31
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1bd1dae1_1bd99ee0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1704,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "use \u0027-\u0027",
+      "range": {
+        "startLine": 1704,
+        "startChar": 16,
+        "endLine": 1704,
+        "endChar": 41
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "be0e668d_199171a0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2120,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-04T19:10:45Z",
+      "side": 1,
+      "message": "missing \u0027-\u0027",
+      "range": {
+        "startLine": 2120,
+        "startChar": 25,
+        "endLine": 2120,
+        "endChar": 26
+      },
+      "revId": "1e006108b86f3de9ec61e08a1f0d5b4ad67ef5e4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
