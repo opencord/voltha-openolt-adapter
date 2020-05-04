@@ -309,6 +309,19 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 			"device-id": dh.device.Id,
 			"port-type": portType}, err)
 	}
+	go dh.updateLocalDevice()
+	return nil
+}
+
+func (dh *DeviceHandler) updateLocalDevice() error {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		logger.Errorf("device", log.Fields{"device-id": dh.device.Id}, err)
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	dh.device = device
 	return nil
 }
 
@@ -689,6 +702,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 			olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}()
+	go dh.updateLocalDevice()
 	return nil
 }
 
@@ -765,29 +779,36 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 func startCollector(dh *DeviceHandler) {
 	logger.Debugf("starting-collector")
 	context := make(map[string]string)
+	freq := dh.metrics.ToPmConfigs().DefaultFreq
 	for {
 		select {
 		case <-dh.stopCollector:
 			logger.Debugw("stopping-collector-for-olt", log.Fields{"deviceID:": dh.deviceID})
 			return
-		default:
-			freq := dh.metrics.ToPmConfigs().DefaultFreq
-			time.Sleep(time.Duration(freq) * time.Second)
+		case <-time.After(time.Duration(freq) * time.Second):
 			context["oltid"] = dh.deviceID
 			context["devicetype"] = dh.deviceType
-			// NNI Stats
-			cmnni := dh.portStats.collectNNIMetrics(uint32(0))
-			logger.Debugf("Collect-NNI-Metrics %v", cmnni)
-			go dh.portStats.publishMetrics("NNIStats", cmnni, uint32(0), context, dh.deviceID)
-			logger.Debugf("publish-nni-metrics")
-			// PON Stats
-			NumPonPORTS := dh.resourceMgr.DevInfo.GetPonPorts()
-			for i := uint32(0); i < NumPonPORTS; i++ {
-				if val, ok := dh.activePorts.Load(i); ok && val == true {
-					cmpon := dh.portStats.collectPONMetrics(i)
-					logger.Debugf("Collect-PON-Metrics %v", cmpon)
-					go dh.portStats.publishMetrics("PONStats", cmpon, i, context, dh.deviceID)
-					logger.Debugf("publish-pon-metrics")
+			ports := make([]*voltha.Port, len(dh.device.Ports))
+			copy(ports, dh.device.Ports)
+
+			for _, port := range ports {
+				// NNI Stats
+				if port.Type == voltha.Port_ETHERNET_NNI {
+					intfID := PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)
+					cmnni := dh.portStats.collectNNIMetrics(intfID)
+					logger.Debugw("collect-nni-metrics", log.Fields{"metrics": cmnni})
+					go dh.portStats.publishMetrics(cmnni, port, context, dh.deviceID)
+					logger.Debugw("publish-nni-metrics", log.Fields{"nni-port": port.Label})
+				}
+				// PON Stats
+				if port.Type == voltha.Port_PON_OLT {
+					intfID := PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)
+					if val, ok := dh.activePorts.Load(intfID); ok && val == true {
+						cmpon := dh.portStats.collectPONMetrics(intfID)
+						logger.Debugw("collect-pon-metrics", log.Fields{"metrics": cmpon})
+						go dh.portStats.publishMetrics(cmpon, port, context, dh.deviceID)
+					}
+					logger.Debugw("publish-pon-metrics", log.Fields{"pon-port": port.Label})
 				}
 			}
 		}
