@@ -1161,24 +1161,34 @@ func Test_startCollector(t *testing.T) {
 		dh *DeviceHandler
 	}
 	dh := newMockDeviceHandler()
+	ports := []*voltha.Port{
+		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
+		{PortNo: 1048577, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+		{PortNo: 1048578, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+	}
+	dh.device.Ports = ports
 	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
-	dh.portStats.NorthBoundPort[0] = &NniPort{Name: "OLT-1"}
+	dh.portStats.NorthBoundPort[1] = &NniPort{Name: "OLT-1"}
+	dh.portStats.NorthBoundPort[2] = &NniPort{Name: "OLT-1"}
 	dh.portStats.SouthBoundPort = make(map[uint32]*PonPort)
 	dh.portStats.Device = dh
 	for i := 0; i < 16; i++ {
 		dh.portStats.SouthBoundPort[uint32(i)] = &PonPort{DeviceID: "OLT-1"}
 	}
+	dh1 := newMockDeviceHandler()
+	dh1.device.Ports = []*voltha.Port{}
 	tests := []struct {
 		name string
 		args args
 	}{
 		// TODO: Add test cases.
 		{"StartCollector-1", args{dh}},
+		{"StartCollector-2", args{dh1}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go func() {
-				time.Sleep(5 * time.Second) // simulated wait time to stop startCollector
+				time.Sleep(1 * time.Second) // simulated wait time to stop startCollector
 				tt.args.dh.stopCollector <- true
 			}()
 			startCollector(tt.args.dh)
