@@ -279,7 +279,7 @@ func (f *OpenOltFlowMgr) generateStoredFlowID(flowID uint32, direction string) (
 
 func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) {
 	logger.Debug("Registering Flow for Device ", log.Fields{"flow": flowFromCore},
-		log.Fields{"device": f.deviceHandler.deviceID})
+		log.Fields{"device": f.deviceHandler.device.Id})
 	gemPK := gemPortKey{uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId)}
 	flowIDList, ok := f.flowsUsedByGemPort[gemPK]
 	if !ok {
@@ -1482,11 +1482,11 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(intfID uint32, onuID uint32, u
 	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
 		delGemPortMsg,
 		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
-		f.deviceHandler.deviceType,
+		f.deviceHandler.device.Type,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, ""); sendErr != nil {
-		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.device.Type,
 			"toAdapter": onuDev.deviceType, "onuId": onuDev.deviceID,
 			"proxyDeviceID": onuDev.proxyDeviceID}, sendErr)
 	}
@@ -1506,11 +1506,11 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(intfID uint32, onuID uint32, uni
 	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
 		delTcontMsg,
 		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
-		f.deviceHandler.deviceType,
+		f.deviceHandler.device.Type,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, ""); sendErr != nil {
-		return olterrors.NewErrCommunication("send-delete-tcont-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+		return olterrors.NewErrCommunication("send-delete-tcont-to-onu-adapter", log.Fields{"fromAdapter": f.deviceHandler.device.Type,
 			"toAdapter": onuDev.deviceType, "onuId": onuDev.deviceID,
 			"proxyDeviceID": onuDev.proxyDeviceID}, sendErr)
 	}
@@ -2295,12 +2295,12 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
 		tpDownloadMsg,
 		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-		f.deviceHandler.deviceType,
+		f.deviceHandler.device.Type,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, "")
 	if sendErr != nil {
-		return olterrors.NewErrCommunication("send-techprofile-download-request", log.Fields{"fromAdapter": f.deviceHandler.deviceType,
+		return olterrors.NewErrCommunication("send-techprofile-download-request", log.Fields{"fromAdapter": f.deviceHandler.device.Type,
 			"toAdapter": onuDev.deviceType, "onuId": onuDev.deviceID,
 			"proxyDeviceID": onuDev.proxyDeviceID}, sendErr)
 	}

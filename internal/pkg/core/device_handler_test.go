@@ -155,8 +155,8 @@ func newMockDeviceHandler() *DeviceHandler {
 		Pools:      []*oop.DeviceInfo_DeviceResourceRanges_Pool{{}},
 	}}
 
-	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.deviceID, PonPorts: 2}
-	rsrMgr := resourcemanager.OpenOltResourceMgr{DeviceID: dh.deviceID, DeviceType: dh.deviceType, DevInfo: deviceInf,
+	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: 2}
+	rsrMgr := resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
 		}}
@@ -219,7 +219,6 @@ func negativeDeviceHandler() *DeviceHandler {
 	dh := newMockDeviceHandler()
 	device := dh.device
 	device.Id = ""
-	dh.adminState = "down"
 	return dh
 }
 func Test_generateMacFromHost(t *testing.T) {
@@ -946,7 +945,7 @@ func TestDeviceHandler_doStateUp(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := newMockDeviceHandler()
 
-	dh2.deviceID = ""
+	dh2.device.Id = ""
 	dh3 := negativeDeviceHandler()
 
 	tests := []struct {
@@ -1129,7 +1128,6 @@ func TestDeviceHandler_populateDeviceInfo(t *testing.T) {
 func TestDeviceHandler_readIndications(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := newMockDeviceHandler()
-	dh2.adminState = "down"
 	dh3 := newMockDeviceHandler()
 	dh3.device.AdminState = voltha.AdminState_DISABLED
 	dh4 := negativeDeviceHandler()

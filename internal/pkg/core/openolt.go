@@ -104,15 +104,15 @@ func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) 
 func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
-	if _, exist := oo.deviceHandlers[agent.deviceID]; !exist {
-		oo.deviceHandlers[agent.deviceID] = agent
+	if _, exist := oo.deviceHandlers[agent.device.Id]; !exist {
+		oo.deviceHandlers[agent.device.Id] = agent
 	}
 }
 
 func (oo *OpenOLT) deleteDeviceHandlerToMap(agent *DeviceHandler) {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
-	delete(oo.deviceHandlers, agent.deviceID)
+	delete(oo.deviceHandlers, agent.device.Id)
 }
 
 func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
