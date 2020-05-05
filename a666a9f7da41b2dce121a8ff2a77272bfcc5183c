@@ -71,6 +71,52 @@
     },
     {
       "key": {
+        "uuid": "9a5509a0_a2b4c01e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 771,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:35:38Z",
+      "side": 1,
+      "message": "this is a very tight loop that will be burning up CPU. every iteration of the loop will hit default as fast as it can. or am i missing something?",
+      "range": {
+        "startLine": 766,
+        "startChar": 0,
+        "endLine": 771,
+        "endChar": 10
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c90ccab1_b7588339",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:35:38Z",
+      "side": 1,
+      "message": "is there a better way to determine an nni port as opposed to a heuristic on the label?",
+      "range": {
+        "startLine": 781,
+        "startChar": 37,
+        "endLine": 781,
+        "endChar": 41
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3ab3e77_6bb7674b",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -87,6 +133,29 @@
         "startChar": 5,
         "endLine": 783,
         "endChar": 10
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d1ef5d3_357be5eb",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:35:38Z",
+      "side": 1,
+      "message": "isn\u0027t this already a string?",
+      "range": {
+        "startLine": 359,
+        "startChar": 47,
+        "endLine": 359,
+        "endChar": 52
       },
       "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
