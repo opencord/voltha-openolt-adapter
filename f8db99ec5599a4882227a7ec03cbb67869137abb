@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "43730bec_42850a6a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1367,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-05T16:11:33Z",
+      "side": 1,
+      "message": "my comment was on whether we should update dh.device.AdminState.",
+      "parentUuid": "5be5fccc_761884c5",
+      "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bfdf4f62_601d59da",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -101,6 +119,24 @@
       "side": 1,
       "message": "Yes Girish since we removed adminState from DeviceHandler.",
       "parentUuid": "bfdf4f62_601d59da",
+      "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9581e1df_b0cb505d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1432,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-05T16:11:33Z",
+      "side": 1,
+      "message": "my comment was on whether we should update dh.device.AdminState.",
+      "parentUuid": "683728f2_b3bb803b",
       "revId": "f8db99ec5599a4882227a7ec03cbb67869137abb",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
