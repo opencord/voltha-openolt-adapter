@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "013d89e5_7daa4ec3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-05T10:22:11Z",
+      "side": 1,
+      "message": "Thank you, David.\n\nAdded error return value.",
+      "parentUuid": "ee6bbea1_d2c9fcce",
+      "range": {
+        "startLine": 311,
+        "startChar": 25,
+        "endLine": 311,
+        "endChar": 42
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eaab43a9_4618844b",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2020-05-05T05:27:52Z",
       "side": 1,
       "message": "please create a JIRA for this TODO and put the JIRA ID in the comment.",
+      "range": {
+        "startLine": 316,
+        "startChar": 4,
+        "endLine": 316,
+        "endChar": 8
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "536afb60_d785498d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-05T10:22:11Z",
+      "side": 1,
+      "message": "Removed the TODP, which is unnecessary.",
+      "parentUuid": "eaab43a9_4618844b",
       "range": {
         "startLine": 316,
         "startChar": 4,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "750dbfc3_d5f0a9ac",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 771,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-05T10:22:11Z",
+      "side": 1,
+      "message": "Hi David, Thank you!\n\nHere we are using sleep() of 150 seconds. Hence, It doesn\u0027t trigger immediately. As per my understanding, sleep doesn\u0027t consume CPU cycles, and because of maximum no.of cores used. Anyhow, we will try to rectify this in separate JIRA.",
+      "parentUuid": "9a5509a0_a2b4c01e",
+      "range": {
+        "startLine": 766,
+        "startChar": 0,
+        "endLine": 771,
+        "endChar": 10
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c90ccab1_b7588339",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -105,6 +177,30 @@
       "writtenOn": "2020-05-05T05:35:38Z",
       "side": 1,
       "message": "is there a better way to determine an nni port as opposed to a heuristic on the label?",
+      "range": {
+        "startLine": 781,
+        "startChar": 37,
+        "endLine": 781,
+        "endChar": 41
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "09ba9bbc_24b93aed",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-05T10:22:11Z",
+      "side": 1,
+      "message": "Thank you, David.\nchecking based on portType.",
+      "parentUuid": "c90ccab1_b7588339",
       "range": {
         "startLine": 781,
         "startChar": 37,
@@ -151,6 +247,30 @@
       "writtenOn": "2020-05-05T05:35:38Z",
       "side": 1,
       "message": "isn\u0027t this already a string?",
+      "range": {
+        "startLine": 359,
+        "startChar": 47,
+        "endLine": 359,
+        "endChar": 52
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bece3edf_cfbcd568",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-05T10:22:11Z",
+      "side": 1,
+      "message": "Thank you, David.\n\nChanged as suggested.",
+      "parentUuid": "3d1ef5d3_357be5eb",
       "range": {
         "startLine": 359,
         "startChar": 47,
