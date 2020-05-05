@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8ee21136_67020f0f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T14:34:34Z",
+      "side": 1,
+      "message": "ok, missed these two lines the first time. the better approach is to use a time.Ticker as opposed to a sleep, but as this is not part of this patchset I will open a separate JIRA for that. Thanks.",
+      "range": {
+        "startLine": 772,
+        "startChar": 0,
+        "endLine": 773,
+        "endChar": 48
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bd31bea4_21966f08",
+        "filename": "internal/pkg/core/device_handler_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1166,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T14:34:34Z",
+      "side": 1,
+      "message": "might want to test the case with multiple nni ports as well as a case with no ports at all.",
+      "range": {
+        "startLine": 1164,
+        "startChar": 0,
+        "endLine": 1166,
+        "endChar": 66
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c94c61d7_7ab0d24d",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T14:34:34Z",
+      "side": 1,
+      "message": "strconv.Itoa(123)",
+      "range": {
+        "startLine": 360,
+        "startChar": 21,
+        "endLine": 360,
+        "endChar": 51
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
