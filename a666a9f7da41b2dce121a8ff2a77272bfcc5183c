@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee6bbea1_d2c9fcce",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:27:52Z",
+      "side": 1,
+      "message": "might you want this to return an error? If the function is going to return early in an error scenario it would be best to return an error, imo.",
+      "range": {
+        "startLine": 311,
+        "startChar": 25,
+        "endLine": 311,
+        "endChar": 42
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eaab43a9_4618844b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:27:52Z",
+      "side": 1,
+      "message": "please create a JIRA for this TODO and put the JIRA ID in the comment.",
+      "range": {
+        "startLine": 316,
+        "startChar": 4,
+        "endLine": 316,
+        "endChar": 8
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b730e46f_db15b36c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:27:52Z",
+      "side": 1,
+      "message": "do you want to set this to true outside the defer function so that it will be set to false when the function exits?",
+      "range": {
+        "startLine": 328,
+        "startChar": 5,
+        "endLine": 328,
+        "endChar": 34
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f3ab3e77_6bb7674b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T05:27:52Z",
+      "side": 1,
+      "message": "is this assuming there is only s single nni port? i thought multiple nni support was in the works?",
+      "range": {
+        "startLine": 783,
+        "startChar": 5,
+        "endLine": 783,
+        "endChar": 10
+      },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
