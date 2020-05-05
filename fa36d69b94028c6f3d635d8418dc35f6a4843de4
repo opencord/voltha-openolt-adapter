@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "6fd5be73_c2903f58",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-05-05T15:18:39Z",
+      "side": 1,
+      "message": "might it be better to gather all the stats for all the ports in a single thread and publish as a single message per device as opposed to sending a message per port? Also, what is the value of calling publishMetrics in a go routine? This may not be a question or change for this patch set as it is mimicking what is there already, but winding if a single go routine to capture and publish everything might be a better approach.",
+      "range": {
+        "startLine": 786,
+        "startChar": 0,
+        "endLine": 786,
+        "endChar": 5
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd31bea4_21966f08",
         "filename": "internal/pkg/core/device_handler_test.go",
         "patchSetId": 3
