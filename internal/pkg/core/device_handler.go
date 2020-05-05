@@ -797,7 +797,7 @@ func startCollector(dh *DeviceHandler) {
 //AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
 	dh.transitionMap = NewTransitionMap(dh)
-	logger.Infow("adopt-device", log.Fields{"device-id": device.Id, "Address": device.GetHostAndPort()})
+	logger.Infow("AdoptDevice", log.Fields{"deviceID": device.Id, "Address": device.GetHostAndPort()})
 	dh.transitionMap.Handle(ctx, DeviceInit)
 
 	// Now, set the initial PM configuration for that device
@@ -905,7 +905,7 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 // If the proxy address is not found in the unmarshalled message, it first fetches the onu device for which the message
 // is meant, and then send the unmarshalled omci message to this onu
 func (dh *DeviceHandler) ProcessInterAdapterMessage(msg *ic.InterAdapterMessage) error {
-	logger.Debugw("process-inter-adapter-message", log.Fields{"msgID": msg.Header.Id})
+	logger.Debugw("ProcessInterAdapterMessage", log.Fields{"msgID": msg.Header.Id})
 	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
 		msgID := msg.Header.Id
 		fromTopic := msg.Header.FromTopic
