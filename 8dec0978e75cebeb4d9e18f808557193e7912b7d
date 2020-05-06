@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b858dc36_65d0d9fe",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1201,
+      "author": {
+        "id": 1000094
+      },
+      "writtenOn": "2020-05-06T18:25:14Z",
+      "side": 1,
+      "message": "When ONU goes down operationally, the physical OLT will have the context of ONU and sends an OperState down indication to voltha. When ONU comes up again, it will send an indication with OperState equals to UP. I am not sure will any OLT sends discovery indication when already configured ONU comes up. If any OLT is sending discovery, i assume this needs to be fixed at OLT.",
+      "revId": "8dec0978e75cebeb4d9e18f808557193e7912b7d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
