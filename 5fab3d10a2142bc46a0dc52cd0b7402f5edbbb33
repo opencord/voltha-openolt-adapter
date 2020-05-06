@@ -22,6 +22,30 @@
       "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab238fd1_528e68c5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 822,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-05-06T12:29:21Z",
+      "side": 1,
+      "message": "To address Andrea\u0027s concern, you could consider iterating over the ports and for each ACTIVE port (you can look into the oper state of the port or check if it exists in the activePorts map) get the interface id using PortNoToIntfID, pass it to collectPONMetrics and then pass the port object to the publishMetrics.\n\nSo you would have a single for loop",
+      "parentUuid": "ada3c786_c9c4574a",
+      "range": {
+        "startLine": 796,
+        "startChar": 3,
+        "endLine": 822,
+        "endChar": 4
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
