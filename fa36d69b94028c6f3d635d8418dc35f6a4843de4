@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "e31de3c2_516aca26",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-06T05:09:23Z",
+      "side": 1,
+      "message": "Thanks, David.\n\nIdeally, it looks good. But sending all the port information in single Kafka-bus maybe not a good idea, As Kafka\u0027s message has its size limitation. correct me if I\u0027m wrong.\n\nWe can explore more and try to fix it in new Jira :)",
+      "parentUuid": "6fd5be73_c2903f58",
+      "range": {
+        "startLine": 786,
+        "startChar": 0,
+        "endLine": 786,
+        "endChar": 5
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd31bea4_21966f08",
         "filename": "internal/pkg/core/device_handler_test.go",
         "patchSetId": 3
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "d33efabb_094c866f",
+        "filename": "internal/pkg/core/device_handler_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1166,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-06T05:09:23Z",
+      "side": 1,
+      "message": "Thank you, David.\nAs suggested, added multiple NNI-ports and empty ports for UT.",
+      "parentUuid": "bd31bea4_21966f08",
+      "range": {
+        "startLine": 1164,
+        "startChar": 0,
+        "endLine": 1166,
+        "endChar": 66
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c94c61d7_7ab0d24d",
         "filename": "internal/pkg/core/statsmanager.go",
         "patchSetId": 3
@@ -82,6 +130,30 @@
       "writtenOn": "2020-05-05T14:34:34Z",
       "side": 1,
       "message": "strconv.Itoa(123)",
+      "range": {
+        "startLine": 360,
+        "startChar": 21,
+        "endLine": 360,
+        "endChar": 51
+      },
+      "revId": "fa36d69b94028c6f3d635d8418dc35f6a4843de4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0aaa5e9e_ade8a3bb",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-06T05:09:23Z",
+      "side": 1,
+      "message": "Thank you, David. Changes made as suggested.",
+      "parentUuid": "c94c61d7_7ab0d24d",
       "range": {
         "startLine": 360,
         "startChar": 21,
