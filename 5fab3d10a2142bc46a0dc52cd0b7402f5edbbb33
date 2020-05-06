@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ada3c786_c9c4574a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 822,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-05-06T09:22:15Z",
+      "side": 1,
+      "message": "I\u0027m concerned about the double iteration on the ports. also in the PON port we are again iterating over all the ports per each PON port we are considering. This si in my opinion too much. I think this is due to a poor design decision in the DEVICE object. the device object should have a NNIPorts array and a ONUPorts[] array. no a generic [] Ports array. I\u0027m ok if you want to open a jira for this, but it needs to be tackled. Put a TODO in here once you have created that jira in order to optimise and in the jira cross reference this lines.",
+      "range": {
+        "startLine": 796,
+        "startChar": 3,
+        "endLine": 822,
+        "endChar": 4
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
