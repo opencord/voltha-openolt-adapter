@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c2b8d8c_5604c663",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-05-06T10:09:57Z",
+      "side": 1,
+      "message": "why are we creating extra variable here ?",
+      "revId": "b4bf649770f4c644ad80243e192f2a343d4d71c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "598bc62c_4f6784ba",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1475,
+      "author": {
+        "id": 1000544
+      },
+      "writtenOn": "2020-05-06T10:09:57Z",
+      "side": 1,
+      "message": "are we missing updating device struct here ?",
+      "revId": "b4bf649770f4c644ad80243e192f2a343d4d71c7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
