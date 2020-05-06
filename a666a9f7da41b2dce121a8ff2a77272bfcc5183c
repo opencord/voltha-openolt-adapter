@@ -166,6 +166,23 @@
     },
     {
       "key": {
+        "uuid": "70e60b65_67c14c6a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-05-06T12:09:06Z",
+      "side": 1,
+      "message": "better to use a timer instead of using sleep",
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c90ccab1_b7588339",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -230,6 +247,23 @@
         "endLine": 783,
         "endChar": 10
       },
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c2dfed94_1d0aa69c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 802,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2020-05-06T12:09:06Z",
+      "side": 1,
+      "message": "we have the ports already from active ports. why loop again",
       "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
