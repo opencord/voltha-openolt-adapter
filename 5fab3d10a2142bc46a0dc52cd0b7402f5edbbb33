@@ -2,6 +2,98 @@
   "comments": [
     {
       "key": {
+        "uuid": "9d8c1fb4_6001b80d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 801,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-06T19:47:18Z",
+      "side": 1,
+      "message": "use Debugw. Also instead of %v use key/value. All the letters should be in small, and hyphen separated.",
+      "range": {
+        "startLine": 801,
+        "startChar": 12,
+        "endLine": 801,
+        "endChar": 18
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "768430c1_040998cf",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-06T19:47:18Z",
+      "side": 1,
+      "message": "same comment here",
+      "range": {
+        "startLine": 802,
+        "startChar": 41,
+        "endLine": 803,
+        "endChar": 5
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ebd3b366_fb99b8b9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-06T19:47:18Z",
+      "side": 1,
+      "message": "same comment here",
+      "range": {
+        "startLine": 813,
+        "startChar": 5,
+        "endLine": 813,
+        "endChar": 51
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d9b6ae77_be28ebc1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 820,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-06T19:47:18Z",
+      "side": 1,
+      "message": "same comment here",
+      "range": {
+        "startLine": 820,
+        "startChar": 5,
+        "endLine": 820,
+        "endChar": 40
+      },
+      "revId": "5fab3d10a2142bc46a0dc52cd0b7402f5edbbb33",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ada3c786_c9c4574a",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
