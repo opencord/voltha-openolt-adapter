@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7996fa74_a0471e7b",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-06T19:52:41Z",
+      "side": 1,
+      "message": "missing \u0027-\u0027",
+      "range": {
+        "startLine": 481,
+        "startChar": 33,
+        "endLine": 481,
+        "endChar": 60
+      },
+      "revId": "c0f256dfb506a5f43a08e7ca51ef9e25e0926845",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
