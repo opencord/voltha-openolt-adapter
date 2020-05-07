@@ -183,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "33401de4_5d776a3e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 773,
+      "author": {
+        "id": 1000529
+      },
+      "writtenOn": "2020-05-07T05:32:45Z",
+      "side": 1,
+      "message": "Thank you, Abhilash.\n\nChanges are done as suggested.",
+      "parentUuid": "70e60b65_67c14c6a",
+      "revId": "a666a9f7da41b2dce121a8ff2a77272bfcc5183c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c90ccab1_b7588339",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
