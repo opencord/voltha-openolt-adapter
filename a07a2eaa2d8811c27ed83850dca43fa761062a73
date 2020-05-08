@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f75afb73_7a452b41",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-05-08T16:10:09Z",
+      "side": 1,
+      "message": "It seems strange to have just one value that\u0027s at a different depth; makes it more difficult to read.  Can these use chop-down formatting instead?  \n\ni.e. Move `\"portNo\": portNo,` to the next line, so that all parameters are justified. (may also need to add `,\\n` after the last value)\n\n(more like this, I won\u0027t comment on each one)",
+      "range": {
+        "startLine": 312,
+        "startChar": 14,
+        "endLine": 315,
+        "endChar": 41
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
