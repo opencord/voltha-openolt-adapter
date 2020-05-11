@@ -2930,13 +2930,18 @@ func formulateActionInfoFromFlow(actionInfo, classifierInfo map[string]interface
 
 func formulateSetFieldActionInfoFromFlow(field *ofp.OfpOxmField, actionInfo map[string]interface{}) {
 	if ofbField := field.GetOfbField(); ofbField != nil {
-		if fieldtype := ofbField.GetType(); fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_VID {
+		fieldtype := ofbField.GetType()
+		if fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_VID {
 			if vlan := ofbField.GetVlanVid(); vlan != 0 {
 				actionInfo[VlanVid] = vlan & 0xfff
 				logger.Debugw("action-set-vlan-vid", log.Fields{"actionInfo[VLAN_VID]": actionInfo[VlanVid].(uint32)})
 			} else {
 				logger.Error("No Invalid vlan id in set vlan-vid action")
 			}
+		} else if fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_PCP {
+			pcp := ofbField.GetVlanPcp()
+			actionInfo[VlanPcp] = pcp
+			log.Debugw("action-set-vlan-pcp", log.Fields{"actionInfo[VLAN_PCP]": actionInfo[VlanPcp].(uint32)})
 		} else {
 			logger.Errorw("unsupported-action-set-field-type", log.Fields{"type": fieldtype})
 		}
