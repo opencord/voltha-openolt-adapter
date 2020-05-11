@@ -2,6 +2,121 @@
   "comments": [
     {
       "key": {
+        "uuid": "1fcf0dfd_a2e3fbb0",
+        "filename": "internal/pkg/core/olt_platform.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "logged data format.\nThere are other instances also in this file.",
+      "range": {
+        "startLine": 273,
+        "startChar": 13,
+        "endLine": 274,
+        "endChar": 72
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e230e45d_c258cd3d",
+        "filename": "internal/pkg/core/olt_state_transitions.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "ensure the logged data is also in the format as the logged text message. There are other instances in this file which I am going to comment.\nFor ex: In this instance it will be \u0027current-state\u0027 and \u0027trigger\u0027",
+      "range": {
+        "startLine": 152,
+        "startChar": 60,
+        "endLine": 152,
+        "endChar": 72
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50e7f220_b5313f33",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "just replace this alarm_ind in logField with alarm-ind globally in this file.",
+      "range": {
+        "startLine": 112,
+        "startChar": 62,
+        "endLine": 112,
+        "endChar": 71
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9eb1c2cd_8f2ac9a1",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "can you make all this not-implemented-yet logs as Warn logs.",
+      "range": {
+        "startLine": 137,
+        "startChar": 17,
+        "endLine": 137,
+        "endChar": 36
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4ee2b428_6f18e790",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "log device-id in the logs here.",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 54
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f75afb73_7a452b41",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 5
@@ -18,6 +133,297 @@
         "startChar": 14,
         "endLine": 315,
         "endChar": 41
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f70d35c5_752c8a02",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Need an Info level log here that traffic-schedulers were successfully created here (with necessary log fields).",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "661cee48_f393ff14",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Need an Info level log here that traffic-queues were successfully created here (with necessary log fields).",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16c22ff6_e464e501",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Need a debug log here that there are multicast traffic queues here.",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f650396e_1f92df5f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Any Info level log after this step that multicast queues were successfully updated would be useful here.",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ffef39ce_e4bdc36e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 554,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Fix the format of the logged field to be inline with the format of logged data. There are many instances in this file. \nYou could use search and replace technique (selectively) in this file and should make your job easier.",
+      "range": {
+        "startLine": 554,
+        "startChar": 4,
+        "endLine": 554,
+        "endChar": 10
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac1c99e6_0c1071de",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1073,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Info level",
+      "range": {
+        "startLine": 1073,
+        "startChar": 8,
+        "endLine": 1073,
+        "endChar": 14
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7e9a2bc_7ea0a7f7",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1117,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "debug level",
+      "range": {
+        "startLine": 1117,
+        "startChar": 8,
+        "endLine": 1117,
+        "endChar": 13
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5fd5ce9b_241a0672",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1173,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "duplicate. Should be removed. This log already done above",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ea0bee5_dce82983",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Should be debug",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e2f6bec_794730b6",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1333,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Should be debug",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "54a3989f_2490a3d2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1370,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "When logging anything related to flow for a device, at the least the following date must for present the log to be useful.\n1. device-id\n2. onu-id\n3. intf-id\n4. flow-id\n\nIf you log the entire flow, then it has all the data needed. But logging the entire flow is also costly, so do not that unless and absolutely necessary. My best judgement says that if the entire flow is not logged already, do not try to do that now, but just log only important fields I mentioned above.\nIt is possible that sometimes you may not have all the data at the time of logging, and it is ok to ignore at the fields at that time. \n\nThere are lot of other instances like this in this file where this comment applies.",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05f9e389_f5fd5e35",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "Debug.\n\nAs a general rule, do not log something as Info which is describing an action of doing something. Debug/Trace log would be more meaningful in such situations. Info would be best used to log when you reach a certain important state or completed an important task etc.",
+      "range": {
+        "startLine": 1422,
+        "startChar": 8,
+        "endLine": 1422,
+        "endChar": 13
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2090eb44_5cac45cd",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1652,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "debug.\n\nSee my detailed description above for deciding Info/Debug in these situation.\nReview this file for similar situations.",
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6db778f3_41412111",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "logged field format.",
+      "range": {
+        "startLine": 394,
+        "startChar": 61,
+        "endLine": 394,
+        "endChar": 70
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "326a0c16_9f7afb18",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-11T03:24:19Z",
+      "side": 1,
+      "message": "stick to log.Fields instance of the format-specifier method. There are other instances also in this file.",
+      "range": {
+        "startLine": 464,
+        "startChar": 46,
+        "endLine": 464,
+        "endChar": 53
       },
       "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
