@@ -351,14 +351,17 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 
 // publishMatrics will publish the pon port metrics
 func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
-	port *voltha.Port, context map[string]string, devID string) {
+	port *voltha.Port, devID string, devType string) {
 	logger.Debugw("publish-metrics", log.Fields{"port": port.Label, "metrics": val})
 
 	var metricInfo voltha.MetricInformation
 	var ke voltha.KpiEvent2
 	var volthaEventSubCatgry voltha.EventSubCategory_Types
-	context["portlabel"] = port.Label
-	context["portno"] = strconv.Itoa(int(port.PortNo))
+	metricsContext := make(map[string]string)
+	metricsContext["oltid"] = devID
+	metricsContext["devicetype"] = devType
+	metricsContext["portlabel"] = port.Label
+	metricsContext["portno"] = strconv.Itoa(int(port.PortNo))
 
 	if port.Type == voltha.Port_ETHERNET_NNI {
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI
@@ -370,7 +373,7 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
 	mmd := voltha.MetricMetaData{
 		Title:    port.Type.String(),
 		Ts:       float64(raisedTs),
-		Context:  context,
+		Context:  metricsContext,
 		DeviceId: devID,
 	}
 

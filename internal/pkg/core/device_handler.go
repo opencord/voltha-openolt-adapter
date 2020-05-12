@@ -764,7 +764,9 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 
 func startCollector(dh *DeviceHandler) {
 	logger.Debugf("starting-collector")
-	context := make(map[string]string)
+	metricsContext := make(map[string]string)
+	metricsContext["oltid"] = dh.device.Id
+	metricsContext["devicetype"] = dh.device.Type
 	freq := dh.metrics.ToPmConfigs().DefaultFreq
 	for {
 		select {
@@ -772,18 +774,16 @@ func startCollector(dh *DeviceHandler) {
 			logger.Debugw("stopping-collector-for-olt", log.Fields{"deviceID:": dh.device.Id})
 			return
 		case <-time.After(time.Duration(freq) * time.Second):
-			context["oltid"] = dh.device.Id
-			context["devicetype"] = dh.device.Type
+
 			ports := make([]*voltha.Port, len(dh.device.Ports))
 			copy(ports, dh.device.Ports)
-
 			for _, port := range ports {
 				// NNI Stats
 				if port.Type == voltha.Port_ETHERNET_NNI {
 					intfID := PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)
 					cmnni := dh.portStats.collectNNIMetrics(intfID)
 					logger.Debugw("collect-nni-metrics", log.Fields{"metrics": cmnni})
-					go dh.portStats.publishMetrics(cmnni, port, context, dh.device.Id)
+					go dh.portStats.publishMetrics(cmnni, port, dh.device.Id, dh.device.Type)
 					logger.Debugw("publish-nni-metrics", log.Fields{"nni-port": port.Label})
 				}
 				// PON Stats
@@ -792,7 +792,7 @@ func startCollector(dh *DeviceHandler) {
 					if val, ok := dh.activePorts.Load(intfID); ok && val == true {
 						cmpon := dh.portStats.collectPONMetrics(intfID)
 						logger.Debugw("collect-pon-metrics", log.Fields{"metrics": cmpon})
-						go dh.portStats.publishMetrics(cmpon, port, context, dh.device.Id)
+						go dh.portStats.publishMetrics(cmpon, port, dh.device.Id, dh.device.Type)
 					}
 					logger.Debugw("publish-pon-metrics", log.Fields{"pon-port": port.Label})
 				}
