@@ -76,8 +76,6 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		port     *voltha.Port
 		context  map[string]string
 	}
-	ctx := map[string]string{}
-	ctx["deviceID"] = "Test"
 	ponmap := map[uint32]*PonPort{}
 	ponmap[0] = &PonPort{
 		PONID:          0,
@@ -145,9 +143,8 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: nil,
 			},
 			args: args{
-				val:     nval,
-				port:    &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
-				context: ctx,
+				val:  nval,
+				port: &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
 			},
 		},
 		{
@@ -158,9 +155,8 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: ponmap,
 			},
 			args: args{
-				val:     pval,
-				port:    &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
-				context: ctx,
+				val:  pval,
+				port: &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
 			},
 		},
 		// TODO: Add test cases.
@@ -172,7 +168,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			StatMgr.publishMetrics(tt.args.val, tt.args.port, tt.args.context, "onu1")
+			StatMgr.publishMetrics(tt.args.val, tt.args.port, "onu1", "openolt")
 		})
 	}
 }
