@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "7860073a_c06ed9a5",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1000663
+      },
+      "writtenOn": "2020-05-14T16:02:53Z",
+      "side": 1,
+      "message": "As per VOL-2851, its implementation would allow the device-id to be associated with the correct id and would not require the each log to individually have the device-id",
+      "parentUuid": "4ee2b428_6f18e790",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 54
+      },
+      "revId": "a07a2eaa2d8811c27ed83850dca43fa761062a73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f75afb73_7a452b41",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 5
