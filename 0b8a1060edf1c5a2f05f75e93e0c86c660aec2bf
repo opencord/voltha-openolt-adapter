@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "700fe3fe_2c6359bd",
+        "filename": "internal/pkg/core/olt_platform.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-05-14T16:33:17Z",
+      "side": 1,
+      "message": "--?",
+      "range": {
+        "startLine": 129,
+        "startChar": 22,
+        "endLine": 129,
+        "endChar": 24
+      },
+      "revId": "0b8a1060edf1c5a2f05f75e93e0c86c660aec2bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c80dec5c_0d86e607",
+        "filename": "internal/pkg/core/olt_platform.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-05-14T16:33:17Z",
+      "side": 1,
+      "message": "already know this is a warning, no need to repeat.",
+      "range": {
+        "startLine": 129,
+        "startChar": 15,
+        "endLine": 129,
+        "endChar": 22
+      },
+      "revId": "0b8a1060edf1c5a2f05f75e93e0c86c660aec2bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
