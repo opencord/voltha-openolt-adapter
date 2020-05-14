@@ -1112,7 +1112,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"pon-interface-id": ponintfid,
 				"serial-number":    sn}, err)
 		}
-		dh.eventMgr.OnuDiscoveryIndication(onuDiscInd, onuDevice.Id, onuID, sn, time.Now().UnixNano())
+		dh.eventMgr.OnuDiscoveryIndication(onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().UnixNano())
 		logger.Infow("onu-child-device-added",
 			log.Fields{"onuDevice": onuDevice,
 				"sn":        sn,
