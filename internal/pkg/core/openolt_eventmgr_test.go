@@ -139,7 +139,8 @@ func TestOpenOltEventMgr_OnuDiscoveryIndication(t *testing.T) {
 	em := mockEventMgr()
 	type args struct {
 		onuDisc      *oop.OnuDiscIndication
-		deviceID     string
+		oltDeviceID  string
+		onuDeviceID  string
 		OnuID        uint32
 		serialNumber string
 		raisedTs     int64
@@ -149,13 +150,13 @@ func TestOpenOltEventMgr_OnuDiscoveryIndication(t *testing.T) {
 		args args
 	}{
 		// TODO: Add test cases.
-		{"OnuDiscoveryIndication", args{onuDisc: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, deviceID: "olt", OnuID: 3, serialNumber: "1234", raisedTs: time.Now().Unix()}},
+		{"OnuDiscoveryIndication", args{onuDisc: &oop.OnuDiscIndication{IntfId: 1, SerialNumber: &oop.SerialNumber{VendorId: []byte("TWSH"), VendorSpecific: []byte("1234")}}, oltDeviceID: "olt", onuDeviceID: "onu1", OnuID: 3, serialNumber: "1234", raisedTs: time.Now().Unix()}},
 		{"OnuDiscoveryIndication", args{onuDisc: &oop.OnuDiscIndication{}, raisedTs: time.Now().Unix()}},
 		{"OnuDiscoveryIndication", args{onuDisc: &oop.OnuDiscIndication{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			em.OnuDiscoveryIndication(tt.args.onuDisc, tt.args.deviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
+			em.OnuDiscoveryIndication(tt.args.onuDisc, tt.args.oltDeviceID, tt.args.onuDeviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
 		})
 	}
 }

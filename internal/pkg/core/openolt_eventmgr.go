@@ -191,16 +191,17 @@ func (em *OpenOltEventMgr) oltUpDownIndication(oltIndication *oop.OltIndication,
 }
 
 // OnuDiscoveryIndication is an exported method to handle ONU discovery event
-func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication, deviceID string, OnuID uint32, serialNumber string, raisedTs int64) error {
+func (em *OpenOltEventMgr) OnuDiscoveryIndication(onuDisc *oop.OnuDiscIndication, oltDeviceID string, onuDeviceID string, OnuID uint32, serialNumber string, raisedTs int64) error {
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
 	context["onu-id"] = strconv.FormatUint(uint64(OnuID), base10)
 	context["intf-id"] = strconv.FormatUint(uint64(onuDisc.IntfId), base10)
 	context["serial-number"] = serialNumber
+	context["onu-device-id"] = onuDeviceID
 	/* Populating device event body */
 	de.Context = context
-	de.ResourceId = deviceID
+	de.ResourceId = oltDeviceID
 	de.DeviceEventName = fmt.Sprintf("%s_%s", onuDiscoveryEvent, "RAISE_EVENT")
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(&de, equipment, pon, raisedTs); err != nil {
