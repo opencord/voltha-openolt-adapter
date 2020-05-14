@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19721051_72c2d870",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-14T19:46:36Z",
+      "side": 1,
+      "message": "can you change this to onuDeviceID",
+      "range": {
+        "startLine": 194,
+        "startChar": 102,
+        "endLine": 194,
+        "endChar": 110
+      },
+      "revId": "2a4b63b933ed5f86e4d10800d9e534fcf06298f0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2495be16_83ae9d36",
+        "filename": "internal/pkg/core/openolt_eventmgr_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-14T19:46:36Z",
+      "side": 1,
+      "message": "can you change the name to onuDeviceID",
+      "range": {
+        "startLine": 143,
+        "startChar": 2,
+        "endLine": 143,
+        "endChar": 10
+      },
+      "revId": "2a4b63b933ed5f86e4d10800d9e534fcf06298f0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
