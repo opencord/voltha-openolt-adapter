@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f98fee1_ad15c916",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2202,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-15T16:47:16Z",
+      "side": 1,
+      "message": "No relation with this function",
+      "range": {
+        "startLine": 2202,
+        "startChar": 3,
+        "endLine": 2202,
+        "endChar": 17
+      },
+      "revId": "424d78b983e238b876d5fc95d68281119b7ec2dc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fb9ab06d_c10a92df",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2203,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-15T16:47:16Z",
+      "side": 1,
+      "message": "Who is invoking this.\nAlso fix the logging in this function.",
+      "range": {
+        "startLine": 2203,
+        "startChar": 25,
+        "endLine": 2203,
+        "endChar": 48
+      },
+      "revId": "424d78b983e238b876d5fc95d68281119b7ec2dc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "830aa074_ffdaaa35",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-05-15T16:47:16Z",
+      "side": 1,
+      "message": "please align with correct logging format. A recent patch has fixed all the logging in openolt adapter. It applicated for logged data and other arguments.\nThere are also other places in this file this needs to be fixed.",
+      "range": {
+        "startLine": 143,
+        "startChar": 17,
+        "endLine": 143,
+        "endChar": 92
+      },
+      "revId": "424d78b983e238b876d5fc95d68281119b7ec2dc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
