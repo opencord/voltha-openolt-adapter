@@ -870,34 +870,38 @@ func (tpm *TechProfileMgr) GetUsTrafficScheduler(tp *TechProfile) *tp_pb.Traffic
 		Scheduler: UsScheduler}
 }
 
-func (t *TechProfileMgr) GetGemportIDForPbit(tp *TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
+func (t *TechProfileMgr) GetGemportIDForPbit(tp *TechProfile, dir tp_pb.Direction, pbit uint32) uint32 {
 	/*
 	   Function to get the Gemport ID mapped to a pbit.
 	*/
-	if Dir == tp_pb.Direction_UPSTREAM {
+	if dir == tp_pb.Direction_UPSTREAM {
 		// upstream GEM ports
-		NumGemPorts := len(tp.UpstreamGemPortAttributeList)
-		for Count := 0; Count < NumGemPorts; Count++ {
-			NumPbitMaps := len(tp.UpstreamGemPortAttributeList[Count].PbitMap)
-			for ICount := 2; ICount < NumPbitMaps; ICount++ {
-				if p, err := strconv.Atoi(string(tp.UpstreamGemPortAttributeList[Count].PbitMap[ICount])); err == nil {
-					if uint32(ICount-2) == pbit && p == 1 { // Check this p-bit is set
-						logger.Debugw("Found-US-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.UpstreamGemPortAttributeList[Count].GemportID})
-						return tp.UpstreamGemPortAttributeList[Count].GemportID
+		numGemPorts := len(tp.UpstreamGemPortAttributeList)
+		for gemCnt := 0; gemCnt < numGemPorts; gemCnt++ {
+			lenOfPbitMap := len(tp.UpstreamGemPortAttributeList[gemCnt].PbitMap)
+			for pbitMapIdx := 2; pbitMapIdx < lenOfPbitMap; pbitMapIdx++ {
+				// Given a sample pbit map string "0b00000001", lenOfPbitMap is 10
+				// "lenOfPbitMap - pbitMapIdx + 1" will give pbit-i th value from LSB position in the pbit map string
+				if p, err := strconv.Atoi(string(tp.UpstreamGemPortAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
+					if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
+						logger.Debugw("Found-US-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.UpstreamGemPortAttributeList[gemCnt].GemportID})
+						return tp.UpstreamGemPortAttributeList[gemCnt].GemportID
 					}
 				}
 			}
 		}
-	} else if Dir == tp_pb.Direction_DOWNSTREAM {
+	} else if dir == tp_pb.Direction_DOWNSTREAM {
 		//downstream GEM ports
-		NumGemPorts := len(tp.DownstreamGemPortAttributeList)
-		for Count := 0; Count < NumGemPorts; Count++ {
-			NumPbitMaps := len(tp.DownstreamGemPortAttributeList[Count].PbitMap)
-			for ICount := 2; ICount < NumPbitMaps; ICount++ {
-				if p, err := strconv.Atoi(string(tp.DownstreamGemPortAttributeList[Count].PbitMap[ICount])); err == nil {
-					if uint32(ICount-2) == pbit && p == 1 { // Check this p-bit is set
-						logger.Debugw("Found-DS-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.DownstreamGemPortAttributeList[Count].GemportID})
-						return tp.DownstreamGemPortAttributeList[Count].GemportID
+		numGemPorts := len(tp.DownstreamGemPortAttributeList)
+		for gemCnt := 0; gemCnt < numGemPorts; gemCnt++ {
+			lenOfPbitMap := len(tp.DownstreamGemPortAttributeList[gemCnt].PbitMap)
+			for pbitMapIdx := 2; pbitMapIdx < lenOfPbitMap; pbitMapIdx++ {
+				// Given a sample pbit map string "0b00000001", lenOfPbitMap is 10
+				// "lenOfPbitMap - pbitMapIdx + 1" will give pbit-i th value from LSB position in the pbit map string
+				if p, err := strconv.Atoi(string(tp.DownstreamGemPortAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
+					if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
+						logger.Debugw("Found-DS-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.DownstreamGemPortAttributeList[gemCnt].GemportID})
+						return tp.DownstreamGemPortAttributeList[gemCnt].GemportID
 					}
 				}
 			}
