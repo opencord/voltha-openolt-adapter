@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "01dd32c0_fb0cfb67",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2202,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-05-15T16:52:39Z",
+      "side": 1,
+      "message": "Yes missed that.",
+      "parentUuid": "3f98fee1_ad15c916",
+      "range": {
+        "startLine": 2202,
+        "startChar": 3,
+        "endLine": 2202,
+        "endChar": 17
+      },
+      "revId": "424d78b983e238b876d5fc95d68281119b7ec2dc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb9ab06d_c10a92df",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2020-05-15T16:47:16Z",
       "side": 1,
       "message": "Who is invoking this.\nAlso fix the logging in this function.",
+      "range": {
+        "startLine": 2203,
+        "startChar": 25,
+        "endLine": 2203,
+        "endChar": 48
+      },
+      "revId": "424d78b983e238b876d5fc95d68281119b7ec2dc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c3f99357_d3c41080",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2203,
+      "author": {
+        "id": 1000564
+      },
+      "writtenOn": "2020-05-15T16:52:39Z",
+      "side": 1,
+      "message": "This should be called when we try set the alarm parameters from the northbound. I assume that it\u0027s up to the northbound if it wants to receive rdi alarms.",
+      "parentUuid": "fb9ab06d_c10a92df",
       "range": {
         "startLine": 2203,
         "startChar": 25,
