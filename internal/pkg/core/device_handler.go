@@ -1069,9 +1069,9 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	onuDevice, err := dh.coreProxy.GetChildDevice(ctx, dh.device.Id, kwargs)
 
 	if err != nil {
-		logger.Warnw("core-proxy-get-child-device-failed", log.Fields{"parentDevice": dh.device.Id, "err": err, "sn": sn})
+		logger.Debugw("core-proxy-get-child-device-failed", log.Fields{"parentDevice": dh.device.Id, "err": err, "sn": sn})
 		if e, ok := status.FromError(err); ok {
-			logger.Warnw("core-proxy-get-child-device-failed-with-code", log.Fields{"errCode": e.Code(), "sn": sn})
+			logger.Debugw("core-proxy-get-child-device-failed-with-code", log.Fields{"errCode": e.Code(), "sn": sn})
 			switch e.Code() {
 			case codes.Internal:
 				// this probably means NOT FOUND, so just create a new device
@@ -1086,7 +1086,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	if onuDevice == nil {
 		// NOTE this should happen a single time, and only if GetChildDevice returns NotFound
-		logger.Infow("creating-new-onu", log.Fields{"sn": sn})
+		logger.Debugw("creating-new-onu", log.Fields{"sn": sn})
 		// we need to create a new ChildDevice
 		ponintfid := onuDiscInd.GetIntfId()
 		dh.lockDevice.Lock()
