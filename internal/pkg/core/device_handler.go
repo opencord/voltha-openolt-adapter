@@ -703,6 +703,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		}
 	}()
 	go dh.updateLocalDevice()
+	dh.UpdatePmConfig(device.PmConfigs)
 	return nil
 }
 
@@ -777,13 +778,12 @@ func (dh *DeviceHandler) populateDeviceInfo() (*oop.DeviceInfo, error) {
 
 func startCollector(dh *DeviceHandler) {
 	logger.Debugf("starting-collector")
-	freq := dh.metrics.ToPmConfigs().DefaultFreq
 	for {
 		select {
 		case <-dh.stopCollector:
 			logger.Debugw("stopping-collector-for-olt", log.Fields{"deviceID:": dh.device.Id})
 			return
-		case <-time.After(time.Duration(freq) * time.Second):
+		case <-time.After(time.Duration(dh.metrics.ToPmConfigs().DefaultFreq) * time.Second):
 
 			ports := make([]*voltha.Port, len(dh.device.Ports))
 			copy(ports, dh.device.Ports)
@@ -1357,6 +1357,25 @@ func (dh *DeviceHandler) AddUniPortToOnu(intfID, onuID, uniPort uint32) {
 		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
 			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
 			logger.Debugw("adding-uni-port", log.Fields{"port": uniPort, "intfID": intfID, "onuId": onuID})
+		}
+	}
+}
+
+// UpdatePmConfig updates the pm metrics.
+func (dh *DeviceHandler) UpdatePmConfig(pmConfigs *voltha.PmConfigs) {
+
+	logger.Infow("update-pm-configs", log.Fields{"device-id": dh.device.Id, "pm-configs": pmConfigs})
+
+	if pmConfigs.DefaultFreq != dh.metrics.ToPmConfigs().DefaultFreq {
+		dh.metrics.UpdateFrequency(pmConfigs.DefaultFreq)
+		logger.Debugf("frequency-updated")
+	}
+
+	if pmConfigs.Grouped == false {
+		metrics := dh.metrics.GetSubscriberMetrics()
+		for _, m := range pmConfigs.Metrics {
+			metrics[m.Name].Enabled = m.Enabled
+
 		}
 	}
 }
