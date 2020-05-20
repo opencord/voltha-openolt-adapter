@@ -291,7 +291,12 @@ func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *open
 
 //Update_pm_config returns PmConfigs nil or error
 func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmConfigs) error {
-	return olterrors.ErrNotImplemented
+	logger.Debugw("Update_pm_config", log.Fields{"deviceId": device.Id, "pmConfigs": pmConfigs})
+        if handler := oo.getDeviceHandler(device.Id); handler != nil {
+                handler.UpdatePmConfig(pmConfigs)
+                return nil
+        }
+        return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Receive_packet_out sends packet out to the device

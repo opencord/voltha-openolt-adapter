@@ -57,6 +57,10 @@ func FrequencyOverride(frequencyOverride bool) PmMetricsOption {
 		args.frequencyOverride = frequencyOverride
 	}
 }
+// UpdateFrequency will update the frequency.
+func (pm *PmMetrics) UpdateFrequency(frequency uint32) {
+	pm.frequency = frequency
+}
 
 // Metrics will store the PMMetric params
 func Metrics(pmNames []string) PmMetricsOption {

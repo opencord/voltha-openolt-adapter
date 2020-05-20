@@ -278,6 +278,7 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	}
 }
 
+
 // collectNNIMetrics will collect the nni port metrics
 func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]float32 {
 
@@ -288,30 +289,80 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
 
 	if metricName != nil && len(metricName) > 0 {
-		for mName := range metricName {
-			switch mName {
-			case "rx_bytes":
-				nnival["RxBytes"] = float32(cm.RxBytes)
-			case "rx_packets":
-				nnival["RxPackets"] = float32(cm.RxPackets)
-			case "rx_ucast_packets":
-				nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
-			case "rx_mcast_packets":
-				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
-			case "rx_bcast_packets":
-				nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
-			case "tx_bytes":
-				nnival["TxBytes"] = float32(cm.TxBytes)
-			case "tx_packets":
-				nnival["TxPackets"] = float32(cm.TxPackets)
-			case "tx_mcast_packets":
-				nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
-			case "tx_bcast_packets":
-				nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
-			}
-		}
-	}
-	return nnival
+                for mName := range metricName {
+                        switch mName {
+                        case "rx_bytes":
+                                if metricName["rx_bytes"].Enabled == true {
+                                        nnival["RxBytes"] = float32(cm.RxBytes)
+                                } else if _, ok := nnival["RxBytes"]; ok {
+                                        delete(nnival, "RxBytes")
+                                        }
+                        case "rx_packets":
+                                if metricName["rx_packets"].Enabled == true {
+                                        nnival["RxPackets"] = float32(cm.RxPackets)
+                                } else if _, ok := nnival["RxPackets"]; ok {
+                                        delete(nnival, "RxPackets")
+                                                }
+                        // these are not supported in OpenOlt Agent now
+                        // will return zero until supported
+                        case "rx_ucast_packets":
+                                if metricName["rx_ucast_packets"].Enabled == true {
+                                        nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
+                                } else if _, ok := nnival["RxUcastPackets"]; ok {
+                                        delete(nnival, "RxUcastPackets")
+                                                }
+                        case "rx_mcast_packets":
+                                if metricName["rx_mcast_packets"].Enabled == true {
+                                        nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
+                                } else if _, ok := nnival["RxMcastPackets"]; ok {
+                                        delete(nnival, "RxMcastPackets")
+                                                }
+                        case "rx_bcast_packets":
+                                 if metricName["rx_bcast_packets"].Enabled == true {
+                                        nnival["RxBcastPackets"] = float32(cm.RxMcastPackets)
+                                } else if _, ok := nnival["RxBcastPackets"]; ok {
+                                        delete(nnival, "RxBcastPackets")
+                                        }
+                        case "tx_bytes":
+                                 if metricName["tx_bytes"].Enabled == true {
+                                        nnival["TxBytes"] = float32(cm.TxBytes)
+                                } else if _, ok := nnival["TxBytes"]; ok {
+                                        delete(nnival, "TxBytes")
+                                        }
+
+                        case "tx_packets":
+                                if metricName["tx_packets"].Enabled == true {
+                                        nnival["TxPackets"] = float32(cm.TxPackets)
+                                } else if _, ok := nnival["TxPackets"]; ok {
+								        delete(nnival, "TxPackets")
+                                        }
+
+                        // these are not supported in OpenOlt Agent now
+                        // will return zero until supported
+                        case "tx_ucast_packets":
+                                if metricName["tx_ucast_packets"].Enabled == true {
+                                        nnival["TxUcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := nnival["TxUcastPackets"]; ok {
+                                        delete(nnival, "TxUcastPackets")
+                                                }
+                        case "tx_mcast_packets":
+                                if metricName["tx_mcast_packets"].Enabled == true {
+                                        nnival["TxMcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := nnival["TxMcastPackets"]; ok {
+                                        delete(nnival, "TxMcastPackets")
+                                        }
+
+                        case "tx_bcast_packets":
+                                if metricName["tx_bcast_packets"].Enabled == true {
+                                        nnival["TxBcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := nnival["TxBcastPackets"]; ok {
+                                        delete(nnival, "TxBcastPackets")
+                                     }
+
+                        }
+                }
+        }
+        return nnival
 }
 
 // collectPONMetrics will collect the pon port metrics
@@ -324,37 +375,80 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
 
 	if metricName != nil && len(metricName) > 0 {
-		for mName := range metricName {
-			switch mName {
-			case "rx_bytes":
-				ponval["RxBytes"] = float32(cm.RxBytes)
-			case "rx_packets":
-				ponval["RxPackets"] = float32(cm.RxPackets)
-			// these are not supported in OpenOlt Agent now
-			// will return zero until supported
-			case "rx_ucast_packets":
-				ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
-			case "rx_mcast_packets":
-				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
-			case "rx_bcast_packets":
-				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
-			// End will return zero until supported
-			case "tx_bytes":
-				ponval["TxBytes"] = float32(cm.TxBytes)
-			case "tx_packets":
-				ponval["TxPackets"] = float32(cm.TxPackets)
-			// these are not supported in OpenOlt Agent now
-			// will return zero until supported
-			case "tx_ucast_packets":
-				ponval["TxUcastPackets"] = float32(cm.TxUcastPackets)
-			case "tx_mcast_packets":
-				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
-			case "tx_bcast_packets":
-				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
-			}
-		}
-	}
-	return ponval
+                for mName := range metricName {
+                        switch mName {
+                        case "rx_bytes":
+                                if metricName["rx_bytes"].Enabled == true {
+                                        ponval["RxBytes"] = float32(cm.RxBytes)
+                                } else if _, ok := ponval["RxBytes"]; ok {
+                                        delete(ponval, "RxBytes")
+                                        }
+                        case "rx_packets":
+                                if metricName["rx_packets"].Enabled == true {
+                                        ponval["RxPackets"] = float32(cm.RxPackets)
+                                } else if _, ok := ponval["RxPackets"]; ok {
+                                        delete(ponval, "RxPackets")
+                                                }
+                        // these are not supported in OpenOlt Agent now
+                        // will return zero until supported
+                        case "rx_ucast_packets":
+                                if metricName["rx_ucast_packets"].Enabled == true {
+                                        ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
+                                } else if _, ok := ponval["RxUcastPackets"]; ok {
+                                        delete(ponval, "RxUcastPackets")
+                                                }
+                        case "rx_mcast_packets":
+                                if metricName["rx_mcast_packets"].Enabled == true {
+                                        ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
+                                } else if _, ok := ponval["RxMcastPackets"]; ok {
+                                        delete(ponval, "RxMcastPackets")
+                                                }
+                        case "rx_bcast_packets":
+                                 if metricName["rx_bcast_packets"].Enabled == true {
+                                        ponval["RxBcastPackets"] = float32(cm.RxMcastPackets)
+                                } else if _, ok := ponval["RxBcastPackets"]; ok {
+                                        delete(ponval, "RxBcastPackets")
+                                        }
+                        case "tx_bytes":
+                                 if metricName["tx_bytes"].Enabled == true {
+                                        ponval["TxBytes"] = float32(cm.TxBytes)
+                                } else if _, ok := ponval["TxBytes"]; ok {
+                                        delete(ponval, "TxBytes")
+                                        }
+
+                        case "tx_packets":
+                                if metricName["tx_packets"].Enabled == true {
+                                        ponval["TxPackets"] = float32(cm.TxPackets)
+                                } else if _, ok := ponval["TxPackets"]; ok {
+				        delete(ponval, "TxPackets")
+                                        }
+
+                        // these are not supported in OpenOlt Agent now
+                        // will return zero until supported
+                        case "tx_ucast_packets":
+                                if metricName["tx_ucast_packets"].Enabled == true {
+                                        ponval["TxUcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := ponval["TxUcastPackets"]; ok {
+                                        delete(ponval, "TxUcastPackets")
+                                                }
+                        case "tx_mcast_packets":
+                                if metricName["tx_mcast_packets"].Enabled == true {
+                                        ponval["TxMcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := ponval["TxMcastPackets"]; ok {
+                                        delete(ponval, "TxMcastPackets")
+                                        }
+
+                        case "tx_bcast_packets":
+                                if metricName["tx_bcast_packets"].Enabled == true {
+                                        ponval["TxBcastPackets"] = float32(cm.TxBytes)
+                                } else if _, ok := ponval["TxBcastPackets"]; ok {
+                                        delete(ponval, "TxBcastPackets")
+                                     }
+
+                        }
+                }
+        }
+        return ponval
 }
 
 // publishMatrics will publish the pon port metrics
