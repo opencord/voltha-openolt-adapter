@@ -896,14 +896,13 @@ func TestOpenOLT_Update_pm_config(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"update_pm_config-1", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"update_pm_config-2", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"update_pm_config-3", &fields{}, args{}, olterrors.ErrNotImplemented},
+		{"update_pm_config-1", mockOlt(), args{device: mockDevice(), pmConfigs: &voltha.PmConfigs{DefaultFreq: 150, Grouped: false, FreqOverride: false}}, nil},
+		{"update_pm_config-2", &fields{}, args{device: mockDevice(), pmConfigs: &voltha.PmConfigs{DefaultFreq: 150, Grouped: false, FreqOverride: false}}, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Update_pm_config(tt.args.device, tt.args.pmConfigs); err != tt.wantErr {
+			if err := oo.Update_pm_config(tt.args.device, tt.args.pmConfigs); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_pm_config() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
