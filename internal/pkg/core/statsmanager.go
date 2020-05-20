@@ -287,28 +287,36 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 	mutex.Unlock()
 	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
 
+	metrics := make([]string, len(metricName))
+
 	if metricName != nil && len(metricName) > 0 {
-		for mName := range metricName {
-			switch mName {
-			case "rx_bytes":
-				nnival["RxBytes"] = float32(cm.RxBytes)
-			case "rx_packets":
-				nnival["RxPackets"] = float32(cm.RxPackets)
-			case "rx_ucast_packets":
-				nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
-			case "rx_mcast_packets":
-				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
-			case "rx_bcast_packets":
-				nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
-			case "tx_bytes":
-				nnival["TxBytes"] = float32(cm.TxBytes)
-			case "tx_packets":
-				nnival["TxPackets"] = float32(cm.TxPackets)
-			case "tx_mcast_packets":
-				nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
-			case "tx_bcast_packets":
-				nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
+		for metric := range metricName {
+			if metricName[metric].Enabled == true {
+				metrics = append(metrics, metric)
 			}
+		}
+	}
+
+	for _, mName := range metrics {
+		switch mName {
+		case "rx_bytes":
+			nnival["RxBytes"] = float32(cm.RxBytes)
+		case "rx_packets":
+			nnival["RxPackets"] = float32(cm.RxPackets)
+		case "rx_ucast_packets":
+			nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
+		case "rx_mcast_packets":
+			nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
+		case "rx_bcast_packets":
+			nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
+		case "tx_bytes":
+			nnival["TxBytes"] = float32(cm.TxBytes)
+		case "tx_packets":
+			nnival["TxPackets"] = float32(cm.TxPackets)
+		case "tx_mcast_packets":
+			nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
+		case "tx_bcast_packets":
+			nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
 		}
 	}
 	return nnival
@@ -323,37 +331,39 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 	mutex.Unlock()
 	metricName := StatMgr.Device.metrics.GetSubscriberMetrics()
 
+	metrics := make([]string, len(metricName))
+
 	if metricName != nil && len(metricName) > 0 {
-		for mName := range metricName {
-			switch mName {
-			case "rx_bytes":
-				ponval["RxBytes"] = float32(cm.RxBytes)
-			case "rx_packets":
-				ponval["RxPackets"] = float32(cm.RxPackets)
-			// these are not supported in OpenOlt Agent now
-			// will return zero until supported
-			case "rx_ucast_packets":
-				ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
-			case "rx_mcast_packets":
-				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
-			case "rx_bcast_packets":
-				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
-			// End will return zero until supported
-			case "tx_bytes":
-				ponval["TxBytes"] = float32(cm.TxBytes)
-			case "tx_packets":
-				ponval["TxPackets"] = float32(cm.TxPackets)
-			// these are not supported in OpenOlt Agent now
-			// will return zero until supported
-			case "tx_ucast_packets":
-				ponval["TxUcastPackets"] = float32(cm.TxUcastPackets)
-			case "tx_mcast_packets":
-				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
-			case "tx_bcast_packets":
-				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+		for metric := range metricName {
+			if metricName[metric].Enabled == true {
+				metrics = append(metrics, metric)
 			}
 		}
 	}
+
+	for _, mName := range metrics {
+		switch mName {
+		case "rx_bytes":
+			ponval["RxBytes"] = float32(cm.RxBytes)
+		case "rx_packets":
+			ponval["RxPackets"] = float32(cm.RxPackets)
+		case "rx_ucast_packets":
+			ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
+		case "rx_mcast_packets":
+			ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
+		case "rx_bcast_packets":
+			ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
+		case "tx_bytes":
+			ponval["TxBytes"] = float32(cm.TxBytes)
+		case "tx_packets":
+			ponval["TxPackets"] = float32(cm.TxPackets)
+		case "tx_mcast_packets":
+			ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
+		case "tx_bcast_packets":
+			ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+		}
+	}
+
 	return ponval
 }
 
