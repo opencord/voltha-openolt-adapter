@@ -264,7 +264,7 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 		dh.activePorts.Store(intfID, false)
 	}
 	portNum := IntfIDToPortNo(intfID, portType)
-	label, err := GetportLabel(portNum, portType)
+	label, err := GetportLabel(intfID, portType)
 	if err != nil {
 		return olterrors.NewErrNotFound("port-label", log.Fields{"port-number": portNum, "port-type": portType}, err)
 	}
