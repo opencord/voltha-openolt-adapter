@@ -385,7 +385,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 		Version: version.VersionInfo.Version,
 		// TODO once we'll be ready to support multiple versions of the OpenOLT adapter
 		// the Endpoint will have to change to `openolt_<currentReplica`>
-		Endpoint:       "openolt",
+		Endpoint:       a.config.Topic,
 		Type:           "openolt",
 		CurrentReplica: int32(a.config.CurrentReplica),
 		TotalReplicas:  int32(a.config.TotalReplicas),
