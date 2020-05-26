@@ -18,6 +18,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
@@ -44,7 +45,7 @@ func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 	}
 	dh := newMockDeviceHandler()
 	dh.device = device
-	StatMgr := NewOpenOltStatsMgr(dh)
+	StatMgr := NewOpenOltStatsMgr(context.Background(), dh)
 
 	type args struct {
 		PortStats *openolt.PortStatistics
@@ -59,7 +60,7 @@ func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			StatMgr.PortStatisticsIndication(tt.args.PortStats, 16)
+			StatMgr.PortStatisticsIndication(context.Background(), tt.args.PortStats, 16)
 		})
 	}
 }
@@ -168,7 +169,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			StatMgr.publishMetrics(tt.args.val, tt.args.port, "onu1", "openolt")
+			StatMgr.publishMetrics(context.Background(), tt.args.val, tt.args.port, "onu1", "openolt")
 		})
 	}
 }
@@ -216,7 +217,7 @@ func TestOpenOltStatisticsMgr_collectNNIMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			got := StatMgr.collectNNIMetrics(tt.args.nniID)
+			got := StatMgr.collectNNIMetrics(context.Background(), tt.args.nniID)
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("collectNNIMetrics() = %v, want %v", got, tt.want)
 			}
@@ -263,7 +264,7 @@ func TestOpenOltStatisticsMgr_collectPONMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			got := StatMgr.collectPONMetrics(tt.args.pID)
+			got := StatMgr.collectPONMetrics(context.Background(), tt.args.pID)
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("collectPONMetrics() = %v, want %v", got, tt.want)
 			}

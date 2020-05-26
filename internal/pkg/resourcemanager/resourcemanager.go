@@ -125,23 +125,23 @@ type OpenOltResourceMgr struct {
 	flowIDToGemInfoLock sync.RWMutex
 }
 
-func newKVClient(storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
+func newKVClient(ctx context.Context, storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
 	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
-		return kvstore.NewConsulClient(address, timeout)
+		return kvstore.NewConsulClient(ctx, address, timeout)
 	case "etcd":
-		return kvstore.NewEtcdClient(address, timeout, log.FatalLevel)
+		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
 
 // SetKVClient sets the KV client and return a kv backend
-func SetKVClient(backend string, Host string, Port int, DeviceID string) *db.Backend {
+func SetKVClient(ctx context.Context, backend string, Host string, Port int, DeviceID string) *db.Backend {
 	addr := Host + ":" + strconv.Itoa(Port)
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
-	kvClient, err := newKVClient(backend, addr, KvstoreTimeout)
+	kvClient, err := newKVClient(ctx, backend, addr, KvstoreTimeout)
 	if err != nil {
 		logger.Fatalw("Failed to init KV client\n", log.Fields{"err": err})
 		return nil
@@ -173,7 +173,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 	NumPONPorts := devInfo.GetPonPorts()
 
 	Backend := kvStoreType
-	ResourceMgr.KVStore = SetKVClient(Backend, ResourceMgr.Host,
+	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Host,
 		ResourceMgr.Port, deviceID)
 	if ResourceMgr.KVStore == nil {
 		logger.Error("Failed to setup KV store")
@@ -241,7 +241,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreHostPort string
 		technology := TechRange.Technology
 		logger.Debugf("Device info technology %s", technology)
 		Ranges[technology] = TechRange
-		RsrcMgrsByTech[technology], err = ponrmgr.NewPONResourceManager(technology, deviceType, deviceID,
+		RsrcMgrsByTech[technology], err = ponrmgr.NewPONResourceManager(ctx, technology, deviceType, deviceID,
 			Backend, ResourceMgr.Host, ResourceMgr.Port)
 		if err != nil {
 			logger.Errorf("Failed to create pon resource manager instance for technology %s", technology)
@@ -367,7 +367,7 @@ func InitializeDeviceResourceRangeAndPool(ctx context.Context, ponRMgr *ponrmgr.
 		"uni_id_end_idx":            1, /*MaxUNIIDperONU()*/
 	})
 
-	ponRMgr.InitDefaultPONResourceRanges(ONUIDStart, ONUIDEnd, ONUIDSharedPoolID,
+	ponRMgr.InitDefaultPONResourceRanges(ctx, ONUIDStart, ONUIDEnd, ONUIDSharedPoolID,
 		AllocIDStart, AllocIDEnd, AllocIDSharedPoolID,
 		GEMPortIDStart, GEMPortIDEnd, GEMPortIDSharedPoolID,
 		FlowIDStart, FlowIDEnd, FlowIDSharedPoolID, 0, 1,
@@ -376,33 +376,33 @@ func InitializeDeviceResourceRangeAndPool(ctx context.Context, ponRMgr *ponrmgr.
 	// For global sharing, make sure to refresh both local and global resource manager instances' range
 
 	if ONUIDShared == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH {
-		globalPONRMgr.UpdateRanges(ponrmgr.ONU_ID_START_IDX, ONUIDStart, ponrmgr.ONU_ID_END_IDX, ONUIDEnd,
+		globalPONRMgr.UpdateRanges(ctx, ponrmgr.ONU_ID_START_IDX, ONUIDStart, ponrmgr.ONU_ID_END_IDX, ONUIDEnd,
 			"", 0, nil)
-		ponRMgr.UpdateRanges(ponrmgr.ONU_ID_START_IDX, ONUIDStart, ponrmgr.ONU_ID_END_IDX, ONUIDEnd,
+		ponRMgr.UpdateRanges(ctx, ponrmgr.ONU_ID_START_IDX, ONUIDStart, ponrmgr.ONU_ID_END_IDX, ONUIDEnd,
 			"", 0, globalPONRMgr)
 	}
 	if AllocIDShared == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH {
-		globalPONRMgr.UpdateRanges(ponrmgr.ALLOC_ID_START_IDX, AllocIDStart, ponrmgr.ALLOC_ID_END_IDX, AllocIDEnd,
+		globalPONRMgr.UpdateRanges(ctx, ponrmgr.ALLOC_ID_START_IDX, AllocIDStart, ponrmgr.ALLOC_ID_END_IDX, AllocIDEnd,
 			"", 0, nil)
 
-		ponRMgr.UpdateRanges(ponrmgr.ALLOC_ID_START_IDX, AllocIDStart, ponrmgr.ALLOC_ID_END_IDX, AllocIDEnd,
+		ponRMgr.UpdateRanges(ctx, ponrmgr.ALLOC_ID_START_IDX, AllocIDStart, ponrmgr.ALLOC_ID_END_IDX, AllocIDEnd,
 			"", 0, globalPONRMgr)
 	}
 	if GEMPortIDShared == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH {
-		globalPONRMgr.UpdateRanges(ponrmgr.GEMPORT_ID_START_IDX, GEMPortIDStart, ponrmgr.GEMPORT_ID_END_IDX, GEMPortIDEnd,
+		globalPONRMgr.UpdateRanges(ctx, ponrmgr.GEMPORT_ID_START_IDX, GEMPortIDStart, ponrmgr.GEMPORT_ID_END_IDX, GEMPortIDEnd,
 			"", 0, nil)
-		ponRMgr.UpdateRanges(ponrmgr.GEMPORT_ID_START_IDX, GEMPortIDStart, ponrmgr.GEMPORT_ID_END_IDX, GEMPortIDEnd,
+		ponRMgr.UpdateRanges(ctx, ponrmgr.GEMPORT_ID_START_IDX, GEMPortIDStart, ponrmgr.GEMPORT_ID_END_IDX, GEMPortIDEnd,
 			"", 0, globalPONRMgr)
 	}
 	if FlowIDShared == openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_ALL_TECH {
-		globalPONRMgr.UpdateRanges(ponrmgr.FLOW_ID_START_IDX, FlowIDStart, ponrmgr.FLOW_ID_END_IDX, FlowIDEnd,
+		globalPONRMgr.UpdateRanges(ctx, ponrmgr.FLOW_ID_START_IDX, FlowIDStart, ponrmgr.FLOW_ID_END_IDX, FlowIDEnd,
 			"", 0, nil)
-		ponRMgr.UpdateRanges(ponrmgr.FLOW_ID_START_IDX, FlowIDStart, ponrmgr.FLOW_ID_END_IDX, FlowIDEnd,
+		ponRMgr.UpdateRanges(ctx, ponrmgr.FLOW_ID_START_IDX, FlowIDStart, ponrmgr.FLOW_ID_END_IDX, FlowIDEnd,
 			"", 0, globalPONRMgr)
 	}
 
 	// Make sure loaded range fits the platform bit encoding ranges
-	ponRMgr.UpdateRanges(ponrmgr.UNI_ID_START_IDX, 0, ponrmgr.UNI_ID_END_IDX /* TODO =OpenOltPlatform.MAX_UNIS_PER_ONU-1*/, 1, "", 0, nil)
+	ponRMgr.UpdateRanges(ctx, ponrmgr.UNI_ID_START_IDX, 0, ponrmgr.UNI_ID_END_IDX /* TODO =OpenOltPlatform.MAX_UNIS_PER_ONU-1*/, 1, "", 0, nil)
 }
 
 // Delete clears used resources for the particular olt device being deleted
@@ -520,7 +520,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint
 		logger.Debugw("Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "ONUID": ONUID, "uniID": uniID, "KVpath": FlowPath})
 		for _, flowID := range FlowIDs {
 			FlowInfo := RsrcMgr.GetFlowIDInfo(ctx, ponIntfID, int32(ONUID), int32(uniID), uint32(flowID))
-			er := getFlowIDFromFlowInfo(FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanVid, vlanPcp...)
+			er := getFlowIDFromFlowInfo(ctx, FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanVid, vlanPcp...)
 			if er == nil {
 				log.Debugw("Found flowid for the vlan, pcp, and gem",
 					log.Fields{"flowID": flowID, "vlanVid": vlanVid, "vlanPcp": vlanPcp, "gemPortID": gemportID})
@@ -877,7 +877,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(ctx context.Context, I
 	Value, err := RsrcMgr.KVStore.Get(ctx, Path)
 	if err == nil {
 		if Value != nil {
-			Val, err := kvstore.ToByte(Value.Value)
+			Val, err := kvstore.ToByte(ctx, Value.Value)
 			if err != nil {
 				logger.Errorw("Failed to convert into byte array", log.Fields{"error": err})
 				return Data
@@ -988,7 +988,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetMeterIDForOnu(ctx context.Context, Directi
 	if err == nil {
 		if Value != nil {
 			logger.Debug("Found meter in KV store", log.Fields{"Direction": Direction})
-			Val, er := kvstore.ToByte(Value.Value)
+			Val, er := kvstore.ToByte(ctx, Value.Value)
 			if er != nil {
 				logger.Errorw("Failed to convert into byte array", log.Fields{"error": er})
 				return nil, er
@@ -1020,14 +1020,14 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveMeterIDForOnu(ctx context.Context, Dire
 	return nil
 }
 
-func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string,
+func getFlowIDFromFlowInfo(ctx context.Context, FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string,
 	vlanVid uint32, vlanPcp ...uint32) error {
 	if FlowInfo != nil {
 		for _, Info := range *FlowInfo {
 			if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
 				logger.Debug("Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
 				if Info.FlowCategory == "HSIA_FLOW" {
-					if err := checkVlanAndPbitEqualityForFlows(vlanVid, Info, vlanPcp[0]); err == nil {
+					if err := checkVlanAndPbitEqualityForFlows(ctx, vlanVid, Info, vlanPcp[0]); err == nil {
 						return nil
 					}
 				}
@@ -1044,8 +1044,8 @@ func getFlowIDFromFlowInfo(FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowS
 	return errors.New("invalid flow-info")
 }
 
-func checkVlanAndPbitEqualityForFlows(vlanVid uint32, Info FlowInfo, vlanPcp uint32) error {
-	if err := checkVlanEqualityForFlows(vlanVid, Info); err != nil {
+func checkVlanAndPbitEqualityForFlows(ctx context.Context, vlanVid uint32, Info FlowInfo, vlanPcp uint32) error {
+	if err := checkVlanEqualityForFlows(ctx, vlanVid, Info); err != nil {
 		return err
 	}
 
@@ -1064,7 +1064,7 @@ func checkVlanAndPbitEqualityForFlows(vlanVid uint32, Info FlowInfo, vlanPcp uin
 	return errors.New("not found in terms of pbit equality")
 }
 
-func checkVlanEqualityForFlows(vlanVid uint32, Info FlowInfo) error {
+func checkVlanEqualityForFlows(ctx context.Context, vlanVid uint32, Info FlowInfo) error {
 	if vlanVid == Info.Flow.Action.OVid || vlanVid == Info.Flow.Classifier.IVid {
 		return nil
 	}
@@ -1125,14 +1125,14 @@ func (RsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, IntfID uin
 
 	if err = RsrcMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
 		logger.Errorf("failed to get onuifo for intfid %d", IntfID)
-		return olterrors.NewErrPersistence("get", "OnuGemInfo", IntfID,
+		return olterrors.NewErrPersistence(ctx, "get", "OnuGemInfo", IntfID,
 			log.Fields{"onuGem": onuGem, "intfID": IntfID}, err)
 	}
 	onuGemData = append(onuGemData, onuGem)
 	err = RsrcMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGemData)
 	if err != nil {
 		logger.Error("Failed to add onugem to kv store")
-		return olterrors.NewErrPersistence("set", "OnuGemInfo", IntfID,
+		return olterrors.NewErrPersistence(ctx, "set", "OnuGemInfo", IntfID,
 			log.Fields{"onuGemData": onuGemData, "intfID": IntfID}, err)
 	}
 
@@ -1204,7 +1204,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, i
 		return uint32(0), nil
 	}
 
-	if Val, err = kvstore.ToByte(value.Value); err != nil {
+	if Val, err = kvstore.ToByte(ctx, value.Value); err != nil {
 		logger.Error("Failed to convert to byte array")
 		return uint32(0), err
 	}
@@ -1250,7 +1250,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetNNIFromKVStore(ctx context.Context) ([]uin
 		return nil, err
 	}
 	if value != nil {
-		if Val, err = kvstore.ToByte(value.Value); err != nil {
+		if Val, err = kvstore.ToByte(ctx, value.Value); err != nil {
 			logger.Error("Failed to convert to byte array")
 			return nil, err
 		}
@@ -1373,7 +1373,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Cont
 		return nil, err
 	}
 	if value != nil && value.Value != nil {
-		if val, err = kvstore.ToByte(value.Value); err != nil {
+		if val, err = kvstore.ToByte(ctx, value.Value); err != nil {
 			logger.Error("Failed to convert to byte array ", log.Fields{"error": err})
 			return nil, err
 		}
@@ -1415,7 +1415,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetMcastQueuePerInterfaceMap(ctx context.Cont
 		return nil, err
 	}
 	if kvPair != nil && kvPair.Value != nil {
-		if val, err = kvstore.ToByte(kvPair.Value); err != nil {
+		if val, err = kvstore.ToByte(ctx, kvPair.Value); err != nil {
 			logger.Error("Failed to convert to byte array ", log.Fields{"error": err})
 			return nil, err
 		}
@@ -1522,7 +1522,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowGroupFromKVStore(ctx context.Context, 
 		return false, groupInfo, err
 	}
 	if kvPair != nil && kvPair.Value != nil {
-		Val, err := kvstore.ToByte(kvPair.Value)
+		Val, err := kvstore.ToByte(ctx, kvPair.Value)
 		if err != nil {
 			logger.Errorw("Failed to convert flow group into byte array", log.Fields{"error": err})
 			return false, groupInfo, err

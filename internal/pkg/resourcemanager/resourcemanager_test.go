@@ -232,7 +232,7 @@ func (kvclient *MockResKVClient) AcquireLock(ctx context.Context, lockName strin
 }
 
 // ReleaseLock mock function implementation for KVClient
-func (kvclient *MockResKVClient) ReleaseLock(lockName string) error {
+func (kvclient *MockResKVClient) ReleaseLock(ctx context.Context, lockName string) error {
 	return nil
 }
 
@@ -242,11 +242,11 @@ func (kvclient *MockResKVClient) IsConnectionUp(ctx context.Context) bool { // t
 }
 
 // CloseWatch mock function implementation for KVClient
-func (kvclient *MockResKVClient) CloseWatch(key string, ch chan *kvstore.Event) {
+func (kvclient *MockResKVClient) CloseWatch(ctx context.Context, key string, ch chan *kvstore.Event) {
 }
 
 // Close mock function implementation for KVClient
-func (kvclient *MockResKVClient) Close() {
+func (kvclient *MockResKVClient) Close(ctx context.Context) {
 }
 
 // testResMgrObject maps fields type to OpenOltResourceMgr type.
@@ -956,7 +956,7 @@ func TestSetKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SetKVClient(tt.args.backend, tt.args.Host, tt.args.Port, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := SetKVClient(context.Background(), tt.args.backend, tt.args.Host, tt.args.Port, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("SetKVClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -1023,7 +1023,7 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := getFlowIDFromFlowInfo(tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
+			err := getFlowIDFromFlowInfo(context.Background(), tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
 			if reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("getFlowIDFromFlowInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -1051,7 +1051,7 @@ func Test_newKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newKVClient(tt.args.storeType, tt.args.address, tt.args.timeout)
+			got, err := newKVClient(context.Background(), tt.args.storeType, tt.args.address, tt.args.timeout)
 			if got != nil && reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("newKVClient() got = %v, want %v", got, tt.want)
 			}
@@ -1103,7 +1103,7 @@ func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
 	}
 	for i := 0; i < len(outPorts); i++ {
 		var acts []*ofp.OfpAction
-		acts = append(acts, fu.Output(outPorts[i]))
+		acts = append(acts, fu.Output(context.Background(), outPorts[i]))
 		bucket := ofp.OfpBucket{
 			Actions: acts,
 		}

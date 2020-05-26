@@ -58,7 +58,7 @@ type adapter struct {
 	receiverChannels []<-chan *ic.InterContainerMessage
 }
 
-func newAdapter(cf *config.AdapterFlags) *adapter {
+func newAdapter(ctx context.Context, cf *config.AdapterFlags) *adapter {
 	var a adapter
 	a.instanceID = cf.InstanceID
 	a.config = cf
@@ -77,6 +77,7 @@ func (a *adapter) start(ctx context.Context) {
 		if _, ok := value.(*probe.Probe); ok {
 			p = value.(*probe.Probe)
 			p.RegisterService(
+				ctx,
 				"message-bus",
 				"kv-store",
 				"container-proxy",
@@ -88,25 +89,25 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup KV Client
 	logger.Debugw("create-kv-client", log.Fields{"kvstore": a.config.KVStoreType})
-	if err = a.setKVClient(); err != nil {
+	if err = a.setKVClient(ctx); err != nil {
 		logger.Fatalw("error-setting-kv-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
-		p.UpdateStatus("kv-store", probe.ServiceStatusRunning)
+		p.UpdateStatus(ctx, "kv-store", probe.ServiceStatusRunning)
 	}
 
 	// Setup Log Config
-	cm := conf.NewConfigManager(a.kvClient, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
-	go conf.StartLogLevelConfigProcessing(cm, ctx)
+	cm := conf.NewConfigManager(ctx, a.kvClient, a.config.KVStoreType, a.config.KVStoreHost, a.config.KVStorePort, a.config.KVStoreTimeout)
+	go conf.StartLogLevelConfigProcessing(ctx, cm)
 
 	// Setup Kafka Client
-	if a.kafkaClient, err = newKafkaClient("sarama", a.config.KafkaAdapterHost, a.config.KafkaAdapterPort); err != nil {
+	if a.kafkaClient, err = newKafkaClient(ctx, "sarama", a.config.KafkaAdapterHost, a.config.KafkaAdapterPort); err != nil {
 		logger.Fatalw("Unsupported-common-client", log.Fields{"error": err})
 	}
 
 	if p != nil {
-		p.UpdateStatus("message-bus", probe.ServiceStatusRunning)
+		p.UpdateStatus(ctx, "message-bus", probe.ServiceStatusRunning)
 	}
 
 	// setup endpointManager
@@ -117,13 +118,13 @@ func (a *adapter) start(ctx context.Context) {
 	}
 
 	// Create the core proxy to handle requests to the Core
-	a.coreProxy = com.NewCoreProxy(a.kip, a.config.Topic, a.config.CoreTopic)
+	a.coreProxy = com.NewCoreProxy(ctx, a.kip, a.config.Topic, a.config.CoreTopic)
 
 	// Create the adaptor proxy to handle request between olt and onu
-	a.adapterProxy = com.NewAdapterProxy(a.kip, "brcm_openomci_onu", a.config.CoreTopic, cm.Backend)
+	a.adapterProxy = com.NewAdapterProxy(ctx, a.kip, "brcm_openomci_onu", a.config.CoreTopic, cm.Backend)
 
 	// Create the event proxy to post events to KAFKA
-	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
+	a.eventProxy = com.NewEventProxy(ctx, com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 
 	// Create the open OLT adapter
 	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config); err != nil {
@@ -201,8 +202,8 @@ This function checks the liveliness and readiness of the kafka service
 and update the status in the probe.
 */
 func (a *adapter) checkKafkaReadiness(ctx context.Context) {
-	livelinessChannel := a.kafkaClient.EnableLivenessChannel(true)
-	healthinessChannel := a.kafkaClient.EnableHealthinessChannel(true)
+	livelinessChannel := a.kafkaClient.EnableLivenessChannel(ctx, true)
+	healthinessChannel := a.kafkaClient.EnableHealthinessChannel(ctx, true)
 	timeout := a.config.LiveProbeInterval
 	failed := false
 	for {
@@ -242,7 +243,7 @@ func (a *adapter) checkKafkaReadiness(ctx context.Context) {
 			logger.Info("kafka-proxy-liveness-recheck")
 			// send the liveness probe in a goroutine; we don't want to deadlock ourselves as
 			// the liveness probe may wait (and block) writing to our channel.
-			err := a.kafkaClient.SendLiveness()
+			err := a.kafkaClient.SendLiveness(ctx)
 			if err != nil {
 				// Catch possible error case if sending liveness after Sarama has been stopped.
 				logger.Warnw("error-kafka-send-liveness", log.Fields{"error": err})
@@ -265,49 +266,50 @@ func (a *adapter) stop(ctx context.Context) {
 			logger.Infow("fail-to-release-all-reservations", log.Fields{"error": err})
 		}
 		// Close the DB connection
-		a.kvClient.Close()
+		a.kvClient.Close(ctx)
 	}
 
 	if a.kip != nil {
-		a.kip.Stop()
+		a.kip.Stop(ctx)
 	}
 
 	// TODO:  More cleanup
 }
 
-func newKVClient(storeType, address string, timeout time.Duration) (kvstore.Client, error) {
+func newKVClient(ctx context.Context, storeType, address string, timeout time.Duration) (kvstore.Client, error) {
 
 	logger.Infow("kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
 	case "consul":
-		return kvstore.NewConsulClient(address, timeout)
+		return kvstore.NewConsulClient(ctx, address, timeout)
 	case "etcd":
-		return kvstore.NewEtcdClient(address, timeout, log.FatalLevel)
+		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func newKafkaClient(clientType, host string, port int) (kafka.Client, error) {
+func newKafkaClient(ctx context.Context, clientType, host string, port int) (kafka.Client, error) {
 
 	logger.Infow("common-client-type", log.Fields{"client": clientType})
 	switch clientType {
 	case "sarama":
 		return kafka.NewSaramaClient(
-			kafka.Host(host),
-			kafka.Port(port),
-			kafka.ProducerReturnOnErrors(true),
-			kafka.ProducerReturnOnSuccess(true),
-			kafka.ProducerMaxRetries(6),
-			kafka.ProducerRetryBackoff(time.Millisecond*30),
-			kafka.MetadatMaxRetries(15)), nil
+			ctx,
+			kafka.Host(ctx, host),
+			kafka.Port(ctx, port),
+			kafka.ProducerReturnOnErrors(ctx, true),
+			kafka.ProducerReturnOnSuccess(ctx, true),
+			kafka.ProducerMaxRetries(ctx, 6),
+			kafka.ProducerRetryBackoff(ctx, time.Millisecond*30),
+			kafka.MetadatMaxRetries(ctx, 15)), nil
 	}
 
 	return nil, errors.New("unsupported-client-type")
 }
 
-func (a *adapter) setKVClient() error {
+func (a *adapter) setKVClient(ctx context.Context) error {
 	addr := a.config.KVStoreHost + ":" + strconv.Itoa(a.config.KVStorePort)
-	client, err := newKVClient(a.config.KVStoreType, addr, a.config.KVStoreTimeout)
+	client, err := newKVClient(ctx, a.config.KVStoreType, addr, a.config.KVStoreTimeout)
 	if err != nil {
 		a.kvClient = nil
 		return err
@@ -322,13 +324,14 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 		"port": a.config.KafkaAdapterPort, "topic": a.config.Topic})
 	var err error
 	kip := kafka.NewInterContainerProxy(
-		kafka.InterContainerHost(a.config.KafkaAdapterHost),
-		kafka.InterContainerPort(a.config.KafkaAdapterPort),
-		kafka.MsgClient(a.kafkaClient),
-		kafka.DefaultTopic(&kafka.Topic{Name: a.config.Topic}))
+		ctx,
+		kafka.InterContainerHost(ctx, a.config.KafkaAdapterHost),
+		kafka.InterContainerPort(ctx, a.config.KafkaAdapterPort),
+		kafka.MsgClient(ctx, a.kafkaClient),
+		kafka.DefaultTopic(ctx, &kafka.Topic{Name: a.config.Topic}))
 	count := 0
 	for {
-		if err = kip.Start(); err != nil {
+		if err = kip.Start(ctx); err != nil {
 			logger.Warnw("error-starting-messaging-proxy", log.Fields{"error": err})
 			if retries == count {
 				return nil, err
@@ -362,8 +365,8 @@ func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProx
 
 func (a *adapter) setupRequestHandler(ctx context.Context, coreInstanceID string, iadapter adapters.IAdapter) error {
 	logger.Info("setting-request-handler")
-	requestProxy := com.NewRequestHandlerProxy(coreInstanceID, iadapter, a.coreProxy)
-	if err := a.kip.SubscribeWithRequestHandlerInterface(kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
+	requestProxy := com.NewRequestHandlerProxy(ctx, coreInstanceID, iadapter, a.coreProxy)
+	if err := a.kip.SubscribeWithRequestHandlerInterface(ctx, kafka.Topic{Name: a.config.Topic}, requestProxy); err != nil {
 		return err
 
 	}
@@ -398,7 +401,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {
-		if err := a.coreProxy.RegisterAdapter(context.TODO(), adapterDescription, deviceTypes); err != nil {
+		if err := a.coreProxy.RegisterAdapter(ctx, adapterDescription, deviceTypes); err != nil {
 			logger.Warnw("registering-with-core-failed", log.Fields{"error": err})
 			if retries == count {
 				return err
@@ -415,7 +418,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	return nil
 }
 
-func waitForExit() int {
+func waitForExit(ctx context.Context) int {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel,
 		syscall.SIGHUP,
@@ -444,7 +447,7 @@ func waitForExit() int {
 	return code
 }
 
-func printBanner() {
+func printBanner(ctx context.Context) {
 	fmt.Println(`   ____                     ____  _   _______ `)
 	fmt.Println(`  / _  \                   / __ \| | |__   __|`)
 	fmt.Println(` | |  | |_ __   ___ _ __  | |  | | |    | |   `)
@@ -456,7 +459,7 @@ func printBanner() {
 	fmt.Println(`                                              `)
 }
 
-func printVersion() {
+func printVersion(ctx context.Context) {
 	fmt.Println("VOLTHA OpenOLT Adapter")
 	fmt.Println(version.VersionInfo.String("  "))
 }
@@ -492,13 +495,13 @@ func main() {
 
 	// Print version / build information and exit
 	if cf.DisplayVersionOnly {
-		printVersion()
+		printVersion(context.Background())
 		return
 	}
 
 	// Print banner if specified
 	if cf.Banner {
-		printBanner()
+		printBanner(context.Background())
 	}
 
 	logger.Infow("config", log.Fields{"config": *cf})
@@ -506,16 +509,16 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ad := newAdapter(cf)
+	ad := newAdapter(ctx, cf)
 
 	p := &probe.Probe{}
-	go p.ListenAndServe(fmt.Sprintf("%s:%d", ad.config.ProbeHost, ad.config.ProbePort))
+	go p.ListenAndServe(ctx, fmt.Sprintf("%s:%d", ad.config.ProbeHost, ad.config.ProbePort))
 
 	probeCtx := context.WithValue(ctx, probe.ProbeContextKey, p)
 
 	go ad.start(probeCtx)
 
-	code := waitForExit()
+	code := waitForExit(ctx)
 	logger.Infow("received-a-closing-signal", log.Fields{"code": code})
 
 	// Cleanup before leaving

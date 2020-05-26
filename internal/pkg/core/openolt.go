@@ -101,7 +101,7 @@ func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) 
 	}
 }
 
-func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
+func (oo *OpenOLT) addDeviceHandlerToMap(ctx context.Context, agent *DeviceHandler) {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
 	if _, exist := oo.deviceHandlers[agent.device.Id]; !exist {
@@ -109,13 +109,13 @@ func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
 	}
 }
 
-func (oo *OpenOLT) deleteDeviceHandlerToMap(agent *DeviceHandler) {
+func (oo *OpenOLT) deleteDeviceHandlerToMap(ctx context.Context, agent *DeviceHandler) {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
 	delete(oo.deviceHandlers, agent.device.Id)
 }
 
-func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
+func (oo *OpenOLT) getDeviceHandler(ctx context.Context, deviceID string) *DeviceHandler {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
 	if agent, ok := oo.deviceHandlers[deviceID]; ok {
@@ -125,28 +125,27 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 }
 
 //createDeviceTopic returns
-func (oo *OpenOLT) createDeviceTopic(device *voltha.Device) error {
+func (oo *OpenOLT) createDeviceTopic(ctx context.Context, device *voltha.Device) error {
 	logger.Infow("create-device-topic", log.Fields{"deviceId": device.Id})
-	defaultTopic := oo.kafkaICProxy.GetDefaultTopic()
+	defaultTopic := oo.kafkaICProxy.GetDefaultTopic(ctx)
 	deviceTopic := kafka.Topic{Name: defaultTopic.Name + "_" + device.Id}
 	// TODO for the offset
-	if err := oo.kafkaICProxy.SubscribeWithDefaultRequestHandler(deviceTopic, 0); err != nil {
-		return olterrors.NewErrAdapter("subscribe-for-device-topic-failed", log.Fields{"device-topic": deviceTopic}, err)
+	if err := oo.kafkaICProxy.SubscribeWithDefaultRequestHandler(ctx, deviceTopic, 0); err != nil {
+		return olterrors.NewErrAdapter(ctx, "subscribe-for-device-topic-failed", log.Fields{"device-topic": deviceTopic}, err)
 	}
 	return nil
 }
 
 // Adopt_device creates a new device handler if not present already and then adopts the device
-func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
-	ctx := context.Background()
+func (oo *OpenOLT) Adopt_device(ctx context.Context, device *voltha.Device) error {
 	if device == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
+		return olterrors.NewErrInvalidValue(ctx, log.Fields{"device": nil}, nil).Log(ctx)
 	}
 	logger.Infow("adopt-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
-	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
-		oo.addDeviceHandlerToMap(handler)
+	if handler = oo.getDeviceHandler(ctx, device.Id); handler == nil {
+		handler := NewDeviceHandler(ctx, oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
+		oo.addDeviceHandlerToMap(ctx, handler)
 		go handler.AdoptDevice(ctx, device)
 		// Launch the creation of the device topic
 		// go oo.createDeviceTopic(device)
@@ -155,220 +154,216 @@ func (oo *OpenOLT) Adopt_device(device *voltha.Device) error {
 }
 
 //Get_ofp_device_info returns OFP information for the given device
-func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapability, error) {
+func (oo *OpenOLT) Get_ofp_device_info(ctx context.Context, device *voltha.Device) (*ic.SwitchCapability, error) {
 	logger.Infow("Get_ofp_device_info", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.GetOfpDeviceInfo(device)
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
+		return handler.GetOfpDeviceInfo(ctx, device)
 	}
-	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return nil, olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Get_ofp_port_info returns OFP port information for the given device
-func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.PortCapability, error) {
+func (oo *OpenOLT) Get_ofp_port_info(ctx context.Context, device *voltha.Device, portNo int64) (*ic.PortCapability, error) {
 	logger.Infow("Get_ofp_port_info", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.GetOfpPortInfo(device, portNo)
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
+		return handler.GetOfpPortInfo(ctx, device, portNo)
 	}
-	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return nil, olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Process_inter_adapter_message sends messages to a target device (between adapters)
-func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
+func (oo *OpenOLT) Process_inter_adapter_message(ctx context.Context, msg *ic.InterAdapterMessage) error {
 	logger.Debugw("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})
 	targetDevice := msg.Header.ProxyDeviceId // Request?
 	if targetDevice == "" && msg.Header.ToDeviceId != "" {
 		// Typical response
 		targetDevice = msg.Header.ToDeviceId
 	}
-	if handler := oo.getDeviceHandler(targetDevice); handler != nil {
-		return handler.ProcessInterAdapterMessage(msg)
+	if handler := oo.getDeviceHandler(ctx, targetDevice); handler != nil {
+		return handler.ProcessInterAdapterMessage(ctx, msg)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": targetDevice}, nil)
 }
 
 //Adapter_descriptor not implemented
-func (oo *OpenOLT) Adapter_descriptor() error {
+func (oo *OpenOLT) Adapter_descriptor(ctx context.Context) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Device_types unimplemented
-func (oo *OpenOLT) Device_types() (*voltha.DeviceTypes, error) {
+func (oo *OpenOLT) Device_types(ctx context.Context) (*voltha.DeviceTypes, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Health  returns unimplemented
-func (oo *OpenOLT) Health() (*voltha.HealthStatus, error) {
+func (oo *OpenOLT) Health(ctx context.Context) (*voltha.HealthStatus, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Reconcile_device unimplemented
-func (oo *OpenOLT) Reconcile_device(device *voltha.Device) error {
-	ctx := context.Background()
+func (oo *OpenOLT) Reconcile_device(ctx context.Context, device *voltha.Device) error {
 	if device == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
+		return olterrors.NewErrInvalidValue(ctx, log.Fields{"device": nil}, nil)
 	}
 	logger.Infow("reconcile-device", log.Fields{"deviceId": device.Id})
 	var handler *DeviceHandler
-	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
-		oo.addDeviceHandlerToMap(handler)
-		handler.transitionMap = NewTransitionMap(handler)
+	if handler = oo.getDeviceHandler(ctx, device.Id); handler == nil {
+		handler := NewDeviceHandler(ctx, oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
+		oo.addDeviceHandlerToMap(ctx, handler)
+		handler.transitionMap = NewTransitionMap(ctx, handler)
 		handler.transitionMap.Handle(ctx, DeviceInit)
 	}
 	return nil
 }
 
 //Abandon_device unimplemented
-func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
+func (oo *OpenOLT) Abandon_device(ctx context.Context, device *voltha.Device) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Disable_device disables the given device
-func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
+func (oo *OpenOLT) Disable_device(ctx context.Context, device *voltha.Device) error {
 	logger.Infow("disable-device", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.DisableDevice(device)
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
+		return handler.DisableDevice(ctx, device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Reenable_device enables the olt device after disable
-func (oo *OpenOLT) Reenable_device(device *voltha.Device) error {
+func (oo *OpenOLT) Reenable_device(ctx context.Context, device *voltha.Device) error {
 	logger.Infow("reenable-device", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.ReenableDevice(device)
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
+		return handler.ReenableDevice(ctx, device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Reboot_device reboots the given device
-func (oo *OpenOLT) Reboot_device(device *voltha.Device) error {
+func (oo *OpenOLT) Reboot_device(ctx context.Context, device *voltha.Device) error {
 	logger.Infow("reboot-device", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.RebootDevice(device)
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
+		return handler.RebootDevice(ctx, device)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Self_test_device unimplented
-func (oo *OpenOLT) Self_test_device(device *voltha.Device) error {
+func (oo *OpenOLT) Self_test_device(ctx context.Context, device *voltha.Device) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Delete_device unimplemented
-func (oo *OpenOLT) Delete_device(device *voltha.Device) error {
+func (oo *OpenOLT) Delete_device(ctx context.Context, device *voltha.Device) error {
 	logger.Infow("delete-device", log.Fields{"deviceId": device.Id})
-	ctx := context.Background()
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
 		if err := handler.DeleteDevice(ctx, device); err != nil {
 			logger.Errorw("failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
 		}
-		oo.deleteDeviceHandlerToMap(handler)
+		oo.deleteDeviceHandlerToMap(ctx, handler)
 		return nil
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Get_device_details unimplemented
-func (oo *OpenOLT) Get_device_details(device *voltha.Device) error {
+func (oo *OpenOLT) Get_device_details(ctx context.Context, device *voltha.Device) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Update_flows_bulk returns
-func (oo *OpenOLT) Update_flows_bulk(device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error {
+func (oo *OpenOLT) Update_flows_bulk(ctx context.Context, device *voltha.Device, flows *voltha.Flows, groups *voltha.FlowGroups, flowMetadata *voltha.FlowMetadata) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
-func (oo *OpenOLT) Update_flows_incrementally(device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+func (oo *OpenOLT) Update_flows_incrementally(ctx context.Context, device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	logger.Debugw("Update_flows_incrementally", log.Fields{"deviceId": device.Id, "flows": flows, "flowMetadata": flowMetadata})
-	ctx := context.Background()
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
+	if handler := oo.getDeviceHandler(ctx, device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 //Update_pm_config returns PmConfigs nil or error
-func (oo *OpenOLT) Update_pm_config(device *voltha.Device, pmConfigs *voltha.PmConfigs) error {
+func (oo *OpenOLT) Update_pm_config(ctx context.Context, device *voltha.Device, pmConfigs *voltha.PmConfigs) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Receive_packet_out sends packet out to the device
-func (oo *OpenOLT) Receive_packet_out(deviceID string, egressPortNo int, packet *openflow_13.OfpPacketOut) error {
+func (oo *OpenOLT) Receive_packet_out(ctx context.Context, deviceID string, egressPortNo int, packet *openflow_13.OfpPacketOut) error {
 	logger.Debugw("Receive_packet_out", log.Fields{"deviceId": deviceID, "egress_port_no": egressPortNo, "pkt": packet})
-	ctx := context.Background()
-	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+	if handler := oo.getDeviceHandler(ctx, deviceID); handler != nil {
 		return handler.PacketOut(ctx, egressPortNo, packet)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil)
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": deviceID}, nil)
 }
 
 //Suppress_event unimplemented
-func (oo *OpenOLT) Suppress_event(filter *voltha.EventFilter) error {
+func (oo *OpenOLT) Suppress_event(ctx context.Context, filter *voltha.EventFilter) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Unsuppress_event  unimplemented
-func (oo *OpenOLT) Unsuppress_event(filter *voltha.EventFilter) error {
+func (oo *OpenOLT) Unsuppress_event(ctx context.Context, filter *voltha.EventFilter) error {
 	return olterrors.ErrNotImplemented
 }
 
 //Download_image unimplemented
-func (oo *OpenOLT) Download_image(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) Download_image(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Get_image_download_status unimplemented
-func (oo *OpenOLT) Get_image_download_status(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) Get_image_download_status(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Cancel_image_download unimplemented
-func (oo *OpenOLT) Cancel_image_download(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) Cancel_image_download(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Activate_image_update unimplemented
-func (oo *OpenOLT) Activate_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) Activate_image_update(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Revert_image_update unimplemented
-func (oo *OpenOLT) Revert_image_update(device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) Revert_image_update(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 // Enable_port to Enable PON/NNI interface
-func (oo *OpenOLT) Enable_port(deviceID string, port *voltha.Port) error {
+func (oo *OpenOLT) Enable_port(ctx context.Context, deviceID string, port *voltha.Port) error {
 	logger.Infow("Enable_port", log.Fields{"deviceId": deviceID, "port": port})
-	return oo.enableDisablePort(deviceID, port, true)
+	return oo.enableDisablePort(ctx, deviceID, port, true)
 }
 
 // Disable_port to Disable pon/nni interface
-func (oo *OpenOLT) Disable_port(deviceID string, port *voltha.Port) error {
+func (oo *OpenOLT) Disable_port(ctx context.Context, deviceID string, port *voltha.Port) error {
 	logger.Infow("Disable_port", log.Fields{"deviceId": deviceID, "port": port})
-	return oo.enableDisablePort(deviceID, port, false)
+	return oo.enableDisablePort(ctx, deviceID, port, false)
 }
 
 // enableDisablePort to Disable pon or Enable PON interface
-func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enablePort bool) error {
+func (oo *OpenOLT) enableDisablePort(ctx context.Context, deviceID string, port *voltha.Port, enablePort bool) error {
 	logger.Infow("enableDisablePort", log.Fields{"deviceId": deviceID, "port": port})
 	if port == nil {
-		return olterrors.NewErrInvalidValue(log.Fields{
+		return olterrors.NewErrInvalidValue(ctx, log.Fields{
 			"reason":    "port cannot be nil",
 			"device-id": deviceID,
 			"port":      nil}, nil)
 	}
-	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+	if handler := oo.getDeviceHandler(ctx, deviceID); handler != nil {
 		logger.Debugw("Enable_Disable_Port", log.Fields{"deviceId": deviceID, "port": port})
 		if enablePort {
-			if err := handler.EnablePort(port); err != nil {
-				return olterrors.NewErrAdapter("error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
+			if err := handler.EnablePort(ctx, port); err != nil {
+				return olterrors.NewErrAdapter(ctx, "error-occurred-during-enable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
 			}
 		} else {
-			if err := handler.DisablePort(port); err != nil {
-				return olterrors.NewErrAdapter("error-occurred-during-disable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
+			if err := handler.DisablePort(ctx, port); err != nil {
+				return olterrors.NewErrAdapter(ctx, "error-occurred-during-disable-port", log.Fields{"deviceID": deviceID, "port": port}, err)
 			}
 		}
 	}
@@ -376,27 +371,26 @@ func (oo *OpenOLT) enableDisablePort(deviceID string, port *voltha.Port, enableP
 }
 
 //Child_device_lost deletes the ONU and its references from PONResources
-func (oo *OpenOLT) Child_device_lost(deviceID string, pPortNo uint32, onuID uint32) error {
+func (oo *OpenOLT) Child_device_lost(ctx context.Context, deviceID string, pPortNo uint32, onuID uint32) error {
 	logger.Infow("Child-device-lost", log.Fields{"parentId": deviceID})
-	ctx := context.Background()
-	if handler := oo.getDeviceHandler(deviceID); handler != nil {
+	if handler := oo.getDeviceHandler(ctx, deviceID); handler != nil {
 		return handler.ChildDeviceLost(ctx, pPortNo, onuID)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+	return olterrors.NewErrNotFound(ctx, "device-handler", log.Fields{"device-id": deviceID}, nil).Log(ctx)
 }
 
 //Start_omci_test not implemented
-func (oo *OpenOLT) Start_omci_test(device *voltha.Device, request *voltha.OmciTestRequest) (*voltha.TestResponse, error) {
+func (oo *OpenOLT) Start_omci_test(ctx context.Context, device *voltha.Device, request *voltha.OmciTestRequest) (*voltha.TestResponse, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //Get_ext_value retrieves a value on a particular ONU
-func (oo *OpenOLT) Get_ext_value(deviceID string, device *voltha.Device, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+func (oo *OpenOLT) Get_ext_value(ctx context.Context, deviceID string, device *voltha.Device, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
 	resp := new(voltha.ReturnValues)
 	log.Infow("Get_ext_value", log.Fields{"device-id": deviceID, "onu-id": device.Id})
-	if handler := oo.getDeviceHandler(deviceID); handler != nil {
-		if resp, err = handler.getExtValue(device, valueparam); err != nil {
+	if handler := oo.getDeviceHandler(ctx, deviceID); handler != nil {
+		if resp, err = handler.getExtValue(ctx, device, valueparam); err != nil {
 			log.Errorw("error-occurred-during-get-ext-value", log.Fields{"device-id": deviceID, "onu-id": device.Id,
 				"error": err})
 			return nil, err

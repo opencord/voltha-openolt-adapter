@@ -221,61 +221,61 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	logger.Debug("Info Warning Error: Starting RemoveFlow() test")
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(2),
-			fu.Metadata_ofp(2),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 2),
+			fu.Metadata_ofp(context.Background(), 2),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
-			fu.Output(1),
+			fu.SetField(context.Background(), fu.Metadata_ofp(context.Background(), uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA|2))),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|101)),
+			fu.Output(context.Background(), 1),
 		},
 	}
-	ofpstats, _ := fu.MkFlowStat(fa)
+	ofpstats, _ := fu.MkFlowStat(context.Background(), fa)
 	ofpstats.Cookie = ofpstats.Id
 	lldpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
-			fu.EthType(0x88CC),
-			fu.TunnelId(536870912),
+			fu.InPort(context.Background(), 1),
+			fu.EthType(context.Background(), 0x88CC),
+			fu.TunnelId(context.Background(), 536870912),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+			fu.Output(context.Background(), uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
-	lldpofpstats, _ := fu.MkFlowStat(lldpFa)
+	lldpofpstats, _ := fu.MkFlowStat(context.Background(), lldpFa)
 	//lldpofpstats.Cookie = lldpofpstats.Id
 
 	dhcpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
-			fu.UdpSrc(67),
+			fu.InPort(context.Background(), 1),
+			fu.UdpSrc(context.Background(), 67),
 			//fu.TunnelId(536870912),
-			fu.IpProto(17),
+			fu.IpProto(context.Background(), 17),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+			fu.Output(context.Background(), uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
-	dhcpofpstats, _ := fu.MkFlowStat(dhcpFa)
+	dhcpofpstats, _ := fu.MkFlowStat(context.Background(), dhcpFa)
 	//dhcpofpstats.Cookie = dhcpofpstats.Id
 
 	//multicast flow
 	multicastFa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65536),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.InPort(context.Background(), 65536),
+			fu.VlanVid(context.Background(), 660),             //vlan
+			fu.Metadata_ofp(context.Background(), uint64(66)), //inner vlan
+			fu.EthType(context.Background(), 0x800),           //ipv4
+			fu.Ipv4Dst(context.Background(), 3809869825),      //227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Group(1),
+			fu.Group(context.Background(), 1),
 		},
 	}
-	multicastOfpStats, _ := fu.MkFlowStat(multicastFa)
+	multicastOfpStats, _ := fu.MkFlowStat(context.Background(), multicastFa)
 	multicastOfpStats.Id = 1
 
 	type args struct {
@@ -311,15 +311,15 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	// Upstream flow
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 536870912),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65536),
-			fu.PushVlan(0x8100),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65536),
+			fu.PushVlan(context.Background(), 0x8100),
 		},
 		KV: kw,
 	}
@@ -327,29 +327,29 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	// Downstream flow
 	fa3 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65536),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+			fu.InPort(context.Background(), 65536),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			//fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
-			fu.PopVlan(),
-			fu.Output(536870912),
+			fu.PopVlan(context.Background()),
+			fu.Output(context.Background(), 536870912),
 		},
 		KV: kw,
 	}
 
 	fa2 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1000),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 1000),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
-			fu.Output(65533),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|101)),
+			fu.Output(context.Background(), 65533),
 		},
 		KV: kw,
 	}
@@ -361,12 +361,12 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	// Failure in formulateActionInfoFromFlow()
 	fa4 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1000),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 1000),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Experimenter(257, []byte{1, 2, 3, 4}),
+			fu.Experimenter(context.Background(), 257, []byte{1, 2, 3, 4}),
 		},
 		KV: kw,
 	}
@@ -374,12 +374,12 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	// Invalid Output
 	fa5 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1000),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 1000),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(0),
+			fu.Output(context.Background(), 0),
 		},
 		KV: kw,
 	}
@@ -391,15 +391,15 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	kw6["write_metadata"] = 0x4100000000 // TpID Other than the stored one
 	fa6 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.TunnelId(16),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 536870912),
+			fu.TunnelId(context.Background(), 16),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65535),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65535),
 		},
 		KV: kw6,
 	}
@@ -407,105 +407,105 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	lldpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
-			fu.EthType(0x88CC),
-			fu.TunnelId(536870912),
+			fu.InPort(context.Background(), 1),
+			fu.EthType(context.Background(), 0x88CC),
+			fu.TunnelId(context.Background(), 536870912),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+			fu.Output(context.Background(), uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
 
 	dhcpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
-			fu.UdpSrc(67),
+			fu.InPort(context.Background(), 1),
+			fu.UdpSrc(context.Background(), 67),
 			//fu.TunnelId(536870912),
-			fu.IpProto(17),
+			fu.IpProto(context.Background(), 17),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+			fu.Output(context.Background(), uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
 	igmpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1),
-			fu.UdpSrc(67),
+			fu.InPort(context.Background(), 1),
+			fu.UdpSrc(context.Background(), 67),
 			//fu.TunnelId(536870912),
-			fu.IpProto(2),
+			fu.IpProto(context.Background(), 2),
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+			fu.Output(context.Background(), uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
 		},
 	}
 
 	fa9 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.TunnelId(16),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
-			fu.VlanPcp(1000),
-			fu.UdpDst(65535),
-			fu.UdpSrc(536870912),
-			fu.Ipv4Dst(65535),
-			fu.Ipv4Src(536870912),
+			fu.InPort(context.Background(), 536870912),
+			fu.TunnelId(context.Background(), 16),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
+			fu.VlanPcp(context.Background(), 1000),
+			fu.UdpDst(context.Background(), 65535),
+			fu.UdpSrc(context.Background(), 536870912),
+			fu.Ipv4Dst(context.Background(), 65535),
+			fu.Ipv4Src(context.Background(), 536870912),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65535),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65535),
 		},
 		KV: kw6,
 	}
 
 	fa10 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65533),
+			fu.InPort(context.Background(), 65533),
 			//	fu.TunnelId(16),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
-			fu.VlanPcp(1000),
-			fu.UdpDst(65535),
-			fu.UdpSrc(536870912),
-			fu.Ipv4Dst(65535),
-			fu.Ipv4Src(536870912),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
+			fu.VlanPcp(context.Background(), 1000),
+			fu.UdpDst(context.Background(), 65535),
+			fu.UdpSrc(context.Background(), 536870912),
+			fu.Ipv4Dst(context.Background(), 65535),
+			fu.Ipv4Src(context.Background(), 536870912),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65535),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65535),
 		},
 		KV: kw6,
 	}
 	//multicast flow
 	fa11 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65536),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.InPort(context.Background(), 65536),
+			fu.VlanVid(context.Background(), 660),             //vlan
+			fu.Metadata_ofp(context.Background(), uint64(66)), //inner vlan
+			fu.EthType(context.Background(), 0x800),           //ipv4
+			fu.Ipv4Dst(context.Background(), 3809869825),      //227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Group(1),
+			fu.Group(context.Background(), 1),
 		},
 		KV: kw6,
 	}
-	ofpstats, _ := fu.MkFlowStat(fa)
-	ofpstats2, _ := fu.MkFlowStat(fa2)
-	ofpstats3, _ := fu.MkFlowStat(fa3)
-	ofpstats4, _ := fu.MkFlowStat(fa4)
-	ofpstats5, _ := fu.MkFlowStat(fa5)
-	ofpstats6, _ := fu.MkFlowStat(fa6)
-	ofpstats7, _ := fu.MkFlowStat(lldpFa)
-	ofpstats8, _ := fu.MkFlowStat(dhcpFa)
-	ofpstats9, _ := fu.MkFlowStat(fa9)
-	ofpstats10, _ := fu.MkFlowStat(fa10)
-	igmpstats, _ := fu.MkFlowStat(igmpFa)
-	ofpstats11, _ := fu.MkFlowStat(fa11)
+	ofpstats, _ := fu.MkFlowStat(context.Background(), fa)
+	ofpstats2, _ := fu.MkFlowStat(context.Background(), fa2)
+	ofpstats3, _ := fu.MkFlowStat(context.Background(), fa3)
+	ofpstats4, _ := fu.MkFlowStat(context.Background(), fa4)
+	ofpstats5, _ := fu.MkFlowStat(context.Background(), fa5)
+	ofpstats6, _ := fu.MkFlowStat(context.Background(), fa6)
+	ofpstats7, _ := fu.MkFlowStat(context.Background(), lldpFa)
+	ofpstats8, _ := fu.MkFlowStat(context.Background(), dhcpFa)
+	ofpstats9, _ := fu.MkFlowStat(context.Background(), fa9)
+	ofpstats10, _ := fu.MkFlowStat(context.Background(), fa10)
+	igmpstats, _ := fu.MkFlowStat(context.Background(), igmpFa)
+	ofpstats11, _ := fu.MkFlowStat(context.Background(), fa11)
 
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
@@ -604,7 +604,7 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 				flowMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
-				flowMgr.deleteGemPortFromLocalCache(tt.args.intfID, tt.args.onuID, gemPortDeleted)
+				flowMgr.deleteGemPortFromLocalCache(context.Background(), tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
 			lenofGemPorts := len(flowMgr.onuGemInfo[tt.args.intfID][0].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
@@ -725,17 +725,17 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	// Upstream flow
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.Metadata_ofp(1),
-			fu.IpProto(17), // dhcp
-			fu.VlanPcp(0),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.InPort(context.Background(), 536870912),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.IpProto(context.Background(), 17), // dhcp
+			fu.VlanPcp(context.Background(), 0),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65536),
-			fu.PushVlan(0x8100),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65536),
+			fu.PushVlan(context.Background(), 0x8100),
 		},
 		KV: kw,
 	}
@@ -743,17 +743,17 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	// EAPOL
 	fa2 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.Metadata_ofp(1),
-			fu.EthType(0x888E),
-			fu.VlanPcp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+			fu.InPort(context.Background(), 536870912),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.EthType(context.Background(), 0x888E),
+			fu.VlanPcp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(65536),
-			fu.PushVlan(0x8100),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|257)),
+			fu.Output(context.Background(), 65536),
+			fu.PushVlan(context.Background(), 0x8100),
 		},
 		KV: kw,
 	}
@@ -761,32 +761,32 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	// HSIA
 	fa3 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(536870912),
-			fu.Metadata_ofp(1),
+			fu.InPort(context.Background(), 536870912),
+			fu.Metadata_ofp(context.Background(), 1),
 			//fu.EthType(0x8100),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0)),
-			fu.Output(65536),
-			fu.PushVlan(0x8100),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0)),
+			fu.Output(context.Background(), 65536),
+			fu.PushVlan(context.Background(), 0x8100),
 		},
 		KV: kw,
 	}
 
 	fa4 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65535),
-			fu.Metadata_ofp(1),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
-			fu.VlanPcp(1),
+			fu.InPort(context.Background(), 65535),
+			fu.Metadata_ofp(context.Background(), 1),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
+			fu.VlanPcp(context.Background(), 1),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0)),
-			fu.Output(536870912),
-			fu.PopVlan(),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0)),
+			fu.Output(context.Background(), 536870912),
+			fu.PopVlan(context.Background()),
 		},
 		KV: kw,
 	}
@@ -799,37 +799,37 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	actionInfo3 := make(map[string]interface{})
 	classifierInfo4 := make(map[string]interface{})
 	actionInfo4 := make(map[string]interface{})
-	flowState, _ := fu.MkFlowStat(fa)
-	flowState2, _ := fu.MkFlowStat(fa2)
-	flowState3, _ := fu.MkFlowStat(fa3)
-	flowState4, _ := fu.MkFlowStat(fa4)
-	formulateClassifierInfoFromFlow(classifierInfo, flowState)
-	formulateClassifierInfoFromFlow(classifierInfo2, flowState2)
-	formulateClassifierInfoFromFlow(classifierInfo3, flowState3)
-	formulateClassifierInfoFromFlow(classifierInfo4, flowState4)
+	flowState, _ := fu.MkFlowStat(context.Background(), fa)
+	flowState2, _ := fu.MkFlowStat(context.Background(), fa2)
+	flowState3, _ := fu.MkFlowStat(context.Background(), fa3)
+	flowState4, _ := fu.MkFlowStat(context.Background(), fa4)
+	formulateClassifierInfoFromFlow(context.Background(), classifierInfo, flowState)
+	formulateClassifierInfoFromFlow(context.Background(), classifierInfo2, flowState2)
+	formulateClassifierInfoFromFlow(context.Background(), classifierInfo3, flowState3)
+	formulateClassifierInfoFromFlow(context.Background(), classifierInfo4, flowState4)
 
-	err := formulateActionInfoFromFlow(actionInfo, classifierInfo, flowState)
+	err := formulateActionInfoFromFlow(context.Background(), actionInfo, classifierInfo, flowState)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo2, classifierInfo2, flowState2)
+	err = formulateActionInfoFromFlow(context.Background(), actionInfo2, classifierInfo2, flowState2)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo3, classifierInfo3, flowState3)
+	err = formulateActionInfoFromFlow(context.Background(), actionInfo3, classifierInfo3, flowState3)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo4, classifierInfo4, flowState4)
+	err = formulateActionInfoFromFlow(context.Background(), actionInfo4, classifierInfo4, flowState4)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
@@ -970,27 +970,27 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	//create group
-	group := newGroup(2, []uint32{1})
+	group := newGroup(context.Background(), 2, []uint32{1})
 	flowMgr.AddGroup(ctx, group)
 
 	//create multicast flow
 	multicastFlowArgs := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65536),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.InPort(context.Background(), 65536),
+			fu.VlanVid(context.Background(), 660),             //vlan
+			fu.Metadata_ofp(context.Background(), uint64(66)), //inner vlan
+			fu.EthType(context.Background(), 0x800),           //ipv4
+			fu.Ipv4Dst(context.Background(), 3809869825),      //227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
-			fu.Group(1),
+			fu.Group(context.Background(), 1),
 		},
 	}
-	ofpStats, _ := fu.MkFlowStat(multicastFlowArgs)
+	ofpStats, _ := fu.MkFlowStat(context.Background(), multicastFlowArgs)
 	flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
 
 	//add bucket to the group
-	group = newGroup(2, []uint32{1, 2})
+	group = newGroup(context.Background(), 2, []uint32{1, 2})
 
 	flowMgr.ModifyGroup(ctx, group)
 }

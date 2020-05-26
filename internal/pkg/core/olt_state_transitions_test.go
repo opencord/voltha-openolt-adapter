@@ -89,7 +89,7 @@ func TestNewTransitionMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewTransitionMap(tt.args.dh); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := NewTransitionMap(context.Background(), tt.args.dh); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("NewTransitionMap() = %v, want %v", got, tt.want)
 			}
 		})
@@ -158,7 +158,7 @@ func TestTransitionMap_isValidTransition(t *testing.T) {
 				transitions:        tt.fields.transitions,
 				currentDeviceState: tt.fields.currentDeviceState,
 			}
-			if got := tMap.isValidTransition(tt.args.trigger); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := tMap.isValidTransition(context.Background(), tt.args.trigger); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("isValidTransition() = %v, want %v", got, tt.want)
 			}
 		})

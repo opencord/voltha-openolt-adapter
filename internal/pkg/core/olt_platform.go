@@ -18,6 +18,7 @@
 package core
 
 import (
+	"context"
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -123,7 +124,7 @@ var MaxUpstreamPortID = 0xfffffffd
 var controllerPorts = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
 
 //MkUniPortNum returns new UNIportNum based on intfID, inuID and uniID
-func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
+func MkUniPortNum(ctx context.Context, intfID, onuID, uniID uint32) uint32 {
 	var limit = int(onuID)
 	if limit > MaxOnusPerPon {
 		logger.Warn("exceeded-the-max-onus-per-pon")
@@ -132,22 +133,22 @@ func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
 }
 
 //OnuIDFromPortNum returns ONUID derived from portNumber
-func OnuIDFromPortNum(portNum uint32) uint32 {
+func OnuIDFromPortNum(ctx context.Context, portNum uint32) uint32 {
 	return (portNum >> bitsForUniID) & (MaxOnusPerPon - 1)
 }
 
 //IntfIDFromUniPortNum returns IntfID derived from portNum
-func IntfIDFromUniPortNum(portNum uint32) uint32 {
+func IntfIDFromUniPortNum(ctx context.Context, portNum uint32) uint32 {
 	return (portNum >> (bitsForUniID + bitsForONUID)) & (MaxPonsPerOlt - 1)
 }
 
 //UniIDFromPortNum return UniID derived from portNum
-func UniIDFromPortNum(portNum uint32) uint32 {
+func UniIDFromPortNum(ctx context.Context, portNum uint32) uint32 {
 	return (portNum) & (MaxUnisPerOnu - 1)
 }
 
 //IntfIDToPortNo returns portId derived from intftype, intfId and portType
-func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
+func IntfIDToPortNo(ctx context.Context, intfID uint32, intfType voltha.Port_PortType) uint32 {
 	if (intfType) == voltha.Port_ETHERNET_NNI {
 		return (1 << nniUniDiffPos) | intfID
 	}
@@ -158,7 +159,7 @@ func IntfIDToPortNo(intfID uint32, intfType voltha.Port_PortType) uint32 {
 }
 
 //PortNoToIntfID returns portnumber derived from interfaceID
-func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
+func PortNoToIntfID(ctx context.Context, portno uint32, intfType voltha.Port_PortType) uint32 {
 	if (intfType) == voltha.Port_ETHERNET_NNI {
 		return (1 << nniUniDiffPos) ^ portno
 	}
@@ -169,7 +170,7 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 }
 
 //IntfIDFromNniPortNum returns Intf ID derived from portNum
-func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
+func IntfIDFromNniPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
 		logger.Errorw("nniportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
 		return uint32(0), olterrors.ErrInvalidPortRange
@@ -178,7 +179,7 @@ func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
 }
 
 //IntfIDToPortTypeName returns port type derived from the intfId
-func IntfIDToPortTypeName(intfID uint32) voltha.Port_PortType {
+func IntfIDToPortTypeName(ctx context.Context, intfID uint32) voltha.Port_PortType {
 	if ((ponIntfMarkerValue << ponIntfMarkerPos) ^ intfID) < MaxPonsPerOlt {
 		return voltha.Port_PON_OLT
 	}
@@ -189,15 +190,15 @@ func IntfIDToPortTypeName(intfID uint32) voltha.Port_PortType {
 }
 
 //ExtractAccessFromFlow returns AccessDevice information
-func ExtractAccessFromFlow(inPort, outPort uint32) (uint32, uint32, uint32, uint32) {
-	if IsUpstream(outPort) {
-		return inPort, IntfIDFromUniPortNum(inPort), OnuIDFromPortNum(inPort), UniIDFromPortNum(inPort)
+func ExtractAccessFromFlow(ctx context.Context, inPort, outPort uint32) (uint32, uint32, uint32, uint32) {
+	if IsUpstream(ctx, outPort) {
+		return inPort, IntfIDFromUniPortNum(ctx, inPort), OnuIDFromPortNum(ctx, inPort), UniIDFromPortNum(ctx, inPort)
 	}
-	return outPort, IntfIDFromUniPortNum(outPort), OnuIDFromPortNum(outPort), UniIDFromPortNum(outPort)
+	return outPort, IntfIDFromUniPortNum(ctx, outPort), OnuIDFromPortNum(ctx, outPort), UniIDFromPortNum(ctx, outPort)
 }
 
 //IsUpstream returns true for Upstream and false for downstream
-func IsUpstream(outPort uint32) bool {
+func IsUpstream(ctx context.Context, outPort uint32) bool {
 	for _, port := range controllerPorts {
 		if port == outPort {
 			return true
@@ -207,7 +208,7 @@ func IsUpstream(outPort uint32) bool {
 }
 
 //IsControllerBoundFlow returns true/false
-func IsControllerBoundFlow(outPort uint32) bool {
+func IsControllerBoundFlow(ctx context.Context, outPort uint32) bool {
 	for _, port := range controllerPorts {
 		if port == outPort {
 			return true
@@ -217,12 +218,12 @@ func IsControllerBoundFlow(outPort uint32) bool {
 }
 
 //OnuIDFromUniPortNum returns onuId from give portNum information.
-func OnuIDFromUniPortNum(portNum uint32) uint32 {
+func OnuIDFromUniPortNum(ctx context.Context, portNum uint32) uint32 {
 	return (portNum >> bitsForUniID) & (MaxOnusPerPon - 1)
 }
 
 //FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID, uniID, inPort and ethType
-func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, uint32, uint32, error) {
+func FlowExtractInfo(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, uint32, uint32, error) {
 	var uniPortNo uint32
 	var ponIntf uint32
 	var onuID uint32
@@ -231,8 +232,8 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	var ethType uint32
 
 	if flowDirection == "upstream" {
-		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, field := range flows.GetOfbFields(flow) {
+		if uniPortNo = flows.GetChildPortFromTunnelId(ctx, flow); uniPortNo == 0 {
+			for _, field := range flows.GetOfbFields(ctx, flow) {
 				if field.GetType() == flows.IN_PORT {
 					uniPortNo = field.GetPort()
 					break
@@ -240,10 +241,10 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 			}
 		}
 	} else if flowDirection == "downstream" {
-		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
-			for _, field := range flows.GetOfbFields(flow) {
+		if uniPortNo = flows.GetChildPortFromTunnelId(ctx, flow); uniPortNo == 0 {
+			for _, field := range flows.GetOfbFields(ctx, flow) {
 				if field.GetType() == flows.METADATA {
-					for _, action := range flows.GetActions(flow) {
+					for _, action := range flows.GetActions(ctx, flow) {
 						if action.Type == flows.OUTPUT {
 							if out := action.GetOutput(); out != nil {
 								uniPortNo = out.GetPort()
@@ -261,12 +262,12 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound("pon-interface", log.Fields{"flow-direction": flowDirection}, nil)
+		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound(ctx, "pon-interface", log.Fields{"flow-direction": flowDirection}, nil)
 	}
 
-	ponIntf = IntfIDFromUniPortNum(uniPortNo)
-	onuID = OnuIDFromUniPortNum(uniPortNo)
-	uniID = UniIDFromPortNum(uniPortNo)
+	ponIntf = IntfIDFromUniPortNum(ctx, uniPortNo)
+	onuID = OnuIDFromUniPortNum(ctx, uniPortNo)
+	uniID = UniIDFromPortNum(ctx, uniPortNo)
 
 	logger.Debugw("flow-extract-info-result",
 		log.Fields{

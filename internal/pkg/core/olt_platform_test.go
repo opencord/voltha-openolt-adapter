@@ -18,14 +18,14 @@
 package core
 
 import (
-	"math"
-	"reflect"
-	"testing"
-
+	"context"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"math"
+	"reflect"
+	"testing"
 )
 
 func TestMkUniPortNum(t *testing.T) {
@@ -47,7 +47,7 @@ func TestMkUniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MkUniPortNum(tt.args.intfID, tt.args.onuID, tt.args.uniID); got != tt.want {
+			if got := MkUniPortNum(context.Background(), tt.args.intfID, tt.args.onuID, tt.args.uniID); got != tt.want {
 				t.Errorf("MkUniPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -71,7 +71,7 @@ func TestOnuIDFromPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := OnuIDFromPortNum(tt.args.portNum); got != tt.want {
+			if got := OnuIDFromPortNum(context.Background(), tt.args.portNum); got != tt.want {
 				t.Errorf("OnuIDFromPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -96,7 +96,7 @@ func TestIntfIDFromUniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDFromUniPortNum(tt.args.portNum); got != tt.want {
+			if got := IntfIDFromUniPortNum(context.Background(), tt.args.portNum); got != tt.want {
 				t.Errorf("IntfIDFromUniPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -121,7 +121,7 @@ func TestUniIDFromPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := UniIDFromPortNum(tt.args.portNum); got != tt.want {
+			if got := UniIDFromPortNum(context.Background(), tt.args.portNum); got != tt.want {
 				t.Errorf("UniIDFromPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -151,7 +151,7 @@ func TestIntfIDToPortNo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDToPortNo(tt.args.intfID, tt.args.intfType); got != tt.want {
+			if got := IntfIDToPortNo(context.Background(), tt.args.intfID, tt.args.intfType); got != tt.want {
 				t.Errorf("IntfIDToPortNo() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -187,7 +187,7 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := IntfIDFromNniPortNum(tt.args.portNum)
+			got, err := IntfIDFromNniPortNum(context.Background(), tt.args.portNum)
 			if got != tt.want || err != tt.wantErr {
 				t.Errorf("IntfIDFromNniPortNum(): FOR[%v] WANT[%v and %v] GOT[%v and %v]",
 					tt.args.portNum, tt.want, tt.wantErr, got, err)
@@ -214,7 +214,7 @@ func TestIntfIDToPortTypeName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IntfIDToPortTypeName(tt.args.intfID); !reflect.DeepEqual(got, tt.want) {
+			if got := IntfIDToPortTypeName(context.Background(), tt.args.intfID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("IntfIDToPortTypeName() = %v, want %v", got, tt.want)
 			}
 		})
@@ -240,7 +240,7 @@ func TestExtractAccessFromFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, got2, got3 := ExtractAccessFromFlow(tt.args.inPort, tt.args.outPort)
+			got, got1, got2, got3 := ExtractAccessFromFlow(context.Background(), tt.args.inPort, tt.args.outPort)
 			if got != tt.port {
 				t.Errorf("ExtractAccessFromFlow() got = %v, want %v", got, tt.port)
 			}
@@ -276,7 +276,7 @@ func TestIsUpstream(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsUpstream(tt.args.outPort); got != tt.want {
+			if got := IsUpstream(context.Background(), tt.args.outPort); got != tt.want {
 				t.Errorf("IsUpstream() = %v, want %v", got, tt.want)
 			}
 		})
@@ -302,7 +302,7 @@ func TestIsControllerBoundFlow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsControllerBoundFlow(tt.args.outPort); got != tt.want {
+			if got := IsControllerBoundFlow(context.Background(), tt.args.outPort); got != tt.want {
 				t.Errorf("IsControllerBoundFlow() = %v, want %v", got, tt.want)
 			}
 		})
@@ -312,19 +312,19 @@ func TestIsControllerBoundFlow(t *testing.T) {
 func TestFlowExtractInfo(t *testing.T) {
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(2),
-			fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2)),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
-			fu.EthType(2048),
+			fu.InPort(context.Background(), 2),
+			fu.Metadata_ofp(context.Background(), uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA|2)),
+			fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|0),
+			fu.EthType(context.Background(), 2048),
 		},
 
 		Actions: []*ofp.OfpAction{
-			fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
-			fu.Output(1),
+			fu.SetField(context.Background(), fu.Metadata_ofp(context.Background(), uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
+			fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|101)),
+			fu.Output(context.Background(), 1),
 		},
 	}
-	ofpstats, _ := fu.MkFlowStat(fa)
+	ofpstats, _ := fu.MkFlowStat(context.Background(), fa)
 	type args struct {
 		flow          *ofp.OfpFlowStats
 		flowDirection string
@@ -350,7 +350,7 @@ func TestFlowExtractInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, got2, got3, got4, got5, err := FlowExtractInfo(tt.args.flow, tt.args.flowDirection)
+			got, got1, got2, got3, got4, got5, err := FlowExtractInfo(context.Background(), tt.args.flow, tt.args.flowDirection)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FlowExtractInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return

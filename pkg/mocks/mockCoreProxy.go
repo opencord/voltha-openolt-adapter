@@ -34,22 +34,22 @@ type MockCoreProxy struct {
 }
 
 // UpdateCoreReference mock updatesCoreReference
-func (mcp *MockCoreProxy) UpdateCoreReference(deviceID string, coreReference string) {
+func (mcp *MockCoreProxy) UpdateCoreReference(ctx context.Context, deviceID string, coreReference string) {
 	panic("implement me")
 }
 
 // DeleteCoreReference mock DeleteCoreReference function
-func (mcp *MockCoreProxy) DeleteCoreReference(deviceID string) {
+func (mcp *MockCoreProxy) DeleteCoreReference(ctx context.Context, deviceID string) {
 	panic("implement me")
 }
 
 // GetCoreTopic implements mock GetCoreTopic
-func (mcp *MockCoreProxy) GetCoreTopic(deviceID string) kafka.Topic {
+func (mcp *MockCoreProxy) GetCoreTopic(ctx context.Context, deviceID string) kafka.Topic {
 	panic("implement me")
 }
 
 // GetAdapterTopic implements mock GetAdapterTopic
-func (mcp *MockCoreProxy) GetAdapterTopic(args ...string) kafka.Topic {
+func (mcp *MockCoreProxy) GetAdapterTopic(ctx context.Context, args ...string) kafka.Topic {
 	panic("implement me")
 }
 

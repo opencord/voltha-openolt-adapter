@@ -18,25 +18,25 @@
 package core
 
 import (
+	"context"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
+	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 )
 
 func mockEventMgr() *OpenOltEventMgr {
 	ep := &mocks.MockEventProxy{}
 	dh := newMockDeviceHandler()
 	dh.onus = sync.Map{}
-	dh.onus.Store(dh.formOnuKey(1, 1), &OnuDevice{deviceID: "TEST_ONU",
+	dh.onus.Store(dh.formOnuKey(context.Background(), 1, 1), &OnuDevice{deviceID: "TEST_ONU",
 		deviceType:   "ONU",
 		serialNumber: "TEST_ONU_123",
 		onuID:        1, intfID: 1})
-	dh.onus.Store("1.3", NewOnuDevice("onu3", "onu3", "onu3", 1, 3, "onu3", false))
-	dh.onus.Store("1.4", NewOnuDevice("onu4", "onu4", "onu4", 1, 4, "onu4", false))
-	return NewEventMgr(ep, dh)
+	dh.onus.Store("1.3", NewOnuDevice(context.Background(), "onu3", "onu3", "onu3", 1, 3, "onu3", false))
+	dh.onus.Store("1.4", NewOnuDevice(context.Background(), "onu4", "onu4", "onu4", 1, 4, "onu4", false))
+	return NewEventMgr(context.Background(), ep, dh)
 }
 func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 	em := mockEventMgr()
@@ -130,7 +130,7 @@ func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			em.ProcessEvents(tt.args.alarmInd, tt.args.deviceID, tt.args.raisedTs)
+			em.ProcessEvents(context.Background(), tt.args.alarmInd, tt.args.deviceID, tt.args.raisedTs)
 		})
 	}
 }
@@ -156,7 +156,7 @@ func TestOpenOltEventMgr_OnuDiscoveryIndication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			em.OnuDiscoveryIndication(tt.args.onuDisc, tt.args.oltDeviceID, tt.args.onuDeviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
+			em.OnuDiscoveryIndication(context.Background(), tt.args.onuDisc, tt.args.oltDeviceID, tt.args.onuDeviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
 		})
 	}
 }

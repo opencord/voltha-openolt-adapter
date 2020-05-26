@@ -148,7 +148,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	ap := &mocks.MockAdapterProxy{}
 	ep := &mocks.MockEventProxy{}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
-	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
+	dh := NewDeviceHandler(context.Background(), cp, ap, ep, device, openOLT)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1},
 		Technology: "xgs-pon",
@@ -211,7 +211,7 @@ func newMockDeviceHandler() *DeviceHandler {
 		"tx_bcast_packets",
 	}
 
-	dh.metrics = pmmetrics.NewPmMetrics(device.Id, pmmetrics.Frequency(2), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
+	dh.metrics = pmmetrics.NewPmMetrics(ctx, device.Id, pmmetrics.Frequency(ctx, 2), pmmetrics.FrequencyOverride(ctx, false), pmmetrics.Grouped(ctx, false), pmmetrics.Metrics(ctx, pmNames))
 	return dh
 }
 
@@ -238,7 +238,7 @@ func Test_generateMacFromHost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateMacFromHost(tt.args.host)
+			got, err := generateMacFromHost(context.Background(), tt.args.host)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateMacFromHost() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -275,7 +275,7 @@ func Test_macifyIP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := macifyIP(tt.args.ip); got != tt.want {
+			if got := macifyIP(context.Background(), tt.args.ip); got != tt.want {
 				t.Errorf("macifyIP() = %v, want %v", got, tt.want)
 			}
 		})
@@ -351,7 +351,7 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 	*/
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			got, err := tt.devicehandler.GetChildDevice(context.Background(), tt.args.parentPort, tt.args.onuID)
 			if reflect.TypeOf(err) != tt.errType || !sparseCompare([]string{"Id", "ParentId", "ParentPortNo"}, tt.want, got) {
 				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
 					tt.want, tt.errType, got, reflect.TypeOf(err))
@@ -384,7 +384,7 @@ func TestGetportLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetportLabel(tt.args.portNum, tt.args.portType)
+			got, err := GetportLabel(context.Background(), tt.args.portNum, tt.args.portType)
 			if reflect.TypeOf(err) != tt.errType || got != tt.want {
 				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
 					tt.want, tt.errType, got, reflect.TypeOf(err))
@@ -505,7 +505,7 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := dh.ProcessInterAdapterMessage(tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
+			if err := dh.ProcessInterAdapterMessage(context.Background(), tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
 				t.Errorf("DeviceHandler.ProcessInterAdapterMessage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -566,7 +566,7 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.sendProxiedMessage(tt.args.onuDevice, tt.args.omciMsg)
+			tt.devicehandler.sendProxiedMessage(context.Background(), tt.args.onuDevice, tt.args.omciMsg)
 		})
 	}
 }
@@ -590,7 +590,7 @@ func TestDeviceHandler_SendPacketInToCore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.SendPacketInToCore(tt.args.logicalPort, tt.args.packetPayload)
+			tt.devicehandler.SendPacketInToCore(context.Background(), tt.args.logicalPort, tt.args.packetPayload)
 		})
 	}
 }
@@ -613,7 +613,7 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.devicehandler.DisableDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := tt.devicehandler.DisableDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.DisableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -639,7 +639,7 @@ func TestDeviceHandler_ReenableDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.devicehandler
-			if err := dh.ReenableDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := dh.ReenableDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.ReenableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -666,7 +666,7 @@ func TestDeviceHandler_RebootDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.devicehandler.RebootDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := tt.devicehandler.RebootDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.RebootDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -678,8 +678,8 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	dh2 := negativeDeviceHandler()
 	dh3 := newMockDeviceHandler()
 	dh3.onus = sync.Map{}
-	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1", false))
-	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2", false))
+	dh3.onus.Store("onu1", NewOnuDevice(context.Background(), "onu1", "onu1", "onu1", 1, 1, "onu1", false))
+	dh3.onus.Store("onu2", NewOnuDevice(context.Background(), "onu2", "onu2", "onu2", 2, 2, "onu2", false))
 
 	type args struct {
 		indication *oop.Indication
@@ -783,7 +783,7 @@ func TestDeviceHandler_addPort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.addPort(tt.args.intfID, tt.args.portType, tt.args.state)
+			tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state)
 		})
 	}
 }
@@ -804,7 +804,7 @@ func Test_macAddressToUint32Array(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := macAddressToUint32Array(tt.args.mac); !reflect.DeepEqual(got, tt.want) {
+			if got := macAddressToUint32Array(context.Background(), tt.args.mac); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("macAddressToUint32Array() = %v, want %v", got, tt.want)
 			}
 		})
@@ -905,9 +905,9 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
 	acts := []*ofp.OfpAction{
-		fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
-		fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
-		fu.Output(1),
+		fu.SetField(context.Background(), fu.Metadata_ofp(context.Background(), uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
+		fu.SetField(context.Background(), fu.VlanVid(context.Background(), uint32(ofp.OfpVlanId_OFPVID_PRESENT)|101)),
+		fu.Output(context.Background(), 1),
 	}
 	pktout := &ofp.OfpPacketOut{BufferId: 0, InPort: 1, Actions: acts, Data: []byte("AYDCAAAOAODsSE5TiMwCBwQA4OxITlIEBQUwLzUxBgIAFAgEMC81MQoJbG9jYWxob3N0EBwFAawbqqACAAAAoRAxLjMuNi4xLjQuMS40NDEz/gYAgMILAgD+GQCAwgkDAAAAAGQAAAAAAAAAAgICAgICAgL+GQCAwgoDAAAAAGQAAAAAAAAAAgICAgICAgIAAA==")}
 	type args struct {
@@ -1013,7 +1013,7 @@ func TestDeviceHandler_GetOfpDeviceInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.devicehandler
-			_, err := dh.GetOfpDeviceInfo(tt.args.device)
+			_, err := dh.GetOfpDeviceInfo(context.Background(), tt.args.device)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.GetOfpDeviceInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1046,7 +1046,7 @@ func TestDeviceHandler_GetOfpPortInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.devicehandler
-			_, err := dh.GetOfpPortInfo(tt.args.device, tt.args.portNo)
+			_, err := dh.GetOfpPortInfo(context.Background(), tt.args.device, tt.args.portNo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.GetOfpPortInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1064,8 +1064,8 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 	dh1.discOnus.Store("onu3", true)
 	dh1.discOnus.Store("onu4", true)
 	dh1.onus = sync.Map{}
-	dh1.onus.Store("onu3", NewOnuDevice("onu3", "onu3", "onu3", 3, 3, "onu3", true))
-	dh1.onus.Store("onu4", NewOnuDevice("onu4", "onu4", "onu4", 4, 4, "onu4", true))
+	dh1.onus.Store("onu3", NewOnuDevice(context.Background(), "onu3", "onu3", "onu3", 3, 3, "onu3", true))
+	dh1.onus.Store("onu4", NewOnuDevice(context.Background(), "onu4", "onu4", "onu4", 4, 4, "onu4", true))
 	dh2 := negativeDeviceHandler()
 	type args struct {
 		onuDiscInd *oop.OnuDiscIndication
@@ -1115,7 +1115,7 @@ func TestDeviceHandler_populateDeviceInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			_, err := tt.devicehandler.populateDeviceInfo()
+			_, err := tt.devicehandler.populateDeviceInfo(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.populateDeviceInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1189,7 +1189,7 @@ func Test_startCollector(t *testing.T) {
 				time.Sleep(1 * time.Second) // simulated wait time to stop startCollector
 				tt.args.dh.stopCollector <- true
 			}()
-			startCollector(tt.args.dh)
+			startCollector(context.Background(), tt.args.dh)
 		})
 	}
 }

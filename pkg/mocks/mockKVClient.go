@@ -236,7 +236,7 @@ func (kvclient *MockKVClient) AcquireLock(ctx context.Context, lockName string, 
 }
 
 // ReleaseLock mock function implementation for KVClient
-func (kvclient *MockKVClient) ReleaseLock(lockName string) error {
+func (kvclient *MockKVClient) ReleaseLock(ctx context.Context, lockName string) error {
 	return nil
 }
 
@@ -251,9 +251,9 @@ func (kvclient *MockKVClient) IsConnectionUp(ctx context.Context) bool {
 }
 
 // CloseWatch mock function implementation for KVClient
-func (kvclient *MockKVClient) CloseWatch(key string, ch chan *kvstore.Event) {
+func (kvclient *MockKVClient) CloseWatch(ctx context.Context, key string, ch chan *kvstore.Event) {
 }
 
 // Close mock function implementation for KVClient
-func (kvclient *MockKVClient) Close() {
+func (kvclient *MockKVClient) Close(ctx context.Context) {
 }

@@ -35,7 +35,7 @@ func newMockAdapter() *adapter {
 	conf.KVStoreType = "etcd"
 	cp := mocks.MockCoreProxy{}
 	ap := mocks.MockAdapterProxy{}
-	ad := newAdapter(conf)
+	ad := newAdapter(context.Background(), conf)
 	ad.coreProxy = &cp
 	ad.adapterProxy = &ap
 	return ad
@@ -61,7 +61,7 @@ func Test_adapter_setKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.adapter.setKVClient(); (err != nil) != tt.wantErr {
+			if err := tt.adapter.setKVClient(context.Background()); (err != nil) != tt.wantErr {
 				t.Errorf("adapter.setKVClient() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -74,7 +74,7 @@ func Test_adapter_KVClient(t *testing.T) {
 	a.StartAt(0)
 	defer a.StopAt(0)
 
-	if err := adapt.setKVClient(); err != nil {
+	if err := adapt.setKVClient(context.Background()); err != nil {
 		t.Errorf("adapter.setKVClient() error = %v", err)
 	}
 }
@@ -138,7 +138,7 @@ func Test_newKafkaClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := newKafkaClient(tt.args.clientType, tt.args.host, tt.args.port)
+			_, err := newKafkaClient(context.Background(), tt.args.clientType, tt.args.host, tt.args.port)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newKafkaClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -153,18 +153,19 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 	ad := newMockAdapter()
 
 	kip := kafka.NewInterContainerProxy(
-		kafka.InterContainerHost(ad.config.KafkaAdapterHost),
-		kafka.InterContainerPort(ad.config.KafkaAdapterPort),
-		kafka.MsgClient(&mockKafkaClient{}),
-		kafka.DefaultTopic(&kafka.Topic{Name: ad.config.Topic}))
+		context.Background(),
+		kafka.InterContainerHost(context.Background(), ad.config.KafkaAdapterHost),
+		kafka.InterContainerPort(context.Background(), ad.config.KafkaAdapterPort),
+		kafka.MsgClient(context.Background(), &mockKafkaClient{}),
+		kafka.DefaultTopic(context.Background(), &kafka.Topic{Name: ad.config.Topic}))
 
 	ad.kip = kip
-	ad.kip.Start()
+	ad.kip.Start(context.Background())
 
 	oolt, _ := ad.startOpenOLT(context.TODO(), nil,
 		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
-	printBanner()
-	printVersion()
+	printBanner(context.Background())
+	printVersion(context.Background())
 	ctx := context.TODO()
 	if err := ad.setupRequestHandler(ctx, ad.config.InstanceID, oolt); err != nil {
 		t.Logf("adapter.setupRequestHandler() error = %v", err)
@@ -176,55 +177,55 @@ func Test_adapter_setupRequestHandler(t *testing.T) {
 type mockKafkaClient struct {
 }
 
-func (kc *mockKafkaClient) Start() error {
+func (kc *mockKafkaClient) Start(ctx context.Context) error {
 	return nil
 }
-func (kc *mockKafkaClient) Stop() {
+func (kc *mockKafkaClient) Stop(ctx context.Context) {
 }
-func (kc *mockKafkaClient) CreateTopic(topic *kafka.Topic, numPartition int, repFactor int) error {
+func (kc *mockKafkaClient) CreateTopic(ctx context.Context, topic *kafka.Topic, numPartition int, repFactor int) error {
 	if topic != nil {
 		return nil
 	}
 	return errors.New("invalid Topic")
 }
-func (kc *mockKafkaClient) DeleteTopic(topic *kafka.Topic) error {
+func (kc *mockKafkaClient) DeleteTopic(ctx context.Context, topic *kafka.Topic) error {
 	if topic != nil {
 		return nil
 	}
 	return errors.New("invalid Topic")
 }
-func (kc *mockKafkaClient) Subscribe(topic *kafka.Topic, kvArgs ...*kafka.KVArg) (<-chan *ca.InterContainerMessage, error) {
+func (kc *mockKafkaClient) Subscribe(ctx context.Context, topic *kafka.Topic, kvArgs ...*kafka.KVArg) (<-chan *ca.InterContainerMessage, error) {
 	if topic != nil {
 		ch := make(chan *ca.InterContainerMessage)
 		return ch, nil
 	}
 	return nil, errors.New("invalid Topic")
 }
-func (kc *mockKafkaClient) UnSubscribe(topic *kafka.Topic, ch <-chan *ca.InterContainerMessage) error {
+func (kc *mockKafkaClient) UnSubscribe(ctx context.Context, topic *kafka.Topic, ch <-chan *ca.InterContainerMessage) error {
 	if topic == nil {
 		return nil
 	}
 	return errors.New("invalid Topic")
 }
-func (kc *mockKafkaClient) Send(msg interface{}, topic *kafka.Topic, keys ...string) error {
+func (kc *mockKafkaClient) Send(ctx context.Context, msg interface{}, topic *kafka.Topic, keys ...string) error {
 	if topic != nil {
 		return nil
 	}
 	return errors.New("invalid topic")
 }
 
-func (kc *mockKafkaClient) SendLiveness() error {
+func (kc *mockKafkaClient) SendLiveness(ctx context.Context) error {
 	return status.Error(codes.Unimplemented, "SendLiveness")
 }
 
-func (kc *mockKafkaClient) EnableLivenessChannel(enable bool) chan bool {
+func (kc *mockKafkaClient) EnableLivenessChannel(ctx context.Context, enable bool) chan bool {
 	return nil
 }
 
-func (kc *mockKafkaClient) EnableHealthinessChannel(enable bool) chan bool {
+func (kc *mockKafkaClient) EnableHealthinessChannel(ctx context.Context, enable bool) chan bool {
 	return nil
 }
 
-func (kc *mockKafkaClient) SubscribeForMetadata(func(fromTopic string, timestamp time.Time)) {
+func (kc *mockKafkaClient) SubscribeForMetadata(context.Context, func(ctx context.Context, fromTopic string, timestamp time.Time)) {
 	return
 }

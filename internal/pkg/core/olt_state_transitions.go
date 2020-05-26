@@ -84,7 +84,7 @@ type TransitionMap struct {
 //                   +-----------------------------------------+
 
 // NewTransitionMap create a new state machine with all the transitions
-func NewTransitionMap(dh *DeviceHandler) *TransitionMap {
+func NewTransitionMap(ctx context.Context, dh *DeviceHandler) *TransitionMap {
 	var transitionMap TransitionMap
 	transitionMap.currentDeviceState = deviceStateNull
 	transitionMap.transitions = make(map[Trigger]Transition)
@@ -133,7 +133,7 @@ func funcName(f interface{}) string {
 }
 
 // isValidTransition checks for the new state transition is valid from current state
-func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
+func (tMap *TransitionMap) isValidTransition(ctx context.Context, trigger Trigger) bool {
 	// Validate the state transition
 	for _, state := range tMap.transitions[trigger].previousState {
 		if tMap.currentDeviceState == state {
@@ -148,7 +148,7 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 
 	// Check whether the transtion is valid from current state
-	if !tMap.isValidTransition(trigger) {
+	if !tMap.isValidTransition(ctx, trigger) {
 		logger.Errorw("invalid-transition-triggered",
 			log.Fields{
 				"current-state": tMap.currentDeviceState,
