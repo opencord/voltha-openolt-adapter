@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8e8bc1a_79140341",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-28T06:35:29Z",
+      "side": 1,
+      "message": "Since `append` is being used, should an empty list be created instead?",
+      "range": {
+        "startLine": 290,
+        "startChar": 27,
+        "endLine": 290,
+        "endChar": 43
+      },
+      "revId": "b090793e3ee730e3cdbea883e86ce1382865541f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57782642_5ad3cb34",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-28T06:35:29Z",
+      "side": 1,
+      "message": "should the variable name be plural, \"metricNames\" ?",
+      "range": {
+        "startLine": 290,
+        "startChar": 31,
+        "endLine": 290,
+        "endChar": 41
+      },
+      "revId": "b090793e3ee730e3cdbea883e86ce1382865541f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
