@@ -1978,15 +1978,15 @@ func (dh *DeviceHandler) populateActivePorts(device *voltha.Device) {
 // ChildDeviceLost deletes ONU and clears pon resources related to it.
 func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32) error {
 	logger.Debugw("child-device-lost", log.Fields{"pdeviceID": dh.device.Id})
-	IntfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
-	onuKey := dh.formOnuKey(IntfID, onuID)
+	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
+	onuKey := dh.formOnuKey(intfID, onuID)
 	onuDevice, ok := dh.onus.Load(onuKey)
 	if !ok {
 		return olterrors.NewErrAdapter("failed-to-load-onu-details",
 			log.Fields{
 				"device-id":    dh.device.Id,
 				"onu-id":       onuID,
-				"interface-id": IntfID}, nil).Log()
+				"interface-id": intfID}, nil).Log()
 	}
 	var sn *oop.SerialNumber
 	var err error
@@ -1996,7 +1996,26 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 				"devicer-id":    dh.device.Id,
 				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
 	}
-	onu := &oop.Onu{IntfId: IntfID, OnuId: onuID, SerialNumber: sn}
+
+	for uniID := 0; uniID < MaxUnisPerOnu; uniID++ {
+		var flowRemoveData pendingFlowRemoveData
+		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uint32(uniID)}
+		dh.lockDevice.RLock()
+		if flowRemoveData, ok = dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
+			dh.lockDevice.RUnlock()
+			continue
+		}
+		dh.lockDevice.RUnlock()
+
+		log.Debugw("wait-for-flow-remove-complete-before-processing-child-device-lost",
+			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
+		// Wait for all flow removes to finish first
+		<-flowRemoveData.allFlowsRemoved
+		log.Debugw("flow-removes-complete-for-subscriber",
+			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
+	}
+
+	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
 	if _, err := dh.Client.DeleteOnu(context.Background(), onu); err != nil {
 		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
 			"device-id": dh.device.Id,
@@ -2004,15 +2023,15 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	}
 	//clear PON resources associated with ONU
 	var onuGemData []rsrcMgr.OnuGemInfo
-	if onuMgr, ok := dh.resourceMgr.ResourceMgrs[IntfID]; !ok {
+	if onuMgr, ok := dh.resourceMgr.ResourceMgrs[intfID]; !ok {
 		logger.Warnw("failed-to-get-resource-manager-for-interface-Id", log.Fields{
 			"device-id":    dh.device.Id,
-			"interface-id": IntfID})
+			"interface-id": intfID})
 	} else {
-		if err := onuMgr.GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
+		if err := onuMgr.GetOnuGemInfo(ctx, intfID, &onuGemData); err != nil {
 			logger.Warnw("failed-to-get-onu-info-for-pon-port", log.Fields{
 				"device-id":    dh.device.Id,
-				"interface-id": IntfID,
+				"interface-id": intfID,
 				"error":        err})
 		} else {
 			for i, onu := range onuGemData {
@@ -2026,20 +2045,20 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 					}
 					// Clear flowids for gem cache.
 					for _, gem := range onu.GemPorts {
-						dh.resourceMgr.DeleteFlowIDsForGem(ctx, IntfID, gem)
+						dh.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gem)
 					}
 					onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
-					err := onuMgr.AddOnuGemInfo(ctx, IntfID, onuGemData)
+					err := onuMgr.AddOnuGemInfo(ctx, intfID, onuGemData)
 					if err != nil {
 						logger.Warnw("persistence-update-onu-gem-info-failed", log.Fields{
-							"interface-id": IntfID,
+							"interface-id": intfID,
 							"onu-device":   onu,
 							"onu-gem":      onuGemData,
 							"error":        err})
 						//Not returning error on cleanup.
 					}
-					logger.Debugw("removed-onu-gem-info", log.Fields{"intf": IntfID, "onu-device": onu, "onugem": onuGemData})
-					dh.resourceMgr.FreeonuID(ctx, IntfID, []uint32{onu.OnuID})
+					logger.Debugw("removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGemData})
+					dh.resourceMgr.FreeonuID(ctx, intfID, []uint32{onu.OnuID})
 					break
 				}
 			}
