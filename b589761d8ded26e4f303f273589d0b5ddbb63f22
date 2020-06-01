@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd2f2c18_4810f19b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2008,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-06-01T07:58:47Z",
+      "side": 1,
+      "message": "I\u0027m wondering if we shoudl unlock after alle the events at line 2015",
+      "range": {
+        "startLine": 2008,
+        "startChar": 2,
+        "endLine": 2008,
+        "endChar": 25
+      },
+      "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
