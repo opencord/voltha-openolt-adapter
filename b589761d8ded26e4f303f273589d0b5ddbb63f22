@@ -22,6 +22,30 @@
       "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4f872bc7_5645893c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2008,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-01T22:00:39Z",
+      "side": 1,
+      "message": "This is on the similar lines as done in function waitForFlowRemoveToFinish.\nThis is a lock per device. We want to serialize operations on a per subscriber basis and not on per OLT device basis.\nMoving the lock to the line you suggested will serialize operation on a per OLT device basis (which is not necessary) and also slow down things.",
+      "parentUuid": "bd2f2c18_4810f19b",
+      "range": {
+        "startLine": 2008,
+        "startChar": 2,
+        "endLine": 2008,
+        "endChar": 25
+      },
+      "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
