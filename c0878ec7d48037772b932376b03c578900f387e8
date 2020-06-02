@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0ec60f5_ad84d487",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-02T20:19:32Z",
+      "side": 1,
+      "message": "The commit message is about making PON port labelling easy to read.  Should there be a port type check here?",
+      "revId": "c0878ec7d48037772b932376b03c578900f387e8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
