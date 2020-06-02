@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "82744b33_cdbe3ee4",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1000612
+      },
+      "writtenOn": "2020-06-02T08:25:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "515db049_618171e8",
+      "revId": "51c33b389d99c528b851b4d7754a51769064d6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4903192_74e4886b",
         "filename": "internal/pkg/core/statsmanager.go",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2020-06-01T17:36:10Z",
       "side": 1,
       "message": "nit:  \"\u003d\u003d true\" is not needed.",
+      "revId": "51c33b389d99c528b851b4d7754a51769064d6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f4a7356_1df9b096",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1000612
+      },
+      "writtenOn": "2020-06-02T08:25:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e4903192_74e4886b",
       "revId": "51c33b389d99c528b851b4d7754a51769064d6fd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
