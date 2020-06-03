@@ -63,6 +63,24 @@
       "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1aae48b_18df123b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2013,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-03T18:57:17Z",
+      "side": 1,
+      "message": "The \u0027key\u0027 is removed from pendingFlowRemoveDataPerSubscriber map in function decrementActiveFlowRemoveCount and it also closes the \u0027allFlowsRemoved\u0027 channel. If there were two concurrent ChildDeviceLost, then both handlers waiting on this closed channel would succeed.\nLet me know if I misunderstood your question.",
+      "parentUuid": "409fd456_f73c81d1",
+      "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
