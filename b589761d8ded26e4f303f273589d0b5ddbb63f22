@@ -46,6 +46,23 @@
       "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "409fd456_f73c81d1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2013,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-03T18:34:33Z",
+      "side": 1,
+      "message": "Does pendingFlowRemoveDataPerSubscriber() also removes the key from the map?  Otherwise, if you get two concurrent ChildDeviceLost requests for the same onu then only one may receive a notification that all flows are removed while the other one wait forever.   I have not look at other areas of the code so I may be completely incorrect.",
+      "revId": "b589761d8ded26e4f303f273589d0b5ddbb63f22",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
