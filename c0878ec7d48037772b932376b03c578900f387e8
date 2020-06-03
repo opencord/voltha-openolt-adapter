@@ -16,6 +16,24 @@
       "revId": "c0878ec7d48037772b932376b03c578900f387e8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "52ad2a91_4653a822",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-06-03T06:15:10Z",
+      "side": 1,
+      "message": "Sorry can\u0027t get your point. The function GetportLabel assign the labels based on the portType",
+      "parentUuid": "d0ec60f5_ad84d487",
+      "revId": "c0878ec7d48037772b932376b03c578900f387e8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
