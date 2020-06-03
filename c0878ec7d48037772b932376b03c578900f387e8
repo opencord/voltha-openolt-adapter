@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5f3e3c83_7bf84b89",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-03T13:59:19Z",
+      "side": 1,
+      "message": "Should the portNum parameter be changed to interface number?",
+      "revId": "c0878ec7d48037772b932376b03c578900f387e8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d0ec60f5_ad84d487",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -31,6 +48,24 @@
       "side": 1,
       "message": "Sorry can\u0027t get your point. The function GetportLabel assign the labels based on the portType",
       "parentUuid": "d0ec60f5_ad84d487",
+      "revId": "c0878ec7d48037772b932376b03c578900f387e8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dace3c05_86dee8ca",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-03T13:59:19Z",
+      "side": 1,
+      "message": "My question was indeed confusing :).  Should have looked at the GetportLabel method.   This is ok.",
+      "parentUuid": "52ad2a91_4653a822",
       "revId": "c0878ec7d48037772b932376b03c578900f387e8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
