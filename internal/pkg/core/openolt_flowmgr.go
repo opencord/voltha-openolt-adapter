@@ -199,7 +199,7 @@ type schedQueue struct {
 	uniID        uint32
 	tpID         uint32
 	uniPort      uint32
-	tpInst       *tp.TechProfile
+	tpInst       interface{}
 	meterID      uint32
 	flowMetadata *voltha.FlowMetadata
 }
@@ -298,7 +298,7 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, on
 	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) {
 	var allocID uint32
 	var gemPorts []uint32
-	var TpInst *tp.TechProfile
+	var TpInst interface{}
 
 	logger.Infow("dividing-flow", log.Fields{
 		"device-id":  f.deviceHandler.device.Id,
@@ -424,9 +424,9 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"device-id": f.deviceHandler.device.Id})
 
 	if sq.direction == tp_pb.Direction_UPSTREAM {
-		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst.(*tp.TechProfile))
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst.(*tp.TechProfile))
 	}
 
 	if err != nil {
@@ -478,7 +478,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	pbs := cbs + ebs
 	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
 
 	if err := f.pushSchedulerQueuesToDevice(ctx, sq, TrafficShaping, TrafficSched); err != nil {
@@ -506,7 +506,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 
 func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq schedQueue, TrafficShaping *tp_pb.TrafficShapingInfo, TrafficSched []*tp_pb.TrafficScheduler) error {
 
-	trafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+	trafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst.(*tp.TechProfile), sq.direction)
 
 	if err != nil {
 		return olterrors.NewErrAdapter("unable-to-construct-traffic-queue-configuration",
@@ -550,7 +550,7 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 		"device-id":      f.deviceHandler.device.Id})
 
 	if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		multicastTrafficQueues := f.techprofile[sq.intfID].GetMulticastTrafficQueues(sq.tpInst)
+		multicastTrafficQueues := f.techprofile[sq.intfID].GetMulticastTrafficQueues(sq.tpInst.(*tp.TechProfile))
 		if len(multicastTrafficQueues) > 0 {
 			if _, present := f.interfaceToMcastQueueMap[sq.intfID]; !present {
 				//assumed that there is only one queue per PON for the multicast service
@@ -589,10 +589,10 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 			"uni-port":  sq.uniPort,
 			"device-id": f.deviceHandler.device.Id})
 	if sq.direction == tp_pb.Direction_UPSTREAM {
-		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetUsScheduler(sq.tpInst.(*tp.TechProfile))
 		Direction = "upstream"
 	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst)
+		SchedCfg, err = f.techprofile[sq.intfID].GetDsScheduler(sq.tpInst.(*tp.TechProfile))
 		Direction = "downstream"
 	}
 
@@ -630,10 +630,10 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 
 	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
 
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst, SchedCfg, TrafficShaping)}
+	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
 
-	TrafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst, sq.direction)
+	TrafficQueues, err := f.techprofile[sq.intfID].GetTrafficQueues(sq.tpInst.(*tp.TechProfile), sq.direction)
 	if err != nil {
 		return olterrors.NewErrAdapter("unable-to-construct-traffic-queue-configuration",
 			log.Fields{
@@ -686,8 +686,9 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 }
 
 // This function allocates tconts and GEM ports for an ONU
-func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, *tp.TechProfile) {
+func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, interface{}) {
 	var allocIDs []uint32
+	var allocID uint32
 	var allgemPortIDs []uint32
 	var gemPortIDs []uint32
 	tpInstanceExists := false
@@ -730,34 +731,49 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 				"device-id": f.deviceHandler.device.Id})
 		tpInstanceExists = true
 	}
-	if UsMeterID != 0 {
-		sq := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
-			uniPort: uniPort, tpInst: techProfileInstance, meterID: UsMeterID, flowMetadata: flowMetadata}
-		if err := f.CreateSchedulerQueues(ctx, sq); err != nil {
-			logger.Errorw("CreateSchedulerQueues-failed-upstream",
-				log.Fields{
-					"error":     err,
-					"meter-id":  UsMeterID,
-					"device-id": f.deviceHandler.device.Id})
-			return 0, nil, nil
-		}
-	}
-	if DsMeterID != 0 {
-		sq := schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
-			uniPort: uniPort, tpInst: techProfileInstance, meterID: DsMeterID, flowMetadata: flowMetadata}
-		if err := f.CreateSchedulerQueues(ctx, sq); err != nil {
-			logger.Errorw("CreateSchedulerQueues-failed-downstream",
-				log.Fields{
-					"error":     err,
-					"meter-id":  DsMeterID,
-					"device-id": f.deviceHandler.device.Id})
-			return 0, nil, nil
-		}
-	}
 
-	allocID := techProfileInstance.UsScheduler.AllocID
-	for _, gem := range techProfileInstance.UpstreamGemPortAttributeList {
-		gemPortIDs = append(gemPortIDs, gem.GemportID)
+	switch tpInst := techProfileInstance.(type) {
+	case *tp.TechProfile:
+		if UsMeterID != 0 {
+			sq := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
+				uniPort: uniPort, tpInst: techProfileInstance, meterID: UsMeterID, flowMetadata: flowMetadata}
+			if err := f.CreateSchedulerQueues(ctx, sq); err != nil {
+				logger.Errorw("CreateSchedulerQueues-failed-upstream",
+					log.Fields{
+						"error":     err,
+						"meter-id":  UsMeterID,
+						"device-id": f.deviceHandler.device.Id})
+				return 0, nil, nil
+			}
+		}
+		if DsMeterID != 0 {
+			sq := schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: intfID, onuID: onuID, uniID: uniID, tpID: TpID,
+				uniPort: uniPort, tpInst: techProfileInstance, meterID: DsMeterID, flowMetadata: flowMetadata}
+			if err := f.CreateSchedulerQueues(ctx, sq); err != nil {
+				logger.Errorw("CreateSchedulerQueues-failed-downstream",
+					log.Fields{
+						"error":     err,
+						"meter-id":  DsMeterID,
+						"device-id": f.deviceHandler.device.Id})
+				return 0, nil, nil
+			}
+		}
+		allocID := tpInst.UsScheduler.AllocID
+		for _, gem := range tpInst.UpstreamGemPortAttributeList {
+			gemPortIDs = append(gemPortIDs, gem.GemportID)
+		}
+	case *tp.EponProfile:
+		// CreateSchedulerQueues for EPON needs to be implemented here
+		// when voltha-protos for EPON is completed.
+		allocID := tpInst.AllocID
+		for _, gem := range tpInst.UpstreamQueueAttributeList {
+			gemPortIDs = append(gemPortIDs, gem.GemportID)
+		}
+	default:
+		logger.Errorw("unknown-tech",
+			log.Fields{
+				"tpInst": tpInst})
+		return 0, nil, nil
 	}
 
 	if tpInstanceExists {
@@ -768,7 +784,6 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 	for _, gemPortID := range gemPortIDs {
 		allgemPortIDs = appendUnique(allgemPortIDs, gemPortID)
 	}
-
 	logger.Infow("allocated-tcont-and-gem-ports",
 		log.Fields{
 			"alloc-ids": allocIDs,
@@ -2126,19 +2141,38 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 			ok, _ := f.isTechProfileUsedByAnotherGem(ctx, Intf, uint32(onuID), uint32(uniID), tpID, techprofileInst, uint32(gemPortID))
 			if !ok {
 				f.resourceMgr.RemoveTechProfileIDForOnu(ctx, Intf, uint32(onuID), uint32(uniID), tpID)
-				f.RemoveSchedulerQueues(ctx, schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
-				f.RemoveSchedulerQueues(ctx, schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
 				f.DeleteTechProfileInstance(ctx, Intf, uint32(onuID), uint32(uniID), "", tpID)
-				f.resourceMgr.FreeAllocID(ctx, Intf, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocID)
-				// Delete the TCONT on the ONU.
-				if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.UsScheduler.AllocID), tpPath); err != nil {
-					logger.Errorw("error-processing-delete-tcont-towards-onu",
+				switch techprofileInst := techprofileInst.(type) {
+				case *tp.TechProfile:
+					f.RemoveSchedulerQueues(ctx, schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
+					f.RemoveSchedulerQueues(ctx, schedQueue{direction: tp_pb.Direction_DOWNSTREAM, intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst})
+					f.resourceMgr.FreeAllocID(ctx, Intf, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocID)
+					// Delete the TCONT on the ONU.
+					if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.UsScheduler.AllocID), tpPath); err != nil {
+						logger.Errorw("error-processing-delete-tcont-towards-onu",
+							log.Fields{
+								"intf":      Intf,
+								"onu-id":    onuID,
+								"uni-id":    uniID,
+								"device-id": f.deviceHandler.device.Id,
+								"alloc-id":  techprofileInst.UsScheduler.AllocID})
+					}
+				case *tp.EponProfile:
+					f.resourceMgr.FreeAllocID(ctx, Intf, uint32(onuID), uint32(uniID), techprofileInst.AllocID)
+					// Delete the TCONT on the ONU.
+					if err := f.sendDeleteTcontToChild(Intf, uint32(onuID), uint32(uniID), uint32(techprofileInst.AllocID), tpPath); err != nil {
+						logger.Errorw("error-processing-delete-tcont-towards-onu",
+							log.Fields{
+								"intf":      Intf,
+								"onu-id":    onuID,
+								"uni-id":    uniID,
+								"device-id": f.deviceHandler.device.Id,
+								"alloc-id":  techprofileInst.AllocID})
+					}
+				default:
+					logger.Errorw("error-unknown-tech",
 						log.Fields{
-							"intf":      Intf,
-							"onu-id":    onuID,
-							"uni-id":    uniID,
-							"device-id": f.deviceHandler.device.Id,
-							"alloc-id":  techprofileInst.UsScheduler.AllocID})
+							"techprofileInst": techprofileInst})
 				}
 			}
 		}
@@ -2679,7 +2713,7 @@ func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEnt
 		logger.Debugw("modify-group--group exists",
 			log.Fields{
 				"group on the device": val,
-				"new":                 group})
+				"new": group})
 	} else {
 		current = f.buildGroup(group.Desc.GroupId, nil)
 	}
@@ -2687,7 +2721,7 @@ func (f *OpenOltFlowMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEnt
 	logger.Debugw("modify-group--comparing-current-and-new",
 		log.Fields{
 			"group on the device": current,
-			"new":                 newGroup})
+			"new": newGroup})
 	// get members to be added
 	membersToBeAdded := f.findDiff(current, newGroup)
 	// get members to be removed
@@ -3048,7 +3082,7 @@ func installFlowOnAllGemports(ctx context.Context,
 	classifier map[string]interface{}, action map[string]interface{},
 	logicalFlow *ofp.OfpFlowStats,
 	gemPorts []uint32,
-	TpInst *tp.TechProfile,
+	TpInst interface{},
 	FlowType string,
 	direction string,
 	tpID uint32,
@@ -3067,36 +3101,68 @@ func installFlowOnAllGemports(ctx context.Context,
 	// If a particular character in the string is set to '1', identify the index of this character from
 	// the LSB position which marks the PCP bit consumed by the given gem port.
 	// This PCP bit now becomes a classifier in the flow.
-
-	attributes := TpInst.DownstreamGemPortAttributeList
-	if direction == Upstream {
-		attributes = TpInst.UpstreamGemPortAttributeList
-	}
-
-	for _, gemPortAttribute := range attributes {
-		if direction == Downstream && strings.ToUpper(gemPortAttribute.IsMulticast) == "TRUE" {
-			continue
+	switch TpInst := TpInst.(type) {
+	case *tp.TechProfile:
+		attributes := TpInst.DownstreamGemPortAttributeList
+		if direction == Upstream {
+			attributes = TpInst.UpstreamGemPortAttributeList
 		}
-		gemPortID := gemPortAttribute.GemportID
-		if allPbitsMarked(gemPortAttribute.PbitMap) {
-			classifier[VlanPcp] = uint32(VlanPCPMask)
-			if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-				f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
-			} else if FlowType == EapolFlow {
-				f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+
+		for _, gemPortAttribute := range attributes {
+			if direction == Downstream && strings.ToUpper(gemPortAttribute.IsMulticast) == "TRUE" {
+				continue
 			}
-		} else {
-			for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
-				if pbitSet == BinaryBit1 {
-					classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
-					if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-						f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
-					} else if FlowType == EapolFlow {
-						f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+			gemPortID := gemPortAttribute.GemportID
+			if allPbitsMarked(gemPortAttribute.PbitMap) {
+				classifier[VlanPcp] = uint32(VlanPCPMask)
+				if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+					f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+				} else if FlowType == EapolFlow {
+					f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+				}
+			} else {
+				for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
+					if pbitSet == BinaryBit1 {
+						classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
+						if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+							f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+						} else if FlowType == EapolFlow {
+							f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+						}
 					}
 				}
 			}
 		}
+	case *tp.EponProfile:
+		attributes := TpInst.DownstreamQueueAttributeList
+		if direction == Upstream {
+			attributes = TpInst.UpstreamQueueAttributeList
+		}
+
+		for _, queueAttribute := range attributes {
+			gemPortID := queueAttribute.GemportID
+			if allPbitsMarked(queueAttribute.PbitMap) {
+				classifier[VlanPcp] = uint32(VlanPCPMask)
+				if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+					f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+				} else if FlowType == EapolFlow {
+					f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+				}
+			} else {
+				for pos, pbitSet := range strings.TrimPrefix(queueAttribute.PbitMap, BinaryStringPrefix) {
+					if pbitSet == BinaryBit1 {
+						classifier[VlanPcp] = uint32(len(strings.TrimPrefix(queueAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
+						if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
+							f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+						} else if FlowType == EapolFlow {
+							f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+						}
+					}
+				}
+			}
+		}
+	default:
+		logger.Errorw("unknown-tech", log.Fields{"tpInst": TpInst})
 	}
 }
 
@@ -3311,14 +3377,14 @@ func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, 
 }
 
 func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]uint32, classifierInfo map[string]interface{},
-	actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpInst *tp.TechProfile, gemPorts []uint32,
+	actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpInst interface{}, gemPorts []uint32,
 	tpID uint32, uni string) {
 	var gemPort uint32
 	intfID := args[IntfID]
 	onuID := args[OnuID]
 	uniID := args[UniID]
 	portNo := args[PortNo]
-	allocID := TpInst.UsScheduler.AllocID
+	allocID := args[AllocID]
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
 			logger.Info("adding-dhcp-flow")
