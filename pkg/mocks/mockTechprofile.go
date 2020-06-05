@@ -19,6 +19,7 @@ package mocks
 
 import (
 	"context"
+
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	tp "github.com/opencord/voltha-lib-go/v3/pkg/techprofile"
 	tp_pb "github.com/opencord/voltha-protos/v3/go/tech_profile"
@@ -41,24 +42,38 @@ func (m MockTechProfile) GetTechProfileInstanceKVPath(techProfiletblID uint32, u
 }
 
 // GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
-func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (*tp.TechProfile, error) {
+func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error) {
 	logger.Debug("Warning Warning Warning: GetTPInstanceFromKVStore")
 	return nil, nil
 
 }
 
 // CreateTechProfInstance to mock techprofile CreateTechProfInstance method
-func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (*tp.TechProfile, error) {
+func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (interface{}, error) {
 
-	return &tp.TechProfile{
-		Name:                           "mock-tech-profile",
-		SubscriberIdentifier:           "257",
-		ProfileType:                    "mock",
-		Version:                        0,
-		NumGemPorts:                    2,
-		UpstreamGemPortAttributeList:   nil,
-		DownstreamGemPortAttributeList: nil,
-	}, nil
+	if techProfiletblID == 64 {
+		return &tp.TechProfile{
+			Name:                           "mock-tech-profile",
+			SubscriberIdentifier:           "257",
+			ProfileType:                    "mock",
+			Version:                        0,
+			NumGemPorts:                    2,
+			UpstreamGemPortAttributeList:   nil,
+			DownstreamGemPortAttributeList: nil,
+		}, nil
+	} else if techProfiletblID == 65 {
+		return &tp.EponProfile{
+			Name:                         "mock-epon-profile",
+			SubscriberIdentifier:         "257",
+			ProfileType:                  "mock",
+			Version:                      0,
+			NumGemPorts:                  2,
+			UpstreamQueueAttributeList:   nil,
+			DownstreamQueueAttributeList: nil,
+		}, nil
+	} else {
+		return nil, nil
+	}
 
 }
 
@@ -102,11 +117,11 @@ func (m MockTechProfile) GetMulticastTrafficQueues(tp *tp.TechProfile) []*tp_pb.
 }
 
 // GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method
-func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
+func (m MockTechProfile) GetGemportIDForPbit(tp interface{}, Dir tp_pb.Direction, pbit uint32) uint32 {
 	return 0
 }
 
 // FindAllTpInstances to mock techprofile FindAllTpInstances method
-func (m MockTechProfile) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) []tp.TechProfile {
+func (m MockTechProfile) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{} {
 	return []tp.TechProfile{}
 }
