@@ -72,6 +72,23 @@ const (
 	SCHEDULING_POLICY                  = "scheduling_policy"
 	MAX_Q_SIZE                         = "max_q_size"
 	AES_ENCRYPTION                     = "aes_encryption"
+	// String Keys for EPON
+	EPON_ATTRIBUTE              = "epon_attribute"
+	PACKAGE_TYPE                = "package_type"
+	TRAFFIC_TYPE                = "traffic type"
+	UNSOLICITED_GRANT_SIZE      = "unsolicited_grant_size"
+	NOMINAL_INTERVAL            = "nominal_interval"
+	TOLERATED_POLL_JITTER       = "tolerated_poll_jitter"
+	REQUEST_TRANSMISSION_POLICY = "request_transmission_policy"
+	NUM_Q_SETS                  = "num_q_sets"
+	Q_THRESHOLDS                = "q_thresholds"
+	Q_THRESHOLD1                = "q_threshold1"
+	Q_THRESHOLD2                = "q_threshold2"
+	Q_THRESHOLD3                = "q_threshold3"
+	Q_THRESHOLD4                = "q_threshold4"
+	Q_THRESHOLD5                = "q_threshold5"
+	Q_THRESHOLD6                = "q_threshold6"
+	Q_THRESHOLD7                = "q_threshold7"
 )
 
 // TechprofileFlags represents the set of configurations used
