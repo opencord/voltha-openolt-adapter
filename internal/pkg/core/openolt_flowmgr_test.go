@@ -216,6 +216,54 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 
 }
 
+func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
+	// flowMgr := newMockFlowmgr()
+	bands := make([]*ofp.OfpMeterBandHeader, 2)
+	bands[0] = &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 1000, BurstSize: 5000, Data: &ofp.OfpMeterBandHeader_Drop{}}
+	bands[1] = &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 2000, BurstSize: 5000, Data: &ofp.OfpMeterBandHeader_Drop{}}
+	ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1, Bands: bands}
+	flowmetadata := &voltha.FlowMetadata{
+		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
+	}
+	type args struct {
+		intfID       uint32
+		onuID        uint32
+		uniID        uint32
+		uni          string
+		uniPort      uint32
+		TpID         uint32
+		UsMeterID    uint32
+		DsMeterID    uint32
+		flowMetadata *voltha.FlowMetadata
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{"createTcontGemports-1", args{intfID: 0, onuID: 1, uniID: 1, uni: "16", uniPort: 1, TpID: 64, UsMeterID: 1, DsMeterID: 1, flowMetadata: flowmetadata}},
+		{"createTcontGemports-1", args{intfID: 0, onuID: 1, uniID: 1, uni: "16", uniPort: 1, TpID: 65, UsMeterID: 1, DsMeterID: 1, flowMetadata: flowmetadata}},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, _, tpInst := flowMgr.createTcontGemports(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.uni, tt.args.uniPort, tt.args.TpID, tt.args.UsMeterID, tt.args.DsMeterID, tt.args.flowMetadata)
+			switch tpInst := tpInst.(type) {
+			case *tp.TechProfile:
+				if tt.args.TpID != 64 {
+					t.Errorf("OpenOltFlowMgr.createTcontGemports() error = different tech, tech %v", tpInst)
+				}
+			case *tp.EponProfile:
+				if tt.args.TpID != 65 {
+					t.Errorf("OpenOltFlowMgr.createTcontGemports() error = different tech, tech %v", tpInst)
+				}
+			default:
+				t.Errorf("OpenOltFlowMgr.createTcontGemports() error = different tech, tech %v", tpInst)
+			}
+		})
+	}
+}
+
 func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	// flowMgr := newMockFlowmgr()
 	logger.Debug("Info Warning Error: Starting RemoveFlow() test")
