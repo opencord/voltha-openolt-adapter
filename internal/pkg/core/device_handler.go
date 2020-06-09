@@ -372,7 +372,20 @@ Loop:
 							"device-id": dh.device.Id})
 					indicationBackoff.Reset()
 				}
-				time.Sleep(indicationBackoff.NextBackOff())
+
+				// On failure process a backoff timer while watching for stopIndications
+				// events
+				backoff := time.NewTimer(indicationBackoff.NextBackOff())
+				select {
+				case <-dh.stopIndications:
+					logger.Debugw("stopping-collecting-indications-for-olt", log.Fields{"deviceID:": dh.device.Id})
+					if !backoff.Stop() {
+						<-backoff.C
+					}
+					break Loop
+				case <-backoff.C:
+					// backoff expired continue
+				}
 				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
 					return err
 				}
