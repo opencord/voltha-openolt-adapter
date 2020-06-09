@@ -209,6 +209,237 @@ type queueInfoBrief struct {
 	servicePriority uint32
 }
 
+// PonFlowMgr manages the flows for a single PON,
+// needed to separate the locks on onuGemInfo in OpenOltFlowMgr
+type PonFlowMgr struct {
+	intfID         uint32
+	cacheLock      sync.RWMutex
+	onuGemInfo     []rsrcMgr.OnuGemInfo
+	openOltFlowMgr *OpenOltFlowMgr
+}
+
+// NewPonFlowMgr manages ONU Infos for a single PON
+func NewPonFlowMgr(intfID uint32, openOltFlowMgr *OpenOltFlowMgr) *PonFlowMgr {
+	return &PonFlowMgr{
+		intfID:         intfID,
+		cacheLock:      sync.RWMutex{},
+		onuGemInfo:     []rsrcMgr.OnuGemInfo{},
+		openOltFlowMgr: openOltFlowMgr,
+	}
+}
+
+func (p *PonFlowMgr) updateOnuInfo(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+
+	onu := rsrcMgr.OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
+	p.onuGemInfo = append(p.onuGemInfo, onu)
+	if err := p.openOltFlowMgr.resourceMgr.AddOnuGemInfo(ctx, intfID, onu); err != nil {
+		return err
+	}
+	logger.Infow("updated-onuinfo",
+		log.Fields{
+			"intf-id":    intfID,
+			"onu-id":     onuID,
+			"serial-num": serialNum,
+			"onu":        onu,
+			"device-id":  p.openOltFlowMgr.deviceHandler.device.Id}) // TODO consider to store deviceId in PonFlowMgr
+	return nil
+}
+
+func (p *PonFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32, gemPortID uint32) {
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+
+	logger.Infow("deleting-gem-from-local-cache",
+		log.Fields{
+			"gem":       gemPortID,
+			"intf-id":   intfID,
+			"onu-id":    onuID,
+			"device-id": p.openOltFlowMgr.deviceHandler.device.Id,
+			"onu-gem":   p.onuGemInfo})
+
+	for i, onu := range p.onuGemInfo {
+		if onu.OnuID == onuID {
+			for j, gem := range onu.GemPorts {
+				// If the gemport is found, delete it from local cache.
+				if gem == gemPortID {
+					onu.GemPorts = append(onu.GemPorts[:j], onu.GemPorts[j+1:]...)
+					p.onuGemInfo[i] = onu
+					logger.Infow("removed-gemport-from-local-cache",
+						log.Fields{
+							"intf-id":           intfID,
+							"onu-id":            onuID,
+							"deletedgemport-id": gemPortID,
+							"gemports":          onu.GemPorts,
+							"device-id":         p.openOltFlowMgr.deviceHandler.device.Id})
+					break
+				}
+			}
+			break
+		}
+	}
+}
+
+func (p *PonFlowMgr) addGemPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, gemPort uint32) error {
+	// TODO do we even need the lock on a list?
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+
+	logger.Infow("adding-gem-to-onu-info-map",
+		log.Fields{
+			"gem":       gemPort,
+			"intf":      intfID,
+			"onu":       onuID,
+			"device-id": p.openOltFlowMgr.deviceHandler.device.Id,
+			"onu-gem":   p.onuGemInfo})
+
+	// update the gem to the local cache as well as to kv strore
+	for idx, onu := range p.onuGemInfo {
+		if onu.OnuID == onuID {
+			// check if gem already exists , else update the cache and kvstore
+			for _, gem := range onu.GemPorts {
+				if gem == gemPort {
+					logger.Debugw("gem-already-in-cache-no-need-to-update-cache-and-kv-store",
+						log.Fields{
+							"gem":       gemPort,
+							"device-id": p.openOltFlowMgr.deviceHandler.device.Id})
+					return nil
+				}
+			}
+			p.onuGemInfo[idx].GemPorts = append(p.onuGemInfo[idx].GemPorts, gemPort)
+		}
+	}
+	err := p.openOltFlowMgr.resourceMgr.AddGemToOnuGemInfo(ctx, intfID, onuID, gemPort)
+	if err != nil {
+		logger.Errorw("failed-to-add-gem-to-onu",
+			log.Fields{
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"gemPort":   gemPort,
+				"device-id": p.openOltFlowMgr.deviceHandler.device.Id})
+		return err
+	}
+	logger.Infow("gem-added-to-onu-info-map",
+		log.Fields{
+			"gem":       gemPort,
+			"intf":      intfID,
+			"onu":       onuID,
+			"device-id": p.openOltFlowMgr.deviceHandler.device.Id,
+			"onu-gem":   p.onuGemInfo})
+
+	return nil
+}
+
+func (p *PonFlowMgr) getOnuIDfromGemPort(serialNumber string, intfID uint32, gemPortID uint32) (uint32, error) {
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+
+	logger.Infow("getting-onu-id-from-gem-port-and-pon-port",
+		log.Fields{
+			"device-id":     p.openOltFlowMgr.deviceHandler.device.Id,
+			"onu-geminfo":   p.onuGemInfo,
+			"serial-number": serialNumber,
+			"intf-id":       intfID,
+			"gemport-id":    gemPortID})
+
+	// get onuid from the onugem info cache
+	for _, onu := range p.onuGemInfo {
+		for _, gem := range onu.GemPorts {
+			if gem == gemPortID {
+				return onu.OnuID, nil
+			}
+		}
+	}
+	return uint32(0), olterrors.NewErrNotFound("onu-id", log.Fields{
+		"serial-number": serialNumber,
+		"interface-id":  intfID,
+		"gem-port-id":   gemPortID},
+		nil)
+}
+
+//GetPacketOutGemPortID returns the gemPortId for a given PortNo
+func (p *PonFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) (uint32, error) {
+	var gemPortID uint32
+	var err error
+
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum}
+
+	// FIXME packetInGemPort should be moved to be in PonFlowMgr
+	gemPortID, ok := p.openOltFlowMgr.packetInGemPort[pktInkey]
+	if ok {
+		logger.Debugw("found-gemport-for-pktin-key",
+			log.Fields{
+				"pktinkey": pktInkey,
+				"gem":      gemPortID})
+		return gemPortID, err
+	}
+	//If gem is not found in cache try to get it from kv store, if found in kv store, update the cache and return.
+	gemPortID, err = p.openOltFlowMgr.resourceMgr.GetGemPortFromOnuPktIn(ctx, intfID, onuID, portNum)
+	if err == nil {
+		if gemPortID != 0 {
+			p.openOltFlowMgr.packetInGemPort[pktInkey] = gemPortID
+			logger.Infow("found-gem-port-from-kv-store-and-updating-cache-with-gemport",
+				log.Fields{
+					"pktinkey": pktInkey,
+					"gem":      gemPortID})
+			return gemPortID, nil
+		}
+	}
+	return uint32(0), olterrors.NewErrNotFound("gem-port",
+		log.Fields{
+			"pktinkey": pktInkey,
+			"gem":      gemPortID}, err)
+}
+
+// UpdateGemPortForPktIn updates gemport for packet-in in to the cache and to the kv store as well.
+func (p *PonFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) {
+	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: logicalPort}
+
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+	lookupGemPort, ok := p.openOltFlowMgr.packetInGemPort[pktInkey]
+	if ok {
+		if lookupGemPort == gemPort {
+			logger.Infow("pktin-key/value-found-in-cache--no-need-to-update-kv--assume-both-in-sync",
+				log.Fields{
+					"pktinkey": pktInkey,
+					"gem":      gemPort})
+			return
+		}
+	}
+	p.openOltFlowMgr.packetInGemPort[pktInkey] = gemPort
+
+	p.openOltFlowMgr.resourceMgr.UpdateGemPortForPktIn(ctx, pktInkey, gemPort)
+	logger.Infow("pktin-key-not-found-in-local-cache-value-is-different--updating-cache-and-kv-store",
+		log.Fields{
+			"pktinkey": pktInkey,
+			"gem":      gemPort})
+	return
+}
+
+// AddUniPortToOnuInfo adds uni port to the onugem info both in cache and kvstore.
+func (p *PonFlowMgr) AddUniPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) {
+	p.cacheLock.Lock()
+	defer p.cacheLock.Unlock()
+
+	for idx, onu := range p.onuGemInfo {
+		if onu.OnuID == onuID {
+			for _, uni := range onu.UniPorts {
+				if uni == portNum {
+					logger.Infow("uni-already-in-cache--no-need-to-update-cache-and-kv-store", log.Fields{"uni": portNum})
+					return
+				}
+			}
+			p.onuGemInfo[idx].UniPorts = append(p.onuGemInfo[idx].UniPorts, portNum)
+		}
+	}
+	p.openOltFlowMgr.resourceMgr.AddUniPortToOnuInfo(ctx, intfID, onuID, portNum)
+
+}
+
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
 type OpenOltFlowMgr struct {
 	techprofile        map[uint32]tp.TechProfileIf
@@ -217,12 +448,11 @@ type OpenOltFlowMgr struct {
 	onuIdsLock         sync.RWMutex
 	flowsUsedByGemPort map[gemPortKey][]uint32            //gem port id to flow ids
 	packetInGemPort    map[rsrcMgr.PacketInInfoKey]uint32 //packet in gem port local cache
-	onuGemInfo         map[uint32][]rsrcMgr.OnuGemInfo    //onu, gem and uni info local cache
-	lockCache          sync.RWMutex
 	pendingFlowDelete  sync.Map
 	// The mapmutex.Mutex can be fine tuned to use mapmutex.NewCustomizedMapMutex
 	perUserFlowHandleLock    *mapmutex.Mutex
 	interfaceToMcastQueueMap map[uint32]*queueInfoBrief /*pon interface -> multicast queue map. Required to assign GEM to a bucket during group population*/
+	ponFlowMgrs              []*PonFlowMgr
 }
 
 //NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
@@ -242,22 +472,55 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	flowMgr.onuIdsLock = sync.RWMutex{}
 	flowMgr.flowsUsedByGemPort = make(map[gemPortKey][]uint32)
 	flowMgr.packetInGemPort = make(map[rsrcMgr.PacketInInfoKey]uint32)
-	flowMgr.onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo)
+	//flowMgr.onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo)
 	ponPorts := rMgr.DevInfo.GetPonPorts()
+
+	var i uint32
+	for i = 0; i < ponPorts; i++ {
+		ponMgr := NewPonFlowMgr(i, &flowMgr)
+		flowMgr.ponFlowMgrs = append(flowMgr.ponFlowMgrs, ponMgr)
+		logger.Debugw("pon-flow-managers-initialized-for-pon",
+			log.Fields{
+				"intf-id":   i,
+				"device-id": flowMgr.deviceHandler.device.Id,
+			},
+		)
+	}
+
+	logger.Infow("all-pon-flow-managers-initialized",
+		log.Fields{"device-id": flowMgr.deviceHandler.device.Id},
+	)
+
 	//Load the onugem info cache from kv store on flowmanager start
 	for idx = 0; idx < ponPorts; idx++ {
-		if flowMgr.onuGemInfo[idx], err = rMgr.GetOnuGemInfo(ctx, idx); err != nil {
+		var onuGemInfos []rsrcMgr.OnuGemInfo
+		if onuGemInfos, err = rMgr.GetOnuGemInfo(ctx, idx); err != nil {
+			// TODO do we need to handle this error?
 			logger.Error("failed-to-load-onu-gem-info-cache")
+		}
+		for _, onuGemInfo := range onuGemInfos {
+			flowMgr.ponFlowMgrs[onuGemInfo.IntfID].onuGemInfo = append(flowMgr.ponFlowMgrs[onuGemInfo.IntfID].onuGemInfo, onuGemInfo)
 		}
 		//Load flowID list per gem map per interface from the kvstore.
 		flowMgr.loadFlowIDlistForGem(ctx, idx)
+		logger.Debugw("loaded-onu-gem-info-for-pon",
+			log.Fields{
+				"intf-id":   idx,
+				"device-id": flowMgr.deviceHandler.device.Id,
+			},
+		)
 	}
-	flowMgr.lockCache = sync.RWMutex{}
+
+	logger.Infow("all-loaded-onu-gem-info-for-pon",
+		log.Fields{"device-id": flowMgr.deviceHandler.device.Id},
+	)
+
 	flowMgr.pendingFlowDelete = sync.Map{}
 	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
 	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//load interface to multicast queue map from kv store
 	flowMgr.loadInterfaceToMulticastQueueMap(ctx)
+
 	logger.Info("initialization-of-flow-manager-success")
 	return &flowMgr
 }
@@ -1525,17 +1788,17 @@ func (f *OpenOltFlowMgr) getUpdatedFlowInfo(ctx context.Context, flow *openoltpb
 
 //func (f *OpenOltFlowMgr) getUpdatedFlowInfo(flow *openolt_pb2.Flow, flowStoreCookie uint64, flowCategory string) *[]rsrcMgr.FlowInfo {
 //	var flows []rsrcMgr.FlowInfo = []rsrcMgr.FlowInfo{rsrcMgr.FlowInfo{Flow: flow, FlowCategory: flowCategory, FlowStoreCookie: flowStoreCookie}}
-//	var intfId uint32
+//	var intfID uint32
 //	/* For flows which trap out of the NNI, the AccessIntfId is invalid
 //	   (set to -1). In such cases, we need to refer to the NetworkIntfId .
 //	*/
 //	if flow.AccessIntfId != -1 {
-//		intfId = uint32(flow.AccessIntfId)
+//		intfID = uint32(flow.AccessIntfId)
 //	} else {
-//		intfId = uint32(flow.NetworkIntfId)
+//		intfID = uint32(flow.NetworkIntfId)
 //	}
 //	// Get existing flows matching flowid for given subscriber from KV store
-//	existingFlows := f.resourceMgr.GetFlowIDInfo(intfId, uint32(flow.OnuId), uint32(flow.UniId), flow.FlowId)
+//	existingFlows := f.resourceMgr.GetFlowIDInfo(intfID, uint32(flow.OnuId), uint32(flow.UniId), flow.FlowId)
 //	if existingFlows != nil {
 //		logger.Debugw("Flow exists for given flowID, appending it to current flow", log.Fields{"flowID": flow.FlowId})
 //		for _, f := range *existingFlows {
@@ -1967,36 +2230,7 @@ func (f *OpenOltFlowMgr) deletePendingFlows(Intf uint32, onuID int32, uniID int3
 // Otherwise stale info continues to exist after gemport is freed and wrong logicalPortNo
 // is conveyed to ONOS during packet-in OF message.
 func (f *OpenOltFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32, gemPortID uint32) {
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	logger.Infow("deleting-gem-from-local-cache",
-		log.Fields{
-			"gem":       gemPortID,
-			"intf-id":   intfID,
-			"onu-id":    onuID,
-			"device-id": f.deviceHandler.device.Id,
-			"onu-gem":   f.onuGemInfo[intfID]})
-	onugem := f.onuGemInfo[intfID]
-	for i, onu := range onugem {
-		if onu.OnuID == onuID {
-			for j, gem := range onu.GemPorts {
-				// If the gemport is found, delete it from local cache.
-				if gem == gemPortID {
-					onu.GemPorts = append(onu.GemPorts[:j], onu.GemPorts[j+1:]...)
-					onugem[i] = onu
-					logger.Infow("removed-gemport-from-local-cache",
-						log.Fields{
-							"intf-id":           intfID,
-							"onu-id":            onuID,
-							"deletedgemport-id": gemPortID,
-							"gemports":          onu.GemPorts,
-							"device-id":         f.deviceHandler.device.Id})
-					break
-				}
-			}
-			break
-		}
-	}
+	f.ponFlowMgrs[intfID].deleteGemPortFromLocalCache(intfID, onuID, gemPortID)
 }
 
 //clearResources clears pon resources in kv store and the device
@@ -2870,103 +3104,28 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 
 //UpdateOnuInfo function adds onu info to cache and kvstore
 func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
-
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	onu := rsrcMgr.OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
-	f.onuGemInfo[intfID] = append(f.onuGemInfo[intfID], onu)
-	if err := f.resourceMgr.AddOnuGemInfo(ctx, intfID, onu); err != nil {
-		return err
-	}
-	logger.Infow("updated-onuinfo",
-		log.Fields{
-			"intf-id":    intfID,
-			"onu-id":     onuID,
-			"serial-num": serialNum,
-			"onu":        onu,
-			"device-id":  f.deviceHandler.device.Id})
-	return nil
+	return f.ponFlowMgrs[intfID].updateOnuInfo(ctx, intfID, onuID, serialNum)
 }
 
-//addGemPortToOnuInfoMap function adds GEMport to ONU map
+//addGemPortToOnuInfo function adds GEMport to ONU map
 func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(ctx context.Context, intfID uint32, onuID uint32, gemPort uint32) {
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	logger.Infow("adding-gem-to-onu-info-map",
-		log.Fields{
-			"gem":       gemPort,
-			"intf":      intfID,
-			"onu":       onuID,
-			"device-id": f.deviceHandler.device.Id,
-			"onu-gem":   f.onuGemInfo[intfID]})
-	onugem := f.onuGemInfo[intfID]
-	// update the gem to the local cache as well as to kv strore
-	for idx, onu := range onugem {
-		if onu.OnuID == onuID {
-			// check if gem already exists , else update the cache and kvstore
-			for _, gem := range onu.GemPorts {
-				if gem == gemPort {
-					logger.Debugw("gem-already-in-cache-no-need-to-update-cache-and-kv-store",
-						log.Fields{
-							"gem":       gemPort,
-							"device-id": f.deviceHandler.device.Id})
-					return
-				}
-			}
-			onugem[idx].GemPorts = append(onugem[idx].GemPorts, gemPort)
-			f.onuGemInfo[intfID] = onugem
-		}
-	}
-	err := f.resourceMgr.AddGemToOnuGemInfo(ctx, intfID, onuID, gemPort)
+
+	err := f.ponFlowMgrs[intfID].addGemPortToOnuInfo(ctx, intfID, onuID, gemPort)
 	if err != nil {
-		logger.Errorw("failed-to-add-gem-to-onu",
+		logger.Errorw("failed-to-add-gem-to-onu-info-map",
 			log.Fields{
 				"intf-id":   intfID,
 				"onu-id":    onuID,
 				"gemPort":   gemPort,
 				"device-id": f.deviceHandler.device.Id})
-		return
 	}
-	logger.Infow("gem-added-to-onu-info-map",
-		log.Fields{
-			"gem":       gemPort,
-			"intf":      intfID,
-			"onu":       onuID,
-			"device-id": f.deviceHandler.device.Id,
-			"onu-gem":   f.onuGemInfo[intfID]})
 }
 
-// This function Lookup maps  by serialNumber or (intfId, gemPort)
+// This function Lookup maps  by serialNumber or (intfID, gemPort)
 
-//getOnuIDfromGemPortMap Returns OnuID,nil if found or set 0,error if no onuId is found for serialNumber or (intfId, gemPort)
+//getOnuIDfromGemPortMap Returns OnuID,nil if found or set 0,error if no onuId is found for serialNumber or (intfID, gemPort)
 func (f *OpenOltFlowMgr) getOnuIDfromGemPortMap(serialNumber string, intfID uint32, gemPortID uint32) (uint32, error) {
-
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-
-	logger.Infow("getting-onu-id-from-gem-port-and-pon-port",
-		log.Fields{
-			"device-id":     f.deviceHandler.device.Id,
-			"onu-geminfo":   f.onuGemInfo[intfID],
-			"serial-number": serialNumber,
-			"intf-id":       intfID,
-			"gemport-id":    gemPortID})
-
-	// get onuid from the onugem info cache
-	onugem := f.onuGemInfo[intfID]
-
-	for _, onu := range onugem {
-		for _, gem := range onu.GemPorts {
-			if gem == gemPortID {
-				return onu.OnuID, nil
-			}
-		}
-	}
-	return uint32(0), olterrors.NewErrNotFound("onu-id", log.Fields{
-		"serial-number": serialNumber,
-		"interface-id":  intfID,
-		"gem-port-id":   gemPortID},
-		nil)
+	return f.ponFlowMgrs[intfID].getOnuIDfromGemPort(serialNumber, intfID, gemPortID)
 }
 
 //GetLogicalPortFromPacketIn function computes logical port UNI/NNI port from packet-in indication and returns the same
@@ -3003,37 +3162,7 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 
 //GetPacketOutGemPortID returns gemPortId
 func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) (uint32, error) {
-	var gemPortID uint32
-	var err error
-
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum}
-
-	gemPortID, ok := f.packetInGemPort[pktInkey]
-	if ok {
-		logger.Debugw("found-gemport-for-pktin-key",
-			log.Fields{
-				"pktinkey": pktInkey,
-				"gem":      gemPortID})
-		return gemPortID, err
-	}
-	//If gem is not found in cache try to get it from kv store, if found in kv store, update the cache and return.
-	gemPortID, err = f.resourceMgr.GetGemPortFromOnuPktIn(ctx, intfID, onuID, portNum)
-	if err == nil {
-		if gemPortID != 0 {
-			f.packetInGemPort[pktInkey] = gemPortID
-			logger.Infow("found-gem-port-from-kv-store-and-updating-cache-with-gemport",
-				log.Fields{
-					"pktinkey": pktInkey,
-					"gem":      gemPortID})
-			return gemPortID, nil
-		}
-	}
-	return uint32(0), olterrors.NewErrNotFound("gem-port",
-		log.Fields{
-			"pktinkey": pktInkey,
-			"gem":      gemPortID}, err)
+	return f.ponFlowMgrs[intfID].GetPacketOutGemPortID(ctx, intfID, onuID, portNum)
 }
 
 func installFlowOnAllGemports(ctx context.Context,
@@ -3081,18 +3210,18 @@ func installFlowOnAllGemports(ctx context.Context,
 		if allPbitsMarked(gemPortAttribute.PbitMap) {
 			classifier[VlanPcp] = uint32(VlanPCPMask)
 			if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-				f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+				f1(ctx, args[IntfID], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
 			} else if FlowType == EapolFlow {
-				f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+				f2(ctx, args[IntfID], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
 			}
 		} else {
 			for pos, pbitSet := range strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix) {
 				if pbitSet == BinaryBit1 {
 					classifier[VlanPcp] = uint32(len(strings.TrimPrefix(gemPortAttribute.PbitMap, BinaryStringPrefix))) - 1 - uint32(pos)
 					if FlowType == DhcpFlow || FlowType == IgmpFlow || FlowType == HsiaFlow {
-						f1(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
+						f1(ctx, args[IntfID], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, tpID)
 					} else if FlowType == EapolFlow {
-						f2(ctx, args["intfId"], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
+						f2(ctx, args[IntfID], args["onuId"], args["uniId"], args["portNo"], classifier, action, logicalFlow, args["allocId"], gemPortID, vlanID[0], tpID)
 					}
 				}
 			}
@@ -3664,7 +3793,7 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 					"error":       err})
 			return uint32(0), err
 		}
-		logger.Infow("output-nni-intfId-is", log.Fields{"intf-id": intfID})
+		logger.Infow("output-nni-intfID-is", log.Fields{"intf-id": intfID})
 		return intfID, nil
 	} else if portType == voltha.Port_ETHERNET_NNI {
 		intfID, err := IntfIDFromNniPortNum(classifier[InPort].(uint32))
@@ -3675,7 +3804,7 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 					"error":       err})
 			return uint32(0), err
 		}
-		logger.Infow("input-nni-intfId-is", log.Fields{"intf-id": intfID})
+		logger.Infow("input-nni-intfID-is", log.Fields{"intf-id": intfID})
 		return intfID, nil
 	}
 	return uint32(0), nil
@@ -3683,48 +3812,13 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 
 // UpdateGemPortForPktIn updates gemport for packet-in in to the cache and to the kv store as well.
 func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) {
-	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: logicalPort}
-
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	lookupGemPort, ok := f.packetInGemPort[pktInkey]
-	if ok {
-		if lookupGemPort == gemPort {
-			logger.Infow("pktin-key/value-found-in-cache--no-need-to-update-kv--assume-both-in-sync",
-				log.Fields{
-					"pktinkey": pktInkey,
-					"gem":      gemPort})
-			return
-		}
-	}
-	f.packetInGemPort[pktInkey] = gemPort
-
-	f.resourceMgr.UpdateGemPortForPktIn(ctx, pktInkey, gemPort)
-	logger.Infow("pktin-key-not-found-in-local-cache-value-is-different--updating-cache-and-kv-store",
-		log.Fields{
-			"pktinkey": pktInkey,
-			"gem":      gemPort})
-	return
+	// TODO address potential errors
+	f.ponFlowMgrs[intfID].UpdateGemPortForPktIn(ctx, intfID, onuID, logicalPort, gemPort)
 }
 
 // AddUniPortToOnuInfo adds uni port to the onugem info both in cache and kvstore.
 func (f *OpenOltFlowMgr) AddUniPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) {
-	f.lockCache.Lock()
-	defer f.lockCache.Unlock()
-	onugem := f.onuGemInfo[intfID]
-	for idx, onu := range onugem {
-		if onu.OnuID == onuID {
-			for _, uni := range onu.UniPorts {
-				if uni == portNum {
-					logger.Infow("uni-already-in-cache--no-need-to-update-cache-and-kv-store", log.Fields{"uni": portNum})
-					return
-				}
-			}
-			onugem[idx].UniPorts = append(onugem[idx].UniPorts, portNum)
-			f.onuGemInfo[intfID] = onugem
-		}
-	}
-	f.resourceMgr.AddUniPortToOnuInfo(ctx, intfID, onuID, portNum)
+	f.ponFlowMgrs[intfID].AddUniPortToOnuInfo(ctx, intfID, onuID, portNum)
 }
 
 func (f *OpenOltFlowMgr) loadFlowIDlistForGem(ctx context.Context, intf uint32) {
