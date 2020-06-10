@@ -924,9 +924,9 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 		//{"test1", args{egressPortNo: 0, packet: &ofp.OfpPacketOut{}}, true},
 		{"PacketOut-1", dh1, args{egressPortNo: 0, packet: pktout}, false},
 		{"PacketOut-2", dh2, args{egressPortNo: 1, packet: pktout}, false},
-		{"PacketOut-2", dh2, args{egressPortNo: 115000, packet: pktout}, false},
-		{"PacketOut-3", dh1, args{egressPortNo: 65536, packet: pktout}, false},
-		{"PacketOut-4", dh2, args{egressPortNo: 65535, packet: pktout}, false},
+		{"PacketOut-3", dh2, args{egressPortNo: 4112, packet: pktout}, false},
+		{"PacketOut-4", dh1, args{egressPortNo: 1048577, packet: pktout}, false},
+		{"PacketOut-5", dh2, args{egressPortNo: 1048576, packet: pktout}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
