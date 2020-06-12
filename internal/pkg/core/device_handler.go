@@ -538,7 +538,26 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("received-packet-indication", log.Fields{"PktInd": pktInd, "device-id": dh.device.Id})
+		logger.Infow("received-packet-indication", log.Fields{
+			"intf-type":   pktInd.IntfId,
+			"intf-id":     pktInd.IntfId,
+			"gem-port-id": pktInd.GemportId,
+			"port-no":     pktInd.PortNo,
+			"packet":      hex.EncodeToString(pktInd.Pkt),
+			"device-id":   dh.device.Id,
+		})
+
+		if logger.GetLogLevel() == log.DebugLevel {
+			logger.Debugw("received-packet-indication-packet", log.Fields{
+				"intf-type":   pktInd.IntfId,
+				"intf-id":     pktInd.IntfId,
+				"gem-port-id": pktInd.GemportId,
+				"port-no":     pktInd.PortNo,
+				"packet":      hex.EncodeToString(pktInd.Pkt),
+				"device-id":   dh.device.Id,
+			})
+		}
+
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet", "device-id": dh.device.Id}, err).Log()
@@ -1759,6 +1778,9 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			// The agent tries to retrieve the gemPortID in this case.
 			// This may not always succeed at the agent and packetOut may fail.
 			logger.Errorw("failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"uni-id":    uniID,
 				"packet":    hex.EncodeToString(packet.Data),
 				"device-id": dh.device.Id,
 			})
