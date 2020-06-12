@@ -538,7 +538,25 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		}()
 	case *oop.Indication_PktInd:
 		pktInd := indication.GetPktInd()
-		logger.Infow("received-packet-indication", log.Fields{"PktInd": pktInd, "device-id": dh.device.Id})
+		logger.Infow("received-packet-indication", log.Fields{
+			"intf-type":   pktInd.IntfId,
+			"intf-id":     pktInd.IntfId,
+			"gem-port-id": pktInd.GemportId,
+			"port-no":     pktInd.PortNo,
+			"device-id":   dh.device.Id,
+		})
+
+		if logger.GetLogLevel() == log.DebugLevel {
+			logger.Debugw("received-packet-indication-packet", log.Fields{
+				"intf-type":   pktInd.IntfId,
+				"intf-id":     pktInd.IntfId,
+				"gem-port-id": pktInd.GemportId,
+				"port-no":     pktInd.PortNo,
+				"packet":      hex.EncodeToString(pktInd.Pkt),
+				"device-id":   dh.device.Id,
+			})
+		}
+
 		go func() {
 			if err := dh.handlePacketIndication(ctx, pktInd); err != nil {
 				olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "packet", "device-id": dh.device.Id}, err).Log()
@@ -873,8 +891,10 @@ func (dh *DeviceHandler) omciIndication(omciInd *oop.OmciIndication) error {
 	var proxyDeviceID string
 
 	transid := extractOmciTransactionID(omciInd.Pkt)
-	logger.Debugw("recv-omci-msg", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "device-id": dh.device.Id,
-		"omciTransactionID": transid, "omciMsg": hex.EncodeToString(omciInd.Pkt)})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("recv-omci-msg", log.Fields{"intfID": omciInd.IntfId, "onuID": omciInd.OnuId, "device-id": dh.device.Id,
+			"omciTransactionID": transid, "omciMsg": hex.EncodeToString(omciInd.Pkt)})
+	}
 
 	onuKey := dh.formOnuKey(omciInd.IntfId, omciInd.OnuId)
 
@@ -1328,11 +1348,13 @@ func (dh *DeviceHandler) GetChildDevice(parentPort, onuID uint32) (*voltha.Devic
 // For this, it calls SendPacketIn of the core-proxy which uses a device specific topic to send the request.
 // The adapter handling the device creates a device specific topic
 func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []byte) error {
-	logger.Debugw("send-packet-in-to-core", log.Fields{
-		"port":      logicalPort,
-		"packet":    hex.EncodeToString(packetPayload),
-		"device-id": dh.device.Id,
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("send-packet-in-to-core", log.Fields{
+			"port":      logicalPort,
+			"packet":    hex.EncodeToString(packetPayload),
+			"device-id": dh.device.Id,
+		})
+	}
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPort, packetPayload); err != nil {
 		return olterrors.NewErrCommunication("packet-send-failed", log.Fields{
 			"source":       "adapter",
@@ -1341,10 +1363,12 @@ func (dh *DeviceHandler) SendPacketInToCore(logicalPort uint32, packetPayload []
 			"logical-port": logicalPort,
 			"packet":       hex.EncodeToString(packetPayload)}, err)
 	}
-	logger.Debugw("sent-packet-in-to-core-successfully", log.Fields{
-		"packet":    hex.EncodeToString(packetPayload),
-		"device-id": dh.device.Id,
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("sent-packet-in-to-core-successfully", log.Fields{
+			"packet":    hex.EncodeToString(packetPayload),
+			"device-id": dh.device.Id,
+		})
+	}
 	return nil
 }
 
@@ -1686,20 +1710,24 @@ func (dh *DeviceHandler) RebootDevice(device *voltha.Device) error {
 }
 
 func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
-	logger.Debugw("received-packet-in", log.Fields{
-		"packet-indication": *packetIn,
-		"device-id":         dh.device.Id,
-		"packet":            hex.EncodeToString(packetIn.Pkt),
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("received-packet-in", log.Fields{
+			"packet-indication": *packetIn,
+			"device-id":         dh.device.Id,
+			"packet":            hex.EncodeToString(packetIn.Pkt),
+		})
+	}
 	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
 	if err != nil {
 		return olterrors.NewErrNotFound("logical-port", log.Fields{"packet": hex.EncodeToString(packetIn.Pkt)}, err)
 	}
-	logger.Debugw("sending-packet-in-to-core", log.Fields{
-		"logicalPortNum": logicalPortNum,
-		"device-id":      dh.device.Id,
-		"packet":         hex.EncodeToString(packetIn.Pkt),
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("sending-packet-in-to-core", log.Fields{
+			"logicalPortNum": logicalPortNum,
+			"device-id":      dh.device.Id,
+			"packet":         hex.EncodeToString(packetIn.Pkt),
+		})
+	}
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
 		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
 			"destination": "core",
@@ -1708,21 +1736,25 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 			"packet":      hex.EncodeToString(packetIn.Pkt),
 		}, err)
 	}
-	logger.Debugw("success-sending-packet-in-to-core!", log.Fields{
-		"packet":    hex.EncodeToString(packetIn.Pkt),
-		"device-id": dh.device.Id,
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("success-sending-packet-in-to-core!", log.Fields{
+			"packet":    hex.EncodeToString(packetIn.Pkt),
+			"device-id": dh.device.Id,
+		})
+	}
 	return nil
 }
 
 // PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
 func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet *of.OfpPacketOut) error {
-	logger.Debugw("incoming-packet-out", log.Fields{
-		"device-id":      dh.device.Id,
-		"egress-port-no": egressPortNo,
-		"pkt-length":     len(packet.Data),
-		"packet":         hex.EncodeToString(packet.Data),
-	})
+	if logger.GetLogLevel() == log.DebugLevel {
+		logger.Debugw("incoming-packet-out", log.Fields{
+			"device-id":      dh.device.Id,
+			"egress-port-no": egressPortNo,
+			"pkt-length":     len(packet.Data),
+			"packet":         hex.EncodeToString(packet.Data),
+		})
+	}
 
 	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
 	if egressPortType == voltha.Port_ETHERNET_UNI {
@@ -1743,10 +1775,12 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 				// q-in-q 802.1ad or 802.1q double tagged packet.
 				// slice out the outer tag.
 				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
-				logger.Debugw("packet-now-single-tagged", log.Fields{
-					"packetData": hex.EncodeToString(packet.Data),
-					"device-id":  dh.device.Id,
-				})
+				if logger.GetLogLevel() == log.DebugLevel {
+					logger.Debugw("packet-now-single-tagged", log.Fields{
+						"packetData": hex.EncodeToString(packet.Data),
+						"device-id":  dh.device.Id,
+					})
+				}
 			}
 		}
 		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
@@ -1759,6 +1793,9 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 			// The agent tries to retrieve the gemPortID in this case.
 			// This may not always succeed at the agent and packetOut may fail.
 			logger.Errorw("failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"uni-id":    uniID,
 				"packet":    hex.EncodeToString(packet.Data),
 				"device-id": dh.device.Id,
 			})
@@ -1766,15 +1803,17 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 
 		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
 
-		logger.Debugw("sending-packet-to-onu", log.Fields{
-			"egress-port-no": egressPortNo,
-			"IntfId":         intfID,
-			"onuID":          onuID,
-			"uniID":          uniID,
-			"gemPortID":      gemPortID,
-			"packet":         hex.EncodeToString(packet.Data),
-			"device-id":      dh.device.Id,
-		})
+		if logger.GetLogLevel() == log.DebugLevel {
+			logger.Debugw("sending-packet-to-onu", log.Fields{
+				"egress-port-no": egressPortNo,
+				"IntfId":         intfID,
+				"onuID":          onuID,
+				"uniID":          uniID,
+				"gemPortID":      gemPortID,
+				"packet":         hex.EncodeToString(packet.Data),
+				"device-id":      dh.device.Id,
+			})
+		}
 
 		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
 			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
@@ -1799,11 +1838,13 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		}
 		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
-		logger.Debugw("sending-packet-to-nni", log.Fields{
-			"uplink-pkt": uplinkPkt,
-			"packet":     hex.EncodeToString(packet.Data),
-			"device-id":  dh.device.Id,
-		})
+		if logger.GetLogLevel() == log.DebugLevel {
+			logger.Debugw("sending-packet-to-nni", log.Fields{
+				"uplink-pkt": uplinkPkt,
+				"packet":     hex.EncodeToString(packet.Data),
+				"device-id":  dh.device.Id,
+			})
+		}
 
 		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
 			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
