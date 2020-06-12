@@ -1638,10 +1638,10 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(deviceFlow *openoltpb2.Flow) error
 		return olterrors.NewErrFlowOp("remove", deviceFlow.FlowId, log.Fields{"deviceFlow": deviceFlow}, err)
 
 	}
-	logger.Infow("flow-removed-from-device-successfully ",
-		log.Fields{
+	logger.Infow("flow-removed-from-device-successfully", log.Fields{
 			"flow":      *deviceFlow,
-			"device-id": f.deviceHandler.device.Id})
+			"device-id": f.deviceHandler.device.Id,
+	})
 	return nil
 }
 
@@ -2183,6 +2183,7 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 	}
 	logger.Infow("extracted-access-info-from-flow-to-be-deleted",
 		log.Fields{
+			"flow-id": flow.Id,
 			"ponIntf": Intf,
 			"onu-id":  onuID,
 			"uni-id":  uniID})
@@ -2226,18 +2227,26 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 					logger.Errorw("failed-to-remove-flow", log.Fields{"error": err})
 					return
 				}
-				logger.Info("flow-removed-from-device-successfully")
+				logger.Info("flow-removed-from-device-successfully", log.Fields{
+					"flow-id": flow.Id,
+					"stored-flow":      storedFlow,
+					"device-id": f.deviceHandler.device.Id,
+					"stored-flow-id":   flowID,
+					"onu-id":    onuID,
+					"intf":      Intf,
+				})
 				//Remove the Flow from FlowInfo
 				updatedFlows = append(updatedFlows[:i], updatedFlows[i+1:]...)
 				if err = f.clearResources(ctx, flow, Intf, onuID, uniID, storedFlow.Flow.GemportId,
 					flowID, flowDirection, portNum, updatedFlows); err != nil {
-					logger.Error("failed-to-clear-resources-for-flow",
-						log.Fields{
-							"flow":      storedFlow,
-							"device-id": f.deviceHandler.device.Id,
-							"flow-id":   flowID,
-							"onu-id":    onuID,
-							"intf":      Intf})
+					logger.Error("failed-to-clear-resources-for-flow", log.Fields{
+						"flow-id": flow.Id,
+						"stored-flow":      storedFlow,
+						"device-id": f.deviceHandler.device.Id,
+						"stored-flow-id":   flowID,
+						"onu-id":    onuID,
+						"intf":      Intf,
+					})
 					return
 				}
 			}
@@ -2317,7 +2326,7 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 
 //RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
-	logger.Infow("removing-flow", log.Fields{"flow": flow})
+	logger.Infow("removing-flow", log.Fields{"flow": *flow})
 	var direction string
 	actionInfo := make(map[string]interface{})
 
