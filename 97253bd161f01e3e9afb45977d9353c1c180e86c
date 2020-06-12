@@ -46,6 +46,30 @@
       "revId": "97253bd161f01e3e9afb45977d9353c1c180e86c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2ec5e39_e37194c3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-12T22:05:36Z",
+      "side": 1,
+      "message": "Yeah, only the packet dump can be put in debug mode.",
+      "parentUuid": "4a0c7d3c_0ab3c96d",
+      "range": {
+        "startLine": 546,
+        "startChar": 53,
+        "endLine": 546,
+        "endChar": 57
+      },
+      "revId": "97253bd161f01e3e9afb45977d9353c1c180e86c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
