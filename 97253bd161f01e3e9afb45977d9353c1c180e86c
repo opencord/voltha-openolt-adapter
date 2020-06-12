@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d12b28b_323d3ff0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-06-12T21:40:02Z",
+      "side": 1,
+      "message": "dumping the packets in INFO level may not be a good idea.",
+      "range": {
+        "startLine": 546,
+        "startChar": 53,
+        "endLine": 546,
+        "endChar": 57
+      },
+      "revId": "97253bd161f01e3e9afb45977d9353c1c180e86c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
