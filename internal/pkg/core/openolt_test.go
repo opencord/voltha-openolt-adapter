@@ -455,48 +455,6 @@ func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Get_ofp_port_info(t *testing.T) {
-	type args struct {
-		device *voltha.Device
-		portNo int64
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		want    *ic.PortCapability
-		wantErr error
-	}{
-		{"get_ofp_port_info-1", mockOlt(), args{mockDevice(), 1}, &ic.PortCapability{
-			Port: &voltha.LogicalPort{
-				DeviceId:     "olt",
-				DevicePortNo: uint32(1),
-				OfpPort: &openflow_13.OfpPort{
-					HwAddr:     []uint32{1, 2, 3, 4, 5, 6},
-					State:      uint32(4),
-					Curr:       uint32(4128),
-					Advertised: uint32(4128),
-					Peer:       uint32(4128),
-					CurrSpeed:  uint32(32),
-					MaxSpeed:   uint32(32),
-				},
-			},
-		}, nil},
-		{"get_ofp_port_info-2", &fields{}, args{mockDevice(), 1}, nil,
-			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			got, err := oo.Get_ofp_port_info(tt.args.device, tt.args.portNo)
-			if !reflect.DeepEqual(err, tt.wantErr) || !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Get_ofp_port_info() got = %v want = %v error = %v, wantErr = %v",
-					got, tt.want, err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestOpenOLT_Health(t *testing.T) {
 	tests := []struct {
 		name    string

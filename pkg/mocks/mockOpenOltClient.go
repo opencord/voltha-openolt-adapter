@@ -167,6 +167,21 @@ func (ooc *MockOpenoltClient) RemoveTrafficQueues(ctx context.Context, in *tech_
 	return &openolt.Empty{}, nil
 }
 
+// DeleteGroup mocks the DeleteGroup RPC of Openoltclient.
+func (ooc *MockOpenoltClient) DeleteGroup(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	return &openolt.Empty{}, nil
+}
+
+// GetLogicalOnuDistance mocks the GetLogicalOnuDistance RPC of Openoltclient.
+func (ooc *MockOpenoltClient) GetLogicalOnuDistance(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
+	return &openolt.OnuLogicalDistance{}, nil
+}
+
+// GetLogicalOnuDistanceZero mocks the GetLogicalOnuDistanceZero RPC of Openoltclient.
+func (ooc *MockOpenoltClient) GetLogicalOnuDistanceZero(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
+	return &openolt.OnuLogicalDistance{}, nil
+}
+
 // EnableIndication mocks the EnableIndication function of Openoltclient.
 func (ooc *MockOpenoltClient) EnableIndication(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (openolt.Openolt_EnableIndicationClient, error) {
 	if ooc.counter < 2 {

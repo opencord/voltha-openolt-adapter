@@ -161,15 +161,6 @@ func (oo *OpenOLT) Get_ofp_device_info(device *voltha.Device) (*ic.SwitchCapabil
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
-//Get_ofp_port_info returns OFP port information for the given device
-func (oo *OpenOLT) Get_ofp_port_info(device *voltha.Device, portNo int64) (*ic.PortCapability, error) {
-	logger.Infow("Get_ofp_port_info", log.Fields{"deviceId": device.Id})
-	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.GetOfpPortInfo(device, portNo)
-	}
-	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
-}
-
 //Process_inter_adapter_message sends messages to a target device (between adapters)
 func (oo *OpenOLT) Process_inter_adapter_message(msg *ic.InterAdapterMessage) error {
 	logger.Debugw("Process_inter_adapter_message", log.Fields{"msgId": msg.Header.Id})

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
@@ -215,8 +216,10 @@ type iGemPortAttribute struct {
 }
 
 type TechProfileMgr struct {
-	config      *TechProfileFlags
-	resourceMgr iPonResourceMgr
+	config            *TechProfileFlags
+	resourceMgr       iPonResourceMgr
+	GemPortIDMgmtLock sync.RWMutex
+	AllocIDMgmtLock   sync.RWMutex
 }
 type DefaultTechProfile struct {
 	Name                           string             `json:"name"`
@@ -436,7 +439,10 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 	logger.Infow("Allocating TechProfileMgr instance from techprofile template", log.Fields{"uniPortName": uniPortName, "intfId": intfId, "numGem": tp.NumGemPorts})
 
 	if tp.InstanceCtrl.Onu == "multi-instance" {
-		if tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1); err != nil {
+		t.AllocIDMgmtLock.Lock()
+		tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1)
+		t.AllocIDMgmtLock.Unlock()
+		if err != nil {
 			logger.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
 			return nil
 		}
@@ -447,7 +453,10 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 		} else if tpInst == nil {
 			// No "single-instance" tp found on one any uni port for the given TP ID
 			// Allocate a new TcontID or AllocID
-			if tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1); err != nil {
+			t.AllocIDMgmtLock.Lock()
+			tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1)
+			t.AllocIDMgmtLock.Unlock()
+			if err != nil {
 				logger.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
 				return nil
 			}
@@ -457,7 +466,10 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 		}
 	}
 	logger.Debugw("Num GEM ports in TP:", log.Fields{"NumGemPorts": tp.NumGemPorts})
-	if gemPorts, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeGemPortID(), tp.NumGemPorts); err != nil {
+	t.GemPortIDMgmtLock.Lock()
+	gemPorts, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeGemPortID(), tp.NumGemPorts)
+	t.GemPortIDMgmtLock.Unlock()
+	if err != nil {
 		logger.Errorw("Error getting gemport ids from rsrcrMgr", log.Fields{"intfId": intfId, "numGemports": tp.NumGemPorts})
 		return nil
 	}
