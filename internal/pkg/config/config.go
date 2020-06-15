@@ -48,9 +48,12 @@ const (
 	// defaultHearbeatFailReportInterval is the time adapter will wait before updating the state to the core.
 	defaultHearbeatFailReportInterval = 0 * time.Second
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
-	defaultGrpcTimeoutInterval = 2 * time.Second
-	defaultCurrentReplica      = 1
-	defaultTotalReplicas       = 1
+	defaultGrpcTimeoutInterval   = 2 * time.Second
+	defaultCurrentReplica        = 1
+	defaultTotalReplicas         = 1
+	defaultTraceEnabled          = false
+	defaultTraceAgentAddress     = "127.0.0.1:6831"
+	defaultLogCorrelationEnabled = true
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -77,6 +80,9 @@ type AdapterFlags struct {
 	GrpcTimeoutInterval         time.Duration
 	CurrentReplica              int
 	TotalReplicas               int
+	TraceEnabled                bool
+	TraceAgentAddress           string
+	LogCorrelationEnabled       bool
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -101,6 +107,9 @@ func NewAdapterFlags() *AdapterFlags {
 		HeartbeatCheckInterval:      defaultHearbeatCheckInterval,
 		HeartbeatFailReportInterval: defaultHearbeatFailReportInterval,
 		GrpcTimeoutInterval:         defaultGrpcTimeoutInterval,
+		TraceEnabled:                defaultTraceEnabled,
+		TraceAgentAddress:           defaultTraceAgentAddress,
+		LogCorrelationEnabled:       defaultLogCorrelationEnabled,
 	}
 	return &adapterFlags
 }
@@ -167,6 +176,15 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = "Total number of instances for this adapter"
 	flag.IntVar(&(so.TotalReplicas), "total_replica", defaultTotalReplicas, help)
+
+	help = fmt.Sprintf("Whether to send logs to tracing agent?")
+	flag.BoolVar(&(so.TraceEnabled), "trace_enabled", defaultTraceEnabled, help)
+
+	help = fmt.Sprintf("The address of tracing agent to which span info should be sent.")
+	flag.StringVar(&(so.TraceAgentAddress), "trace_agent_address", defaultTraceAgentAddress, help)
+
+	help = fmt.Sprintf("Whether to enrich log statements with fields denoting operation being executed for achieving correlation?")
+	flag.BoolVar(&(so.LogCorrelationEnabled), "log_correlation_enabled", defaultLogCorrelationEnabled, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
