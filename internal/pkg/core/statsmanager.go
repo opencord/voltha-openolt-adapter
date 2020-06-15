@@ -18,11 +18,11 @@
 package core
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
-
-	"strconv"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -190,7 +190,7 @@ type OpenOltStatisticsMgr struct {
 }
 
 // NewOpenOltStatsMgr returns a new instance of the OpenOltStatisticsMgr
-func NewOpenOltStatsMgr(Dev *DeviceHandler) *OpenOltStatisticsMgr {
+func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatisticsMgr {
 
 	var StatMgr OpenOltStatisticsMgr
 
@@ -199,16 +199,16 @@ func NewOpenOltStatsMgr(Dev *DeviceHandler) *OpenOltStatisticsMgr {
 	// Northbound and Southbound ports
 	// added to initialize the pm_metrics
 	var Ports interface{}
-	Ports, _ = InitPorts("nni", Dev.device.Id, 1)
+	Ports, _ = InitPorts(ctx, "nni", Dev.device.Id, 1)
 	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]*NniPort)
 	NumPonPorts := Dev.resourceMgr.DevInfo.GetPonPorts()
-	Ports, _ = InitPorts("pon", Dev.device.Id, NumPonPorts)
+	Ports, _ = InitPorts(ctx, "pon", Dev.device.Id, NumPonPorts)
 	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]*PonPort)
 	return &StatMgr
 }
 
 // InitPorts collects the port objects:  nni and pon that are updated with the current data from the OLT
-func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}, error) {
+func InitPorts(ctx context.Context, Intftype string, DeviceID string, numOfPorts uint32) (interface{}, error) {
 	/*
 	     This method collects the port objects:  nni and pon that are updated with the
 	     current data from the OLT
@@ -224,25 +224,25 @@ func InitPorts(Intftype string, DeviceID string, numOfPorts uint32) (interface{}
 	if Intftype == "nni" {
 		NniPorts := make(map[uint32]*NniPort)
 		for i = 0; i < numOfPorts; i++ {
-			Port := BuildPortObject(i, "nni", DeviceID).(*NniPort)
+			Port := BuildPortObject(ctx, i, "nni", DeviceID).(*NniPort)
 			NniPorts[Port.IntfID] = Port
 		}
 		return NniPorts, nil
 	} else if Intftype == "pon" {
 		PONPorts := make(map[uint32]*PonPort)
 		for i = 0; i < numOfPorts; i++ {
-			PONPort := BuildPortObject(i, "pon", DeviceID).(*PonPort)
+			PONPort := BuildPortObject(ctx, i, "pon", DeviceID).(*PonPort)
 			PONPorts[PortNoToIntfID(PONPort.IntfID, voltha.Port_PON_OLT)] = PONPort
 		}
 		return PONPorts, nil
 	} else {
-		logger.Errorw("invalid-type-of-interface", log.Fields{"interface-type": Intftype})
+		logger.Errorw(ctx, "invalid-type-of-interface", log.Fields{"interface-type": Intftype})
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
 }
 
 // BuildPortObject allows for updating north and southbound ports, newly discovered ports, and devices
-func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface{} {
+func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, DeviceID string) interface{} {
 	/*
 	   Separate method to allow for updating north and southbound ports
 	   newly discovered ports and devices
@@ -257,7 +257,7 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 	if IntfType == "nni" {
 		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
 		nniID := PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
-		logger.Debugw("interface-type-nni",
+		logger.Debugw(ctx, "interface-type-nni",
 			log.Fields{
 				"nni-id":    nniID,
 				"intf-type": IntfType})
@@ -267,13 +267,13 @@ func BuildPortObject(PortNum uint32, IntfType string, DeviceID string) interface
 		//  intf_id and pon_id are currently equal.
 		IntfID := IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
 		PONID := PortNoToIntfID(IntfID, voltha.Port_PON_OLT)
-		logger.Debugw("interface-type-pon",
+		logger.Debugw(ctx, "interface-type-pon",
 			log.Fields{
 				"pon-id":    PONID,
 				"intf-type": IntfType})
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
 	} else {
-		logger.Errorw("invalid-type-of-interface", log.Fields{"intf-type": IntfType})
+		logger.Errorw(ctx, "invalid-type-of-interface", log.Fields{"intf-type": IntfType})
 		return nil
 	}
 }
@@ -368,9 +368,9 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 }
 
 // publishMatrics will publish the pon port metrics
-func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
+func (StatMgr OpenOltStatisticsMgr) publishMetrics(ctx context.Context, val map[string]float32,
 	port *voltha.Port, devID string, devType string) {
-	logger.Debugw("publish-metrics",
+	logger.Debugw(ctx, "publish-metrics",
 		log.Fields{
 			"port":    port.Label,
 			"metrics": val})
@@ -405,26 +405,26 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(val map[string]float32,
 	ke.Type = voltha.KpiEventType_slice
 	ke.Ts = float64(time.Now().UnixNano())
 
-	if err := StatMgr.Device.EventProxy.SendKpiEvent("STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
-		logger.Errorw("failed-to-send-pon-stats", log.Fields{"err": err})
+	if err := StatMgr.Device.EventProxy.SendKpiEvent(ctx, "STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
+		logger.Errorw(ctx, "failed-to-send-pon-stats", log.Fields{"err": err})
 	}
 }
 
 // PortStatisticsIndication handles the port statistics indication
-func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
-	StatMgr.PortsStatisticsKpis(PortStats, NumPonPorts)
-	logger.Debugw("received-port-stats-indication", log.Fields{"port-stats": PortStats})
+func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
+	StatMgr.PortsStatisticsKpis(ctx, PortStats, NumPonPorts)
+	logger.Debugw(ctx, "received-port-stats-indication", log.Fields{"port-stats": PortStats})
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
 
 // FlowStatisticsIndication to be implemented
-func FlowStatisticsIndication(self, FlowStats *openolt.FlowStatistics) {
-	logger.Debugw("flow-stats-collected", log.Fields{"flow-stats": FlowStats})
+func FlowStatisticsIndication(ctx context.Context, self, FlowStats *openolt.FlowStatistics) {
+	logger.Debugw(ctx, "flow-stats-collected", log.Fields{"flow-stats": FlowStats})
 	//TODO send to kafka ?
 }
 
 // PortsStatisticsKpis map the port stats values into a dictionary, creates the kpiEvent and then publish to Kafka
-func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.PortStatistics, NumPonPorts uint32) {
+func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 
 	/*map the port stats values into a dictionary
 	  Create a kpoEvent and publish to Kafka
@@ -461,7 +461,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 		mutex.Lock()
 		StatMgr.NorthBoundPort[0] = &portNNIStat
 		mutex.Unlock()
-		logger.Debugw("received-nni-stats", log.Fields{"nni-stats": StatMgr.NorthBoundPort})
+		logger.Debugw(ctx, "received-nni-stats", log.Fields{"nni-stats": StatMgr.NorthBoundPort})
 	}
 	for i := uint32(0); i < NumPonPorts; i++ {
 
@@ -483,7 +483,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 			mutex.Lock()
 			StatMgr.SouthBoundPort[i] = &portPonStat
 			mutex.Unlock()
-			logger.Debugw("received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
+			logger.Debugw(ctx, "received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
 		}
 	}
 
@@ -506,7 +506,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(PortStats *openolt.Port
 	       err = UpdatePortObjectKpiData(SouthboundPorts[PortStats.IntfID], PMData)
 	   }
 	   if (err != nil) {
-	       logger.Error("Error publishing statistics data")
+	       logger.Error(ctx, "Error publishing statistics data")
 	   }
 	*/
 
