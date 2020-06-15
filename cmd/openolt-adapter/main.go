@@ -509,6 +509,15 @@ func main() {
 
 	probeCtx := context.WithValue(ctx, probe.ProbeContextKey, p)
 
+	if cf.TraceEnabled {
+		closer, err := log.StartTracing(cf.TraceAgentAddress)
+		if err != nil {
+			logger.Warnw("unable-to-initialize-jaeger-tracing", log.Fields{"error": err})
+		} else {
+			defer closer.Close()
+		}
+	}
+
 	go ad.start(probeCtx)
 
 	code := waitForExit()
