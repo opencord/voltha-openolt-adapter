@@ -289,12 +289,23 @@ func (dh *DeviceHandler) addPort(intfID uint32, portType voltha.Port_PortType, s
 			}
 		}
 	}
+	capacity := uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)
 	//    Now create  Port
 	port := &voltha.Port{
 		PortNo:     portNum,
 		Label:      label,
 		Type:       portType,
 		OperStatus: operStatus,
+		OfpPort: &of.OfpPort{
+			HwAddr:     macAddressToUint32Array(dh.device.MacAddress),
+			Config:     0,
+			State:      uint32(of.OfpPortState_OFPPS_LIVE),
+			Curr:       capacity,
+			Advertised: capacity,
+			Peer:       capacity,
+			CurrSpeed:  uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
+			MaxSpeed:   uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
+		},
 	}
 	logger.Debugw("sending-port-update-to-core", log.Fields{"port": port})
 	// Synchronous call to update device - this method is run in its own go routine
@@ -844,27 +855,6 @@ func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapa
 				of.OfpCapabilities_OFPC_TABLE_STATS |
 				of.OfpCapabilities_OFPC_PORT_STATS |
 				of.OfpCapabilities_OFPC_GROUP_STATS),
-		},
-	}, nil
-}
-
-//GetOfpPortInfo Get Ofp port information
-func (dh *DeviceHandler) GetOfpPortInfo(device *voltha.Device, portNo int64) (*ic.PortCapability, error) {
-	capacity := uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)
-	return &ic.PortCapability{
-		Port: &voltha.LogicalPort{
-			OfpPort: &of.OfpPort{
-				HwAddr:     macAddressToUint32Array(dh.device.MacAddress),
-				Config:     0,
-				State:      uint32(of.OfpPortState_OFPPS_LIVE),
-				Curr:       capacity,
-				Advertised: capacity,
-				Peer:       capacity,
-				CurrSpeed:  uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
-				MaxSpeed:   uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
-			},
-			DeviceId:     dh.device.Id,
-			DevicePortNo: uint32(portNo),
 		},
 	}, nil
 }
