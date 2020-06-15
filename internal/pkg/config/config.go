@@ -51,6 +51,8 @@ const (
 	defaultGrpcTimeoutInterval = 2 * time.Second
 	defaultCurrentReplica      = 1
 	defaultTotalReplicas       = 1
+	defaultTraceEnabled        = false
+	defaultTraceAgentAddress   = "127.0.0.1:6831"
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -77,6 +79,8 @@ type AdapterFlags struct {
 	GrpcTimeoutInterval         time.Duration
 	CurrentReplica              int
 	TotalReplicas               int
+	TraceEnabled                bool
+	TraceAgentAddress           string
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -101,6 +105,8 @@ func NewAdapterFlags() *AdapterFlags {
 		HeartbeatCheckInterval:      defaultHearbeatCheckInterval,
 		HeartbeatFailReportInterval: defaultHearbeatFailReportInterval,
 		GrpcTimeoutInterval:         defaultGrpcTimeoutInterval,
+		TraceEnabled:                defaultTraceEnabled,
+		TraceAgentAddress:           defaultTraceAgentAddress,
 	}
 	return &adapterFlags
 }
@@ -167,6 +173,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = "Total number of instances for this adapter"
 	flag.IntVar(&(so.TotalReplicas), "total_replica", defaultTotalReplicas, help)
+
+	help = fmt.Sprintf("Whether to send logs to tracing agent?")
+	flag.BoolVar(&(so.TraceEnabled), "trace_enabled", defaultTraceEnabled, help)
+
+	help = fmt.Sprintf("The address of tracing agent to which span info should be sent.")
+	flag.StringVar(&(so.TraceAgentAddress), "trace_agent_address", defaultTraceAgentAddress, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
