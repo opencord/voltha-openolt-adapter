@@ -1022,39 +1022,6 @@ func TestDeviceHandler_GetOfpDeviceInfo(t *testing.T) {
 	}
 }
 
-func TestDeviceHandler_GetOfpPortInfo(t *testing.T) {
-	dh1 := newMockDeviceHandler()
-	dh2 := negativeDeviceHandler()
-	type args struct {
-		device *voltha.Device
-		portNo int64
-	}
-	tests := []struct {
-		name          string
-		devicehandler *DeviceHandler
-		args          args
-		wantErr       bool
-	}{
-		{"GetOfpPortInfo-1", dh1, args{device: dh1.device, portNo: 1}, false},
-		{"GetOfpPortInfo-2", dh2, args{device: dh2.device, portNo: 1}, false},
-		{"GetOfpPortInfo-3", dh1, args{device: dh1.device, portNo: 0}, false},
-		{"GetOfpPortInfo-4", dh2, args{device: dh2.device, portNo: 0}, false},
-		{"GetOfpPortInfo-5", dh1, args{device: &voltha.Device{}, portNo: 1}, false},
-		{"GetOfpPortInfo-6", dh2, args{device: &voltha.Device{}, portNo: 0}, false},
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dh := tt.devicehandler
-			_, err := dh.GetOfpPortInfo(tt.args.device, tt.args.portNo)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DeviceHandler.GetOfpPortInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 
 	dh1 := newMockDeviceHandler()
