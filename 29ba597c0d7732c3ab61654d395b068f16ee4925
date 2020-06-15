@@ -22,6 +22,30 @@
       "revId": "29ba597c0d7732c3ab61654d395b068f16ee4925",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a925b07_106a6116",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-15T23:16:11Z",
+      "side": 1,
+      "message": "That is not really to avoid passing a large string, but to avoid calling \"hex.EncodeToString\" if we\u0027re dropping that info later on",
+      "parentUuid": "21c68eaa_08ccb475",
+      "range": {
+        "startLine": 550,
+        "startChar": 33,
+        "endLine": 550,
+        "endChar": 43
+      },
+      "revId": "29ba597c0d7732c3ab61654d395b068f16ee4925",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
