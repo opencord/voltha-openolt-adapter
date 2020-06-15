@@ -70,9 +70,9 @@ func (kvclient *MockKVClient) List(ctx context.Context, key string) (map[string]
 
 // Get mock function implementation for KVClient
 func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
-	logger.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
+	logger.Debugw(ctx, "Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
-		logger.Debug("Warning Key Not Blank")
+		logger.Debug(ctx, "Warning Key Not Blank")
 		if strings.Contains(key, "meter_id/{0,62,8}/{upstream}") {
 			meterConfig := ofp.OfpMeterConfig{
 				Flags:   0,
@@ -117,7 +117,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowIDpool) {
-			logger.Debug("Error Error Error Key:", FlowIDpool)
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDpool)
 			data := make(map[string]interface{})
 			data["pool"] = "1024"
 			data["start_idx"] = 1
@@ -127,7 +127,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		}
 		if strings.Contains(key, FlowIDs) {
 			data := []uint32{1, 2}
-			logger.Debug("Error Error Error Key:", FlowIDs)
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
@@ -140,22 +140,22 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 					LogicalFlowID:   1,
 				},
 			}
-			logger.Debug("Error Error Error Key:", FlowIDs)
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, GemportIDs) {
-			logger.Debug("Error Error Error Key:", GemportIDs)
+			logger.Debug(ctx, "Error Error Error Key:", GemportIDs)
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, AllocIDs) {
-			logger.Debug("Error Error Error Key:", AllocIDs)
+			logger.Debug(ctx, "Error Error Error Key:", AllocIDs)
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowGroup) || strings.Contains(key, FlowGroupCached) {
-			logger.Debug("Error Error Error Key:", FlowGroup)
+			logger.Debug(ctx, "Error Error Error Key:", FlowGroup)
 			groupInfo := resourcemanager.GroupInfo{
 				GroupID:  2,
 				OutPorts: []uint32{1},
@@ -251,9 +251,9 @@ func (kvclient *MockKVClient) IsConnectionUp(ctx context.Context) bool {
 }
 
 // CloseWatch mock function implementation for KVClient
-func (kvclient *MockKVClient) CloseWatch(key string, ch chan *kvstore.Event) {
+func (kvclient *MockKVClient) CloseWatch(ctx context.Context, key string, ch chan *kvstore.Event) {
 }
 
 // Close mock function implementation for KVClient
-func (kvclient *MockKVClient) Close() {
+func (kvclient *MockKVClient) Close(ctx context.Context) {
 }

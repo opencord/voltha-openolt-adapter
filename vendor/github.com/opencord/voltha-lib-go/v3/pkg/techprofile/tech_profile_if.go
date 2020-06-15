@@ -24,18 +24,18 @@ import (
 )
 
 type TechProfileIf interface {
-	SetKVClient() *db.Backend
-	GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string
+	SetKVClient(ctx context.Context) *db.Backend
+	GetTechProfileInstanceKVPath(ctx context.Context, techProfiletblID uint32, uniPortName string) string
 	GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error)
 	CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfId uint32) (interface{}, error)
 	DeleteTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string) error
-	GetprotoBufParamValue(paramType string, paramKey string) int32
-	GetUsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
-	GetDsScheduler(tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
+	GetprotoBufParamValue(ctx context.Context, paramType string, paramKey string) int32
+	GetUsScheduler(ctx context.Context, tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
+	GetDsScheduler(ctx context.Context, tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
 	GetTrafficScheduler(tpInstance *TechProfile, SchedCfg *tp_pb.SchedulerConfig,
 		ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler
-	GetTrafficQueues(tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
-	GetMulticastTrafficQueues(tp *TechProfile) []*tp_pb.TrafficQueue
-	GetGemportIDForPbit(tp interface{}, Dir tp_pb.Direction, pbit uint32) uint32
+	GetTrafficQueues(ctx context.Context, tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
+	GetMulticastTrafficQueues(ctx context.Context, tp *TechProfile) []*tp_pb.TrafficQueue
+	GetGemportIDForPbit(ctx context.Context, tp interface{}, Dir tp_pb.Direction, pbit uint32) uint32
 	FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{}
 }

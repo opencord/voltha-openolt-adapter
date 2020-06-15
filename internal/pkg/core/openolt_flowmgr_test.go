@@ -265,8 +265,9 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
+	ctx := context.Background()
 	// flowMgr := newMockFlowmgr()
-	logger.Debug("Info Warning Error: Starting RemoveFlow() test")
+	logger.Debug(ctx, "Info Warning Error: Starting RemoveFlow() test")
 	fa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(2),
@@ -652,7 +653,7 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 				flowMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
-				flowMgr.deleteGemPortFromLocalCache(tt.args.intfID, tt.args.onuID, gemPortDeleted)
+				flowMgr.deleteGemPortFromLocalCache(context.Background(), tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
 			lenofGemPorts := len(flowMgr.onuGemInfo[tt.args.intfID][0].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
@@ -764,6 +765,7 @@ func TestOpenOltFlowMgr_DeleteTechProfileInstance(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
+	ctx := context.Background()
 	// flowMgr := newMockFlowmgr()
 	kw := make(map[string]uint64)
 	kw["table_id"] = 1
@@ -851,33 +853,33 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	flowState2, _ := fu.MkFlowStat(fa2)
 	flowState3, _ := fu.MkFlowStat(fa3)
 	flowState4, _ := fu.MkFlowStat(fa4)
-	formulateClassifierInfoFromFlow(classifierInfo, flowState)
-	formulateClassifierInfoFromFlow(classifierInfo2, flowState2)
-	formulateClassifierInfoFromFlow(classifierInfo3, flowState3)
-	formulateClassifierInfoFromFlow(classifierInfo4, flowState4)
+	formulateClassifierInfoFromFlow(ctx, classifierInfo, flowState)
+	formulateClassifierInfoFromFlow(ctx, classifierInfo2, flowState2)
+	formulateClassifierInfoFromFlow(ctx, classifierInfo3, flowState3)
+	formulateClassifierInfoFromFlow(ctx, classifierInfo4, flowState4)
 
-	err := formulateActionInfoFromFlow(actionInfo, classifierInfo, flowState)
+	err := formulateActionInfoFromFlow(ctx, actionInfo, classifierInfo, flowState)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo2, classifierInfo2, flowState2)
+	err = formulateActionInfoFromFlow(ctx, actionInfo2, classifierInfo2, flowState2)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo3, classifierInfo3, flowState3)
+	err = formulateActionInfoFromFlow(ctx, actionInfo3, classifierInfo3, flowState3)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
 		return
 	}
 
-	err = formulateActionInfoFromFlow(actionInfo4, classifierInfo4, flowState4)
+	err = formulateActionInfoFromFlow(ctx, actionInfo4, classifierInfo4, flowState4)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error

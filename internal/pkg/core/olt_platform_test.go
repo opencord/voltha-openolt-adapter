@@ -18,14 +18,14 @@
 package core
 
 import (
-	"math"
-	"reflect"
-	"testing"
-
+	"context"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"math"
+	"reflect"
+	"testing"
 )
 
 func TestMkUniPortNum(t *testing.T) {
@@ -47,7 +47,7 @@ func TestMkUniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MkUniPortNum(tt.args.intfID, tt.args.onuID, tt.args.uniID); got != tt.want {
+			if got := MkUniPortNum(context.Background(), tt.args.intfID, tt.args.onuID, tt.args.uniID); got != tt.want {
 				t.Errorf("MkUniPortNum() = %v, want %v", got, tt.want)
 			} else {
 				t.Logf("Expected %v , Actual %v \n", tt.want, got)
@@ -187,7 +187,7 @@ func TestIntfIDFromNniPortNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := IntfIDFromNniPortNum(tt.args.portNum)
+			got, err := IntfIDFromNniPortNum(context.Background(), tt.args.portNum)
 			if got != tt.want || err != tt.wantErr {
 				t.Errorf("IntfIDFromNniPortNum(): FOR[%v] WANT[%v and %v] GOT[%v and %v]",
 					tt.args.portNum, tt.want, tt.wantErr, got, err)
@@ -350,7 +350,7 @@ func TestFlowExtractInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, got2, got3, got4, got5, err := FlowExtractInfo(tt.args.flow, tt.args.flowDirection)
+			got, got1, got2, got3, got4, got5, err := FlowExtractInfo(context.Background(), tt.args.flow, tt.args.flowDirection)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FlowExtractInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return

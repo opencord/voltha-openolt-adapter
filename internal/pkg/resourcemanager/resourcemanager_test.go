@@ -127,7 +127,7 @@ func (kvclient *MockResKVClient) List(ctx context.Context, key string) (map[stri
 
 // Get mock function implementation for KVClient
 func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
-	logger.Debugw("Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
+	logger.Debugw(ctx, "Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
 		if strings.Contains(key, MeterConfig) {
 			var bands []*ofp.OfpMeterBandHeader
@@ -148,7 +148,7 @@ func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.
 			return nil, errors.New("invalid meter")
 		}
 		if strings.Contains(key, FlowIDpool) || strings.Contains(key, GemportIDPool) || strings.Contains(key, AllocIDPool) {
-			logger.Debug("Error Error Error Key:", FlowIDpool, GemportIDPool, AllocIDPool)
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDpool, GemportIDPool, AllocIDPool)
 			data := make(map[string]interface{})
 			data["pool"] = "1024"
 			data["start_idx"] = 1
@@ -157,17 +157,17 @@ func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowIDInfo) || strings.Contains(key, FlowIDs) {
-			logger.Debug("Error Error Error Key:", FlowIDs, FlowIDInfo)
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDs, FlowIDInfo)
 			str, _ := json.Marshal([]uint32{1, 2})
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, AllocIDs) || strings.Contains(key, GemportIDs) {
-			logger.Debug("Error Error Error Key:", AllocIDs, GemportIDs)
+			logger.Debug(ctx, "Error Error Error Key:", AllocIDs, GemportIDs)
 			str, _ := json.Marshal(1)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, McastQueuesForIntf) {
-			logger.Debug("Error Error Error Key:", McastQueuesForIntf)
+			logger.Debug(ctx, "Error Error Error Key:", McastQueuesForIntf)
 			mcastQueues := make(map[uint32][]uint32)
 			mcastQueues[10] = []uint32{4000, 0}
 			str, _ := json.Marshal(mcastQueues)
@@ -240,11 +240,11 @@ func (kvclient *MockResKVClient) IsConnectionUp(ctx context.Context) bool { // t
 }
 
 // CloseWatch mock function implementation for KVClient
-func (kvclient *MockResKVClient) CloseWatch(key string, ch chan *kvstore.Event) {
+func (kvclient *MockResKVClient) CloseWatch(ctx context.Context, key string, ch chan *kvstore.Event) {
 }
 
 // Close mock function implementation for KVClient
-func (kvclient *MockResKVClient) Close() {
+func (kvclient *MockResKVClient) Close(ctx context.Context) {
 }
 
 // testResMgrObject maps fields type to OpenOltResourceMgr type.
@@ -951,7 +951,7 @@ func TestSetKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SetKVClient(tt.args.backend, tt.args.address, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := SetKVClient(context.Background(), tt.args.backend, tt.args.address, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("SetKVClient() = %v, want %v", got, tt.want)
 			}
 		})
@@ -1018,7 +1018,7 @@ func Test_getFlowIDFromFlowInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := getFlowIDFromFlowInfo(tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
+			err := getFlowIDFromFlowInfo(context.Background(), tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
 			if reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("getFlowIDFromFlowInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -1046,7 +1046,7 @@ func Test_newKVClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := newKVClient(tt.args.storeType, tt.args.address, tt.args.timeout)
+			got, err := newKVClient(context.Background(), tt.args.storeType, tt.args.address, tt.args.timeout)
 			if got != nil && reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("newKVClient() got = %v, want %v", got, tt.want)
 			}
