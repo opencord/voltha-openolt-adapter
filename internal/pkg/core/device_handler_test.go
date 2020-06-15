@@ -222,6 +222,7 @@ func negativeDeviceHandler() *DeviceHandler {
 	return dh
 }
 func Test_generateMacFromHost(t *testing.T) {
+	ctx := context.Background()
 	type args struct {
 		host string
 	}
@@ -238,7 +239,7 @@ func Test_generateMacFromHost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateMacFromHost(tt.args.host)
+			got, err := generateMacFromHost(ctx, tt.args.host)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generateMacFromHost() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -313,6 +314,7 @@ func sparseCompare(keys []string, spec, target interface{}) bool {
 }
 
 func TestDeviceHandler_GetChildDevice(t *testing.T) {
+	ctx := context.Background()
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
 	type args struct {
@@ -351,7 +353,7 @@ func TestDeviceHandler_GetChildDevice(t *testing.T) {
 	*/
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.devicehandler.GetChildDevice(tt.args.parentPort, tt.args.onuID)
+			got, err := tt.devicehandler.GetChildDevice(ctx, tt.args.parentPort, tt.args.onuID)
 			if reflect.TypeOf(err) != tt.errType || !sparseCompare([]string{"Id", "ParentId", "ParentPortNo"}, tt.want, got) {
 				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
 					tt.want, tt.errType, got, reflect.TypeOf(err))
@@ -395,6 +397,7 @@ func TestGetportLabel(t *testing.T) {
 }
 
 func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
+	ctx := context.Background()
 	dh := newMockDeviceHandler()
 	proxyAddr := dh.device.ProxyAddress
 	body := &ic.InterAdapterOmciMessage{
@@ -410,18 +413,18 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	var err error
 
 	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
-		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
 	}
 
 	var marshalledData1 *any.Any
 
 	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
-		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
 	}
 	var marshalledData2 *any.Any
 
 	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
-		logger.Errorw("cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
 	}
 	type args struct {
 		msg *ic.InterAdapterMessage
@@ -505,7 +508,7 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := dh.ProcessInterAdapterMessage(tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
+			if err := dh.ProcessInterAdapterMessage(ctx, tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
 				t.Errorf("DeviceHandler.ProcessInterAdapterMessage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -513,6 +516,7 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 }
 
 func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
+	ctx := context.Background()
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
 	device1 := &voltha.Device{
@@ -566,7 +570,7 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.sendProxiedMessage(tt.args.onuDevice, tt.args.omciMsg)
+			tt.devicehandler.sendProxiedMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
 		})
 	}
 }
@@ -590,7 +594,7 @@ func TestDeviceHandler_SendPacketInToCore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.SendPacketInToCore(tt.args.logicalPort, tt.args.packetPayload)
+			tt.devicehandler.SendPacketInToCore(context.Background(), tt.args.logicalPort, tt.args.packetPayload)
 		})
 	}
 }
@@ -613,7 +617,7 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.devicehandler.DisableDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := tt.devicehandler.DisableDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.DisableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -639,7 +643,7 @@ func TestDeviceHandler_ReenableDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.devicehandler
-			if err := dh.ReenableDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := dh.ReenableDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.ReenableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -666,7 +670,7 @@ func TestDeviceHandler_RebootDevice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.devicehandler.RebootDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := tt.devicehandler.RebootDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.RebootDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -783,7 +787,7 @@ func TestDeviceHandler_addPort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.addPort(tt.args.intfID, tt.args.portType, tt.args.state)
+			tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state)
 		})
 	}
 }
@@ -1115,7 +1119,7 @@ func TestDeviceHandler_populateDeviceInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			_, err := tt.devicehandler.populateDeviceInfo()
+			_, err := tt.devicehandler.populateDeviceInfo(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.populateDeviceInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1189,7 +1193,7 @@ func Test_startCollector(t *testing.T) {
 				time.Sleep(1 * time.Second) // simulated wait time to stop startCollector
 				tt.args.dh.stopCollector <- true
 			}()
-			startCollector(tt.args.dh)
+			startCollector(context.Background(), tt.args.dh)
 		})
 	}
 }

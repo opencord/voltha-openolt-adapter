@@ -30,19 +30,19 @@ type MockTechProfile struct {
 }
 
 // SetKVClient to mock techprofile SetKVClient method
-func (m MockTechProfile) SetKVClient() *db.Backend {
+func (m MockTechProfile) SetKVClient(ctx context.Context) *db.Backend {
 	return &db.Backend{Client: &MockKVClient{}}
 }
 
 // GetTechProfileInstanceKVPath to mock techprofile GetTechProfileInstanceKVPath method
-func (m MockTechProfile) GetTechProfileInstanceKVPath(techProfiletblID uint32, uniPortName string) string {
+func (m MockTechProfile) GetTechProfileInstanceKVPath(ctx context.Context, techProfiletblID uint32, uniPortName string) string {
 	return ""
 
 }
 
 // GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
 func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (*tp.TechProfile, error) {
-	logger.Debug("Warning Warning Warning: GetTPInstanceFromKVStore")
+	logger.Debug(ctx, "Warning Warning Warning: GetTPInstanceFromKVStore")
 	return nil, nil
 
 }
@@ -68,19 +68,19 @@ func (m MockTechProfile) DeleteTechProfileInstance(ctx context.Context, techProf
 }
 
 // GetprotoBufParamValue to mock techprofile GetprotoBufParamValue method
-func (m MockTechProfile) GetprotoBufParamValue(paramType string, paramKey string) int32 {
+func (m MockTechProfile) GetprotoBufParamValue(ctx context.Context, paramType string, paramKey string) int32 {
 	return 0
 
 }
 
 // GetUsScheduler to mock techprofile GetUsScheduler method
-func (m MockTechProfile) GetUsScheduler(tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
+func (m MockTechProfile) GetUsScheduler(ctx context.Context, tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
 	return &tp_pb.SchedulerConfig{}, nil
 
 }
 
 // GetDsScheduler to mock techprofile GetDsScheduler method
-func (m MockTechProfile) GetDsScheduler(tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
+func (m MockTechProfile) GetDsScheduler(ctx context.Context, tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
 	return &tp_pb.SchedulerConfig{}, nil
 }
 
@@ -92,17 +92,17 @@ func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp.TechProfile, SchedCf
 }
 
 // GetTrafficQueues to mock techprofile GetTrafficQueues method
-func (m MockTechProfile) GetTrafficQueues(tp *tp.TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
+func (m MockTechProfile) GetTrafficQueues(ctx context.Context, tp *tp.TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
 	return []*tp_pb.TrafficQueue{{}}, nil
 }
 
 // GetMulticastTrafficQueues to mock techprofile GetMulticastTrafficQueues method
-func (m MockTechProfile) GetMulticastTrafficQueues(tp *tp.TechProfile) []*tp_pb.TrafficQueue {
+func (m MockTechProfile) GetMulticastTrafficQueues(ctx context.Context, tp *tp.TechProfile) []*tp_pb.TrafficQueue {
 	return []*tp_pb.TrafficQueue{{}}
 }
 
 // GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method
-func (m MockTechProfile) GetGemportIDForPbit(tp *tp.TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
+func (m MockTechProfile) GetGemportIDForPbit(ctx context.Context, tp *tp.TechProfile, Dir tp_pb.Direction, pbit uint32) uint32 {
 	return 0
 }
 

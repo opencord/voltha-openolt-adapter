@@ -18,6 +18,7 @@
 package core
 
 import (
+	"context"
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -123,10 +124,10 @@ var MaxUpstreamPortID = 0xfffffffd
 var controllerPorts = []uint32{0xfffd, 0x7ffffffd, 0xfffffffd}
 
 //MkUniPortNum returns new UNIportNum based on intfID, inuID and uniID
-func MkUniPortNum(intfID, onuID, uniID uint32) uint32 {
+func MkUniPortNum(ctx context.Context, intfID, onuID, uniID uint32) uint32 {
 	var limit = int(onuID)
 	if limit > MaxOnusPerPon {
-		logger.Warn("exceeded-the-max-onus-per-pon")
+		logger.Warn(ctx, "exceeded-the-max-onus-per-pon")
 	}
 	return (intfID << (bitsForUniID + bitsForONUID)) | (onuID << bitsForUniID) | uniID
 }
@@ -169,9 +170,9 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 }
 
 //IntfIDFromNniPortNum returns Intf ID derived from portNum
-func IntfIDFromNniPortNum(portNum uint32) (uint32, error) {
+func IntfIDFromNniPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
-		logger.Errorw("nniportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
+		logger.Errorw(ctx, "nniportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
 		return uint32(0), olterrors.ErrInvalidPortRange
 	}
 	return (portNum & 0xFFFF), nil
@@ -222,7 +223,7 @@ func OnuIDFromUniPortNum(portNum uint32) uint32 {
 }
 
 //FlowExtractInfo fetches uniport from the flow, based on which it gets and returns ponInf, onuID, uniID, inPort and ethType
-func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, uint32, uint32, error) {
+func FlowExtractInfo(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint32, uint32, uint32, uint32, uint32, error) {
 	var uniPortNo uint32
 	var ponIntf uint32
 	var onuID uint32
@@ -268,7 +269,7 @@ func FlowExtractInfo(flow *ofp.OfpFlowStats, flowDirection string) (uint32, uint
 	onuID = OnuIDFromUniPortNum(uniPortNo)
 	uniID = UniIDFromPortNum(uniPortNo)
 
-	logger.Debugw("flow-extract-info-result",
+	logger.Debugw(ctx, "flow-extract-info-result",
 		log.Fields{
 			"uniportno": uniPortNo,
 			"pon-intf":  ponIntf,
