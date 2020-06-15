@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21c68eaa_08ccb475",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-06-15T19:25:00Z",
+      "side": 1,
+      "message": "if this check provides a performance gain, I\u0027m pretty sure there are other places that we need to make the same change. It seems voltha-lib-go\u0027s logger checks the loglevel before it passes the parameters to the zaplogger but passing a large string parameter by value to a function still incur a performance penalty.",
+      "range": {
+        "startLine": 550,
+        "startChar": 33,
+        "endLine": 550,
+        "endChar": 43
+      },
+      "revId": "29ba597c0d7732c3ab61654d395b068f16ee4925",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
