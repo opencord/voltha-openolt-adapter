@@ -516,6 +516,13 @@ func main() {
 
 	probeCtx := context.WithValue(ctx, probe.ProbeContextKey, p)
 
+	closer, err := log.InitTracingAndLogCorrelation(cf.TraceEnabled, cf.TraceAgentAddress, cf.LogCorrelationEnabled)
+	if err != nil {
+		logger.Warnw(ctx, "unable-to-initialize-tracing-and-log-correlation-module", log.Fields{"error": err})
+	} else {
+		defer log.TerminateTracing(closer)
+	}
+
 	go ad.start(probeCtx)
 
 	code := waitForExit(ctx)
