@@ -473,12 +473,12 @@ func main() {
 	}
 
 	// Setup default logger - applies for packages that do not have specific logger set
-	if _, err := log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if _, err = log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
 	// Update all loggers (provisionned via init) with a common field
-	if err := log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if err = log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
 	}
 
@@ -510,6 +510,13 @@ func main() {
 	go p.ListenAndServe(ctx, ad.config.ProbeAddress)
 
 	probeCtx := context.WithValue(ctx, probe.ProbeContextKey, p)
+
+	closer, err := log.InitTracingAndLogCorrelation(cf.TraceEnabled, cf.TraceAgentAddress, cf.LogCorrelationEnabled)
+	if err != nil {
+		logger.Warnw(ctx, "unable-to-initialize-tracing-and-log-correlation-module", log.Fields{"error": err})
+	} else {
+		defer closer.Close()
+	}
 
 	go ad.start(probeCtx)
 
