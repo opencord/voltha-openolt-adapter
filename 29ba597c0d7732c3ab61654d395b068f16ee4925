@@ -46,6 +46,30 @@
       "revId": "29ba597c0d7732c3ab61654d395b068f16ee4925",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e479e5f_2d37aff9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-16T16:12:48Z",
+      "side": 1,
+      "message": "It is not clear why we need to do this check. Doesn\u0027t logger.Debug print anyway when LogLevel is at DebugLevel. May be I am missing something..",
+      "parentUuid": "3a925b07_106a6116",
+      "range": {
+        "startLine": 550,
+        "startChar": 33,
+        "endLine": 550,
+        "endChar": 43
+      },
+      "revId": "29ba597c0d7732c3ab61654d395b068f16ee4925",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
