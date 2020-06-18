@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8297dbe0_62dfe94e",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-06-18T17:11:54Z",
+      "side": 1,
+      "message": "shouldn\u0027t this only be called if tracing is actually enabled.",
+      "revId": "e898928b67c34ee849c4cd475761c603b4ebbbfb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
