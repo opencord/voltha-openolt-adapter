@@ -16,6 +16,24 @@
       "revId": "e898928b67c34ee849c4cd475761c603b4ebbbfb",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fcd9ef5d_9958723d",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-06-18T18:24:02Z",
+      "side": 1,
+      "message": "Please see my earlier reply on this topic in voltha-lib-go patch https://gerrit.opencord.org/#/c/19243/",
+      "parentUuid": "8297dbe0_62dfe94e",
+      "revId": "e898928b67c34ee849c4cd475761c603b4ebbbfb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
