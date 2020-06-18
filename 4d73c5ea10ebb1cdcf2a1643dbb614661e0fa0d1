@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1522a503_d24f21dd",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-06-18T21:46:03Z",
+      "side": 1,
+      "message": "Why is a new ctx used here?",
+      "range": {
+        "startLine": 571,
+        "startChar": 47,
+        "endLine": 571,
+        "endChar": 51
+      },
+      "revId": "4d73c5ea10ebb1cdcf2a1643dbb614661e0fa0d1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
