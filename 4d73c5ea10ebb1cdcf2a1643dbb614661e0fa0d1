@@ -22,6 +22,30 @@
       "revId": "4d73c5ea10ebb1cdcf2a1643dbb614661e0fa0d1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dbb765e9_71b3fa36",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000675
+      },
+      "writtenOn": "2020-06-19T16:22:34Z",
+      "side": 1,
+      "message": "@Kent I am just retaining \"context.Background()\".\n\nHere \"context\" is used as \"context :\u003d make(map[string]string)\". Earlier, in imports \"context\" was renamed as \"ctx\" and used as \"ctx.Background()\" in GetDevice.\nSo for now, I have created a new variable \"cntx :\u003d context.Background()\" and passed \"cntx\" in GetDevice.",
+      "parentUuid": "1522a503_d24f21dd",
+      "range": {
+        "startLine": 571,
+        "startChar": 47,
+        "endLine": 571,
+        "endChar": 51
+      },
+      "revId": "4d73c5ea10ebb1cdcf2a1643dbb614661e0fa0d1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
