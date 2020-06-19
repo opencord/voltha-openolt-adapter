@@ -46,6 +46,30 @@
       "revId": "4d73c5ea10ebb1cdcf2a1643dbb614661e0fa0d1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6596e5ec_fc777351",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-06-19T17:05:08Z",
+      "side": 1,
+      "message": "Ok, makes sense.\n\nConsider moving the `context:\u003dmake(...)` line after this one, or renaming the \"context\" variable.",
+      "parentUuid": "dbb765e9_71b3fa36",
+      "range": {
+        "startLine": 571,
+        "startChar": 47,
+        "endLine": 571,
+        "endChar": 51
+      },
+      "revId": "4d73c5ea10ebb1cdcf2a1643dbb614661e0fa0d1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
