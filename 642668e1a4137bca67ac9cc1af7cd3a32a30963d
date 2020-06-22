@@ -22,6 +22,30 @@
       "revId": "642668e1a4137bca67ac9cc1af7cd3a32a30963d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5804fbde_cf1aef68",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1761,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-22T19:11:53Z",
+      "side": 1,
+      "message": "The log level can be changed dynamically so we can\u0027t check it only at startup as that would introduce an inconsistent behavior",
+      "parentUuid": "3c169827_93afa1f2",
+      "range": {
+        "startLine": 1761,
+        "startChar": 32,
+        "endLine": 1761,
+        "endChar": 42
+      },
+      "revId": "642668e1a4137bca67ac9cc1af7cd3a32a30963d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
