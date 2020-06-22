@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "ab5a1804_bfd5b2bc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 541,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-22T21:53:44Z",
+      "side": 1,
+      "message": "Does this need to be info level?",
+      "revId": "642668e1a4137bca67ac9cc1af7cd3a32a30963d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bcaf926_6dd18d28",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-06-22T21:53:44Z",
+      "side": 1,
+      "message": "Typically we would use \"if logger.V(log.DebugLevel) { ...\".    Just a nit.",
+      "revId": "642668e1a4137bca67ac9cc1af7cd3a32a30963d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3c169827_93afa1f2",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 8
