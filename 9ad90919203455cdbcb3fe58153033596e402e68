@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85521671_5df18c68",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-06-24T06:30:29Z",
+      "side": 1,
+      "message": "if this fails can we really continue or will a panic happen later?",
+      "range": {
+        "startLine": 514,
+        "startChar": 0,
+        "endLine": 514,
+        "endChar": 99
+      },
+      "revId": "9ad90919203455cdbcb3fe58153033596e402e68",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
