@@ -20,6 +20,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -46,10 +49,14 @@ func init() {
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 	ranges := []*openolt.DeviceInfo_DeviceResourceRanges{
-		{IntfIds: []uint32{0, 1, 2}}}
+		{
+			IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			Technology: "Default",
+		},
+	}
 
 	deviceinfo := &openolt.DeviceInfo{Vendor: "openolt", Model: "openolt", HardwareVersion: "1.0", FirmwareVersion: "1.0",
-		DeviceId: "olt", DeviceSerialNumber: "openolt", PonPorts: 3, Technology: "Default",
+		DeviceId: "olt", DeviceSerialNumber: "openolt", PonPorts: 16, Technology: "Default",
 		OnuIdStart: 1, OnuIdEnd: 1, AllocIdStart: 1, AllocIdEnd: 1,
 		GemportIdStart: 1, GemportIdEnd: 1, FlowIdStart: 1, FlowIdEnd: 1,
 		Ranges: ranges,
@@ -595,37 +602,97 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
-	// flowMgr := newMockFlowmgr()
-	type args struct {
-		intfID    uint32
-		onuID     uint32
-		serialNum string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-		{"UpdateOnuInfo", args{1, 1, "onu1"}},
-		{"UpdateOnuInfo", args{2, 3, "onu1"}},
-	}
+	flwMgr := newMockFlowmgr()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
 
-			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
-		})
+	wg := sync.WaitGroup{}
+
+	intfCount := 16
+	onuCount := 32
+
+	for i := 0; i < intfCount; i++ {
+		for j := 0; j < onuCount; j++ {
+			wg.Add(1)
+			go func(i uint32, j uint32) {
+				flwMgr.UpdateOnuInfo(ctx, i, i, fmt.Sprintf("onu-%d", i))
+				wg.Done()
+			}(uint32(i), uint32(j))
+		}
+
+	}
+
+	wg.Wait()
+}
+
+func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
+	flowMgr = newMockFlowmgr()
+	intfNum := 16
+	onuNum := 32
+
+	// clean the flowMgr
+	flowMgr.onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo, intfNum)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Create OnuInfo
+	for i := 0; i < intfNum; i++ {
+		for o := 0; o < onuNum; o++ {
+			flowMgr.UpdateOnuInfo(ctx, uint32(i), uint32(o), fmt.Sprintf("i%do%d", i, o))
+		}
+	}
+
+	// Add gemPorts to OnuInfo in parallel threads
+	wg := sync.WaitGroup{}
+
+	for o := 0; o < onuNum; o++ {
+		for i := 0; i < intfNum; i++ {
+			wg.Add(1)
+			go func(intfId uint32, onuId uint32) {
+				gemID, _ := strconv.Atoi(fmt.Sprintf("90%d%d", intfId, onuId))
+
+				flowMgr.addGemPortToOnuInfoMap(ctx, intfId, onuId, uint32(gemID))
+				wg.Done()
+			}(uint32(i), uint32(o))
+		}
+	}
+
+	wg.Wait()
+
+	// check that each entry of onuGemInfo has the correct number of ONUs
+	for i := 0; i < intfNum; i++ {
+		lenofOnu := len(flowMgr.onuGemInfo[uint32(i)])
+		if onuNum != lenofOnu {
+			t.Errorf("OnuGemInfo length is not as expected len = %d, want %d", lenofOnu, onuNum)
+		}
+
+		for o := 0; o < onuNum; o++ {
+			lenOfGemPorts := len(flowMgr.onuGemInfo[uint32(i)][o].GemPorts)
+			// check that each onuEntry has 1 gemPort
+			if lenOfGemPorts != 1 {
+				t.Errorf("Expected 1 GemPort per ONU, found %d", lenOfGemPorts)
+			}
+
+			// check that the value of the gemport is correct
+			gemID, _ := strconv.Atoi(fmt.Sprintf("90%d%d", i, o))
+			currentValue := flowMgr.onuGemInfo[uint32(i)][o].GemPorts[0]
+			if uint32(gemID) != currentValue {
+				t.Errorf("Expected GemPort value to be %d, found %d", gemID, currentValue)
+			}
+		}
 	}
 }
 
 func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
-	// flowMgr := newMockFlowmgr()
+	flwMgr := newMockFlowmgr()
 	type args struct {
 		intfID                uint32
 		onuID                 uint32
 		gemPortIDs            []uint32
 		gemPortIDsToBeDeleted []uint32
+		gemPortIDsRemaining   []uint32
 		serialNum             string
 		finalLength           int
 	}
@@ -634,30 +701,34 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 		args args
 	}{
 		// Add/Delete single gem port
-		{"DeleteGemPortFromLocalCache1", args{0, 1, []uint32{1}, []uint32{1}, "onu1", 0}},
+		{"DeleteGemPortFromLocalCache1", args{0, 1, []uint32{1}, []uint32{1}, []uint32{}, "onu1", 0}},
 		// Delete all gemports
-		{"DeleteGemPortFromLocalCache2", args{0, 1, []uint32{1, 2, 3, 4}, []uint32{1, 2, 3, 4}, "onu1", 0}},
+		{"DeleteGemPortFromLocalCache2", args{0, 1, []uint32{1, 2, 3, 4}, []uint32{1, 2, 3, 4}, []uint32{}, "onu1", 0}},
 		// Try to delete when there is no gem port
-		{"DeleteGemPortFromLocalCache3", args{0, 1, []uint32{}, []uint32{1, 2}, "onu1", 0}},
+		{"DeleteGemPortFromLocalCache3", args{0, 1, []uint32{}, []uint32{1, 2}, []uint32{}, "onu1", 0}},
 		// Try to delete non-existent gem port
-		{"DeleteGemPortFromLocalCache4", args{0, 1, []uint32{1}, []uint32{2}, "onu1", 1}},
+		{"DeleteGemPortFromLocalCache4", args{0, 1, []uint32{1}, []uint32{2}, []uint32{1}, "onu1", 1}},
 		// Try to delete two of the gem ports
-		{"DeleteGemPortFromLocalCache5", args{0, 1, []uint32{1, 2, 3, 4}, []uint32{2, 4}, "onu1", 2}},
+		{"DeleteGemPortFromLocalCache5", args{0, 1, []uint32{1, 2, 3, 4}, []uint32{2, 4}, []uint32{1, 3}, "onu1", 2}},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			flwMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
 			for _, gemPort := range tt.args.gemPortIDs {
-				flowMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
+				flwMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
-				flowMgr.deleteGemPortFromLocalCache(context.Background(), tt.args.intfID, tt.args.onuID, gemPortDeleted)
+				flwMgr.deleteGemPortFromLocalCache(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
-			lenofGemPorts := len(flowMgr.onuGemInfo[tt.args.intfID][0].GemPorts)
+			lenofGemPorts := len(flwMgr.onuGemInfo[tt.args.intfID][0].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
 				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
+			}
+			gemPorts := flwMgr.onuGemInfo[tt.args.intfID][0].GemPorts
+			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
+				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
 
 		})
@@ -665,7 +736,7 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
-	// flowMgr := newMockFlowmgr()
+	flwMgr := newMockFlowmgr()
 	type args struct {
 		packetIn *openoltpb2.PacketIndication
 	}
@@ -687,7 +758,7 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetLogicalPortFromPacketIn(ctx, tt.args.packetIn)
+			got, err := flwMgr.GetLogicalPortFromPacketIn(ctx, tt.args.packetIn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetLogicalPortFromPacketIn() error = %v, wantErr %v", err, tt.wantErr)
 				return
