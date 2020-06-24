@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7502770d_cdd22743",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "break OuterLoop?",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "843f92bb_e9ca8871",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2929,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "I think we can have one \"defer f.onuGemInfoLock.Unlock(intfID)\" here instead of multiple places. Note that it has to be in inside the \"if\" condition",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ed6011c_96a9106b",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2991,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "I think we can have one \"defer f.onuGemInfoLock.Unlock(intfID)\" here instead of multiple places. Note that it has to be in inside the \"if\" condition",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec7081f1_51324092",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 3065,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "I think we can have one \"defer f.onuGemInfoLock.Unlock(intfID)\" here instead of multiple places. Note that it has to be in inside the \"if\" condition",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f55782d3_1dee7cea",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 3774,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "I think we can have one \"defer f.onuGemInfoLock.Unlock(intfID)\" here instead of multiple places. Note that it has to be in inside the \"if\" condition",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0c96d98_7685b7ea",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 3809,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-24T21:42:52Z",
+      "side": 1,
+      "message": "I think we can have one \"defer f.onuGemInfoLock.Unlock(intfID)\" here instead of multiple places. Note that it has to be in inside the \"if\" condition",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
