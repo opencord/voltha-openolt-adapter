@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "8dfa8e22_1e0097e5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 888,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50c553ef_08c7fb0b",
+      "range": {
+        "startLine": 888,
+        "startChar": 71,
+        "endLine": 888,
+        "endChar": 76
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "72d5580c_62da52b5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 888,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5c45b6b_7fe0b9fe",
+      "range": {
+        "startLine": 888,
+        "startChar": 45,
+        "endLine": 888,
+        "endChar": 51
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "222f98a7_6a98d10a",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 13
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "b9ec5098_4e40cbf0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66190b97_706f8b05",
+      "range": {
+        "startLine": 889,
+        "startChar": 34,
+        "endLine": 889,
+        "endChar": 41
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "521b8164_d8e0ed8f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "222f98a7_6a98d10a",
+      "range": {
+        "startLine": 889,
+        "startChar": 4,
+        "endLine": 889,
+        "endChar": 21
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a209381_60680d01",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 13
@@ -114,6 +210,30 @@
       "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce2acde2_942631d9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1738,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a209381_60680d01",
+      "range": {
+        "startLine": 1738,
+        "startChar": 4,
+        "endLine": 1738,
+        "endChar": 18
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "080a97cd_e473fa2f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1792,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ae66974_7a890b4a",
+      "range": {
+        "startLine": 1792,
+        "startChar": 7,
+        "endLine": 1792,
+        "endChar": 17
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c4def7d_00927fbc",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 13
@@ -160,6 +304,30 @@
       "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed80ecb8_79eae225",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1821,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c4def7d_00927fbc",
+      "range": {
+        "startLine": 1821,
+        "startChar": 5,
+        "endLine": 1821,
+        "endChar": 11
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "a1135ba5_410b9927",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1822,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1cab8f09_fbda243f",
+      "range": {
+        "startLine": 1822,
+        "startChar": 5,
+        "endLine": 1822,
+        "endChar": 10
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "340d7f96_df53765d",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 13
@@ -206,6 +398,30 @@
       "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0113029a_165f154e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1823,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "340d7f96_df53765d",
+      "range": {
+        "startLine": 1823,
+        "startChar": 5,
+        "endLine": 1823,
+        "endChar": 10
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "09d5e27c_4093a12f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1824,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "134258d4_a12e98f2",
+      "range": {
+        "startLine": 1824,
+        "startChar": 5,
+        "endLine": 1824,
+        "endChar": 14
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1580b93_5a29cf97",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 13
@@ -252,6 +492,30 @@
       "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e120f5c0_d2586eb4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 2190,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-06-24T00:53:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1580b93_5a29cf97",
+      "range": {
+        "startLine": 2190,
+        "startChar": 4,
+        "endLine": 2190,
+        "endChar": 11
+      },
+      "revId": "2795e2e3ef59bd7ac3a5322fbcd98d9fe0af063e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
