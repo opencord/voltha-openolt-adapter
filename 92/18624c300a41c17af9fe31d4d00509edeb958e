@@ -1,0 +1,9 @@
+Verified+1: Jenkins Jenkins <do-not-reply@opencord.org>
+Code-Review+1: Andrea Campanella <andrea@opennetworking.org>
+Code-Review+1: David Bainbridge <dbainbri@ciena.com>
+Code-Review+2: Matteo Scandolo <teo@opennetworking.org>
+Submitted-by: Matteo Scandolo <teo@opennetworking.org>
+Submitted-at: Wed, 24 Jun 2020 14:57:27 +0000
+Reviewed-on: https://gerrit.opencord.org/c/voltha-openolt-adapter/+/19282
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
