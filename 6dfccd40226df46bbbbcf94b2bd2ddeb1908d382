@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a95922ca_d4782005",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2037,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-25T22:13:44Z",
+      "side": 1,
+      "message": "I am sorry Teo, I mis-read the code earlier. Your earlier code worked just fine. The break in the \"if\" block will break the outerloop too. My bad.\nSo you may go back to previous version, or remove this line which creates the same effect as previous code.\nSorry again ! 😊",
+      "revId": "6dfccd40226df46bbbbcf94b2bd2ddeb1908d382",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
