@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "24c341b6_6cbfb28d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1986,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-25T17:57:12Z",
+      "side": 1,
+      "message": "We need to have \"goto\" place holder here: For ex: like below..\n\nOuterLoop:",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7502770d_cdd22743",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 5
@@ -31,6 +48,23 @@
       "side": 1,
       "message": "I\u0027m not sure what you mean, I only wrapped this code in the \"if TryLock\" block",
       "parentUuid": "7502770d_cdd22743",
+      "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8adaeba_fd58bf19",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-06-25T17:57:12Z",
+      "side": 1,
+      "message": "And then change this to \"break OuterLoop\", if your intention is to break out of the outer loop as well.\nI guess you should break the outer loop as well - right? , if you have dealt with the correct gem id. Otherwise, it unnecessary goes in outerloop and does all the checks once more which is not needed.",
       "revId": "b917c321b72584daa47f1b088d3140dfefc17aa2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
