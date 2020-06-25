@@ -49,10 +49,14 @@ func init() {
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 	ranges := []*openolt.DeviceInfo_DeviceResourceRanges{
-		{IntfIds: []uint32{0, 1, 2}}}
+		{
+			IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			Technology: "Default",
+		},
+	}
 
 	deviceinfo := &openolt.DeviceInfo{Vendor: "openolt", Model: "openolt", HardwareVersion: "1.0", FirmwareVersion: "1.0",
-		DeviceId: "olt", DeviceSerialNumber: "openolt", PonPorts: 3, Technology: "Default",
+		DeviceId: "olt", DeviceSerialNumber: "openolt", PonPorts: 16, Technology: "Default",
 		OnuIdStart: 1, OnuIdEnd: 1, AllocIdStart: 1, AllocIdEnd: 1,
 		GemportIdStart: 1, GemportIdEnd: 1, FlowIdStart: 1, FlowIdEnd: 1,
 		Ranges: ranges,
@@ -597,28 +601,28 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 }
 
 func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
-	// flowMgr := newMockFlowmgr()
-	type args struct {
-		intfID    uint32
-		onuID     uint32
-		serialNum string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-		{"UpdateOnuInfo", args{1, 1, "onu1"}},
-		{"UpdateOnuInfo", args{2, 3, "onu1"}},
-	}
+	flwMgr := newMockFlowmgr()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
 
-			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
-		})
+	wg := sync.WaitGroup{}
+
+	intfCount := 16
+	onuCount := 32
+
+	for i := 0; i < intfCount; i++ {
+		for j := 0; j < onuCount; j++ {
+			wg.Add(1)
+			go func(i uint32, j uint32) {
+				flwMgr.UpdateOnuInfo(ctx, i, i, fmt.Sprintf("onu-%d", i))
+				wg.Done()
+			}(uint32(i), uint32(j))
+		}
+
 	}
+
+	wg.Wait()
 }
 
 func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {

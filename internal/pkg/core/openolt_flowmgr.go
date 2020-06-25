@@ -173,6 +173,13 @@ const (
 	BinaryStringPrefix = "0b"
 	// BinaryBit1 is binary bit 1 expressed as a character
 	BinaryBit1 = '1'
+
+	// SharedOnuGemInfoLockKey is a shared key for all access to the onuGemInfo map
+	// Using a shared key means that we have no risk of concurrency,
+	// but we still get the benefits of mapmutex (it retries until we can actually write)
+	// it's slower than locking on a PON (40s vs the previous 10s)
+	// but once every 3/4 runs we try to handle 2 ONUs on different PONs at the same time
+	SharedOnuGemInfoLockKey = "lockall"
 )
 
 type gemPortKey struct {
@@ -2006,7 +2013,7 @@ func (f *OpenOltFlowMgr) deletePendingFlows(Intf uint32, onuID int32, uniID int3
 // is conveyed to ONOS during packet-in OF message.
 func (f *OpenOltFlowMgr) deleteGemPortFromLocalCache(intfID uint32, onuID uint32, gemPortID uint32) {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		logger.Infow("deleting-gem-from-local-cache",
 			log.Fields{
@@ -2950,7 +2957,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(intfID uint32, onuID uint32, u
 //UpdateOnuInfo function adds onu info to cache and kvstore
 func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		onu := rsrcMgr.OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
 		f.onuGemInfo[intfID] = append(f.onuGemInfo[intfID], onu)
@@ -2977,7 +2984,7 @@ func (f *OpenOltFlowMgr) UpdateOnuInfo(ctx context.Context, intfID uint32, onuID
 //addGemPortToOnuInfoMap function adds GEMport to ONU map
 func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(ctx context.Context, intfID uint32, onuID uint32, gemPort uint32) {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		logger.Infow("adding-gem-to-onu-info-map",
 			log.Fields{
@@ -3036,7 +3043,7 @@ func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(ctx context.Context, intfID uint
 //getOnuIDfromGemPortMap Returns OnuID,nil if found or set 0,error if no onuId is found for serialNumber or (intfId, gemPort)
 func (f *OpenOltFlowMgr) getOnuIDfromGemPortMap(intfID uint32, gemPortID uint32) (uint32, error) {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		logger.Infow("getting-onu-id-from-gem-port-and-pon-port",
 			log.Fields{
@@ -3108,7 +3115,7 @@ func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint3
 	var gemPortID uint32
 	var err error
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum}
 		var ok bool
@@ -3872,7 +3879,7 @@ func getNniIntfID(classifier map[string]interface{}, action map[string]interface
 // UpdateGemPortForPktIn updates gemport for packet-in in to the cache and to the kv store as well.
 func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: logicalPort}
 		lookupGemPort, ok := f.packetInGemPort[pktInkey]
@@ -3905,7 +3912,7 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint3
 // AddUniPortToOnuInfo adds uni port to the onugem info both in cache and kvstore.
 func (f *OpenOltFlowMgr) AddUniPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) {
 
-	if f.onuGemInfoLock.TryLock(intfID) {
+	if f.onuGemInfoLock.TryLock(SharedOnuGemInfoLockKey) {
 		defer f.onuGemInfoLock.Unlock(intfID)
 		onugem := f.onuGemInfo[intfID]
 		for idx, onu := range onugem {
