@@ -1160,8 +1160,8 @@ func TestOpenOltResourceMgr_RemoveFlowGroupFromKVStore(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			success := RsrcMgr.RemoveFlowGroupFromKVStore(ctx, tt.args.groupID, tt.args.cached)
-			if !success {
+			err := RsrcMgr.RemoveFlowGroupFromKVStore(ctx, tt.args.groupID, tt.args.cached)
+			if err != nil {
 				t.Errorf("%s got false but wants true", tt.name)
 				return
 			}

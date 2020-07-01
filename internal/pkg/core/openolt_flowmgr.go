@@ -2715,6 +2715,31 @@ func (f *OpenOltFlowMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry)
 	return nil
 }
 
+// DeleteGroup deletes a group from the device
+func (f *OpenOltFlowMgr) DeleteGroup(ctx context.Context, group *ofp.OfpGroupEntry) error {
+	logger.Infow("delete-group", log.Fields{"group": group})
+	if group == nil {
+		return olterrors.NewErrInvalidValue(log.Fields{"group": group}, nil)
+	}
+
+	groupToOlt := openoltpb2.Group{
+		GroupId: group.Desc.GroupId,
+	}
+
+	logger.Debugw("deleting-group-from-device", log.Fields{"groupToOlt": groupToOlt})
+	_, err := f.deviceHandler.Client.DeleteGroup(ctx, &groupToOlt)
+	if err != nil {
+		log.Errorw("delete-group-failed-on-dev", log.Fields{"groupToOlt": groupToOlt, "err": err})
+		return olterrors.NewErrAdapter("delete-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
+	}
+	//remove group from the store
+	if err := f.resourceMgr.RemoveFlowGroupFromKVStore(ctx, group.Desc.GroupId, false); err != nil {
+		return olterrors.NewErrPersistence("delete", "flow-group", group.Desc.GroupId, log.Fields{"group": group}, err)
+	}
+	logger.Infow("delete-group-operation-performed-on-the-device-successfully ", log.Fields{"groupToOlt": groupToOlt})
+	return nil
+}
+
 //buildGroupAction creates and returns a group action
 func (f *OpenOltFlowMgr) buildGroupAction() *openoltpb2.Action {
 	var actionCmd openoltpb2.ActionCmd
