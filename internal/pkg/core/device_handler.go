@@ -1243,8 +1243,10 @@ func (dh *DeviceHandler) onuIndication(onuInd *oop.OnuIndication) error {
 func (dh *DeviceHandler) updateOnuStates(onuDevice *voltha.Device, onuInd *oop.OnuIndication) error {
 	ctx := context.TODO()
 	logger.Debugw("onu-indication-for-state", log.Fields{"onuIndication": onuInd, "device-id": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
-	if onuInd.AdminState == "down" {
-		// The ONU has gone admin_state "down" and we expect the ONU to send discovery again
+	if onuInd.AdminState == "down" || onuInd.OperState == "down" {
+		// The ONU has gone admin_state "down" or oper_state "down" - we expect the ONU to send discovery again
+		// The ONU admin_state is "up" while "oper_state" is down in cases where ONU activation fails. In this case
+		// the ONU sends Discovery again.
 		dh.discOnus.Delete(onuDevice.SerialNumber)
 		// Tests have shown that we sometimes get OperState as NOT down even if AdminState is down, forcing it
 		if onuInd.OperState != "down" {
