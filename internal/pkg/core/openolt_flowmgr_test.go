@@ -1016,17 +1016,20 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 }
 
-func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
+func TestOpenOltFlowMgr_TestMulticastFlowAndGroup(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	//create group
 	group := newGroup(2, []uint32{1})
-	flowMgr.AddGroup(ctx, group)
-
+	err := flowMgr.AddGroup(ctx, group)
+	if err != nil {
+		t.Error("group-add failed", err)
+		return
+	}
 	//create multicast flow
 	multicastFlowArgs := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(65536),
+			fu.InPort(1048576),
 			fu.VlanVid(660),             //vlan
 			fu.Metadata_ofp(uint64(66)), //inner vlan
 			fu.EthType(0x800),           //ipv4
@@ -1037,10 +1040,31 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 		},
 	}
 	ofpStats, _ := fu.MkFlowStat(multicastFlowArgs)
-	flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
+	fmt.Println(ofpStats.Id)
+	err = flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
+	if err != nil {
+		t.Error("Multicast flow-add failed", err)
+		return
+	}
 
 	//add bucket to the group
 	group = newGroup(2, []uint32{1, 2})
+	err = flowMgr.ModifyGroup(ctx, group)
+	if err != nil {
+		t.Error("modify-group failed", err)
+		return
+	}
+	//remove the multicast flow
+	err = flowMgr.RemoveFlow(ctx, ofpStats)
+	if err != nil {
+		t.Error("Multicast flow-remove failed", err)
+		return
+	}
 
-	flowMgr.ModifyGroup(ctx, group)
+	//remove the group
+	err = flowMgr.DeleteGroup(ctx, group)
+	if err != nil {
+		t.Error("delete-group failed", err)
+		return
+	}
 }
