@@ -131,6 +131,20 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+		if strings.Contains(key, "/{olt}/{0,-1,-1}/flow_id_info/") {
+			//multicast flow
+			data := []resourcemanager.FlowInfo{
+				{
+					Flow:            &openolt.Flow{FlowId: 1, OnuId: 0, UniId: 0, GemportId: 4000},
+					FlowStoreCookie: uint64(48132224281636694),
+					LogicalFlowID:   3961977515762683568,
+				},
+			}
+			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+
 		if strings.Contains(key, FlowIDInfo) {
 
 			data := []resourcemanager.FlowInfo{
