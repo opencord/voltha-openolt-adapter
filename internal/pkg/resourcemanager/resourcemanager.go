@@ -1483,7 +1483,7 @@ func (RsrcMgr *OpenOltResourceMgr) AddFlowGroupToKVStore(ctx context.Context, gr
 }
 
 //RemoveFlowGroupFromKVStore removes flow group from KV store
-func (RsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Context, groupID uint32, cached bool) bool {
+func (RsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Context, groupID uint32, cached bool) error {
 	var path string
 	if cached {
 		path = fmt.Sprintf(FlowGroupCached, groupID)
@@ -1492,9 +1492,9 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Contex
 	}
 	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorf("Failed to remove resource %s due to %s", path, err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 //GetFlowGroupFromKVStore fetches flow group from the KV store. Returns (false, {} error) if any problem occurs during

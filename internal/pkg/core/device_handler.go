@@ -1445,8 +1445,11 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 				errorsList = append(errorsList, err)
 			}
 		}
-		if len(groups.ToRemove.Items) != 0 {
-			logger.Debugw("group-delete-operation-not-supported", log.Fields{"device-id": dh.device.Id})
+		for _, group := range groups.ToRemove.Items {
+			err := dh.flowMgr.DeleteGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
 		}
 	}
 	if len(errorsList) > 0 {
