@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a867919f_edfe388d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2720,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-03T10:15:25Z",
+      "side": 1,
+      "message": "logger.Debugw is more appropriate",
+      "revId": "b329473a215270a77d9dd46ee2cefb59f01d2e6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2df7a91_d75a8dc4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2722,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-03T10:15:25Z",
+      "side": 1,
+      "message": "I\u0027d log in Error here before returning",
+      "revId": "b329473a215270a77d9dd46ee2cefb59f01d2e6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a109686a_c70001c4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2739,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-03T10:15:25Z",
+      "side": 1,
+      "message": "Debugw",
+      "revId": "b329473a215270a77d9dd46ee2cefb59f01d2e6d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
