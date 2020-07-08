@@ -29,12 +29,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
-
 	"github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -269,28 +268,19 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 		return olterrors.NewErrNotFound("port-label", log.Fields{"port-number": portNum, "port-type": portType}, err)
 	}
 
-	device, err := dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
-		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	if device.Ports != nil {
-		for _, dPort := range device.Ports {
-			if dPort.Type == portType && dPort.PortNo == portNum {
-				logger.Debug(ctx, "port-already-exists-updating-oper-status-of-port")
-				if err := dh.coreProxy.PortStateUpdate(context.TODO(), dh.device.Id, portType, portNum, operStatus); err != nil {
-					return olterrors.NewErrAdapter("failed-to-update-port-state", log.Fields{
-						"device-id":   dh.device.Id,
-						"port-type":   portType,
-						"port-number": portNum,
-						"oper-status": operStatus}, err)
-
-				}
-				return nil
-			}
+	if port, err := dh.coreProxy.GetDevicePort(context.TODO(), dh.device.Id, portNum); err == nil && port.Type == portType {
+		log.Debug(ctx, "port-already-exists-updating-oper-status-of-port")
+		if err := dh.coreProxy.PortStateUpdate(context.TODO(), dh.device.Id, portType, portNum, operStatus); err != nil {
+			return olterrors.NewErrAdapter("failed-to-update-port-state", log.Fields{
+				"device-id":   dh.device.Id,
+				"port-type":   portType,
+				"port-number": portNum,
+				"oper-status": operStatus}, err).Log()
 		}
+		return nil
 	}
+	// Now create Port
 	capacity := uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)
-	//    Now create  Port
 	port := &voltha.Port{
 		PortNo:     portNum,
 		Label:      label,
@@ -711,14 +701,14 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		return nil
 	}
 
-	device, err = dh.coreProxy.GetDevice(context.TODO(), dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
+	ports, err := dh.coreProxy.ListDevicePorts(context.TODO(), dh.device.Id)
+	if err != nil {
 		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrAdapter("fetch-device-failed", log.Fields{"device-id": dh.device.Id}, err)
+		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
-	dh.populateActivePorts(ctx, device)
-	if err := dh.disableAdminDownPorts(ctx, device); err != nil {
-		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"device": device}, err)
+	dh.populateActivePorts(ctx, ports)
+	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
+		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"ports": ports}, err)
 	}
 
 	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
@@ -817,8 +807,11 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 			return
 		case <-time.After(time.Duration(dh.metrics.ToPmConfigs().DefaultFreq) * time.Second):
 
-			ports := make([]*voltha.Port, len(dh.device.Ports))
-			copy(ports, dh.device.Ports)
+			ports, err := dh.coreProxy.ListDevicePorts(context.Background(), dh.device.Id)
+			if err != nil {
+				logger.Warnw(ctx, "failed-to-list-ports", log.Fields{"error": err})
+				continue
+			}
 			for _, port := range ports {
 				// NNI Stats
 				if port.Type == voltha.Port_ETHERNET_NNI {
@@ -1489,15 +1482,9 @@ func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Devic
 	//Update device Admin state
 	dh.device = cloned
 	// Update the all pon ports state on that device to disable and NNI remains active as NNI remains active in openolt agent.
-	for _, port := range cloned.Ports {
-		if port.GetType() == voltha.Port_PON_OLT {
-			if err := dh.coreProxy.PortStateUpdate(context.TODO(), cloned.Id,
-				voltha.Port_PON_OLT, port.GetPortNo(), voltha.OperStatus_UNKNOWN); err != nil {
-				return olterrors.NewErrAdapter("port-state-update-failed", log.Fields{"device-id": device.Id, "port-number": port.GetPortNo()}, err)
-			}
-		}
+	if err := dh.coreProxy.PortsStateUpdate(context.TODO(), cloned.Id, ^uint32(1<<voltha.Port_PON_OLT), voltha.OperStatus_UNKNOWN); err != nil {
+		return olterrors.NewErrAdapter("ports-state-update-failed", log.Fields{"device-id": device.Id}, err)
 	}
-
 	logger.Debugw(ctx, "disable-device-end", log.Fields{"device-id": device.Id})
 	return nil
 }
@@ -1532,7 +1519,6 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 //Device Port-State: ACTIVE
 //Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
-
 	if _, err := dh.Client.ReenableOlt(context.Background(), new(oop.Empty)); err != nil {
 		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
 			return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err)
@@ -1540,21 +1526,24 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 	}
 	logger.Debug(ctx, "olt-reenabled")
 
-	cloned := proto.Clone(device).(*voltha.Device)
 	// Update the all ports state on that device to enable
 
-	if err := dh.disableAdminDownPorts(ctx, device); err != nil {
+	ports, err := dh.coreProxy.ListDevicePorts(ctx, device.Id)
+	if err != nil {
+		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device": device.Id}, err)
+	}
+	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
 		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
 	}
 	//Update the device oper status as ACTIVE
-	cloned.OperStatus = voltha.OperStatus_ACTIVE
-	dh.device = cloned
+	device.OperStatus = voltha.OperStatus_ACTIVE
+	dh.device = device
 
-	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+	if err := dh.coreProxy.DeviceStateUpdate(context.TODO(), device.Id, device.ConnectStatus, device.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
 			"device-id":      device.Id,
-			"connect-status": cloned.ConnectStatus,
-			"oper-status":    cloned.OperStatus}, err)
+			"connect-status": device.ConnectStatus,
+			"oper-status":    device.OperStatus}, err)
 	}
 
 	logger.Debugw(ctx, "reenabledevice-end", log.Fields{"device-id": device.Id})
@@ -1928,7 +1917,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
 			olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
-		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, voltha.OperStatus_UNKNOWN); err != nil {
+		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
 			olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 		go dh.cleanupDeviceResources(ctx)
@@ -2008,11 +1997,10 @@ func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, e
 }
 
 //disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
-func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, device *voltha.Device) error {
-	cloned := proto.Clone(device).(*voltha.Device)
+func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, ports []*voltha.Port) error {
 	// Disable the port and update the oper_port_status to core
 	// if the Admin state of the port is disabled on reboot and re-enable device.
-	for _, port := range cloned.Ports {
+	for _, port := range ports {
 		if port.AdminState == common.AdminState_DISABLED {
 			if err := dh.DisablePort(ctx, port); err != nil {
 				return olterrors.NewErrAdapter("port-disable-failed", log.Fields{
@@ -2025,9 +2013,9 @@ func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, device *volt
 }
 
 //populateActivePorts to populate activePorts map
-func (dh *DeviceHandler) populateActivePorts(ctx context.Context, device *voltha.Device) {
-	logger.Infow(ctx, "populateActiveports", log.Fields{"Device": device})
-	for _, port := range device.Ports {
+func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*voltha.Port) {
+	logger.Infow(ctx, "populateActivePorts", log.Fields{"device-id": dh.device.Id})
+	for _, port := range ports {
 		if port.Type == voltha.Port_ETHERNET_NNI {
 			if port.OperStatus == voltha.OperStatus_ACTIVE {
 				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
