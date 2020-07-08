@@ -564,26 +564,18 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(ctx context.Context, onuLOKI 
 
 // oltIntfOperIndication handles Up and Down state of an OLT PON ports
 func (em *OpenOltEventMgr) oltIntfOperIndication(ctx context.Context, ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) error {
-	var de voltha.DeviceEvent
-	portID := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
-	device, err := em.handler.coreProxy.GetDevice(context.Background(), deviceID, deviceID)
-	if err != nil {
-		return olterrors.NewErrAdapter("error-while-fetching-device-object", log.Fields{"DeviceId": deviceID}, err)
-	}
-	context := make(map[string]string)
-	for _, port := range device.Ports {
-		if port.PortNo == portID {
-			// Events are suppressed if the Port Adminstate is not enabled.
-			if port.AdminState != common.AdminState_ENABLED {
-				logger.Debugw(ctx, "port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"deviceId": deviceID, "port": port})
-				return nil
-			}
-			break
-		}
+	portNo := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
+	if port, err := em.handler.coreProxy.GetDevicePort(ctx, deviceID, portNo); err != nil {
+		logger.Warnw(ctx, "Error while fetching port object", log.Fields{"DeviceId": deviceID, "error": err})
+	} else if port.AdminState != common.AdminState_ENABLED {
+		logger.Debugw(ctx, "port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"deviceId": deviceID, "port": port})
+		return nil
 	}
 	/* Populating event context */
+	context := make(map[string]string)
 	context["oper-state"] = ifindication.GetOperState()
 	/* Populating device event body */
+	var de voltha.DeviceEvent
 	de.Context = context
 	de.ResourceId = deviceID
 

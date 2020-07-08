@@ -1196,23 +1196,23 @@ func (fg *FlowsAndGroups) GetFlow(index int) *ofp.OfpFlowStats {
 	return nil
 }
 
-func (fg *FlowsAndGroups) ListFlows() []*ofp.OfpFlowStats {
-	flows := make([]*ofp.OfpFlowStats, 0)
+func (fg *FlowsAndGroups) ListFlows() map[uint64]*ofp.OfpFlowStats {
+	flows := make(map[uint64]*ofp.OfpFlowStats, fg.Flows.Len())
 	iter := fg.Flows.IterFunc()
 	for kv, ok := iter(); ok; kv, ok = iter() {
-		if protoMsg, isMsg := kv.Value.(*ofp.OfpFlowStats); isMsg {
-			flows = append(flows, protoMsg)
+		if flow, isMsg := kv.Value.(*ofp.OfpFlowStats); isMsg {
+			flows[flow.Id] = flow
 		}
 	}
 	return flows
 }
 
-func (fg *FlowsAndGroups) ListGroups() []*ofp.OfpGroupEntry {
-	groups := make([]*ofp.OfpGroupEntry, 0)
+func (fg *FlowsAndGroups) ListGroups() map[uint32]*ofp.OfpGroupEntry {
+	groups := make(map[uint32]*ofp.OfpGroupEntry, fg.Groups.Len())
 	iter := fg.Groups.IterFunc()
 	for kv, ok := iter(); ok; kv, ok = iter() {
-		if protoMsg, isMsg := kv.Value.(*ofp.OfpGroupEntry); isMsg {
-			groups = append(groups, protoMsg)
+		if group, isMsg := kv.Value.(*ofp.OfpGroupEntry); isMsg {
+			groups[group.Desc.GroupId] = group
 		}
 	}
 	return groups
@@ -1377,16 +1377,6 @@ func FindOverlappingFlows(flows []*ofp.OfpFlowStats, mod *ofp.OfpFlowMod) []*ofp
 	return nil //TODO - complete implementation
 }
 
-// FindFlowById returns the index of the flow in the flows array if present. Otherwise, it returns -1
-func FindFlowById(flows []*ofp.OfpFlowStats, flow *ofp.OfpFlowStats) int {
-	for idx, f := range flows {
-		if flow.Id == f.Id {
-			return idx
-		}
-	}
-	return -1
-}
-
 // FindFlows returns the index in flows where flow if present.  Otherwise, it returns -1
 func FindFlows(flows []*ofp.OfpFlowStats, flow *ofp.OfpFlowStats) int {
 	for idx, f := range flows {
@@ -1485,27 +1475,6 @@ func FlowHasOutGroup(flow *ofp.OfpFlowStats, groupID uint32) bool {
 		}
 	}
 	return false
-}
-
-//FindGroup returns index of group if found, else returns -1
-func FindGroup(groups []*ofp.OfpGroupEntry, groupId uint32) int {
-	for idx, group := range groups {
-		if group.Desc.GroupId == groupId {
-			return idx
-		}
-	}
-	return -1
-}
-
-func FlowsDeleteByGroupId(flows []*ofp.OfpFlowStats, groupId uint32) (bool, []*ofp.OfpFlowStats) {
-	toKeep := make([]*ofp.OfpFlowStats, 0)
-
-	for _, f := range flows {
-		if !FlowHasOutGroup(f, groupId) {
-			toKeep = append(toKeep, f)
-		}
-	}
-	return len(toKeep) < len(flows), toKeep
 }
 
 func ToOfpOxmField(from []*ofp.OfpOxmOfbField) []*ofp.OfpOxmField {

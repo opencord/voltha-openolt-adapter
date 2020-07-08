@@ -31,10 +31,6 @@ func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 		Id:       "olt",
 		Root:     true,
 		ParentId: "logical_device",
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon", Type: voltha.Port_ETHERNET_UNI},
-			{PortNo: 2, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
-		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
