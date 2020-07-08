@@ -567,19 +567,11 @@ func (em *OpenOltEventMgr) oltIntfOperIndication(ifindication *oop.IntfOperIndic
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	portID := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
-	device, err := em.handler.coreProxy.GetDevice(ctx.Background(), deviceID, deviceID)
-	if err != nil {
-		return olterrors.NewErrAdapter("error-while-fetching-device-object", log.Fields{"DeviceId": deviceID}, err)
-	}
-	for _, port := range device.Ports {
-		if port.PortNo == portID {
-			// Events are suppressed if the Port Adminstate is not enabled.
-			if port.AdminState != common.AdminState_ENABLED {
-				logger.Debugw("port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"deviceId": deviceID, "port": port})
-				return nil
-			}
-			break
-		}
+	if port, err := em.handler.coreProxy.GetDevicePort(ctx.Background(), deviceID, portID); err != nil {
+		logger.Warnw("Error while fetching port object", log.Fields{"DeviceId": deviceID, "error": err})
+	} else if port.AdminState != common.AdminState_ENABLED {
+		logger.Debugw("port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"deviceId": deviceID, "port": port})
+		return nil
 	}
 	/* Populating event context */
 	context["oper-state"] = ifindication.GetOperState()

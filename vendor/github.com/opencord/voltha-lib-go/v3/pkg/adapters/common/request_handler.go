@@ -151,6 +151,7 @@ func (rhp *RequestHandlerProxy) Disable_device(args []*ic.Argument) (*empty.Empt
 	}
 
 	device := &voltha.Device{}
+	ports := &voltha.Ports{}
 	transactionID := &ic.StrType{}
 	fromTopic := &ic.StrType{}
 	for _, arg := range args {
@@ -158,6 +159,11 @@ func (rhp *RequestHandlerProxy) Disable_device(args []*ic.Argument) (*empty.Empt
 		case "device":
 			if err := ptypes.UnmarshalAny(arg.Value, device); err != nil {
 				logger.Warnw("cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case "ports":
+			if err := ptypes.UnmarshalAny(arg.Value, ports); err != nil {
+				logger.Warnw("cannot-unmarshal-ports", log.Fields{"error": err})
 				return nil, err
 			}
 		case kafka.TransactionKey:
@@ -175,7 +181,7 @@ func (rhp *RequestHandlerProxy) Disable_device(args []*ic.Argument) (*empty.Empt
 	//Update the core reference for that device
 	rhp.coreProxy.UpdateCoreReference(device.Id, fromTopic.Val)
 	//Invoke the Disable_device API on the adapter
-	if err := rhp.adapter.Disable_device(device); err != nil {
+	if err := rhp.adapter.Disable_device(device, ports); err != nil {
 		return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 	}
 	return new(empty.Empty), nil

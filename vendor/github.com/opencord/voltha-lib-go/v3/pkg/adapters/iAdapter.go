@@ -29,7 +29,7 @@ type IAdapter interface {
 	Adopt_device(device *voltha.Device) error
 	Reconcile_device(device *voltha.Device) error
 	Abandon_device(device *voltha.Device) error
-	Disable_device(device *voltha.Device) error
+	Disable_device(device *voltha.Device, devicePorts *voltha.Ports) error
 	Reenable_device(device *voltha.Device) error
 	Reboot_device(device *voltha.Device) error
 	Self_test_device(device *voltha.Device) error

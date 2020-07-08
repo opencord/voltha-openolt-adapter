@@ -44,20 +44,16 @@ import (
 )
 
 func newMockCoreProxy() *mocks.MockCoreProxy {
-	mcp := mocks.MockCoreProxy{}
-	mcp.Devices = make(map[string]*voltha.Device)
+	mcp := mocks.MockCoreProxy{
+		Devices:     make(map[string]*voltha.Device),
+		DevicePorts: make(map[string][]*voltha.Port),
+	}
 	var pm []*voltha.PmConfig
 	mcp.Devices["olt"] = &voltha.Device{
-
 		Id:           "olt",
 		Root:         true,
 		ParentId:     "logical_device",
 		ParentPortNo: 1,
-
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "nni"},
-		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -73,17 +69,17 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			Metrics:      pm,
 		},
 	}
-	mcp.Devices["onu1"] = &voltha.Device{
+	mcp.DevicePorts["olt"] = []*voltha.Port{
+		{PortNo: 1, Label: "pon"},
+		{PortNo: 2, Label: "nni"},
+	}
 
+	mcp.Devices["onu1"] = &voltha.Device{
 		Id:           "1",
 		Root:         false,
 		ParentId:     "olt",
 		ParentPortNo: 1,
 
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "uni"},
-		},
 		OperStatus: 4,
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			OnuId:          1,
@@ -99,15 +95,16 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			Metrics:      pm,
 		},
 	}
+	mcp.DevicePorts["onu1"] = []*voltha.Port{
+		{PortNo: 1, Label: "pon"},
+		{PortNo: 2, Label: "uni"},
+	}
+
 	mcp.Devices["onu2"] = &voltha.Device{
 		Id:         "2",
 		Root:       false,
 		ParentId:   "olt",
 		OperStatus: 2,
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "uni"},
-		},
 
 		ParentPortNo: 1,
 
@@ -125,6 +122,10 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 			Metrics:      pm,
 		},
 	}
+	mcp.DevicePorts["onu2"] = []*voltha.Port{
+		{PortNo: 1, Label: "pon"},
+		{PortNo: 2, Label: "uni"},
+	}
 	return &mcp
 }
 func newMockDeviceHandler() *DeviceHandler {
@@ -132,10 +133,6 @@ func newMockDeviceHandler() *DeviceHandler {
 		Id:       "olt",
 		Root:     true,
 		ParentId: "logical_device",
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
-			{PortNo: 2, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
-		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -213,6 +210,13 @@ func newMockDeviceHandler() *DeviceHandler {
 
 	dh.metrics = pmmetrics.NewPmMetrics(device.Id, pmmetrics.Frequency(2), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	return dh
+}
+
+func newMockDeviceHandlerPorts() []*voltha.Port {
+	return []*voltha.Port{
+		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
+		{PortNo: 2, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+	}
 }
 
 func negativeDeviceHandler() *DeviceHandler {
@@ -600,6 +604,7 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 	dh2 := negativeDeviceHandler()
 	type args struct {
 		device *voltha.Device
+		ports  []*voltha.Port
 	}
 	tests := []struct {
 		name          string
@@ -607,13 +612,13 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 		args          args
 		wantErr       bool
 	}{
-		{"DisableDevice-1", dh1, args{device: dh1.device}, false},
-		{"DisableDevice-2", dh1, args{device: dh2.device}, true},
+		{"DisableDevice-1", dh1, args{device: dh1.device, ports: newMockDeviceHandlerPorts()}, false},
+		{"DisableDevice-2", dh1, args{device: dh2.device, ports: newMockDeviceHandlerPorts()}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.devicehandler.DisableDevice(tt.args.device); (err != nil) != tt.wantErr {
+			if err := tt.devicehandler.DisableDevice(tt.args.device, tt.args.ports); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.DisableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1126,12 +1131,11 @@ func Test_startCollector(t *testing.T) {
 		dh *DeviceHandler
 	}
 	dh := newMockDeviceHandler()
-	ports := []*voltha.Port{
+	dh.coreProxy.(*mocks.MockCoreProxy).DevicePorts[dh.device.Id] = []*voltha.Port{
 		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
 		{PortNo: 1048577, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 		{PortNo: 1048578, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 	}
-	dh.device.Ports = ports
 	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
 	dh.portStats.NorthBoundPort[1] = &NniPort{Name: "OLT-1"}
 	dh.portStats.NorthBoundPort[2] = &NniPort{Name: "OLT-1"}
@@ -1141,7 +1145,7 @@ func Test_startCollector(t *testing.T) {
 		dh.portStats.SouthBoundPort[uint32(i)] = &PonPort{DeviceID: "OLT-1"}
 	}
 	dh1 := newMockDeviceHandler()
-	dh1.device.Ports = []*voltha.Port{}
+	dh1.coreProxy.(*mocks.MockCoreProxy).DevicePorts[dh.device.Id] = []*voltha.Port{}
 	tests := []struct {
 		name string
 		args args

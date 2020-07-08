@@ -213,12 +213,12 @@ func (oo *OpenOLT) Abandon_device(device *voltha.Device) error {
 }
 
 //Disable_device disables the given device
-func (oo *OpenOLT) Disable_device(device *voltha.Device) error {
+func (oo *OpenOLT) Disable_device(device *voltha.Device, ports *voltha.Ports) error {
 	logger.Infow("disable-device", log.Fields{"deviceId": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
-		return handler.DisableDevice(device)
+		return handler.DisableDevice(device, ports.Items)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil).Log()
 }
 
 //Reenable_device enables the olt device after disable

@@ -25,6 +25,10 @@ package core
 import (
 	"context"
 	"errors"
+	"reflect"
+	"sync"
+	"testing"
+
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
@@ -35,9 +39,6 @@ import (
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
-	"reflect"
-	"sync"
-	"testing"
 )
 
 // mocks the OpenOLT struct.
@@ -81,14 +82,10 @@ func testOltObject(testOlt *fields) *OpenOLT {
 
 // mockDevice mocks Device.
 func mockDevice() *voltha.Device {
-	device := &voltha.Device{
+	return &voltha.Device{
 		Id:       "olt",
 		Root:     true,
 		ParentId: "logical_device",
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "nni"},
-		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -97,7 +94,13 @@ func mockDevice() *voltha.Device {
 		},
 		ConnectStatus: 1,
 	}
-	return device
+}
+
+func mockDevicePorts() *voltha.Ports {
+	return &voltha.Ports{Items: []*voltha.Port{
+		{PortNo: 1, Label: "pon"},
+		{PortNo: 2, Label: "nni"},
+	}}
 }
 
 func TestNewOpenOLT(t *testing.T) {
@@ -311,6 +314,7 @@ func TestOpenOLT_Device_types(t *testing.T) {
 func TestOpenOLT_Disable_device(t *testing.T) {
 	type args struct {
 		device *voltha.Device
+		ports  *voltha.Ports
 	}
 	tests := []struct {
 		name    string
@@ -318,14 +322,14 @@ func TestOpenOLT_Disable_device(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"disable_device-1", mockOlt(), args{mockDevice()}, nil},
-		{"disable_device-2", &fields{}, args{mockDevice()},
+		{"disable_device-1", mockOlt(), args{mockDevice(), mockDevicePorts()}, nil},
+		{"disable_device-2", &fields{}, args{mockDevice(), mockDevicePorts()},
 			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Disable_device(tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if err := oo.Disable_device(tt.args.device, tt.args.ports); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Disable_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

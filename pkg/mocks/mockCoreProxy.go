@@ -30,7 +30,8 @@ import (
 type MockCoreProxy struct {
 	// Values to be used in test can reside inside this structure
 	// TODO store relevant info in this, use this info for negative and positive tests
-	Devices map[string]*voltha.Device
+	Devices     map[string]*voltha.Device
+	DevicePorts map[string][]*voltha.Port
 }
 
 // UpdateCoreReference mock updatesCoreReference
@@ -95,6 +96,25 @@ func (mcp *MockCoreProxy) DeleteAllPorts(ctx context.Context, deviceID string) e
 		return errors.New("no Device id")
 	}
 	return nil
+}
+
+// GetDevicePort implements mock GetDevicePort
+func (mcp *MockCoreProxy) GetDevicePort(ctx context.Context, deviceID string, portID uint32) (*voltha.Port, error) {
+	for _, port := range mcp.DevicePorts[deviceID] {
+		if port.PortNo == portID {
+			return port, nil
+		}
+	}
+	return nil, errors.New("device/port not found")
+}
+
+// ListDevicePorts implements mock ListDevicePorts
+func (mcp *MockCoreProxy) ListDevicePorts(ctx context.Context, deviceID string) ([]*voltha.Port, error) {
+	ports, have := mcp.DevicePorts[deviceID]
+	if !have {
+		return nil, errors.New("device id not found")
+	}
+	return ports, nil
 }
 
 // DeviceStateUpdate implements mock DeviceStateUpdate
