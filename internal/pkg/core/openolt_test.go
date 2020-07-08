@@ -25,6 +25,10 @@ package core
 import (
 	"context"
 	"errors"
+	"reflect"
+	"sync"
+	"testing"
+
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
@@ -35,9 +39,6 @@ import (
 	"github.com/opencord/voltha-protos/v3/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
-	"reflect"
-	"sync"
-	"testing"
 )
 
 // mocks the OpenOLT struct.
@@ -81,14 +82,10 @@ func testOltObject(testOlt *fields) *OpenOLT {
 
 // mockDevice mocks Device.
 func mockDevice() *voltha.Device {
-	device := &voltha.Device{
+	return &voltha.Device{
 		Id:       "olt",
 		Root:     true,
 		ParentId: "logical_device",
-		Ports: []*voltha.Port{
-			{PortNo: 1, Label: "pon"},
-			{PortNo: 2, Label: "nni"},
-		},
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -97,7 +94,6 @@ func mockDevice() *voltha.Device {
 		},
 		ConnectStatus: 1,
 	}
-	return device
 }
 
 func TestNewOpenOLT(t *testing.T) {
