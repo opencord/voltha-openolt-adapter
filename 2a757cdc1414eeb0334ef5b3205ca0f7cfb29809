@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1cd4a9df_f47c6ba9",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-07-13T21:54:58Z",
+      "side": 1,
+      "message": "Is there a return missing on error?",
+      "revId": "2a757cdc1414eeb0334ef5b3205ca0f7cfb29809",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
