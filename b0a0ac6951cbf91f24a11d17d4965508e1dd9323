@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50c74818_55a7459f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1485,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-07-13T15:53:01Z",
+      "side": 1,
+      "message": "The existing PortStateUpdate() updates only a specific port.",
+      "revId": "b0a0ac6951cbf91f24a11d17d4965508e1dd9323",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
