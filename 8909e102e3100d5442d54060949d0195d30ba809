@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5810e20a_dfa74ca2",
+        "filename": "VERSION",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-13T15:26:06Z",
+      "side": 1,
+      "message": "This should either remain at 2.5.0-dev or change to 2.5.0 (not 2.5.1-dev)",
+      "revId": "8909e102e3100d5442d54060949d0195d30ba809",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
