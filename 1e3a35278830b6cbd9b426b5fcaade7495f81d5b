@@ -22,6 +22,30 @@
       "revId": "1e3a35278830b6cbd9b426b5fcaade7495f81d5b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35bfc959_3fdefe48",
+        "filename": "cmd/openolt-adapter/profile.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000675
+      },
+      "writtenOn": "2020-07-13T15:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91751e12_56487135",
+      "range": {
+        "startLine": 30,
+        "startChar": 15,
+        "endLine": 30,
+        "endChar": 18
+      },
+      "revId": "1e3a35278830b6cbd9b426b5fcaade7495f81d5b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
