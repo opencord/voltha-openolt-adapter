@@ -16,6 +16,24 @@
       "revId": "8909e102e3100d5442d54060949d0195d30ba809",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd996b99_33348fc0",
+        "filename": "VERSION",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-07-13T15:30:04Z",
+      "side": 1,
+      "message": "Ok, I will fix it. I just though that 2.5.0-dev could case a tag collision.",
+      "parentUuid": "5810e20a_dfa74ca2",
+      "revId": "8909e102e3100d5442d54060949d0195d30ba809",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
