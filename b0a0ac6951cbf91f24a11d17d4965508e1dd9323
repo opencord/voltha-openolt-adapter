@@ -16,6 +16,24 @@
       "revId": "b0a0ac6951cbf91f24a11d17d4965508e1dd9323",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20b76929_e82a5889",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1485,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-13T16:13:37Z",
+      "side": 1,
+      "message": "\u003c\u003cdiscussion of this ongoing in the related voltha-protos patch\u003e\u003e",
+      "parentUuid": "50c74818_55a7459f",
+      "revId": "b0a0ac6951cbf91f24a11d17d4965508e1dd9323",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
