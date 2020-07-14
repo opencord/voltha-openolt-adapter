@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -93,19 +94,17 @@ const (
 	bitsForONUID = 8
 	// Number of bits for PON ID
 	bitsForPONID = 8
-	// Number of bits to differentiate between UNI and NNI Logical Port
-	bitsForUNINNIDiff = 1
-	//MaxOnusPerPon is Max number of ONUs on any PON port
+	// MaxOnusPerPon is Max number of ONUs on any PON port
 	MaxOnusPerPon = (1 << bitsForONUID)
-	//MaxPonsPerOlt is Max number of PON ports on any OLT
+	// MaxPonsPerOlt is Max number of PON ports on any OLT
 	MaxPonsPerOlt = (1 << bitsForPONID)
-	//MaxUnisPerOnu is the Max number of UNI ports on any ONU
+	// MaxUnisPerOnu is the Max number of UNI ports on any ONU
 	MaxUnisPerOnu = (1 << bitsForUniID)
-	//Bit position where the differentiation bit is located
+	// Bit position where the differentiation bit is located
 	nniUniDiffPos = (bitsForUniID + bitsForONUID + bitsForPONID)
-	//Bit position where the marker for PON port type of OF port is present
+	// Bit position where the marker for PON port type of OF port is present
 	ponIntfMarkerPos = 28
-	//Value of marker used to distinguish PON port type of OF port
+	// Value of marker used to distinguish PON port type of OF port
 	ponIntfMarkerValue = 0x2
 	// Number of bits for NNI ID
 	bitsforNNIID = 20
