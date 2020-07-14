@@ -87,18 +87,6 @@ func (oo *OpenOLT) Stop(ctx context.Context) error {
 	return nil
 }
 
-func sendResponse(ctx context.Context, ch chan interface{}, result interface{}) {
-	if ctx.Err() == nil {
-		// Returned response only of the ctx has not been canceled/timeout/etc
-		// Channel is automatically closed when a context is Done
-		ch <- result
-		logger.Debugw(ctx, "sendResponse", log.Fields{"result": result})
-	} else {
-		// Should the transaction be reverted back?
-		logger.Debugw(ctx, "sendResponse-context-error", log.Fields{"context-error": ctx.Err()})
-	}
-}
-
 func (oo *OpenOLT) addDeviceHandlerToMap(agent *DeviceHandler) {
 	oo.lockDeviceHandlersMap.Lock()
 	defer oo.lockDeviceHandlersMap.Unlock()
@@ -118,18 +106,6 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 	defer oo.lockDeviceHandlersMap.Unlock()
 	if agent, ok := oo.deviceHandlers[deviceID]; ok {
 		return agent
-	}
-	return nil
-}
-
-//createDeviceTopic returns
-func (oo *OpenOLT) createDeviceTopic(ctx context.Context, device *voltha.Device) error {
-	logger.Infow(ctx, "create-device-topic", log.Fields{"deviceId": device.Id})
-	defaultTopic := oo.kafkaICProxy.GetDefaultTopic()
-	deviceTopic := kafka.Topic{Name: defaultTopic.Name + "_" + device.Id}
-	// TODO for the offset
-	if err := oo.kafkaICProxy.SubscribeWithDefaultRequestHandler(ctx, deviceTopic, 0); err != nil {
-		return olterrors.NewErrAdapter("subscribe-for-device-topic-failed", log.Fields{"device-topic": deviceTopic}, err)
 	}
 	return nil
 }
