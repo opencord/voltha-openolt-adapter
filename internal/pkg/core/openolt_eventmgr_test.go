@@ -19,11 +19,12 @@ package core
 
 import (
 	"context"
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
+	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 )
 
 func mockEventMgr() *OpenOltEventMgr {
@@ -158,7 +159,8 @@ func TestOpenOltEventMgr_OnuDiscoveryIndication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			em.OnuDiscoveryIndication(context.Background(), tt.args.onuDisc, tt.args.oltDeviceID, tt.args.onuDeviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
+			_ = em.OnuDiscoveryIndication(context.Background(), tt.args.onuDisc, tt.args.oltDeviceID, tt.args.onuDeviceID, tt.args.OnuID, tt.args.serialNumber, tt.args.raisedTs)
+			//TODO: actually verify test cases
 		})
 	}
 }

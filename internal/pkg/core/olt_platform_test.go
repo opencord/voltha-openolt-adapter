@@ -200,8 +200,7 @@ func TestIntfIDToPortTypeName(t *testing.T) {
 	type args struct {
 		intfID uint32
 	}
-	var input uint32
-	input = uint32(2*math.Pow(2, 28)) | 3
+	input := uint32(2*math.Pow(2, 28)) | 3
 	tests := []struct {
 		name string
 		args args

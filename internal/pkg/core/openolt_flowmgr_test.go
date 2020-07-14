@@ -45,7 +45,7 @@ import (
 var flowMgr *OpenOltFlowMgr
 
 func init() {
-	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
+	_, _ = log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
 	flowMgr = newMockFlowmgr()
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
@@ -134,16 +134,6 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	flowmetadata := &voltha.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	}
-	type args struct {
-		Dir          tp_pb.Direction
-		IntfID       uint32
-		OnuID        uint32
-		UniID        uint32
-		UniPort      uint32
-		TpInst       *tp.TechProfile
-		MeterID      uint32
-		flowMetadata *voltha.FlowMetadata
-	}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
@@ -192,14 +182,6 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 	tprofile2.DsScheduler.AdditionalBw = "AdditionalBW_None"
 	tprofile2.DsScheduler.QSchedPolicy = "WRR"
 	//defTprofile := &tp.DefaultTechProfile{}
-	type args struct {
-		Dir     tp_pb.Direction
-		IntfID  uint32
-		OnuID   uint32
-		UniID   uint32
-		UniPort uint32
-		TpInst  *tp.TechProfile
-	}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
@@ -352,7 +334,9 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.RemoveFlow(ctx, tt.args.flow)
+			if err := flowMgr.RemoveFlow(ctx, tt.args.flow); err != nil {
+				logger.Warn(ctx, err)
+			}
 		})
 	}
 	// t.Error("=====")
@@ -597,7 +581,8 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
+			_ = flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
+			// TODO: actually verify test cases
 		})
 	}
 }
@@ -617,7 +602,8 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 		for j := 0; j < onuCount; j++ {
 			wg.Add(1)
 			go func(i uint32, j uint32) {
-				flwMgr.UpdateOnuInfo(ctx, i, i, fmt.Sprintf("onu-%d", i))
+				// TODO: actually verify success
+				_ = flwMgr.UpdateOnuInfo(ctx, i, i, fmt.Sprintf("onu-%d", i))
 				wg.Done()
 			}(uint32(i), uint32(j))
 		}
@@ -641,7 +627,8 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 	// Create OnuInfo
 	for i := 0; i < intfNum; i++ {
 		for o := 0; o < onuNum; o++ {
-			flowMgr.UpdateOnuInfo(ctx, uint32(i), uint32(o), fmt.Sprintf("i%do%d", i, o))
+			// TODO: actually verify success
+			_ = flowMgr.UpdateOnuInfo(ctx, uint32(i), uint32(o), fmt.Sprintf("i%do%d", i, o))
 		}
 	}
 
@@ -716,7 +703,8 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flwMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			// TODO: should check returned errors are as expected?
+			_ = flwMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
 			for _, gemPort := range tt.args.gemPortIDs {
 				flwMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
@@ -1008,11 +996,6 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		},
 	}
 
-	type fields struct {
-		techprofile   []tp.TechProfileIf
-		deviceHandler *DeviceHandler
-		resourceMgr   *rsrcMgr.OpenOltResourceMgr
-	}
 	type args struct {
 		args           map[string]uint32
 		classifierInfo map[string]interface{}
@@ -1030,9 +1013,8 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		uni            string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "checkAndAddFlow-1",
