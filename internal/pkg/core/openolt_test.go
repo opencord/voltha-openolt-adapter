@@ -26,7 +26,6 @@ import (
 	"context"
 	"errors"
 	"reflect"
-	"sync"
 	"testing"
 
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
@@ -43,17 +42,16 @@ import (
 
 // mocks the OpenOLT struct.
 type fields struct {
-	deviceHandlers        map[string]*DeviceHandler
-	coreProxy             *com.CoreProxy
-	adapterProxy          *com.AdapterProxy
-	eventProxy            *com.EventProxy
-	kafkaICProxy          kafka.InterContainerProxy
-	numOnus               int
-	KVStoreAddress        string
-	KVStoreType           string
-	exitChannel           chan int
-	lockDeviceHandlersMap sync.RWMutex
-	ctx                   context.Context
+	deviceHandlers map[string]*DeviceHandler
+	coreProxy      *com.CoreProxy
+	adapterProxy   *com.AdapterProxy
+	eventProxy     *com.EventProxy
+	kafkaICProxy   kafka.InterContainerProxy
+	numOnus        int
+	KVStoreAddress string
+	KVStoreType    string
+	exitChannel    chan int
+	ctx            context.Context
 }
 
 // mockOlt mocks OpenOLT struct.
@@ -728,7 +726,9 @@ func TestOpenOLT_Stop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			oo.Start(tt.args.ctx)
+			if err := oo.Start(tt.args.ctx); err != nil {
+				t.Error(err)
+			}
 			if err := oo.Stop(tt.args.ctx); err != nil {
 				t.Errorf("Stop() error = %v, wantErr %v", err, tt.wantErr)
 			}

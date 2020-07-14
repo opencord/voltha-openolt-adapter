@@ -288,12 +288,9 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 	metricNames := StatMgr.Device.metrics.GetSubscriberMetrics()
 
 	var metrics []string
-
-	if metricNames != nil && len(metricNames) > 0 {
-		for metric := range metricNames {
-			if metricNames[metric].Enabled {
-				metrics = append(metrics, metric)
-			}
+	for metric := range metricNames {
+		if metricNames[metric].Enabled {
+			metrics = append(metrics, metric)
 		}
 	}
 
@@ -332,12 +329,9 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 	metricNames := StatMgr.Device.metrics.GetSubscriberMetrics()
 
 	var metrics []string
-
-	if metricNames != nil && len(metricNames) > 0 {
-		for metric := range metricNames {
-			if metricNames[metric].Enabled {
-				metrics = append(metrics, metric)
-			}
+	for metric := range metricNames {
+		if metricNames[metric].Enabled {
+			metrics = append(metrics, metric)
 		}
 	}
 

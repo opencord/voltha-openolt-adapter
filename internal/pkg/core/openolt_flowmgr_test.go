@@ -41,7 +41,7 @@ import (
 var flowMgr *OpenOltFlowMgr
 
 func init() {
-	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
+	_, _ = log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
 	flowMgr = newMockFlowmgr()
 }
 func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
@@ -126,16 +126,6 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	flowmetadata := &voltha.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	}
-	type args struct {
-		Dir          tp_pb.Direction
-		IntfID       uint32
-		OnuID        uint32
-		UniID        uint32
-		UniPort      uint32
-		TpInst       *tp.TechProfile
-		MeterID      uint32
-		flowMetadata *voltha.FlowMetadata
-	}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
@@ -184,14 +174,6 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 	tprofile2.DsScheduler.AdditionalBw = "AdditionalBW_None"
 	tprofile2.DsScheduler.QSchedPolicy = "WRR"
 	//defTprofile := &tp.DefaultTechProfile{}
-	type args struct {
-		Dir     tp_pb.Direction
-		IntfID  uint32
-		OnuID   uint32
-		UniID   uint32
-		UniPort uint32
-		TpInst  *tp.TechProfile
-	}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
@@ -344,7 +326,9 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.RemoveFlow(ctx, tt.args.flow)
+			if err := flowMgr.RemoveFlow(ctx, tt.args.flow); err != nil {
+				logger.Warn(ctx, err)
+			}
 		})
 	}
 	// t.Error("=====")
@@ -589,7 +573,8 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
+			_ = flowMgr.AddFlow(ctx, tt.args.flow, tt.args.flowMetadata)
+			// TODO: actually verify test cases
 		})
 	}
 }
@@ -613,8 +598,8 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			_ = flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			// TODO: actually verify test cases
 		})
 	}
 }
@@ -648,7 +633,8 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			// TODO: should check returned errors are as expected?
+			_ = flowMgr.UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
 			for _, gemPort := range tt.args.gemPortIDs {
 				flowMgr.addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
@@ -903,11 +889,6 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		},
 	}
 
-	type fields struct {
-		techprofile   []tp.TechProfileIf
-		deviceHandler *DeviceHandler
-		resourceMgr   *rsrcMgr.OpenOltResourceMgr
-	}
 	type args struct {
 		args           map[string]uint32
 		classifierInfo map[string]interface{}
@@ -925,9 +906,8 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		uni            string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "checkAndAddFlow-1",
@@ -1021,7 +1001,9 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 	defer cancel()
 	//create group
 	group := newGroup(2, []uint32{1})
-	flowMgr.AddGroup(ctx, group)
+	if err := flowMgr.AddGroup(ctx, group); err != nil {
+		t.Error(err)
+	}
 
 	//create multicast flow
 	multicastFlowArgs := &fu.FlowArgs{
@@ -1037,10 +1019,14 @@ func TestOpenOltFlowMgr_TestMulticastFlow(t *testing.T) {
 		},
 	}
 	ofpStats, _ := fu.MkFlowStat(multicastFlowArgs)
-	flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
+
+	// TODO: should check returned error is as expected?
+	_ = flowMgr.AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
 
 	//add bucket to the group
 	group = newGroup(2, []uint32{1, 2})
 
-	flowMgr.ModifyGroup(ctx, group)
+	if err := flowMgr.ModifyGroup(ctx, group); err != nil {
+		t.Error(err)
+	}
 }
