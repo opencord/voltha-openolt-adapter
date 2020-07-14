@@ -25,13 +25,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
 	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -567,7 +566,8 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.sendProxiedMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
+			_ = tt.devicehandler.sendProxiedMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
+			//TODO: actually verify test cases
 		})
 	}
 }
@@ -591,7 +591,8 @@ func TestDeviceHandler_SendPacketInToCore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.SendPacketInToCore(context.Background(), tt.args.logicalPort, tt.args.packetPayload)
+			_ = tt.devicehandler.SendPacketInToCore(context.Background(), tt.args.logicalPort, tt.args.packetPayload)
+			//TODO: actually verify test cases
 		})
 	}
 }
@@ -613,7 +614,6 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			if err := tt.devicehandler.DisableDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.DisableDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -784,7 +784,8 @@ func TestDeviceHandler_addPort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state)
+			_ = tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state)
+			//TODO: actually verify test cases
 		})
 	}
 }
@@ -829,7 +830,9 @@ func TestDeviceHandler_handleOltIndication(t *testing.T) {
 			dh := newMockDeviceHandler()
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			dh.handleOltIndication(ctx, tt.args.oltIndication)
+			if err := dh.handleOltIndication(ctx, tt.args.oltIndication); err != nil {
+				t.Error(err)
+			}
 		})
 	}
 }
@@ -856,7 +859,9 @@ func TestDeviceHandler_AdoptDevice(t *testing.T) {
 			//dh.AdoptDevice(tt.args.device)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			tt.devicehandler.postInit(ctx)
+			if err := tt.devicehandler.postInit(ctx); err != nil {
+				t.Error(err)
+			}
 		})
 	}
 }
@@ -882,11 +887,10 @@ func TestDeviceHandler_activateONU(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			tt.devicehandler.activateONU(ctx, tt.args.intfID, tt.args.onuID,
-				tt.args.serialNum, tt.args.serialNumber)
+			_ = tt.devicehandler.activateONU(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum, tt.args.serialNumber)
+			//TODO: actually verify test cases
 		})
 	}
 }
@@ -989,6 +993,7 @@ func TestDeviceHandler_doStateDown(t *testing.T) {
 			defer cancel()
 			if err := tt.devicehandler.doStateDown(ctx); (err != nil) != tt.wantErr {
 				t.Logf("DeviceHandler.doStateDown() error = %v", err)
+				//TODO: should fail this test case (Errorf) if result is not as expected
 			}
 		})
 	}
@@ -1059,7 +1064,8 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			tt.devicehandler.onuDiscIndication(ctx, tt.args.onuDiscInd, tt.args.sn)
+			_ = tt.devicehandler.onuDiscIndication(ctx, tt.args.onuDiscInd, tt.args.sn)
+			//TODO: actually verify test cases
 		})
 	}
 }
@@ -1117,7 +1123,8 @@ func TestDeviceHandler_readIndications(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			tt.devicehandler.readIndications(ctx)
+			_ = tt.devicehandler.readIndications(ctx)
+			// TODO: actually verify test cases
 		})
 	}
 }
