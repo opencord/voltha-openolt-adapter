@@ -486,7 +486,12 @@ func main() {
 
 	realMain()
 
-	defer log.CleanUp()
+	defer func() {
+		err := log.CleanUp()
+		if err != nil {
+			logger.Errorw(context.Background(), "unable-to-flush-any-buffered-log-entries", log.Fields{"error": err})
+		}
+	}()
 
 	// Print version / build information and exit
 	if cf.DisplayVersionOnly {
