@@ -16,6 +16,24 @@
       "revId": "2a757cdc1414eeb0334ef5b3205ca0f7cfb29809",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf363d6a_bce81404",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-14T18:30:11Z",
+      "side": 1,
+      "message": "No, if you look closely at the old logic, even when it fails to find the port (a not-found error in the new implementation) execution is allowed to continue.\n\nIt\u0027s possible that this is an error in the old logic, but I didn\u0027t understand the surrounding logic well enough to be sure.",
+      "parentUuid": "1cd4a9df_f47c6ba9",
+      "revId": "2a757cdc1414eeb0334ef5b3205ca0f7cfb29809",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
