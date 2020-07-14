@@ -22,10 +22,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/db"
 	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
@@ -1158,7 +1159,6 @@ func (RsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, intf
 		logger.Errorw(ctx, "Failed to add uin port in onugem to kv store", log.Fields{"uni": portNo})
 		return
 	}
-	return
 }
 
 //UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno
@@ -1175,8 +1175,6 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pk
 		return
 	}
 	logger.Debugw(ctx, "added gem packet in successfully", log.Fields{"path": path, "gem": gemPort})
-
-	return
 }
 
 // GetGemPortFromOnuPktIn gets the gem port from onu pkt in path, path being intfid, onuid, portno
@@ -1235,7 +1233,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetNNIFromKVStore(ctx context.Context) ([]uin
 	var nni []uint32
 	var Val []byte
 
-	path := fmt.Sprintf(NnniIntfID)
+	path := NnniIntfID
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
 	if err != nil {
 		logger.Error(ctx, "failed to get data from kv store")
@@ -1264,7 +1262,7 @@ func (RsrcMgr *OpenOltResourceMgr) AddNNIToKVStore(ctx context.Context, nniIntf 
 		return err
 	}
 
-	path := fmt.Sprintf(NnniIntfID)
+	path := NnniIntfID
 	nni = append(nni, nniIntf)
 	Value, err = json.Marshal(nni)
 	if err != nil {
@@ -1281,7 +1279,7 @@ func (RsrcMgr *OpenOltResourceMgr) AddNNIToKVStore(ctx context.Context, nniIntf 
 // DelNNiFromKVStore deletes nni interface list from kv store.
 func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore(ctx context.Context) error {
 
-	path := fmt.Sprintf(NnniIntfID)
+	path := NnniIntfID
 
 	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorw(ctx, "Failed to delete nni interfaces from kv store", log.Fields{"path": path})
@@ -1347,9 +1345,7 @@ func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 	defer RsrcMgr.flowIDToGemInfoLock.Unlock()
 	if err = RsrcMgr.KVStore.Put(ctx, path, val); err != nil {
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
-		return
 	}
-	return
 }
 
 //GetFlowIDsGemMapForInterface gets flowids per gemport and interface
@@ -1384,9 +1380,7 @@ func (RsrcMgr *OpenOltResourceMgr) DeleteIntfIDGempMapPath(ctx context.Context, 
 	defer RsrcMgr.flowIDToGemInfoLock.Unlock()
 	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorw(ctx, "Failed to delete nni interfaces from kv store", log.Fields{"path": path})
-		return
 	}
-	return
 }
 
 // RemoveResourceMap Clear resource map associated with (intfid, onuid, uniid) tuple.
@@ -1397,7 +1391,7 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveResourceMap(ctx context.Context, intfID
 
 //GetMcastQueuePerInterfaceMap gets multicast queue info per pon interface
 func (RsrcMgr *OpenOltResourceMgr) GetMcastQueuePerInterfaceMap(ctx context.Context) (map[uint32][]uint32, error) {
-	path := fmt.Sprintf(McastQueuesForIntf)
+	path := McastQueuesForIntf
 	var mcastQueueToIntfMap map[uint32][]uint32
 	var val []byte
 
@@ -1422,7 +1416,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetMcastQueuePerInterfaceMap(ctx context.Cont
 //AddMcastQueueForIntf adds multicast queue for pon interface
 func (RsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, intf uint32, gem uint32, servicePriority uint32) error {
 	var val []byte
-	path := fmt.Sprintf(McastQueuesForIntf)
+	path := McastQueuesForIntf
 
 	mcastQueues, err := RsrcMgr.GetMcastQueuePerInterfaceMap(ctx)
 	if err != nil {

@@ -43,14 +43,14 @@ import (
 )
 
 func init() {
-	log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
+	_, _ = log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
 }
 
 const (
 	// MeterConfig meter to extract meter
 	MeterConfig = "meter_id"
 	// TpIDSuffixPath to extract Techprofile
-	TpIDSuffixPath = "tp_id"
+	// TpIDSuffixPath = "tp_id"
 	// FlowIDInfo to extract flows
 	FlowIDInfo = "flow_id_info"
 	// FlowIds to extract flows

@@ -20,10 +20,11 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/opencord/voltha-protos/v3/go/openolt"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
 	"reflect"
 	"testing"
+
+	"github.com/opencord/voltha-protos/v3/go/openolt"
+	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
 func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
@@ -68,10 +69,8 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		SouthBoundPort map[uint32]*PonPort
 	}
 	type args struct {
-		portType voltha.Port_PortType
-		val      map[string]float32
-		port     *voltha.Port
-		context  map[string]string
+		val  map[string]float32
+		port *voltha.Port
 	}
 	ponmap := map[uint32]*PonPort{}
 	ponmap[0] = &PonPort{
