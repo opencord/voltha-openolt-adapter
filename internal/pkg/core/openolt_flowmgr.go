@@ -3019,7 +3019,7 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 			logicalPortNum = MkUniPortNum(ctx, packetIn.IntfId, onuID, uniID)
 		}
 		// Store the gem port through which the packet_in came. Use the same gem port for packet_out
-		f.UpdateGemPortForPktIn(ctx, packetIn.IntfId, onuID, logicalPortNum, packetIn.GemportId)
+		f.UpdateGemPortForPktIn(ctx, packetIn.IntfId, onuID, logicalPortNum, packetIn.GemportId, packetIn.Pkt)
 	} else if packetIn.IntfType == "nni" {
 		logicalPortNum = IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
@@ -3033,13 +3033,15 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 }
 
 //GetPacketOutGemPortID returns gemPortId
-func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint32, onuID uint32, portNum uint32) (uint32, error) {
+func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint32, onuID uint32, portNum uint32, packet []byte) (uint32, error) {
 	var gemPortID uint32
 	var err error
 
+	priority, ctag := getCTagFromPacket(ctx, packet)
+
 	f.onuGemInfoLock.RLock()
 	defer f.onuGemInfoLock.RUnlock()
-	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum}
+	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: portNum, VlanID: ctag, Priority: priority}
 	var ok bool
 	gemPortID, ok = f.packetInGemPort[pktInkey]
 	if ok {
@@ -3051,7 +3053,7 @@ func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint3
 		return gemPortID, nil
 	}
 	//If gem is not found in cache try to get it from kv store, if found in kv store, update the cache and return.
-	gemPortID, err = f.resourceMgr.GetGemPortFromOnuPktIn(ctx, intfID, onuID, portNum)
+	gemPortID, err = f.resourceMgr.GetGemPortFromOnuPktIn(ctx, pktInkey)
 	if err == nil {
 		if gemPortID != 0 {
 			f.packetInGemPort[pktInkey] = gemPortID
@@ -3792,12 +3794,13 @@ func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action
 }
 
 // UpdateGemPortForPktIn updates gemport for packet-in in to the cache and to the kv store as well.
-func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32) {
+func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32, gemPort uint32, pkt []byte) {
+	priority, cTag := getCTagFromPacket(ctx, pkt)
+	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: logicalPort, VlanID: cTag, Priority: priority}
 
 	f.onuGemInfoLock.Lock()
 	defer f.onuGemInfoLock.Unlock()
 
-	pktInkey := rsrcMgr.PacketInInfoKey{IntfID: intfID, OnuID: onuID, LogicalPort: logicalPort}
 	lookupGemPort, ok := f.packetInGemPort[pktInkey]
 	if ok {
 		if lookupGemPort == gemPort {
@@ -3817,6 +3820,29 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint3
 			"gem":      gemPort})
 	return
 
+}
+
+//getCTagFromPacket
+func getCTagFromPacket(ctx context.Context, packet []byte) (uint8, uint16) {
+	outerEthType := (uint16(packet[12]) << 8) | uint16(packet[13])
+	innerEthType := (uint16(packet[16]) << 8) | uint16(packet[17])
+
+	var index int8
+	if outerEthType == 0x8100 {
+		if innerEthType == 0x8100 {
+			// q-in-q 802.1ad or 802.1q double tagged packet.
+			// get the inner vlanId
+			index = 18
+		} else {
+			index = 14
+		}
+		priority := (packet[index] >> 5) & 0x7
+		//13 bits composes vlanId value
+		vlan := ((uint16(packet[index]) << 8) & 0x0fff) | uint16(packet[index+1])
+		return priority, vlan
+	}
+	logger.Debugf(ctx, "No vlanId found in the packet. Returning zero as c tag")
+	return 0, 0
 }
 
 // AddUniPortToOnuInfo adds uni port to the onugem info both in cache and kvstore.

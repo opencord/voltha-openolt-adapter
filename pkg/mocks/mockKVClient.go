@@ -52,6 +52,8 @@ const (
 	FlowGroup = "flow_groups"
 	//FlowGroupCached flow_groups_cached/<flow_group_id>
 	FlowGroupCached = "flow_groups_cached"
+	//OnuPacketIn to extract gem port from packet-in
+	OnuPacketIn = "onu_packetin"
 )
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -164,11 +166,44 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 
+		if strings.Contains(key, OnuPacketIn) {
+			//parse interface, onu, uni, vlan, priority values
+			arr := getParamsFromPacketInKey(key)
+
+			if len(arr) < 5 {
+				return nil, errors.New("key didn't find")
+			}
+			if arr[0] == "1" && arr[1] == "1" && arr[2] == "3" && arr[3] == "55" && arr[4] == "5" {
+				str, _ := json.Marshal(3)
+				return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+			}
+			if arr[0] == "2" && arr[1] == "2" && arr[2] == "4" && arr[3] == "55" && arr[4] == "5" {
+				str, _ := json.Marshal(4)
+				return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+			}
+			return nil, errors.New("key didn't find")
+		}
+
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
 		return maps[key], nil
 	}
 	return nil, errors.New("key didn't find")
+}
+
+//getParamsFromPacketInKey parse packetIn key that is in the format of "onu_packetin/{1,1,1,1,2}"
+func getParamsFromPacketInKey(key string) []string {
+	//return intfID, onuID, uniID, vlanID, priority
+	firstIndex := strings.Index(key, "{")
+	lastIndex := strings.Index(key, "}")
+	if firstIndex == -1 && lastIndex == -1 {
+		return []string{}
+	}
+	arr := strings.Split(key[firstIndex+1:lastIndex], ",")
+	if len(arr) < 5 {
+		return []string{}
+	}
+	return arr
 }
 
 // Put mock function implementation for KVClient
