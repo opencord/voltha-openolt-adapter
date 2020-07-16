@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -785,24 +786,39 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 1, portNum: 1}, 1, false},
-		{"GetPacketOutGemPortID", args{intfID: 2, onuID: 2, portNum: 2}, 2, false},
-		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 2, portNum: 2}, 0, true},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 1, portNum: 3}, 3, false},
+		{"GetPacketOutGemPortID", args{intfID: 2, onuID: 2, portNum: 4}, 4, false},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 2, portNum: 2}, 2, true},
 	}
+	//IGMP query packet in hex string
+	packetStr := "01005e7e036ddeadbeefba118100a2268100a03708004500001c000000000102ac900af40ef1effe036d1600f693effe036d0000000000000000000068ed"
+	packet, err := hex.DecodeString(packetStr)
+	if err != nil {
+		t.Error("Unable to parse hex string", err)
+		panic(err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum, packet)
+			if tt.wantErr {
+				if err == nil {
+					//error expected but got value
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, wantErr %v", got, tt.wantErr)
+				}
+			} else {
+				if err != nil {
+					//error is not expected but got error
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, want %v", got, tt.want)
+				}
 			}
-			if got != tt.want {
-				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, want %v", got, tt.want)
-			}
-
 		})
 	}
 }

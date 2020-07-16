@@ -46,9 +46,11 @@ const (
 	MeterIDPathSuffix = "{%d,%d,%d}/{%d}/meter_id/{%s}"
 	//NnniIntfID - nniintfids
 	NnniIntfID = "nniintfids"
+	//OnuPacketINPathPrefix to be used as prefix for keys to be used to store packet-in gem ports
+	OnuPacketINPathPrefix = "onu_packetin/{%d,%d,%d"
 	// OnuPacketINPath path on the kvstore to store packetin gemport,which will be used for packetin, pcketout
-	//format: onu_packetin/<intfid>,<onuid>,<logicalport>
-	OnuPacketINPath = "onu_packetin/{%d,%d,%d}"
+	//format: onu_packetin/<intfid>,<onuid>,<logicalport>,<vlanId>,<priority>
+	OnuPacketINPath = OnuPacketINPathPrefix + ",%d,%d}"
 	//FlowIDsForGem flowids_per_gem/<intfid>
 	FlowIDsForGem = "flowids_per_gem/{%d}"
 	//McastQueuesForIntf multicast queues for pon interfaces
@@ -89,6 +91,8 @@ type PacketInInfoKey struct {
 	IntfID      uint32
 	OnuID       uint32
 	LogicalPort uint32
+	VlanID      uint16
+	Priority    uint8
 }
 
 // GroupInfo holds group information
@@ -1161,10 +1165,10 @@ func (RsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, intf
 	return
 }
 
-//UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno
+//UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno, vlan id, priority bit
 func (RsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pktIn PacketInInfoKey, gemPort uint32) {
 
-	path := fmt.Sprintf(OnuPacketINPath, pktIn.IntfID, pktIn.OnuID, pktIn.LogicalPort)
+	path := fmt.Sprintf(OnuPacketINPath, pktIn.IntfID, pktIn.OnuID, pktIn.LogicalPort, pktIn.VlanID, pktIn.Priority)
 	Value, err := json.Marshal(gemPort)
 	if err != nil {
 		logger.Error(ctx, "Failed to marshal data")
@@ -1179,13 +1183,14 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pk
 	return
 }
 
-// GetGemPortFromOnuPktIn gets the gem port from onu pkt in path, path being intfid, onuid, portno
-func (RsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) (uint32, error) {
+// GetGemPortFromOnuPktIn gets the gem port from onu pkt in path, path being intfid, onuid, portno, vlan id, priority bit
+func (RsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, packetInInfoKey PacketInInfoKey) (uint32, error) {
 
 	var Val []byte
 	var gemPort uint32
 
-	path := fmt.Sprintf(OnuPacketINPath, intfID, onuID, logicalPort)
+	path := fmt.Sprintf(OnuPacketINPath, packetInInfoKey.IntfID, packetInInfoKey.OnuID, packetInInfoKey.LogicalPort,
+		packetInInfoKey.VlanID, packetInInfoKey.Priority)
 
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
 	if err != nil {
@@ -1209,13 +1214,25 @@ func (RsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, i
 	return gemPort, nil
 }
 
-// DelGemPortPktIn deletes the gemport from the pkt in path
-func (RsrcMgr *OpenOltResourceMgr) DelGemPortPktIn(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) error {
+//DelGemPortPktInOfAllServices deletes the gemports from  pkt in path for all services
+func (RsrcMgr *OpenOltResourceMgr) DelGemPortPktInOfAllServices(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) error {
 
-	path := fmt.Sprintf(OnuPacketINPath, intfID, onuID, logicalPort)
-	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorf(ctx, "Falied to remove resource %s", path)
-		return err
+	//retrieve stored gem port from the store first.
+	Path := fmt.Sprintf(OnuPacketINPathPrefix, intfID, onuID, logicalPort)
+	logger.Infof(ctx, "getting flows from the path:%s", Path)
+	Value, err := RsrcMgr.KVStore.List(ctx, Path)
+	if err != nil {
+		logger.Errorf(ctx, "failed to get flows from kvstore for path %s", Path)
+		return errors.New("failed to get flows from kvstore for path " + Path)
+	}
+	logger.Infof(ctx, "%d flows retrieved from the path:%s", len(Value), Path)
+
+	//remove them one by one
+	for key := range Value {
+		if err := RsrcMgr.KVStore.Delete(ctx, key); err != nil {
+			logger.Errorf(ctx, "Falied to remove resource %s", key)
+			return err
+		}
 	}
 	return nil
 }
