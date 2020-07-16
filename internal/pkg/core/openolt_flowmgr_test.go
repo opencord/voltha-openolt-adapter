@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -772,10 +773,33 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 	// flwMgr := newMockFlowmgr()
 
+	//untagged packet in hex string
+	untaggedStr := "01005e000002000000000001080046c00020000040000102fa140a000001e00000029404000017000705e10000fa"
+	untagged, err := hex.DecodeString(untaggedStr)
+	if err != nil {
+		t.Error("Unable to parse hex string", err)
+		panic(err)
+	}
+	//single-tagged packet in hex string. vlanID.pbit: 540.0
+	singleTaggedStr := "01005e0000010025ba48172481000225080046c0002000004000010257deab140023e0000001940400001164ee9b0000000000000000000000000000"
+	singleTagged, err := hex.DecodeString(singleTaggedStr)
+	if err != nil {
+		t.Error("Unable to parse hex string", err)
+		panic(err)
+	}
+	//double-tagged packet in hex string. vlanID.pbit: 210.0-48.7
+	doubleTaggedStr := "01005e000016deadbeefba11810002108100e030080046000028000000000102c5b87f000001e0000016940400002200f8030000000104000000e10000fa"
+	doubleTagged, err := hex.DecodeString(doubleTaggedStr)
+	if err != nil {
+		t.Error("Unable to parse hex string", err)
+		panic(err)
+	}
+
 	type args struct {
 		intfID  uint32
 		onuID   uint32
 		portNum uint32
+		packet  []byte
 	}
 	tests := []struct {
 		name    string
@@ -784,24 +808,34 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 1, portNum: 1}, 1, false},
-		{"GetPacketOutGemPortID", args{intfID: 2, onuID: 2, portNum: 2}, 2, false},
-		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 2, portNum: 2}, 0, true},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 1, portNum: 3, packet: untagged}, 3, false},
+		{"GetPacketOutGemPortID", args{intfID: 2, onuID: 2, portNum: 4, packet: singleTagged}, 4, false},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 2, portNum: 2, packet: doubleTagged}, 2, false},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 10, portNum: 10, packet: untagged}, 2, true},
+		{"GetPacketOutGemPortID", args{intfID: 1, onuID: 1, portNum: 3, packet: []byte{}}, 3, true},
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			got, err := flowMgr.GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum, tt.args.packet)
+			if tt.wantErr {
+				if err == nil {
+					//error expected but got value
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, wantErr %v", got, tt.wantErr)
+				}
+			} else {
+				if err != nil {
+					//error is not expected but got error
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if got != tt.want {
+					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, want %v", got, tt.want)
+				}
 			}
-			if got != tt.want {
-				t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, want %v", got, tt.want)
-			}
-
 		})
 	}
 }
