@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71d8f37b_891f392b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 2017,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-16T18:30:24Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 2017,
+        "startChar": 54,
+        "endLine": 2017,
+        "endChar": 60
+      },
+      "revId": "cff3f705268001d0c48306d4b672087abb329192",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d924d0a9_5592db21",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-16T18:30:24Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 569,
+        "startChar": 68,
+        "endLine": 569,
+        "endChar": 76
+      },
+      "revId": "cff3f705268001d0c48306d4b672087abb329192",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84388235_58b606da",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-16T18:30:24Z",
+      "side": 1,
+      "message": "preferably \u0027-\u0027 separated to consistent with other logging.",
+      "range": {
+        "startLine": 569,
+        "startChar": 21,
+        "endLine": 569,
+        "endChar": 53
+      },
+      "revId": "cff3f705268001d0c48306d4b672087abb329192",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f5cfdf3_64aaa39c",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-16T18:30:24Z",
+      "side": 1,
+      "message": "device-id",
+      "range": {
+        "startLine": 571,
+        "startChar": 113,
+        "endLine": 571,
+        "endChar": 121
+      },
+      "revId": "cff3f705268001d0c48306d4b672087abb329192",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
