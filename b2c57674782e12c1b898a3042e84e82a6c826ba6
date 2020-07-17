@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "03fff2e9_9834d2f3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-17T13:53:10Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "cd2ddb40_e1d04fbd",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea5179f4_d1cafe7c",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2020-07-17T08:52:31Z",
       "side": 1,
       "message": "should we return nil here ?",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "075671d7_c646288f",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-17T13:53:10Z",
+      "side": 1,
+      "message": "The old logic allowed the function to continue even if the port was not found on the device.  I tried to leave the logic as-is as much as possible.",
+      "parentUuid": "ea5179f4_d1cafe7c",
       "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
