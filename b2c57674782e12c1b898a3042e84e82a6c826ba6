@@ -69,6 +69,24 @@
       "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c085c905_ddfd3f81",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-17T14:03:03Z",
+      "side": 1,
+      "message": "I see, makes sense. I\u0027d maybe track this with a TODO or a jira story. It does not make too much sense to me that we continue here.",
+      "parentUuid": "075671d7_c646288f",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
