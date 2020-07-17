@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd2ddb40_e1d04fbd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-17T08:52:31Z",
+      "side": 1,
+      "message": "minor: probably worth logging the deviceId too.",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea5179f4_d1cafe7c",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-17T08:52:31Z",
+      "side": 1,
+      "message": "should we return nil here ?",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
