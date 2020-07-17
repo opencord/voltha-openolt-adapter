@@ -87,6 +87,24 @@
       "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f456c43b_786852ee",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-17T14:25:38Z",
+      "side": 1,
+      "message": "Created VOL-3350 to track this.",
+      "parentUuid": "c085c905_ddfd3f81",
+      "revId": "b2c57674782e12c1b898a3042e84e82a6c826ba6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
