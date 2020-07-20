@@ -46,6 +46,30 @@
       "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aea28b0_d1ad3add",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-20T19:37:37Z",
+      "side": 1,
+      "message": "Are you using `make sca`, or a locally installed golangci-lint?  \n\nI\u0027m pretty sure it\u0027s disabled by default in the version of golangci-lint that we\u0027re using.",
+      "parentUuid": "ee6b43b3_b5de63de",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
