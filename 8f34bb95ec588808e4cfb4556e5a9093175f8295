@@ -22,6 +22,30 @@
       "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee6b43b3_b5de63de",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-07-20T18:57:55Z",
+      "side": 1,
+      "message": "The sca check is failing when I used \u0027err:\u003d\u0027 with error as\n\nshadow: declaration of \u0027err\u0027 shadows declaration at line 470\n\nI can use err1 and err2 to localize the variable if that is fine",
+      "parentUuid": "2d068909_72615638",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
