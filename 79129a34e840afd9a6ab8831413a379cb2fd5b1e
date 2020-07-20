@@ -16,6 +16,24 @@
       "revId": "79129a34e840afd9a6ab8831413a379cb2fd5b1e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c25b52c_d2dd8c4a",
+        "filename": "internal/pkg/core/openolt_flowmgr_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-20T21:52:27Z",
+      "side": 1,
+      "message": "Yeah, it is good to have those tests. You do not need to worry about packet data having to make any sense. Just create some random packets with valid headers mac and vlan headers, that\u0027s all.",
+      "parentUuid": "8757475d_2193d8bc",
+      "revId": "79129a34e840afd9a6ab8831413a379cb2fd5b1e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
