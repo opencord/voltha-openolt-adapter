@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18059094_415358ef",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-20T21:06:54Z",
+      "side": 1,
+      "message": "logger?",
+      "revId": "64e26ab329da5b0a822425915ad9ac13102a531b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f867f8b_10a86065",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-07-20T21:06:54Z",
+      "side": 1,
+      "message": "logger?",
+      "revId": "64e26ab329da5b0a822425915ad9ac13102a531b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
