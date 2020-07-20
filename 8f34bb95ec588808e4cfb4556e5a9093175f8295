@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d068909_72615638",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-20T15:25:21Z",
+      "side": 1,
+      "message": "Is better to use `err :\u003d` instead of `err \u003d`, so that the variable is declared in the local scope, and can\u0027t be accidentally accessed outside where it\u0027s intended.",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
