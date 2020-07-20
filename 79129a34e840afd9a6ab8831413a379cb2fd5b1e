@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8757475d_2193d8bc",
+        "filename": "internal/pkg/core/openolt_flowmgr_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2020-07-20T13:16:09Z",
+      "side": 1,
+      "message": "could you please add more test cases to test with different packets? Packets with single tag, no tag, zero length packet, short length packet and very large packet",
+      "revId": "79129a34e840afd9a6ab8831413a379cb2fd5b1e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
