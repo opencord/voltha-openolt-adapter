@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3ddbf68_88c29f72",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1222,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-21T10:07:50Z",
+      "side": 1,
+      "message": "I\u0027d lower this to Debugf",
+      "revId": "614b7db53f2e115d0ebf06d01238f3273a7cca01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee6cd164_b2909ef0",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1228,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-07-21T10:07:50Z",
+      "side": 1,
+      "message": "I\u0027d lower this to Debugf",
+      "revId": "614b7db53f2e115d0ebf06d01238f3273a7cca01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
