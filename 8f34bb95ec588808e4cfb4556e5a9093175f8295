@@ -94,6 +94,30 @@
       "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16f82d50_a95ede73",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-07-21T18:35:20Z",
+      "side": 1,
+      "message": "I thought this was the voltha-go repo, sorry for the confusion.\n\nI actually just changed the golangci-lint config for this repo (merged today), implementing this as in Patchset #11 should now work.",
+      "parentUuid": "2b4f14d5_922ac5dd",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
