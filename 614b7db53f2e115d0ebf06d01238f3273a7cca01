@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b0c587f1_cb96f9fd",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1222,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-07-21T14:37:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3ddbf68_88c29f72",
+      "revId": "614b7db53f2e115d0ebf06d01238f3273a7cca01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee6cd164_b2909ef0",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 7
@@ -33,6 +51,24 @@
       "revId": "614b7db53f2e115d0ebf06d01238f3273a7cca01",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d76bab70_98b64575",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1228,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-07-21T14:37:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ee6cd164_b2909ef0",
+      "revId": "614b7db53f2e115d0ebf06d01238f3273a7cca01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
