@@ -70,6 +70,30 @@
       "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b4f14d5_922ac5dd",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-07-21T03:20:03Z",
+      "side": 1,
+      "message": "I used make sca only. Jenkins build is also failing when I made the changes as per your suggestion. See the console output for failed Patchset 11\n\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/1548/console",
+      "parentUuid": "5aea28b0_d1ad3add",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
