@@ -118,6 +118,30 @@
       "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c8a83d3e_56e1e345",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-07-22T03:40:50Z",
+      "side": 1,
+      "message": "Hi Kent, with the enabling of lint for adapter, SCA is giving error for \"defer closer.Close()\" statement present in my code changes.\n\nThe appropriate way of handling is to add a utility method in utils.go. I have created a small patch for voltha-lib-go covering this change. (https://gerrit.opencord.org/c/voltha-lib-go/+/19842)  Please review and merge that and then build for this patch with work.",
+      "parentUuid": "16f82d50_a95ede73",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 483,
+        "endChar": 2
+      },
+      "revId": "8f34bb95ec588808e4cfb4556e5a9093175f8295",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
