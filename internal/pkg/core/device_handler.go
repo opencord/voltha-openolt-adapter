@@ -46,6 +46,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+        grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+        grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+        "github.com/opentracing/opentracing-go"
 )
 
 // Constants for number of retries and for timeout
@@ -643,7 +646,15 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
-	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(), grpc.WithInsecure(), grpc.WithBlock()); err != nil {
+	if dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
+                                         grpc.WithInsecure(),
+                                         grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+                                                grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+                                        )),
+                                         grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+                                                grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+                                        )),
+					 grpc.WithBlock()); err != nil {
 		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.device.Id,
 			"host-and-port": dh.device.GetHostAndPort()}, err)
