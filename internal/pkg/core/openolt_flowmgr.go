@@ -215,6 +215,7 @@ type OpenOltFlowMgr struct {
 	deviceHandler      *DeviceHandler
 	resourceMgr        *rsrcMgr.OpenOltResourceMgr
 	onuIdsLock         sync.RWMutex
+	perGemPortLock     *mapmutex.Mutex                    // lock to be used to access the flowsUsedByGemPort map
 	flowsUsedByGemPort map[gemPortKey][]uint32            //gem port id to flow ids
 	packetInGemPort    map[rsrcMgr.PacketInInfoKey]uint32 //packet in gem port local cache
 	// TODO create a type rsrcMgr.OnuGemInfos to be used instead of []rsrcMgr.OnuGemInfo
@@ -257,6 +258,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	flowMgr.onuGemInfoLock = sync.RWMutex{}
 	flowMgr.pendingFlowDelete = sync.Map{}
 	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
+	flowMgr.perGemPortLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
 	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//load interface to multicast queue map from kv store
 	flowMgr.loadInterfaceToMulticastQueueMap(ctx)
@@ -280,19 +282,30 @@ func (f *OpenOltFlowMgr) generateStoredFlowID(flowID uint32, direction string) (
 }
 
 func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) {
-	logger.Debugw("registering-flow-for-device ",
-		log.Fields{
-			"flow":      flowFromCore,
-			"device-id": f.deviceHandler.device.Id})
+
 	gemPK := gemPortKey{uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId)}
-	flowIDList, ok := f.flowsUsedByGemPort[gemPK]
-	if !ok {
-		flowIDList = []uint32{deviceFlow.FlowId}
+	if f.perGemPortLock.TryLock(gemPK) {
+		logger.Debugw("registering-flow-for-device",
+			log.Fields{
+				"flow":      flowFromCore,
+				"device-id": f.deviceHandler.device.Id})
+		flowIDList, ok := f.flowsUsedByGemPort[gemPK]
+		if !ok {
+			flowIDList = []uint32{deviceFlow.FlowId}
+		}
+		flowIDList = appendUnique(flowIDList, deviceFlow.FlowId)
+		f.flowsUsedByGemPort[gemPK] = flowIDList
+		// update the flowids for a gem to the KVstore
+		f.resourceMgr.UpdateFlowIDsForGem(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowIDList)
+		f.perGemPortLock.Unlock(gemPK)
+	} else {
+		logger.Error("failed-to-acquire-per-gem-port-lock",
+			log.Fields{
+				"flow":      flowFromCore,
+				"device-id": f.deviceHandler.device.Id,
+				"key":       gemPK,
+			})
 	}
-	flowIDList = appendUnique(flowIDList, deviceFlow.FlowId)
-	f.flowsUsedByGemPort[gemPK] = flowIDList
-	// update the flowids for a gem to the KVstore
-	f.resourceMgr.UpdateFlowIDsForGem(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowIDList)
 }
 
 func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
@@ -2077,24 +2090,42 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 			}
 
 			gemPK := gemPortKey{Intf, uint32(gemPortID)}
-			if f.isGemPortUsedByAnotherFlow(gemPK) {
-				flowIDs := f.flowsUsedByGemPort[gemPK]
-				for i, flowIDinMap := range flowIDs {
-					if flowIDinMap == flowID {
-						flowIDs = append(flowIDs[:i], flowIDs[i+1:]...)
-						// everytime flowsUsedByGemPort cache is updated the same should be updated
-						// in kv store by calling UpdateFlowIDsForGem
-						f.flowsUsedByGemPort[gemPK] = flowIDs
-						f.resourceMgr.UpdateFlowIDsForGem(ctx, Intf, uint32(gemPortID), flowIDs)
-						break
+			used, err := f.isGemPortUsedByAnotherFlow(gemPK)
+			if err != nil {
+				return err
+			}
+			if used {
+				if f.perGemPortLock.TryLock(gemPK) {
+					flowIDs := f.flowsUsedByGemPort[gemPK]
+					for i, flowIDinMap := range flowIDs {
+						if flowIDinMap == flowID {
+							flowIDs = append(flowIDs[:i], flowIDs[i+1:]...)
+							// everytime flowsUsedByGemPort cache is updated the same should be updated
+							// in kv store by calling UpdateFlowIDsForGem
+							f.flowsUsedByGemPort[gemPK] = flowIDs
+							f.resourceMgr.UpdateFlowIDsForGem(ctx, Intf, uint32(gemPortID), flowIDs)
+							break
+						}
 					}
+					logger.Debugw("gem-port-id-is-still-used-by-other-flows",
+						log.Fields{
+							"gemport-id":  gemPortID,
+							"usedByFlows": flowIDs,
+							"device-id":   f.deviceHandler.device.Id})
+					f.perGemPortLock.Unlock(gemPK)
+					return nil
 				}
-				logger.Debugw("gem-port-id-is-still-used-by-other-flows",
+				logger.Error("failed-to-acquire-per-gem-port-lock",
 					log.Fields{
-						"gemport-id":  gemPortID,
-						"usedByFlows": flowIDs,
-						"device-id":   f.deviceHandler.device.Id})
-				return nil
+						"gemport-id": gemPortID,
+						"device-id":  f.deviceHandler.device.Id,
+						"key":        gemPK,
+					})
+				return olterrors.NewErrAdapter("failed-to-acquire-per-gem-port-lock", log.Fields{
+					"gemport-id": gemPortID,
+					"device-id":  f.deviceHandler.device.Id,
+					"key":        gemPK,
+				}, nil)
 			}
 			logger.Debugf("gem-port-id %d is-not-used-by-another-flow--releasing-the-gem-port", gemPortID)
 			f.resourceMgr.RemoveGemPortIDForOnu(ctx, Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
@@ -2105,7 +2136,16 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 			f.onuIdsLock.Lock()
 			//everytime an entry is deleted from flowsUsedByGemPort cache, the same should be updated in kv as well
 			// by calling DeleteFlowIDsForGem
-			delete(f.flowsUsedByGemPort, gemPK)
+			if f.perGemPortLock.TryLock(gemPK) {
+				delete(f.flowsUsedByGemPort, gemPK)
+				f.perGemPortLock.Unlock(gemPK)
+			} else {
+				logger.Error("failed-to-acquire-per-gem-port-lock",
+					log.Fields{
+						"device-id": f.deviceHandler.device.Id,
+						"key":       gemPK,
+					})
+			}
 			f.resourceMgr.DeleteFlowIDsForGem(ctx, Intf, uint32(gemPortID))
 			f.resourceMgr.FreeGemPortID(ctx, Intf, uint32(onuID), uint32(uniID), uint32(gemPortID))
 			f.onuIdsLock.Unlock()
@@ -3525,12 +3565,24 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 	go f.sendTPDownloadMsgToChild(intfID, onuID, uniID, uni, tpID)
 }
 
-func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) bool {
-	flowIDList := f.flowsUsedByGemPort[gemPK]
-	if len(flowIDList) > 1 {
-		return true
+func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPK gemPortKey) (bool, error) {
+	if f.perGemPortLock.TryLock(gemPK) {
+		flowIDList := f.flowsUsedByGemPort[gemPK]
+		f.perGemPortLock.Unlock(gemPK)
+		if len(flowIDList) > 1 {
+			return true, nil
+		}
+		return false, nil
 	}
-	return false
+	logger.Error("failed-to-acquire-per-gem-port-lock",
+		log.Fields{
+			"device-id": f.deviceHandler.device.Id,
+			"key":       gemPK,
+		})
+	return false, olterrors.NewErrAdapter("failed-to-acquire-per-gem-port-lock", log.Fields{
+		"device-id": f.deviceHandler.device.Id,
+		"key":       gemPK,
+	}, nil)
 }
 
 func (f *OpenOltFlowMgr) isTechProfileUsedByAnotherGem(ctx context.Context, ponIntf uint32, onuID uint32, uniID uint32, tpID uint32, tpInst *tp.TechProfile, gemPortID uint32) (bool, uint32) {
@@ -3889,7 +3941,17 @@ func (f *OpenOltFlowMgr) loadFlowIDlistForGem(ctx context.Context, intf uint32) 
 	}
 	for gem, FlowIDs := range flowIDsList {
 		gemPK := gemPortKey{intf, uint32(gem)}
-		f.flowsUsedByGemPort[gemPK] = FlowIDs
+		if f.perGemPortLock.TryLock(gemPK) {
+			f.flowsUsedByGemPort[gemPK] = FlowIDs
+			f.perGemPortLock.Unlock(gemPK)
+		} else {
+			logger.Error("failed-to-acquire-per-gem-port-lock",
+				log.Fields{
+					"intf-id":   intf,
+					"device-id": f.deviceHandler.device.Id,
+					"key":       gemPK,
+				})
+		}
 	}
 	return
 }

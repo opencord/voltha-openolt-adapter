@@ -22,6 +22,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/EagleChen/mapmutex"
 	"io"
 	"net"
 	"strconv"
@@ -107,15 +108,16 @@ type DeviceHandler struct {
 
 //OnuDevice represents ONU related info
 type OnuDevice struct {
-	deviceID      string
-	deviceType    string
-	serialNumber  string
-	onuID         uint32
-	intfID        uint32
-	proxyDeviceID string
-	uniPorts      map[uint32]struct{}
-	losRaised     bool
-	rdiRaised     bool
+	deviceID        string
+	deviceType      string
+	serialNumber    string
+	onuID           uint32
+	intfID          uint32
+	proxyDeviceID   string
+	uniPortsMapLock *mapmutex.Mutex
+	uniPorts        map[uint32]struct{}
+	losRaised       bool
+	rdiRaised       bool
 }
 
 var pmNames = []string{
@@ -138,6 +140,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	device.onuID = onuID
 	device.intfID = intfID
 	device.proxyDeviceID = proxyDevID
+	device.uniPortsMapLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
 	device.uniPorts = make(map[uint32]struct{})
 	device.losRaised = losRaised
 	return &device
@@ -1373,9 +1376,19 @@ func (dh *DeviceHandler) AddUniPortToOnu(intfID, onuID, uniPort uint32) {
 
 	if onuDevice, ok := dh.onus.Load(onuKey); ok {
 		// add it to the uniPort map for the onu device
-		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
-			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
-			logger.Debugw("adding-uni-port", log.Fields{"port": uniPort, "intf-id": intfID, "onuId": onuID})
+		if onuDevice.(*OnuDevice).uniPortsMapLock.TryLock(onuKey) {
+			if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
+				onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
+				logger.Debugw("adding-uni-port", log.Fields{"port": uniPort, "intf-id": intfID, "onu-id": onuID})
+			}
+		} else {
+			log.Error("failed-to-acquire-uni-ports-map-lock", log.Fields{
+				"device-id": dh.device.Id,
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"uni-port":  uniPort,
+				"onu-key":   onuKey,
+			})
 		}
 	}
 }
