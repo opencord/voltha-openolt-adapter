@@ -115,7 +115,6 @@ type OnuDevice struct {
 	onuID         uint32
 	intfID        uint32
 	proxyDeviceID string
-	uniPorts      map[uint32]struct{}
 	losRaised     bool
 	rdiRaised     bool
 }
@@ -140,7 +139,6 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	device.onuID = onuID
 	device.intfID = intfID
 	device.proxyDeviceID = proxyDevID
-	device.uniPorts = make(map[uint32]struct{})
 	device.losRaised = losRaised
 	return &device
 }
@@ -1381,6 +1379,7 @@ func (dh *DeviceHandler) SendPacketInToCore(ctx context.Context, logicalPort uin
 	return nil
 }
 
+<<<<<<< HEAD   (466546 [VOL-3196] Using the latest voltha-lib-go in the openolt ada)
 // AddUniPortToOnu adds the uni port to the onu device
 func (dh *DeviceHandler) AddUniPortToOnu(ctx context.Context, intfID, onuID, uniPort uint32) {
 	onuKey := dh.formOnuKey(intfID, onuID)
@@ -1394,6 +1393,8 @@ func (dh *DeviceHandler) AddUniPortToOnu(ctx context.Context, intfID, onuID, uni
 	}
 }
 
+=======
+>>>>>>> CHANGE (ac032b Adding lock on flowsUsedByGemPort map Adding lock on OnuDevi)
 // UpdatePmConfig updates the pm metrics.
 func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.PmConfigs) {
 
