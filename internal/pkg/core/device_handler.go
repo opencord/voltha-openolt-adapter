@@ -115,7 +115,6 @@ type OnuDevice struct {
 	onuID         uint32
 	intfID        uint32
 	proxyDeviceID string
-	uniPorts      map[uint32]struct{}
 	losRaised     bool
 	rdiRaised     bool
 }
@@ -140,7 +139,6 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	device.onuID = onuID
 	device.intfID = intfID
 	device.proxyDeviceID = proxyDevID
-	device.uniPorts = make(map[uint32]struct{})
 	device.losRaised = losRaised
 	return &device
 }
@@ -1407,19 +1405,6 @@ func (dh *DeviceHandler) SendPacketInToCore(ctx context.Context, logicalPort uin
 		})
 	}
 	return nil
-}
-
-// AddUniPortToOnu adds the uni port to the onu device
-func (dh *DeviceHandler) AddUniPortToOnu(ctx context.Context, intfID, onuID, uniPort uint32) {
-	onuKey := dh.formOnuKey(intfID, onuID)
-
-	if onuDevice, ok := dh.onus.Load(onuKey); ok {
-		// add it to the uniPort map for the onu device
-		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
-			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
-			logger.Debugw(ctx, "adding-uni-port", log.Fields{"port": uniPort, "intf-id": intfID, "onuId": onuID})
-		}
-	}
 }
 
 // UpdatePmConfig updates the pm metrics.
