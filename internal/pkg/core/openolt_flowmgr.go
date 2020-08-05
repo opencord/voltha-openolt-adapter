@@ -3013,7 +3013,7 @@ func (f *OpenOltFlowMgr) getOnuIDfromGemPortMap(intfID uint32, gemPortID uint32)
 	f.onuGemInfoLock.RLock()
 	defer f.onuGemInfoLock.RUnlock()
 
-	logger.Infow("getting-onu-id-from-gem-port-and-pon-port",
+	logger.Debugw("getting-onu-id-from-gem-port-and-pon-port",
 		log.Fields{
 			"device-id":   f.deviceHandler.device.Id,
 			"onu-geminfo": f.onuGemInfo[intfID],
@@ -3064,12 +3064,14 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 	} else if packetIn.IntfType == "nni" {
 		logicalPortNum = IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
-	logger.Infow("retrieved-logicalport-from-packet-in",
-		log.Fields{
-			"logical-port-num": logicalPortNum,
-			"intf-type":        packetIn.IntfType,
-			"packet":           hex.EncodeToString(packetIn.Pkt),
-		})
+	if logger.V(log.InfoLevel) {
+		logger.Infow("retrieved-logicalport-from-packet-in",
+			log.Fields{
+				"logical-port-num": logicalPortNum,
+				"intf-type":        packetIn.IntfType,
+				"packet":           hex.EncodeToString(packetIn.Pkt),
+			})
+	}
 	return logicalPortNum, nil
 }
 
