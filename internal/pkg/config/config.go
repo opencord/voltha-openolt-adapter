@@ -54,6 +54,7 @@ const (
 	defaultTraceEnabled          = false
 	defaultTraceAgentAddress     = "127.0.0.1:6831"
 	defaultLogCorrelationEnabled = true
+	defaultOmccEncryption        = false
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -83,6 +84,7 @@ type AdapterFlags struct {
 	TraceEnabled                bool
 	TraceAgentAddress           string
 	LogCorrelationEnabled       bool
+	OmccEncryption              bool
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -110,6 +112,7 @@ func NewAdapterFlags() *AdapterFlags {
 		TraceEnabled:                defaultTraceEnabled,
 		TraceAgentAddress:           defaultTraceAgentAddress,
 		LogCorrelationEnabled:       defaultLogCorrelationEnabled,
+		OmccEncryption:              defaultOmccEncryption,
 	}
 	return &adapterFlags
 }
@@ -185,6 +188,9 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Whether to enrich log statements with fields denoting operation being executed for achieving correlation?")
 	flag.BoolVar(&(so.LogCorrelationEnabled), "log_correlation_enabled", defaultLogCorrelationEnabled, help)
+
+	help = fmt.Sprintf("OMCI Channel encryption status")
+	flag.BoolVar(&(so.OmccEncryption), "omcc_encryption", defaultOmccEncryption, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
