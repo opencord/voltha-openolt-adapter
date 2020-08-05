@@ -1745,13 +1745,15 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	if err := dh.coreProxy.SendPacketIn(context.TODO(), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
 		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
 			"destination": "core",
+			"logical-port-num": logicalPortNum,
 			"source":      dh.device.Type,
 			"device-id":   dh.device.Id,
 			"packet":      hex.EncodeToString(packetIn.Pkt),
 		}, err)
 	}
-	if logger.V(log.DebugLevel) {
-		logger.Debugw("success-sending-packet-in-to-core!", log.Fields{
+	if logger.V(log.InfoLevel) {
+		logger.Infow("success-sending-packet-in-to-core!", log.Fields{
+			"logical-port-num": logicalPortNum,
 			"packet":    hex.EncodeToString(packetIn.Pkt),
 			"device-id": dh.device.Id,
 		})
