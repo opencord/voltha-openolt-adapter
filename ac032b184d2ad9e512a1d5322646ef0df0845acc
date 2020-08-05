@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8705adc1_3d258bb9",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2020-08-05T23:07:03Z",
+      "side": 1,
+      "message": "have to admit i am concerned about these values being hard coded. feel like they should be configurable via env vars (12 factor). the question is are they globally configured, i.e. all locks the same, or is it possible to configure the gem lock separate from the user flow lock?",
+      "range": {
+        "startLine": 261,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 92
+      },
+      "revId": "ac032b184d2ad9e512a1d5322646ef0df0845acc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
