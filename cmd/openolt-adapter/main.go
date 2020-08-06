@@ -395,7 +395,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {
-		if err := a.coreProxy.RegisterAdapter(context.TODO(), adapterDescription, deviceTypes); err != nil {
+		if err := a.coreProxy.RegisterAdapter(ctx, adapterDescription, deviceTypes); err != nil {
 			logger.Warnw(ctx, "registering-with-core-failed", log.Fields{"error": err})
 			if retries == count {
 				return err
