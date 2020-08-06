@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "737d29f9_2f2477af",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "Don\u0027t introduce any functional change for now; use log.WithSpanFromContext()",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b497f59_b3371fe3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "Do not make any functional change, use log.WithSpanFromContext(context.TODO(), ctx) only",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9435d529_6be766a1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "Same as above",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "742dcdd4_50b4c5c1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "Same as above",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20ea9fd3_17679d31",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "Use consistent naming. We have used lowercase and hyphen in other span names; let us use the same format here e.g. interface-indication, interface-oper-indication etc.\n\nIn each case, there is logger Infow statement which is printing the correct name of received indication; we should use that for span name for clarity",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76d57afa_27365e9a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 749,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-06T14:55:46Z",
+      "side": 1,
+      "message": "use WithSpanFromContext",
+      "revId": "556a4a00fa08140003bd963672460c629b9745ee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
