@@ -22,6 +22,30 @@
       "revId": "ac032b184d2ad9e512a1d5322646ef0df0845acc",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edf3f869_1b3f18ee",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-08-06T02:19:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8705adc1_3d258bb9",
+      "range": {
+        "startLine": 261,
+        "startChar": 0,
+        "endLine": 261,
+        "endChar": 92
+      },
+      "revId": "ac032b184d2ad9e512a1d5322646ef0df0845acc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
