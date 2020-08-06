@@ -1584,7 +1584,7 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 		"flow":      *deviceFlow,
 		"device-id": f.deviceHandler.device.Id,
 		"intf-id":   intfID})
-	_, err := f.deviceHandler.Client.FlowAdd(context.Background(), deviceFlow)
+	_, err := f.deviceHandler.Client.FlowAdd(log.WithSpanFromContext(context.Background(), ctx), deviceFlow)
 
 	st, _ := status.FromError(err)
 	if st.Code() == codes.AlreadyExists {
@@ -1625,7 +1625,7 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(ctx context.Context, deviceFlow *o
 		log.Fields{
 			"flow":      *deviceFlow,
 			"device-id": f.deviceHandler.device.Id})
-	_, err := f.deviceHandler.Client.FlowRemove(context.Background(), deviceFlow)
+	_, err := f.deviceHandler.Client.FlowRemove(log.WithSpanFromContext(context.Background(), ctx), deviceFlow)
 	if err != nil {
 		if f.deviceHandler.device.ConnectStatus == common.ConnectStatus_UNREACHABLE {
 			logger.Warnw(ctx, "can-not-remove-flow-from-device--unreachable",
@@ -1831,7 +1831,7 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(ctx context.Context, intfID ui
 		log.Fields{
 			"msg":       *delGemPortMsg,
 			"device-id": f.deviceHandler.device.Id})
-	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		delGemPortMsg,
 		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
 		f.deviceHandler.device.Type,
@@ -1872,7 +1872,7 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 		log.Fields{
 			"msg":       *delTcontMsg,
 			"device-id": f.deviceHandler.device.Id})
-	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		delTcontMsg,
 		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
 		f.deviceHandler.device.Type,
@@ -2807,7 +2807,7 @@ func (f *OpenOltFlowMgr) performGroupOperation(ctx context.Context, group *openo
 		log.Fields{
 			"groupToOlt": group,
 			"command":    group.Command})
-	_, err := f.deviceHandler.Client.PerformGroupOperation(context.Background(), group)
+	_, err := f.deviceHandler.Client.PerformGroupOperation(log.WithSpanFromContext(context.Background(), ctx), group)
 	if err != nil {
 		return olterrors.NewErrAdapter("group-operation-failed", log.Fields{"groupToOlt": group}, err)
 	}
@@ -2879,7 +2879,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	tpPath := f.getTPpath(ctx, intfID, uni, TpID)
 	tpDownloadMsg := &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID, Path: tpPath}
 	logger.Debugw(ctx, "sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": *tpDownloadMsg})
-	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(context.Background(),
+	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		tpDownloadMsg,
 		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
 		f.deviceHandler.device.Type,

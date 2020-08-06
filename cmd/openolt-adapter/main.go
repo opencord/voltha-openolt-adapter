@@ -395,7 +395,7 @@ func (a *adapter) registerWithCore(ctx context.Context, retries int) error {
 	deviceTypes := &voltha.DeviceTypes{Items: types}
 	count := 0
 	for {
-		if err := a.coreProxy.RegisterAdapter(context.TODO(), adapterDescription, deviceTypes); err != nil {
+		if err := a.coreProxy.RegisterAdapter(log.WithSpanFromContext(context.TODO(), ctx), adapterDescription, deviceTypes); err != nil {
 			logger.Warnw(ctx, "registering-with-core-failed", log.Fields{"error": err})
 			if retries == count {
 				return err
@@ -489,7 +489,7 @@ func main() {
 	defer func() {
 		err := log.CleanUp()
 		if err != nil {
-			logger.Errorw(context.Background(), "unable-to-flush-any-buffered-log-entries", log.Fields{"error": err})
+			logger.Errorw(log.WithSpanFromContext(context.Background(), ctx), "unable-to-flush-any-buffered-log-entries", log.Fields{"error": err})
 		}
 	}()
 
@@ -506,7 +506,7 @@ func main() {
 
 	logger.Infow(ctx, "config", log.Fields{"config": *cf})
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(log.WithSpanFromContext(context.Background(), ctx))
 	defer cancel()
 
 	ad := newAdapter(cf)
