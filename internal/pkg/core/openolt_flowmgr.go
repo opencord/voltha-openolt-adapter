@@ -1066,7 +1066,6 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 	classifier[UDPSrc] = uint32(68)
 	classifier[UDPDst] = uint32(67)
 	classifier[PacketTagType] = SingleTag
-	delete(classifier, VlanVid)
 
 	flowStoreCookie := getFlowStoreCookie(ctx, classifier, gemPortID)
 	if present := f.resourceMgr.IsFlowCookieOnKVStore(ctx, uint32(intfID), int32(onuID), int32(uniID), flowStoreCookie); present {
