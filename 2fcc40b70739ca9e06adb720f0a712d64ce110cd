@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23a049d5_089d7e2b",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-11T06:01:04Z",
+      "side": 1,
+      "message": "This WithSpanFromContext call is not needed",
+      "revId": "2fcc40b70739ca9e06adb720f0a712d64ce110cd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19b2e987_9e486cf6",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-11T06:01:04Z",
+      "side": 1,
+      "message": "This WithSpanFromContext call is not needed",
+      "revId": "2fcc40b70739ca9e06adb720f0a712d64ce110cd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cea19de6_caf31fb3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-11T06:01:04Z",
+      "side": 1,
+      "message": "Enrich the span at the time of creation itself by passing 3rd argument as log.Fields{\"device-id\": dh.device.Id}\n\nSame comment for all other CreateChildSpan methods here",
+      "revId": "2fcc40b70739ca9e06adb720f0a712d64ce110cd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
