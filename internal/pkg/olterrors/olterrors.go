@@ -89,17 +89,23 @@ func (e *ErrAdapter) Unwrap() error {
 // Error returns a string representation of the error
 func (e *ErrAdapter) Error() string {
 	var buf strings.Builder
-	buf.WriteString(e.name)
+	_, er := buf.WriteString(e.name)
+	if er != nil {
+		log.Error(er)
+	}
 	if len(e.fields) > 0 {
 		if val, err := json.Marshal(e.fields); err == nil {
-			buf.WriteString(": [")
-			buf.WriteString(string(val))
-			buf.WriteString("]")
+			_, er = buf.WriteString(fmt.Sprintf(": [%s]", string(val)))
+			if er != nil {
+				log.Error(er)
+			}
 		}
 	}
 	if e.wrapped != nil {
-		buf.WriteString(": ")
-		buf.WriteString(e.wrapped.Error())
+		_, er = buf.WriteString(fmt.Sprintf(": %s", e.wrapped.Error()))
+		if er != nil {
+			log.Error(er)
+		}
 	}
 	return buf.String()
 }
