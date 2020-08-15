@@ -85,9 +85,9 @@ type DeviceHandler struct {
 	Client        oop.OpenoltClient
 	transitionMap *TransitionMap
 	clientCon     *grpc.ClientConn
-	flowMgr       *OpenOltFlowMgr
-	eventMgr      *OpenOltEventMgr
+	flowMgr       []*OpenOltFlowMgr // One instance per PON port
 	resourceMgr   *rsrcMgr.OpenOltResourceMgr
+	eventMgr      *OpenOltEventMgr
 
 	discOnus                      sync.Map
 	onus                          sync.Map
@@ -131,6 +131,24 @@ var pmNames = []string{
 	"tx_bcast_packets",
 }
 
+// start the device handler
+func (dh *DeviceHandler) start(ctx context.Context) {
+	logger.Debug(ctx, "device-agent-started")
+}
+
+// stop stops the device device handler. Sends signal on the exit channel
+func (dh *DeviceHandler) stop(ctx context.Context) {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	logger.Debug(ctx, "stopping-device-agent")
+	dh.exitChannel <- 1
+	logger.Debug(ctx, "device-agent-stopped")
+}
+
+//////////////////////////////////////////////
+//            EXPORTED FUNCTIONS            //
+//////////////////////////////////////////////
+
 //NewOnuDevice creates a new Onu Device
 func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxyDevID string, losRaised bool) *OnuDevice {
 	var device OnuDevice
@@ -167,23 +185,823 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	return &dh
 }
 
-// start save the device to the data model
-func (dh *DeviceHandler) start(ctx context.Context) {
-	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
-	logger.Debugw(ctx, "starting-device-agent", log.Fields{"device": dh.device})
-	// Add the initial device to the local model
-	logger.Debug(ctx, "device-agent-started")
+//GetportLabel returns the label for the NNI and the PON port based on port number and port type
+func GetportLabel(portNum uint32, portType voltha.Port_PortType) (string, error) {
+
+	switch portType {
+	case voltha.Port_ETHERNET_NNI:
+		return fmt.Sprintf("nni-%d", portNum), nil
+	case voltha.Port_PON_OLT:
+		return fmt.Sprintf("pon-%d", portNum), nil
+	}
+
+	return "", olterrors.NewErrInvalidValue(log.Fields{"port-type": portType}, nil)
 }
 
-// stop stops the device dh.  Not much to do for now
-func (dh *DeviceHandler) stop(ctx context.Context) {
+//AdoptDevice adopts the OLT device
+func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
+	dh.transitionMap = NewTransitionMap(dh)
+	logger.Infow(ctx, "adopt-device", log.Fields{"device-id": device.Id, "Address": device.GetHostAndPort()})
+	dh.transitionMap.Handle(ctx, DeviceInit)
+
+	// Now, set the initial PM configuration for that device
+	if err := dh.coreProxy.DevicePMConfigUpdate(ctx, dh.metrics.ToPmConfigs()); err != nil {
+		_ = olterrors.NewErrAdapter("error-updating-performance-metrics", log.Fields{"device-id": device.Id}, err).LogAt(log.ErrorLevel)
+	}
+
+	go startHeartbeatCheck(ctx, dh)
+}
+
+//GetOfpDeviceInfo Gets the Ofp information of the given device
+func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapability, error) {
+	return &ic.SwitchCapability{
+		Desc: &of.OfpDesc{
+			MfrDesc:   "VOLTHA Project",
+			HwDesc:    "open_pon",
+			SwDesc:    "open_pon",
+			SerialNum: dh.device.SerialNumber,
+		},
+		SwitchFeatures: &of.OfpSwitchFeatures{
+			NBuffers: 256,
+			NTables:  2,
+			Capabilities: uint32(of.OfpCapabilities_OFPC_FLOW_STATS |
+				of.OfpCapabilities_OFPC_TABLE_STATS |
+				of.OfpCapabilities_OFPC_PORT_STATS |
+				of.OfpCapabilities_OFPC_GROUP_STATS),
+		},
+	}, nil
+}
+
+//ProcessInterAdapterMessage sends the proxied messages to the target device
+// If the proxy address is not found in the unmarshalled message, it first fetches the onu device for which the message
+// is meant, and then send the unmarshalled omci message to this onu
+func (dh *DeviceHandler) ProcessInterAdapterMessage(ctx context.Context, msg *ic.InterAdapterMessage) error {
+	logger.Debugw(ctx, "process-inter-adapter-message", log.Fields{"msgID": msg.Header.Id})
+	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
+		msgID := msg.Header.Id
+		fromTopic := msg.Header.FromTopic
+		toTopic := msg.Header.ToTopic
+		toDeviceID := msg.Header.ToDeviceId
+		proxyDeviceID := msg.Header.ProxyDeviceId
+
+		logger.Debugw(ctx, "omci-request-message-header", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+
+		msgBody := msg.GetBody()
+
+		omciMsg := &ic.InterAdapterOmciMessage{}
+		if err := ptypes.UnmarshalAny(msgBody, omciMsg); err != nil {
+			return olterrors.NewErrAdapter("cannot-unmarshal-omci-msg-body", log.Fields{"msgbody": msgBody}, err)
+		}
+
+		if omciMsg.GetProxyAddress() == nil {
+			onuDevice, err := dh.coreProxy.GetDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, toDeviceID)
+			if err != nil {
+				return olterrors.NewErrNotFound("onu", log.Fields{
+					"device-id":     dh.device.Id,
+					"onu-device-id": toDeviceID}, err)
+			}
+			logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+			if err := dh.sendProxiedMessage(ctx, onuDevice, omciMsg); err != nil {
+				return olterrors.NewErrCommunication("send-failed", log.Fields{
+					"device-id":     dh.device.Id,
+					"onu-device-id": toDeviceID}, err)
+			}
+		} else {
+			logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+			if err := dh.sendProxiedMessage(ctx, nil, omciMsg); err != nil {
+				return olterrors.NewErrCommunication("send-failed", log.Fields{
+					"device-id":     dh.device.Id,
+					"onu-device-id": toDeviceID}, err)
+			}
+		}
+	} else {
+		return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil)
+	}
+	return nil
+}
+
+//UpdateFlowsBulk upates the bulk flow
+func (dh *DeviceHandler) UpdateFlowsBulk() error {
+	return olterrors.ErrNotImplemented
+}
+
+//GetChildDevice returns the child device for given parent port and onu id
+func (dh *DeviceHandler) GetChildDevice(ctx context.Context, parentPort, onuID uint32) (*voltha.Device, error) {
+	logger.Debugw(ctx, "getchilddevice",
+		log.Fields{"pon-port": parentPort,
+			"onu-id":    onuID,
+			"device-id": dh.device.Id})
+	kwargs := make(map[string]interface{})
+	kwargs["onu_id"] = onuID
+	kwargs["parent_port_no"] = parentPort
+	onuDevice, err := dh.coreProxy.GetChildDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, kwargs)
+	if err != nil {
+		return nil, olterrors.NewErrNotFound("onu-device", log.Fields{
+			"intf-id": parentPort,
+			"onu-id":  onuID}, err)
+	}
+	logger.Debugw(ctx, "successfully-received-child-device-from-core", log.Fields{"child-device-id": onuDevice.Id, "child-device-sn": onuDevice.SerialNumber})
+	return onuDevice, nil
+}
+
+// SendPacketInToCore sends packet-in to core
+// For this, it calls SendPacketIn of the core-proxy which uses a device specific topic to send the request.
+// The adapter handling the device creates a device specific topic
+func (dh *DeviceHandler) SendPacketInToCore(ctx context.Context, logicalPort uint32, packetPayload []byte) error {
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "send-packet-in-to-core", log.Fields{
+			"port":      logicalPort,
+			"packet":    hex.EncodeToString(packetPayload),
+			"device-id": dh.device.Id,
+		})
+	}
+	if err := dh.coreProxy.SendPacketIn(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, logicalPort, packetPayload); err != nil {
+		return olterrors.NewErrCommunication("packet-send-failed", log.Fields{
+			"source":       "adapter",
+			"destination":  "core",
+			"device-id":    dh.device.Id,
+			"logical-port": logicalPort,
+			"packet":       hex.EncodeToString(packetPayload)}, err)
+	}
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "sent-packet-in-to-core-successfully", log.Fields{
+			"packet":    hex.EncodeToString(packetPayload),
+			"device-id": dh.device.Id,
+		})
+	}
+	return nil
+}
+
+// AddUniPortToOnu adds the uni port to the onu device
+func (dh *DeviceHandler) AddUniPortToOnu(ctx context.Context, intfID, onuID, uniPort uint32) {
+	onuKey := dh.formOnuKey(intfID, onuID)
+
+	if onuDevice, ok := dh.onus.Load(onuKey); ok {
+		// add it to the uniPort map for the onu device
+		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
+			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
+			logger.Debugw(ctx, "adding-uni-port", log.Fields{"port": uniPort, "intf-id": intfID, "onuId": onuID})
+		}
+	}
+}
+
+// UpdatePmConfig updates the pm metrics.
+func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.PmConfigs) {
+	logger.Infow(ctx, "update-pm-configs", log.Fields{"device-id": dh.device.Id, "pm-configs": pmConfigs})
+
+	if pmConfigs.DefaultFreq != dh.metrics.ToPmConfigs().DefaultFreq {
+		dh.metrics.UpdateFrequency(pmConfigs.DefaultFreq)
+		logger.Debugf(ctx, "frequency-updated")
+	}
+
+	if !pmConfigs.Grouped {
+		metrics := dh.metrics.GetSubscriberMetrics()
+		for _, m := range pmConfigs.Metrics {
+			metrics[m.Name].Enabled = m.Enabled
+
+		}
+	}
+}
+
+//UpdateFlowsIncrementally updates the device flow
+func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
+
+	var errorsList []error
+
+	if flows != nil {
+		for _, flow := range flows.ToRemove.Items {
+			dh.incrementActiveFlowRemoveCount(ctx, flow)
+
+			logger.Debugw(ctx, "removing-flow",
+				log.Fields{"device-id": device.Id,
+					"flowToRemove": flow})
+			err := dh.flowMgr.RemoveFlow(ctx, flow)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
+
+			dh.decrementActiveFlowRemoveCount(ctx, flow)
+		}
+
+		for _, flow := range flows.ToAdd.Items {
+			logger.Debugw(ctx, "adding-flow",
+				log.Fields{"device-id": device.Id,
+					"flowToAdd": flow})
+			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
+			dh.waitForFlowRemoveToFinish(ctx, flow)
+			err := dh.flowMgr.AddFlow(ctx, flow, flowMetadata)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
+		}
+	}
+
+	// Whether we need to synchronize multicast group adds and modifies like flow add and delete needs to be investigated
+	if groups != nil {
+		for _, group := range groups.ToAdd.Items {
+			err := dh.flowMgr.AddGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
+		}
+		for _, group := range groups.ToUpdate.Items {
+			err := dh.flowMgr.ModifyGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
+		}
+		for _, group := range groups.ToRemove.Items {
+			err := dh.flowMgr.DeleteGroup(ctx, group)
+			if err != nil {
+				errorsList = append(errorsList, err)
+			}
+		}
+	}
+	if len(errorsList) > 0 {
+		return fmt.Errorf("errors-installing-flows-groups, errors:%v", errorsList)
+	}
+	logger.Debugw(ctx, "updated-flows-incrementally-successfully", log.Fields{"device-id": dh.device.Id})
+	return nil
+}
+
+//DisableDevice disables the given device
+//It marks the following for the given device:
+//Device-Handler Admin-State : down
+//Device Port-State: UNKNOWN
+//Device Oper-State: UNKNOWN
+func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Device) error {
+	/* On device disable ,admin state update has to be done prior sending request to agent since
+	   the indication thread may processes invalid  indications of ONU and OLT*/
+	if dh.Client != nil {
+		if _, err := dh.Client.DisableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
+			if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+				return olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": device.Id}, err)
+			}
+		}
+	}
+	logger.Debugw(ctx, "olt-disabled", log.Fields{"device-id": device.Id})
+	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
+	UNREACHABLE state which needs to be configured again*/
+
+	dh.discOnus = sync.Map{}
+	dh.onus = sync.Map{}
+
+	//stopping the stats collector
+	dh.stopCollector <- true
+
+	go dh.notifyChildDevices(ctx, "unreachable")
+	cloned := proto.Clone(device).(*voltha.Device)
+	//Update device Admin state
+	dh.device = cloned
+	// Update the all pon ports state on that device to disable and NNI remains active as NNI remains active in openolt agent.
+	if err := dh.coreProxy.PortsStateUpdate(log.WithSpanFromContext(context.TODO(), ctx), cloned.Id, ^uint32(1<<voltha.Port_PON_OLT), voltha.OperStatus_UNKNOWN); err != nil {
+		return olterrors.NewErrAdapter("ports-state-update-failed", log.Fields{"device-id": device.Id}, err)
+	}
+	logger.Debugw(ctx, "disable-device-end", log.Fields{"device-id": device.Id})
+	return nil
+}
+
+func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
+	// Update onu state as unreachable in onu adapter
+	onuInd := oop.OnuIndication{}
+	onuInd.OperState = state
+	//get the child device for the parent device
+	onuDevices, err := dh.coreProxy.GetChildDevices(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id)
+	if err != nil {
+		logger.Errorw(ctx, "failed-to-get-child-devices-information", log.Fields{"device-id": dh.device.Id, "error": err})
+	}
+	if onuDevices != nil {
+		for _, onuDevice := range onuDevices.Items {
+			err := dh.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.TODO(), ctx), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
+				"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			if err != nil {
+				logger.Errorw(ctx, "failed-to-send-inter-adapter-message", log.Fields{"OnuInd": onuInd,
+					"From Adapter": "openolt", "DeviceType": onuDevice.Type, "device-id": onuDevice.Id})
+			}
+
+		}
+	}
+
+}
+
+//ReenableDevice re-enables the olt device after disable
+//It marks the following for the given device:
+//Device-Handler Admin-State : up
+//Device Port-State: ACTIVE
+//Device Oper-State: ACTIVE
+func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
+	if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
+		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+			return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err)
+		}
+	}
+	logger.Debug(ctx, "olt-reenabled")
+
+	// Update the all ports state on that device to enable
+
+	ports, err := dh.coreProxy.ListDevicePorts(ctx, device.Id)
+	if err != nil {
+		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device": device.Id}, err)
+	}
+	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
+		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
+	}
+	//Update the device oper status as ACTIVE
+	device.OperStatus = voltha.OperStatus_ACTIVE
+	dh.device = device
+
+	if err := dh.coreProxy.DeviceStateUpdate(log.WithSpanFromContext(context.TODO(), ctx), device.Id, device.ConnectStatus, device.OperStatus); err != nil {
+		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
+			"device-id":      device.Id,
+			"connect-status": device.ConnectStatus,
+			"oper-status":    device.OperStatus}, err)
+	}
+
+	logger.Debugw(ctx, "reenabledevice-end", log.Fields{"device-id": device.Id})
+
+	return nil
+}
+
+// DeleteDevice deletes the device instance from openolt handler array.  Also clears allocated resource manager resources.  Also reboots the OLT hardware!
+func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device) error {
+	logger.Debug(ctx, "function-entry-delete-device")
+	/* Clear the KV store data associated with the all the UNI ports
+	   This clears up flow data and also resource map data for various
+	   other pon resources like alloc_id and gemport_id
+	*/
+	go dh.cleanupDeviceResources(ctx)
+	logger.Debug(ctx, "removed-device-from-Resource-manager-KV-store")
+	// Stop the Stats collector
+	dh.stopCollector <- true
+	// stop the heartbeat check routine
+	dh.stopHeartbeatCheck <- true
+	//Reset the state
+	if dh.Client != nil {
+		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
+			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		}
+	}
+	cloned := proto.Clone(device).(*voltha.Device)
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
+			"device-id":      device.Id,
+			"connect-status": cloned.ConnectStatus,
+			"oper-status":    cloned.OperStatus}, err).Log()
+	}
+	return nil
+}
+
+//RebootDevice reboots the given device
+func (dh *DeviceHandler) RebootDevice(ctx context.Context, device *voltha.Device) error {
+	if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
+		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	logger.Debugw(ctx, "rebooted-device-successfully", log.Fields{"device-id": device.Id})
+	return nil
+}
+
+func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "received-packet-in", log.Fields{
+			"packet-indication": *packetIn,
+			"device-id":         dh.device.Id,
+			"packet":            hex.EncodeToString(packetIn.Pkt),
+		})
+	}
+	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
+	if err != nil {
+		return olterrors.NewErrNotFound("logical-port", log.Fields{"packet": hex.EncodeToString(packetIn.Pkt)}, err)
+	}
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "sending-packet-in-to-core", log.Fields{
+			"logical-port-num": logicalPortNum,
+			"device-id":        dh.device.Id,
+			"packet":           hex.EncodeToString(packetIn.Pkt),
+		})
+	}
+
+	if err := dh.coreProxy.SendPacketIn(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
+		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
+			"destination": "core",
+			"source":      dh.device.Type,
+			"device-id":   dh.device.Id,
+			"packet":      hex.EncodeToString(packetIn.Pkt),
+		}, err)
+	}
+
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "success-sending-packet-in-to-core!", log.Fields{
+			"packet":    hex.EncodeToString(packetIn.Pkt),
+			"device-id": dh.device.Id,
+		})
+	}
+	return nil
+}
+
+// PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
+func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet *of.OfpPacketOut) error {
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "incoming-packet-out", log.Fields{
+			"device-id":      dh.device.Id,
+			"egress-port-no": egressPortNo,
+			"pkt-length":     len(packet.Data),
+			"packet":         hex.EncodeToString(packet.Data),
+		})
+	}
+
+	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
+	if egressPortType == voltha.Port_ETHERNET_UNI {
+		outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
+		innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
+		if outerEthType == 0x8942 || outerEthType == 0x88cc {
+			// Do not packet-out lldp packets on uni port.
+			// ONOS has no clue about uni/nni ports, it just packets out on all
+			// available ports on the Logical Switch. It should not be interested
+			// in the UNI links.
+			logger.Debugw(ctx, "dropping-lldp-packet-out-on-uni", log.Fields{
+				"device-id": dh.device.Id,
+			})
+			return nil
+		}
+		if outerEthType == 0x88a8 || outerEthType == 0x8100 {
+			if innerEthType == 0x8100 {
+				// q-in-q 802.1ad or 802.1q double tagged packet.
+				// slice out the outer tag.
+				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
+				if logger.V(log.DebugLevel) {
+					logger.Debugw(ctx, "packet-now-single-tagged", log.Fields{
+						"packet-data": hex.EncodeToString(packet.Data),
+						"device-id":   dh.device.Id,
+					})
+				}
+			}
+		}
+		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
+		onuID := OnuIDFromPortNum(uint32(egressPortNo))
+		uniID := UniIDFromPortNum(uint32(egressPortNo))
+
+		gemPortID, err := dh.flowMgr.GetPacketOutGemPortID(ctx, intfID, onuID, uint32(egressPortNo), packet.Data)
+		if err != nil {
+			// In this case the openolt agent will receive the gemPortID as 0.
+			// The agent tries to retrieve the gemPortID in this case.
+			// This may not always succeed at the agent and packetOut may fail.
+			logger.Errorw(ctx, "failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"uni-id":    uniID,
+				"packet":    hex.EncodeToString(packet.Data),
+				"device-id": dh.device.Id,
+			})
+		}
+
+		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
+
+		if logger.V(log.DebugLevel) {
+			logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
+				"egress-port-no": egressPortNo,
+				"intf-id":        intfID,
+				"onu-id":         onuID,
+				"uni-id":         uniID,
+				"gem-port-id":    gemPortID,
+				"packet":         hex.EncodeToString(packet.Data),
+				"device-id":      dh.device.Id,
+			})
+		}
+
+		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
+			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
+				"source":             "adapter",
+				"destination":        "onu",
+				"egress-port-number": egressPortNo,
+				"intf-id":            intfID,
+				"oni-id":             onuID,
+				"uni-id":             uniID,
+				"gem-port-id":        gemPortID,
+				"packet":             hex.EncodeToString(packet.Data),
+				"device-id":          dh.device.Id,
+			}, err)
+		}
+	} else if egressPortType == voltha.Port_ETHERNET_NNI {
+		nniIntfID, err := IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
+		if err != nil {
+			return olterrors.NewErrInvalidValue(log.Fields{
+				"egress-nni-port": egressPortNo,
+				"device-id":       dh.device.Id,
+			}, err)
+		}
+		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
+
+		if logger.V(log.DebugLevel) {
+			logger.Debugw(ctx, "sending-packet-to-nni", log.Fields{
+				"uplink-pkt": uplinkPkt,
+				"packet":     hex.EncodeToString(packet.Data),
+				"device-id":  dh.device.Id,
+			})
+		}
+
+		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
+			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
+				"packet":    hex.EncodeToString(packet.Data),
+				"device-id": dh.device.Id,
+			}, err)
+		}
+	} else {
+		logger.Warnw(ctx, "packet-out-to-this-interface-type-not-implemented", log.Fields{
+			"egress-port-no": egressPortNo,
+			"egressPortType": egressPortType,
+			"packet":         hex.EncodeToString(packet.Data),
+			"device-id":      dh.device.Id,
+		})
+	}
+	return nil
+}
+
+// EnablePort to enable Pon interface
+func (dh *DeviceHandler) EnablePort(ctx context.Context, port *voltha.Port) error {
+	logger.Debugw(ctx, "enable-port", log.Fields{"Device": dh.device, "port": port})
+	return dh.modifyPhyPort(ctx, port, true)
+}
+
+// DisablePort to disable pon interface
+func (dh *DeviceHandler) DisablePort(ctx context.Context, port *voltha.Port) error {
+	logger.Debugw(ctx, "disable-port", log.Fields{"Device": dh.device, "port": port})
+	return dh.modifyPhyPort(ctx, port, false)
+}
+
+// ChildDeviceLost deletes ONU and clears pon resources related to it.
+func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32) error {
+	logger.Debugw(ctx, "child-device-lost", log.Fields{"pdeviceID": dh.device.Id})
+	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
+	onuKey := dh.formOnuKey(intfID, onuID)
+	onuDevice, ok := dh.onus.Load(onuKey)
+	if !ok {
+		return olterrors.NewErrAdapter("failed-to-load-onu-details",
+			log.Fields{
+				"device-id": dh.device.Id,
+				"onu-id":    onuID,
+				"intf-id":   intfID}, nil).Log()
+	}
+	var sn *oop.SerialNumber
+	var err error
+	if sn, err = dh.deStringifySerialNumber(onuDevice.(*OnuDevice).serialNumber); err != nil {
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
+			log.Fields{
+				"devicer-id":    dh.device.Id,
+				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
+	}
+
+	for uniID := 0; uniID < MaxUnisPerOnu; uniID++ {
+		var flowRemoveData pendingFlowRemoveData
+		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uint32(uniID)}
+		dh.lockDevice.RLock()
+		if flowRemoveData, ok = dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
+			dh.lockDevice.RUnlock()
+			continue
+		}
+		dh.lockDevice.RUnlock()
+
+		log.Debugw("wait-for-flow-remove-complete-before-processing-child-device-lost",
+			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
+		// Wait for all flow removes to finish first
+		<-flowRemoveData.allFlowsRemoved
+		log.Debugw("flow-removes-complete-for-subscriber",
+			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
+	}
+
+	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
+	if _, err := dh.Client.DeleteOnu(log.WithSpanFromContext(context.Background(), ctx), onu); err != nil {
+		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
+			"device-id": dh.device.Id,
+			"onu-id":    onuID}, err).Log()
+	}
+	//clear PON resources associated with ONU
+	var onuGemData []rsrcMgr.OnuGemInfo
+	if onuMgr, ok := dh.resourceMgr.ResourceMgrs[intfID]; !ok {
+		logger.Warnw(ctx, "failed-to-get-resource-manager-for-interface-Id", log.Fields{
+			"device-id": dh.device.Id,
+			"intf-id":   intfID})
+	} else {
+		if err := onuMgr.GetOnuGemInfo(ctx, intfID, &onuGemData); err != nil {
+			logger.Warnw(ctx, "failed-to-get-onu-info-for-pon-port", log.Fields{
+				"device-id": dh.device.Id,
+				"intf-id":   intfID,
+				"error":     err})
+		} else {
+			for i, onu := range onuGemData {
+				if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
+					logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
+					if err := dh.clearUNIData(ctx, &onu); err != nil {
+						logger.Warnw(ctx, "failed-to-clear-uni-data-for-onu", log.Fields{
+							"device-id":  dh.device.Id,
+							"onu-device": onu,
+							"error":      err})
+					}
+					// Clear flowids for gem cache.
+					for _, gem := range onu.GemPorts {
+						dh.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gem)
+					}
+					onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
+					err := onuMgr.AddOnuGemInfo(ctx, intfID, onuGemData)
+					if err != nil {
+						logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
+							"intf-id":    intfID,
+							"onu-device": onu,
+							"onu-gem":    onuGemData,
+							"error":      err})
+						//Not returning error on cleanup.
+					}
+					logger.Debugw(ctx, "removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGemData})
+					dh.resourceMgr.FreeonuID(ctx, intfID, []uint32{onu.OnuID})
+					break
+				}
+			}
+		}
+	}
+	dh.onus.Delete(onuKey)
+	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
+	return nil
+}
+
+// StoreOnuDevice stores the onu parameters to the local cache.
+func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
+	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
+	dh.onus.Store(onuKey, onuDevice)
+}
+
+//////////////////////////////////////////////
+//      DEVICE STATE HANDLER FUNCTIONS      //
+//////////////////////////////////////////////
+
+// doStateUp handle the olt up indication and update to voltha core
+func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
+	//starting the stat collector
+	go startCollector(ctx, dh)
+
+	// Synchronous call to update device state - this method is run in its own go routine
+	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
+		voltha.OperStatus_ACTIVE); err != nil {
+		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	return nil
+}
+
+// doStateDown handle the olt down indication
+func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	dh.lockDevice.Lock()
 	defer dh.lockDevice.Unlock()
-	logger.Debug(ctx, "stopping-device-agent")
-	dh.exitChannel <- 1
-	logger.Debug(ctx, "device-agent-stopped")
+	logger.Debugw(ctx, "do-state-down-start", log.Fields{"device-id": dh.device.Id})
+
+	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
+	}
+
+	cloned := proto.Clone(device).(*voltha.Device)
+
+	//Update the device oper state and connection status
+	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	dh.device = cloned
+
+	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err)
+	}
+
+	//get the child device for the parent device
+	onuDevices, err := dh.coreProxy.GetChildDevices(ctx, dh.device.Id)
+	if err != nil {
+		return olterrors.NewErrAdapter("child-device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	for _, onuDevice := range onuDevices.Items {
+
+		// Update onu state as down in onu adapter
+		onuInd := oop.OnuIndication{}
+		onuInd.OperState = "down"
+		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
+			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+		if err != nil {
+			_ = olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
+				"source":        "openolt",
+				"onu-indicator": onuInd,
+				"device-type":   onuDevice.Type,
+				"device-id":     onuDevice.Id}, err).LogAt(log.ErrorLevel)
+			//Do not return here and continue to process other ONUs
+		}
+	}
+	/* Discovered ONUs entries need to be cleared , since after OLT
+	   is up, it starts sending discovery indications again*/
+	dh.discOnus = sync.Map{}
+	logger.Debugw(ctx, "do-state-down-end", log.Fields{"device-id": device.Id})
+	return nil
 }
+
+// doStateInit dial the grpc before going to init state
+func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
+	var err error
+	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
+	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		)),
+		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+		)))
+
+	if err != nil {
+		return olterrors.NewErrCommunication("dial-failure", log.Fields{
+			"device-id":     dh.device.Id,
+			"host-and-port": dh.device.GetHostAndPort()}, err)
+	}
+	return nil
+}
+
+// postInit create olt client instance to invoke RPC on the olt device
+func (dh *DeviceHandler) postInit(ctx context.Context) error {
+	dh.Client = oop.NewOpenoltClient(dh.clientCon)
+	dh.transitionMap.Handle(ctx, GrpcConnected)
+	return nil
+}
+
+// doStateConnected get the device info and update to voltha core
+func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
+	var err error
+	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
+
+	// Case where OLT is disabled and then rebooted.
+	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		/*TODO: needs to handle error scenarios */
+		return olterrors.NewErrAdapter("device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+	}
+	if device.AdminState == voltha.AdminState_DISABLED {
+		logger.Debugln(ctx, "do-state-connected--device-admin-state-down")
+
+		cloned := proto.Clone(device).(*voltha.Device)
+		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
+		cloned.OperStatus = voltha.OperStatus_UNKNOWN
+		dh.device = cloned
+		if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+			return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+
+		// Since the device was disabled before the OLT was rebooted, enforce the OLT to be Disabled after re-connection.
+		_, err = dh.Client.DisableOlt(ctx, new(oop.Empty))
+		if err != nil {
+			return olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+		// We should still go ahead an initialize various device handler modules so that when OLT is re-enabled, we have
+		// all the modules initialized and ready to handle incoming ONUs.
+
+		err = dh.initializeDeviceHandlerModules(ctx)
+		if err != nil {
+			return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+
+		// Start reading indications
+		go func() {
+			if err = dh.readIndications(ctx); err != nil {
+				_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+			}
+		}()
+		return nil
+	}
+
+	ports, err := dh.coreProxy.ListDevicePorts(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id)
+	if err != nil {
+		/*TODO: needs to handle error scenarios */
+		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	dh.populateActivePorts(ctx, ports)
+	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
+		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"ports": ports}, err)
+	}
+
+	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
+		return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+	}
+
+	// Start reading indications
+	go func() {
+		if err := dh.readIndications(ctx); err != nil {
+			_ = olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
+		}
+	}()
+	go dh.updateLocalDevice(ctx)
+
+	if device.PmConfigs != nil {
+		dh.UpdatePmConfig(ctx, device.PmConfigs)
+	}
+	return nil
+}
+
+////////////////////////////////////////////////
+//      INTERNAL or UNEXPORTED FUNCTIONS      //
+////////////////////////////////////////////////
 
 func macifyIP(ip net.IP) string {
 	if len(ip) > 0 {
@@ -242,17 +1060,398 @@ func macAddressToUint32Array(mac string) []uint32 {
 	return result
 }
 
-//GetportLabel returns the label for the NNI and the PON port based on port number and port type
-func GetportLabel(portNum uint32, portType voltha.Port_PortType) (string, error) {
+func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+	var err error
+	var sn *oop.SerialNumber
+	var ID uint32
+	resp := new(voltha.ReturnValues)
+	valueparam := new(oop.ValueParam)
+	ctx = log.WithSpanFromContext(context.Background(), ctx)
+	log.Infow("getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
+		return nil, err
+	}
+	ID = device.ProxyAddress.GetOnuId()
+	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: ID, SerialNumber: sn}
+	valueparam.Onu = &Onu
+	valueparam.Value = value
 
-	switch portType {
-	case voltha.Port_ETHERNET_NNI:
-		return fmt.Sprintf("nni-%d", portNum), nil
-	case voltha.Port_PON_OLT:
-		return fmt.Sprintf("pon-%d", portNum), nil
+	// This API is unsupported until agent patch is added
+	resp.Unsupported = uint32(value)
+	_ = ctx
+
+	// Uncomment this code once agent changes are complete and tests
+	/*
+		resp, err = dh.Client.GetValue(ctx, valueparam)
+		if err != nil {
+			log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
+			return nil, err
+		}
+	*/
+
+	log.Infow("get-ext-value", log.Fields{"resp": resp, "device-id": dh.device, "onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	return resp, nil
+}
+
+func extractOmciTransactionID(omciPkt []byte) uint16 {
+	if len(omciPkt) > 3 {
+		d := omciPkt[0:2]
+		transid := binary.BigEndian.Uint16(d)
+		return transid
+	}
+	return 0
+}
+
+func getInPortFromFlow(flow *of.OfpFlowStats) uint32 {
+	for _, field := range flows.GetOfbFields(flow) {
+		if field.Type == flows.IN_PORT {
+			return field.GetPort()
+		}
+	}
+	return InvalidPort
+}
+
+func getOutPortFromFlow(flow *of.OfpFlowStats) uint32 {
+	for _, action := range flows.GetActions(flow) {
+		if action.Type == flows.OUTPUT {
+			if out := action.GetOutput(); out != nil {
+				return out.GetPort()
+			}
+		}
+	}
+	return InvalidPort
+}
+
+func (dh *DeviceHandler) incrementActiveFlowRemoveCount(ctx context.Context, flow *of.OfpFlowStats) {
+	inPort, outPort := getPorts(flow)
+	logger.Debugw(ctx, "increment-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
+		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
+		logger.Debugw(ctx, "increment-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+
+		dh.lockDevice.Lock()
+		defer dh.lockDevice.Unlock()
+		flowRemoveData, ok := dh.pendingFlowRemoveDataPerSubscriber[key]
+		if !ok {
+			flowRemoveData = pendingFlowRemoveData{
+				pendingFlowRemoveCount: 0,
+				allFlowsRemoved:        make(chan struct{}),
+			}
+		}
+		flowRemoveData.pendingFlowRemoveCount++
+		dh.pendingFlowRemoveDataPerSubscriber[key] = flowRemoveData
+
+		logger.Debugw(ctx, "current-flow-remove-count–increment",
+			log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
+				"currCnt": dh.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
+	}
+}
+
+func (dh *DeviceHandler) decrementActiveFlowRemoveCount(ctx context.Context, flow *of.OfpFlowStats) {
+	inPort, outPort := getPorts(flow)
+	logger.Debugw(ctx, "decrement-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(uint32(inPort), uint32(outPort))
+		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
+		logger.Debugw(ctx, "decrement-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+
+		dh.lockDevice.Lock()
+		defer dh.lockDevice.Unlock()
+		if val, ok := dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
+			logger.Fatalf(ctx, "flow-remove-key-not-found", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+		} else {
+			if val.pendingFlowRemoveCount > 0 {
+				val.pendingFlowRemoveCount--
+			}
+			logger.Debugw(ctx, "current-flow-remove-count-after-decrement",
+				log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
+					"currCnt": dh.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
+			// If all flow removes have finished, then close the channel to signal the receiver
+			// to go ahead with flow adds.
+			if val.pendingFlowRemoveCount == 0 {
+				close(val.allFlowsRemoved)
+				delete(dh.pendingFlowRemoveDataPerSubscriber, key)
+				return
+			}
+			dh.pendingFlowRemoveDataPerSubscriber[key] = val
+		}
+	}
+}
+
+func (dh *DeviceHandler) waitForFlowRemoveToFinish(ctx context.Context, flow *of.OfpFlowStats) {
+	var flowRemoveData pendingFlowRemoveData
+	var ok bool
+	inPort, outPort := getPorts(flow)
+	logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
+		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
+		logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+
+		dh.lockDevice.RLock()
+		if flowRemoveData, ok = dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
+			logger.Debugw(ctx, "no-pending-flow-to-remove", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+			dh.lockDevice.RUnlock()
+			return
+		}
+		dh.lockDevice.RUnlock()
+
+		// Wait for all flow removes to finish first
+		<-flowRemoveData.allFlowsRemoved
+
+		logger.Debugw(ctx, "all-flows-cleared--handling-flow-add-now", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
+	}
+}
+
+func getPorts(flow *of.OfpFlowStats) (uint32, uint32) {
+	inPort := getInPortFromFlow(flow)
+	outPort := getOutPortFromFlow(flow)
+
+	if inPort == InvalidPort || outPort == InvalidPort {
+		return inPort, outPort
 	}
 
-	return "", olterrors.NewErrInvalidValue(log.Fields{"port-type": portType}, nil)
+	if isControllerFlow := IsControllerBoundFlow(outPort); isControllerFlow {
+		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
+		if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return uniPort, outPort
+			}
+		}
+	} else {
+		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
+		if portType := IntfIDToPortTypeName(outPort); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return inPort, uniPort
+			}
+			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
+		} else if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
+			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
+				return uniPort, outPort
+			}
+		}
+	}
+
+	return InvalidPort, InvalidPort
+}
+
+//modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
+func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, enablePort bool) error {
+	logger.Infow(ctx, "modifyPhyPort", log.Fields{"port": port, "Enable": enablePort, "device-id": dh.device.Id})
+	if port.GetType() == voltha.Port_ETHERNET_NNI {
+		// Bug is opened for VOL-2505 to support NNI disable feature.
+		logger.Infow(ctx, "voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
+			log.Fields{"device": dh.device, "port": port})
+		return olterrors.NewErrAdapter("illegal-port-request", log.Fields{
+			"port-type":    port.GetType,
+			"enable-state": enablePort}, nil)
+	}
+	// fetch interfaceid from PortNo
+	ponID := PortNoToIntfID(port.GetPortNo(), voltha.Port_PON_OLT)
+	ponIntf := &oop.Interface{IntfId: ponID}
+	var operStatus voltha.OperStatus_Types
+	if enablePort {
+		operStatus = voltha.OperStatus_ACTIVE
+		out, err := dh.Client.EnablePonIf(ctx, ponIntf)
+
+		if err != nil {
+			return olterrors.NewErrAdapter("pon-port-enable-failed", log.Fields{
+				"device-id": dh.device.Id,
+				"port":      port}, err)
+		}
+		// updating interface local cache for collecting stats
+		dh.activePorts.Store(ponID, true)
+		logger.Infow(ctx, "enabled-pon-port", log.Fields{"out": out, "device-id": dh.device, "Port": port})
+	} else {
+		operStatus = voltha.OperStatus_UNKNOWN
+		out, err := dh.Client.DisablePonIf(ctx, ponIntf)
+		if err != nil {
+			return olterrors.NewErrAdapter("pon-port-disable-failed", log.Fields{
+				"device-id": dh.device.Id,
+				"port":      port}, err)
+		}
+		// updating interface local cache for collecting stats
+		dh.activePorts.Store(ponID, false)
+		logger.Infow(ctx, "disabled-pon-port", log.Fields{"out": out, "device-id": dh.device, "Port": port})
+	}
+	if err := dh.coreProxy.PortStateUpdate(ctx, dh.device.Id, voltha.Port_PON_OLT, port.PortNo, operStatus); err != nil {
+		return olterrors.NewErrAdapter("port-state-update-failed", log.Fields{
+			"device-id": dh.device.Id,
+			"port":      port.PortNo}, err)
+	}
+	return nil
+}
+
+//disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
+func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, ports []*voltha.Port) error {
+	// Disable the port and update the oper_port_status to core
+	// if the Admin state of the port is disabled on reboot and re-enable device.
+	for _, port := range ports {
+		if port.AdminState == common.AdminState_DISABLED {
+			if err := dh.DisablePort(ctx, port); err != nil {
+				return olterrors.NewErrAdapter("port-disable-failed", log.Fields{
+					"device-id": dh.device.Id,
+					"port":      port}, err)
+			}
+		}
+	}
+	return nil
+}
+
+//populateActivePorts to populate activePorts map
+func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*voltha.Port) {
+	logger.Infow(ctx, "populateActivePorts", log.Fields{"device-id": dh.device.Id})
+	for _, port := range ports {
+		if port.Type == voltha.Port_ETHERNET_NNI {
+			if port.OperStatus == voltha.OperStatus_ACTIVE {
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
+			} else {
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), false)
+			}
+		}
+		if port.Type == voltha.Port_PON_OLT {
+			if port.OperStatus == voltha.OperStatus_ACTIVE {
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), true)
+			} else {
+				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), false)
+			}
+		}
+	}
+}
+
+func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemInfo) error {
+	var uniID uint32
+	var err error
+	for _, port := range onu.UniPorts {
+		uniID = UniIDFromPortNum(uint32(port))
+		logger.Debugw(ctx, "clearing-resource-data-for-uni-port", log.Fields{"port": port, "uni-id": uniID})
+		/* Delete tech-profile instance from the KV store */
+		if err = dh.flowMgr.DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID, onu.SerialNumber); err != nil {
+			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+		}
+		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID))
+		for _, flowID := range flowIDs {
+			dh.resourceMgr.FreeFlowID(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID), flowID)
+		}
+		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(ctx, onu.IntfID, onu.OnuID, uniID)
+		for _, tpID := range tpIDList {
+			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "upstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
+				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
+			}
+			logger.Debugw(ctx, "removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
+			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "downstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
+				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
+			}
+			logger.Debugw(ctx, "removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
+		}
+		dh.resourceMgr.FreePONResourcesForONU(ctx, onu.IntfID, onu.OnuID, uniID)
+		if err = dh.resourceMgr.RemoveTechProfileIDsForOnu(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
+			logger.Debugw(ctx, "failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
+		}
+		logger.Debugw(ctx, "removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
+		if err = dh.resourceMgr.DelGemPortPktInOfAllServices(ctx, onu.IntfID, onu.OnuID, uint32(port)); err != nil {
+			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
+		}
+	}
+	return nil
+}
+
+func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
+	nniUniID := -1
+	nniOnuID := -1
+
+	if dh.resourceMgr == nil {
+		return olterrors.NewErrNotFound("resource-manager", log.Fields{"device-id": dh.device.Id}, nil)
+	}
+	//Free the flow-ids for the NNI port
+	nni, err := dh.resourceMgr.GetNNIFromKVStore(ctx)
+	if err != nil {
+		return olterrors.NewErrPersistence("get", "nni", 0, nil, err)
+	}
+	logger.Debugw(ctx, "nni-", log.Fields{"nni": nni})
+	for _, nniIntfID := range nni {
+		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(ctx, uint32(nniIntfID), int32(nniOnuID), int32(nniUniID))
+		logger.Debugw(ctx, "current-flow-ids-for-nni", log.Fields{"flow-ids": flowIDs})
+		for _, flowID := range flowIDs {
+			dh.resourceMgr.FreeFlowID(ctx, uint32(nniIntfID), -1, -1, uint32(flowID))
+		}
+		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
+	}
+	if err = dh.resourceMgr.DelNNiFromKVStore(ctx); err != nil {
+		return olterrors.NewErrPersistence("clear", "nni", 0, nil, err)
+	}
+	return nil
+}
+
+func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
+	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
+}
+
+func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
+
+	// start the heartbeat check towards the OLT.
+	var timerCheck *time.Timer
+
+	for {
+		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
+		select {
+		case <-heartbeatTimer.C:
+			ctxWithTimeout, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.GrpcTimeoutInterval)
+			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
+				logger.Warnw(ctx, "hearbeat-failed", log.Fields{"device-id": dh.device.Id})
+				if timerCheck == nil {
+					// start a after func, when expired will update the state to the core
+					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
+				}
+			} else {
+				if timerCheck != nil {
+					if timerCheck.Stop() {
+						logger.Debugw(ctx, "got-hearbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
+					}
+					timerCheck = nil
+				}
+				logger.Debugw(ctx, "hearbeat",
+					log.Fields{"signature": heartBeat,
+						"device-id": dh.device.Id})
+			}
+			cancel()
+		case <-dh.stopHeartbeatCheck:
+			logger.Debugw(ctx, "stopping-heart-beat-check", log.Fields{"device-id": dh.device.Id})
+			return
+		}
+	}
+}
+
+func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
+	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
+	if err != nil || device == nil {
+		_ = olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+	}
+
+	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
+		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
+			_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		}
+		go dh.cleanupDeviceResources(ctx)
+
+		dh.lockDevice.RLock()
+		// Stop the read indication only if it the routine is active
+		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+		// on next execution of the readIndication routine.
+		if dh.isReadIndicationRoutineActive {
+			dh.stopIndications <- true
+		}
+		dh.lockDevice.RUnlock()
+
+		dh.transitionMap.Handle(ctx, DeviceInit)
+
+	}
 }
 
 func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType voltha.Port_PortType, state string) error {
@@ -610,185 +1809,23 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 	}
 }
 
-// doStateUp handle the olt up indication and update to voltha core
-func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
-	//starting the stat collector
-	go startCollector(ctx, dh)
-
-	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
-		voltha.OperStatus_ACTIVE); err != nil {
-		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	return nil
-}
-
-// doStateDown handle the olt down indication
-func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
-	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
-	logger.Debugw(ctx, "do-state-down-start", log.Fields{"device-id": dh.device.Id})
-
-	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
-		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
-	}
-
-	cloned := proto.Clone(device).(*voltha.Device)
-
-	//Update the device oper state and connection status
-	cloned.OperStatus = voltha.OperStatus_UNKNOWN
-	dh.device = cloned
-
-	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err)
-	}
-
-	//get the child device for the parent device
-	onuDevices, err := dh.coreProxy.GetChildDevices(ctx, dh.device.Id)
-	if err != nil {
-		return olterrors.NewErrAdapter("child-device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	for _, onuDevice := range onuDevices.Items {
-
-		// Update onu state as down in onu adapter
-		onuInd := oop.OnuIndication{}
-		onuInd.OperState = "down"
-		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
-		if err != nil {
-			_ = olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
-				"source":        "openolt",
-				"onu-indicator": onuInd,
-				"device-type":   onuDevice.Type,
-				"device-id":     onuDevice.Id}, err).LogAt(log.ErrorLevel)
-			//Do not return here and continue to process other ONUs
-		}
-	}
-	/* Discovered ONUs entries need to be cleared , since after OLT
-	   is up, it starts sending discovery indications again*/
-	dh.discOnus = sync.Map{}
-	logger.Debugw(ctx, "do-state-down-end", log.Fields{"device-id": device.Id})
-	return nil
-}
-
-// doStateInit dial the grpc before going to init state
-func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
-	var err error
-	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
-	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
-		)),
-		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
-		)))
-
-	if err != nil {
-		return olterrors.NewErrCommunication("dial-failure", log.Fields{
-			"device-id":     dh.device.Id,
-			"host-and-port": dh.device.GetHostAndPort()}, err)
-	}
-	return nil
-}
-
-// postInit create olt client instance to invoke RPC on the olt device
-func (dh *DeviceHandler) postInit(ctx context.Context) error {
-	dh.Client = oop.NewOpenoltClient(dh.clientCon)
-	dh.transitionMap.Handle(ctx, GrpcConnected)
-	return nil
-}
-
-// doStateConnected get the device info and update to voltha core
-func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
-	var err error
-	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
-
-	// Case where OLT is disabled and then rebooted.
-	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
-		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrAdapter("device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-	}
-	if device.AdminState == voltha.AdminState_DISABLED {
-		logger.Debugln(ctx, "do-state-connected--device-admin-state-down")
-
-		cloned := proto.Clone(device).(*voltha.Device)
-		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
-		cloned.OperStatus = voltha.OperStatus_UNKNOWN
-		dh.device = cloned
-		if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-			return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-		}
-
-		// Since the device was disabled before the OLT was rebooted, enforce the OLT to be Disabled after re-connection.
-		_, err = dh.Client.DisableOlt(ctx, new(oop.Empty))
-		if err != nil {
-			return olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-		}
-		// We should still go ahead an initialize various device handler modules so that when OLT is re-enabled, we have
-		// all the modules initialized and ready to handle incoming ONUs.
-
-		err = dh.initializeDeviceHandlerModules(ctx)
-		if err != nil {
-			return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-		}
-
-		// Start reading indications
-		go func() {
-			if err = dh.readIndications(ctx); err != nil {
-				_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-			}
-		}()
-		return nil
-	}
-
-	ports, err := dh.coreProxy.ListDevicePorts(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id)
-	if err != nil {
-		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	dh.populateActivePorts(ctx, ports)
-	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
-		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"ports": ports}, err)
-	}
-
-	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
-		return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-	}
-
-	// Start reading indications
-	go func() {
-		if err := dh.readIndications(ctx); err != nil {
-			_ = olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
-		}
-	}()
-	go dh.updateLocalDevice(ctx)
-
-	if device.PmConfigs != nil {
-		dh.UpdatePmConfig(ctx, device.PmConfigs)
-	}
-	return nil
-}
-
 func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) error {
 	deviceInfo, err := dh.populateDeviceInfo(ctx)
-
 	if err != nil {
 		return olterrors.NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
-	// Instantiate resource manager
+	ponPorts := deviceInfo.GetPonPorts()
+
 	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, deviceInfo); dh.resourceMgr == nil {
 		return olterrors.ErrResourceManagerInstantiating
 	}
 
-	// Instantiate flow manager
-	if dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr); dh.flowMgr == nil {
-		return olterrors.ErrResourceManagerInstantiating
-
+	dh.flowMgr = make([]*OpenOltFlowMgr, ponPorts)
+	for i := range dh.flowMgr {
+		// Instantiate flow manager
+		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr); dh.flowMgr[i] == nil {
+			return olterrors.ErrResourceManagerInstantiating
+		}
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
@@ -881,40 +1918,6 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 	}
 }
 
-//AdoptDevice adopts the OLT device
-func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
-	dh.transitionMap = NewTransitionMap(dh)
-	logger.Infow(ctx, "adopt-device", log.Fields{"device-id": device.Id, "Address": device.GetHostAndPort()})
-	dh.transitionMap.Handle(ctx, DeviceInit)
-
-	// Now, set the initial PM configuration for that device
-	if err := dh.coreProxy.DevicePMConfigUpdate(ctx, dh.metrics.ToPmConfigs()); err != nil {
-		_ = olterrors.NewErrAdapter("error-updating-performance-metrics", log.Fields{"device-id": device.Id}, err).LogAt(log.ErrorLevel)
-	}
-
-	go startHeartbeatCheck(ctx, dh)
-}
-
-//GetOfpDeviceInfo Gets the Ofp information of the given device
-func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapability, error) {
-	return &ic.SwitchCapability{
-		Desc: &of.OfpDesc{
-			MfrDesc:   "VOLTHA Project",
-			HwDesc:    "open_pon",
-			SwDesc:    "open_pon",
-			SerialNum: dh.device.SerialNumber,
-		},
-		SwitchFeatures: &of.OfpSwitchFeatures{
-			NBuffers: 256,
-			NTables:  2,
-			Capabilities: uint32(of.OfpCapabilities_OFPC_FLOW_STATS |
-				of.OfpCapabilities_OFPC_TABLE_STATS |
-				of.OfpCapabilities_OFPC_PORT_STATS |
-				of.OfpCapabilities_OFPC_GROUP_STATS),
-		},
-	}, nil
-}
-
 func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIndication) error {
 	logger.Debugw(ctx, "omci-indication", log.Fields{"intf-id": omciInd.IntfId, "onu-id": omciInd.OnuId, "device-id": dh.device.Id})
 	var deviceType string
@@ -969,54 +1972,6 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 	return nil
 }
 
-//ProcessInterAdapterMessage sends the proxied messages to the target device
-// If the proxy address is not found in the unmarshalled message, it first fetches the onu device for which the message
-// is meant, and then send the unmarshalled omci message to this onu
-func (dh *DeviceHandler) ProcessInterAdapterMessage(ctx context.Context, msg *ic.InterAdapterMessage) error {
-	logger.Debugw(ctx, "process-inter-adapter-message", log.Fields{"msgID": msg.Header.Id})
-	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
-		msgID := msg.Header.Id
-		fromTopic := msg.Header.FromTopic
-		toTopic := msg.Header.ToTopic
-		toDeviceID := msg.Header.ToDeviceId
-		proxyDeviceID := msg.Header.ProxyDeviceId
-
-		logger.Debugw(ctx, "omci-request-message-header", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-
-		msgBody := msg.GetBody()
-
-		omciMsg := &ic.InterAdapterOmciMessage{}
-		if err := ptypes.UnmarshalAny(msgBody, omciMsg); err != nil {
-			return olterrors.NewErrAdapter("cannot-unmarshal-omci-msg-body", log.Fields{"msgbody": msgBody}, err)
-		}
-
-		if omciMsg.GetProxyAddress() == nil {
-			onuDevice, err := dh.coreProxy.GetDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, toDeviceID)
-			if err != nil {
-				return olterrors.NewErrNotFound("onu", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-			logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-			if err := dh.sendProxiedMessage(ctx, onuDevice, omciMsg); err != nil {
-				return olterrors.NewErrCommunication("send-failed", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-		} else {
-			logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-			if err := dh.sendProxiedMessage(ctx, nil, omciMsg); err != nil {
-				return olterrors.NewErrCommunication("send-failed", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-		}
-	} else {
-		return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil)
-	}
-	return nil
-}
-
 func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *voltha.Device, omciMsg *ic.InterAdapterOmciMessage) error {
 	var intfID uint32
 	var onuID uint32
@@ -1063,7 +2018,7 @@ func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *volt
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id})
-	if err := dh.flowMgr.UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
+	if err := dh.flowMgr[intfID].UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
 	}
 	// TODO: need resource manager
@@ -1357,344 +2312,6 @@ func (dh *DeviceHandler) stringifyVendorSpecific(vendorSpecific []byte) string {
 	return tmp
 }
 
-//UpdateFlowsBulk upates the bulk flow
-func (dh *DeviceHandler) UpdateFlowsBulk() error {
-	return olterrors.ErrNotImplemented
-}
-
-//GetChildDevice returns the child device for given parent port and onu id
-func (dh *DeviceHandler) GetChildDevice(ctx context.Context, parentPort, onuID uint32) (*voltha.Device, error) {
-	logger.Debugw(ctx, "getchilddevice",
-		log.Fields{"pon-port": parentPort,
-			"onu-id":    onuID,
-			"device-id": dh.device.Id})
-	kwargs := make(map[string]interface{})
-	kwargs["onu_id"] = onuID
-	kwargs["parent_port_no"] = parentPort
-	onuDevice, err := dh.coreProxy.GetChildDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, kwargs)
-	if err != nil {
-		return nil, olterrors.NewErrNotFound("onu-device", log.Fields{
-			"intf-id": parentPort,
-			"onu-id":  onuID}, err)
-	}
-	logger.Debugw(ctx, "successfully-received-child-device-from-core", log.Fields{"child-device-id": onuDevice.Id, "child-device-sn": onuDevice.SerialNumber})
-	return onuDevice, nil
-}
-
-// SendPacketInToCore sends packet-in to core
-// For this, it calls SendPacketIn of the core-proxy which uses a device specific topic to send the request.
-// The adapter handling the device creates a device specific topic
-func (dh *DeviceHandler) SendPacketInToCore(ctx context.Context, logicalPort uint32, packetPayload []byte) error {
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "send-packet-in-to-core", log.Fields{
-			"port":      logicalPort,
-			"packet":    hex.EncodeToString(packetPayload),
-			"device-id": dh.device.Id,
-		})
-	}
-	if err := dh.coreProxy.SendPacketIn(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, logicalPort, packetPayload); err != nil {
-		return olterrors.NewErrCommunication("packet-send-failed", log.Fields{
-			"source":       "adapter",
-			"destination":  "core",
-			"device-id":    dh.device.Id,
-			"logical-port": logicalPort,
-			"packet":       hex.EncodeToString(packetPayload)}, err)
-	}
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "sent-packet-in-to-core-successfully", log.Fields{
-			"packet":    hex.EncodeToString(packetPayload),
-			"device-id": dh.device.Id,
-		})
-	}
-	return nil
-}
-
-// AddUniPortToOnu adds the uni port to the onu device
-func (dh *DeviceHandler) AddUniPortToOnu(ctx context.Context, intfID, onuID, uniPort uint32) {
-	onuKey := dh.formOnuKey(intfID, onuID)
-
-	if onuDevice, ok := dh.onus.Load(onuKey); ok {
-		// add it to the uniPort map for the onu device
-		if _, ok = onuDevice.(*OnuDevice).uniPorts[uniPort]; !ok {
-			onuDevice.(*OnuDevice).uniPorts[uniPort] = struct{}{}
-			logger.Debugw(ctx, "adding-uni-port", log.Fields{"port": uniPort, "intf-id": intfID, "onuId": onuID})
-		}
-	}
-}
-
-// UpdatePmConfig updates the pm metrics.
-func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.PmConfigs) {
-	logger.Infow(ctx, "update-pm-configs", log.Fields{"device-id": dh.device.Id, "pm-configs": pmConfigs})
-
-	if pmConfigs.DefaultFreq != dh.metrics.ToPmConfigs().DefaultFreq {
-		dh.metrics.UpdateFrequency(pmConfigs.DefaultFreq)
-		logger.Debugf(ctx, "frequency-updated")
-	}
-
-	if !pmConfigs.Grouped {
-		metrics := dh.metrics.GetSubscriberMetrics()
-		for _, m := range pmConfigs.Metrics {
-			metrics[m.Name].Enabled = m.Enabled
-
-		}
-	}
-}
-
-//UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
-	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
-
-	var errorsList []error
-
-	if flows != nil {
-		for _, flow := range flows.ToRemove.Items {
-			dh.incrementActiveFlowRemoveCount(ctx, flow)
-
-			logger.Debugw(ctx, "removing-flow",
-				log.Fields{"device-id": device.Id,
-					"flowToRemove": flow})
-			err := dh.flowMgr.RemoveFlow(ctx, flow)
-			if err != nil {
-				errorsList = append(errorsList, err)
-			}
-
-			dh.decrementActiveFlowRemoveCount(ctx, flow)
-		}
-
-		for _, flow := range flows.ToAdd.Items {
-			logger.Debugw(ctx, "adding-flow",
-				log.Fields{"device-id": device.Id,
-					"flowToAdd": flow})
-			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
-			dh.waitForFlowRemoveToFinish(ctx, flow)
-			err := dh.flowMgr.AddFlow(ctx, flow, flowMetadata)
-			if err != nil {
-				errorsList = append(errorsList, err)
-			}
-		}
-	}
-
-	// Whether we need to synchronize multicast group adds and modifies like flow add and delete needs to be investigated
-	if groups != nil {
-		for _, group := range groups.ToAdd.Items {
-			err := dh.flowMgr.AddGroup(ctx, group)
-			if err != nil {
-				errorsList = append(errorsList, err)
-			}
-		}
-		for _, group := range groups.ToUpdate.Items {
-			err := dh.flowMgr.ModifyGroup(ctx, group)
-			if err != nil {
-				errorsList = append(errorsList, err)
-			}
-		}
-		for _, group := range groups.ToRemove.Items {
-			err := dh.flowMgr.DeleteGroup(ctx, group)
-			if err != nil {
-				errorsList = append(errorsList, err)
-			}
-		}
-	}
-	if len(errorsList) > 0 {
-		return fmt.Errorf("errors-installing-flows-groups, errors:%v", errorsList)
-	}
-	logger.Debugw(ctx, "updated-flows-incrementally-successfully", log.Fields{"device-id": dh.device.Id})
-	return nil
-}
-
-//DisableDevice disables the given device
-//It marks the following for the given device:
-//Device-Handler Admin-State : down
-//Device Port-State: UNKNOWN
-//Device Oper-State: UNKNOWN
-func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Device) error {
-	/* On device disable ,admin state update has to be done prior sending request to agent since
-	   the indication thread may processes invalid  indications of ONU and OLT*/
-	if dh.Client != nil {
-		if _, err := dh.Client.DisableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
-			if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
-				return olterrors.NewErrAdapter("olt-disable-failed", log.Fields{"device-id": device.Id}, err)
-			}
-		}
-	}
-	logger.Debugw(ctx, "olt-disabled", log.Fields{"device-id": device.Id})
-	/* Discovered ONUs entries need to be cleared , since on device disable the child devices goes to
-	UNREACHABLE state which needs to be configured again*/
-
-	dh.discOnus = sync.Map{}
-	dh.onus = sync.Map{}
-
-	//stopping the stats collector
-	dh.stopCollector <- true
-
-	go dh.notifyChildDevices(ctx, "unreachable")
-	cloned := proto.Clone(device).(*voltha.Device)
-	//Update device Admin state
-	dh.device = cloned
-	// Update the all pon ports state on that device to disable and NNI remains active as NNI remains active in openolt agent.
-	if err := dh.coreProxy.PortsStateUpdate(log.WithSpanFromContext(context.TODO(), ctx), cloned.Id, ^uint32(1<<voltha.Port_PON_OLT), voltha.OperStatus_UNKNOWN); err != nil {
-		return olterrors.NewErrAdapter("ports-state-update-failed", log.Fields{"device-id": device.Id}, err)
-	}
-	logger.Debugw(ctx, "disable-device-end", log.Fields{"device-id": device.Id})
-	return nil
-}
-
-func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
-	// Update onu state as unreachable in onu adapter
-	onuInd := oop.OnuIndication{}
-	onuInd.OperState = state
-	//get the child device for the parent device
-	onuDevices, err := dh.coreProxy.GetChildDevices(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id)
-	if err != nil {
-		logger.Errorw(ctx, "failed-to-get-child-devices-information", log.Fields{"device-id": dh.device.Id, "error": err})
-	}
-	if onuDevices != nil {
-		for _, onuDevice := range onuDevices.Items {
-			err := dh.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.TODO(), ctx), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-				"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
-			if err != nil {
-				logger.Errorw(ctx, "failed-to-send-inter-adapter-message", log.Fields{"OnuInd": onuInd,
-					"From Adapter": "openolt", "DeviceType": onuDevice.Type, "device-id": onuDevice.Id})
-			}
-
-		}
-	}
-
-}
-
-//ReenableDevice re-enables the olt device after disable
-//It marks the following for the given device:
-//Device-Handler Admin-State : up
-//Device Port-State: ACTIVE
-//Device Oper-State: ACTIVE
-func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
-	if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
-		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
-			return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err)
-		}
-	}
-	logger.Debug(ctx, "olt-reenabled")
-
-	// Update the all ports state on that device to enable
-
-	ports, err := dh.coreProxy.ListDevicePorts(ctx, device.Id)
-	if err != nil {
-		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device": device.Id}, err)
-	}
-	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
-		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
-	}
-	//Update the device oper status as ACTIVE
-	device.OperStatus = voltha.OperStatus_ACTIVE
-	dh.device = device
-
-	if err := dh.coreProxy.DeviceStateUpdate(log.WithSpanFromContext(context.TODO(), ctx), device.Id, device.ConnectStatus, device.OperStatus); err != nil {
-		return olterrors.NewErrAdapter("state-update-failed", log.Fields{
-			"device-id":      device.Id,
-			"connect-status": device.ConnectStatus,
-			"oper-status":    device.OperStatus}, err)
-	}
-
-	logger.Debugw(ctx, "reenabledevice-end", log.Fields{"device-id": device.Id})
-
-	return nil
-}
-
-func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemInfo) error {
-	var uniID uint32
-	var err error
-	for _, port := range onu.UniPorts {
-		uniID = UniIDFromPortNum(uint32(port))
-		logger.Debugw(ctx, "clearing-resource-data-for-uni-port", log.Fields{"port": port, "uni-id": uniID})
-		/* Delete tech-profile instance from the KV store */
-		if err = dh.flowMgr.DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID, onu.SerialNumber); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
-		}
-		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
-		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID))
-		for _, flowID := range flowIDs {
-			dh.resourceMgr.FreeFlowID(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID), flowID)
-		}
-		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(ctx, onu.IntfID, onu.OnuID, uniID)
-		for _, tpID := range tpIDList {
-			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "upstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
-				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
-			}
-			logger.Debugw(ctx, "removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
-			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "downstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
-				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
-			}
-			logger.Debugw(ctx, "removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
-		}
-		dh.resourceMgr.FreePONResourcesForONU(ctx, onu.IntfID, onu.OnuID, uniID)
-		if err = dh.resourceMgr.RemoveTechProfileIDsForOnu(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
-		}
-		logger.Debugw(ctx, "removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
-		if err = dh.resourceMgr.DelGemPortPktInOfAllServices(ctx, onu.IntfID, onu.OnuID, uint32(port)); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
-		}
-	}
-	return nil
-}
-
-func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
-	nniUniID := -1
-	nniOnuID := -1
-
-	if dh.resourceMgr == nil {
-		return olterrors.NewErrNotFound("resource-manager", log.Fields{"device-id": dh.device.Id}, nil)
-	}
-	//Free the flow-ids for the NNI port
-	nni, err := dh.resourceMgr.GetNNIFromKVStore(ctx)
-	if err != nil {
-		return olterrors.NewErrPersistence("get", "nni", 0, nil, err)
-	}
-	logger.Debugw(ctx, "nni-", log.Fields{"nni": nni})
-	for _, nniIntfID := range nni {
-		flowIDs := dh.resourceMgr.GetCurrentFlowIDsForOnu(ctx, uint32(nniIntfID), int32(nniOnuID), int32(nniUniID))
-		logger.Debugw(ctx, "current-flow-ids-for-nni", log.Fields{"flow-ids": flowIDs})
-		for _, flowID := range flowIDs {
-			dh.resourceMgr.FreeFlowID(ctx, uint32(nniIntfID), -1, -1, uint32(flowID))
-		}
-		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
-	}
-	if err = dh.resourceMgr.DelNNiFromKVStore(ctx); err != nil {
-		return olterrors.NewErrPersistence("clear", "nni", 0, nil, err)
-	}
-	return nil
-}
-
-// DeleteDevice deletes the device instance from openolt handler array.  Also clears allocated resource manager resources.  Also reboots the OLT hardware!
-func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device) error {
-	logger.Debug(ctx, "function-entry-delete-device")
-	/* Clear the KV store data associated with the all the UNI ports
-	   This clears up flow data and also resource map data for various
-	   other pon resources like alloc_id and gemport_id
-	*/
-	go dh.cleanupDeviceResources(ctx)
-	logger.Debug(ctx, "removed-device-from-Resource-manager-KV-store")
-	// Stop the Stats collector
-	dh.stopCollector <- true
-	// stop the heartbeat check routine
-	dh.stopHeartbeatCheck <- true
-	//Reset the state
-	if dh.Client != nil {
-		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
-			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
-		}
-	}
-	cloned := proto.Clone(device).(*voltha.Device)
-	cloned.OperStatus = voltha.OperStatus_UNKNOWN
-	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
-			"device-id":      device.Id,
-			"connect-status": cloned.ConnectStatus,
-			"oper-status":    cloned.OperStatus}, err).Log()
-	}
-	return nil
-}
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 
 	if dh.resourceMgr != nil {
@@ -1756,608 +2373,6 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 	})
 }
 
-//RebootDevice reboots the given device
-func (dh *DeviceHandler) RebootDevice(ctx context.Context, device *voltha.Device) error {
-	if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
-		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	logger.Debugw(ctx, "rebooted-device-successfully", log.Fields{"device-id": device.Id})
-	return nil
-}
-
-func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *oop.PacketIndication) error {
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "received-packet-in", log.Fields{
-			"packet-indication": *packetIn,
-			"device-id":         dh.device.Id,
-			"packet":            hex.EncodeToString(packetIn.Pkt),
-		})
-	}
-	logicalPortNum, err := dh.flowMgr.GetLogicalPortFromPacketIn(ctx, packetIn)
-	if err != nil {
-		return olterrors.NewErrNotFound("logical-port", log.Fields{"packet": hex.EncodeToString(packetIn.Pkt)}, err)
-	}
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "sending-packet-in-to-core", log.Fields{
-			"logical-port-num": logicalPortNum,
-			"device-id":        dh.device.Id,
-			"packet":           hex.EncodeToString(packetIn.Pkt),
-		})
-	}
-
-	if err := dh.coreProxy.SendPacketIn(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, logicalPortNum, packetIn.Pkt); err != nil {
-		return olterrors.NewErrCommunication("send-packet-in", log.Fields{
-			"destination": "core",
-			"source":      dh.device.Type,
-			"device-id":   dh.device.Id,
-			"packet":      hex.EncodeToString(packetIn.Pkt),
-		}, err)
-	}
-
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "success-sending-packet-in-to-core!", log.Fields{
-			"packet":    hex.EncodeToString(packetIn.Pkt),
-			"device-id": dh.device.Id,
-		})
-	}
-	return nil
-}
-
-// PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
-func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet *of.OfpPacketOut) error {
-	if logger.V(log.DebugLevel) {
-		logger.Debugw(ctx, "incoming-packet-out", log.Fields{
-			"device-id":      dh.device.Id,
-			"egress-port-no": egressPortNo,
-			"pkt-length":     len(packet.Data),
-			"packet":         hex.EncodeToString(packet.Data),
-		})
-	}
-
-	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
-	if egressPortType == voltha.Port_ETHERNET_UNI {
-		outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
-		innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
-		if outerEthType == 0x8942 || outerEthType == 0x88cc {
-			// Do not packet-out lldp packets on uni port.
-			// ONOS has no clue about uni/nni ports, it just packets out on all
-			// available ports on the Logical Switch. It should not be interested
-			// in the UNI links.
-			logger.Debugw(ctx, "dropping-lldp-packet-out-on-uni", log.Fields{
-				"device-id": dh.device.Id,
-			})
-			return nil
-		}
-		if outerEthType == 0x88a8 || outerEthType == 0x8100 {
-			if innerEthType == 0x8100 {
-				// q-in-q 802.1ad or 802.1q double tagged packet.
-				// slice out the outer tag.
-				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
-				if logger.V(log.DebugLevel) {
-					logger.Debugw(ctx, "packet-now-single-tagged", log.Fields{
-						"packet-data": hex.EncodeToString(packet.Data),
-						"device-id":   dh.device.Id,
-					})
-				}
-			}
-		}
-		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
-		onuID := OnuIDFromPortNum(uint32(egressPortNo))
-		uniID := UniIDFromPortNum(uint32(egressPortNo))
-
-		gemPortID, err := dh.flowMgr.GetPacketOutGemPortID(ctx, intfID, onuID, uint32(egressPortNo), packet.Data)
-		if err != nil {
-			// In this case the openolt agent will receive the gemPortID as 0.
-			// The agent tries to retrieve the gemPortID in this case.
-			// This may not always succeed at the agent and packetOut may fail.
-			logger.Errorw(ctx, "failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
-				"intf-id":   intfID,
-				"onu-id":    onuID,
-				"uni-id":    uniID,
-				"packet":    hex.EncodeToString(packet.Data),
-				"device-id": dh.device.Id,
-			})
-		}
-
-		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
-
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
-				"egress-port-no": egressPortNo,
-				"intf-id":        intfID,
-				"onu-id":         onuID,
-				"uni-id":         uniID,
-				"gem-port-id":    gemPortID,
-				"packet":         hex.EncodeToString(packet.Data),
-				"device-id":      dh.device.Id,
-			})
-		}
-
-		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
-			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
-				"source":             "adapter",
-				"destination":        "onu",
-				"egress-port-number": egressPortNo,
-				"intf-id":            intfID,
-				"oni-id":             onuID,
-				"uni-id":             uniID,
-				"gem-port-id":        gemPortID,
-				"packet":             hex.EncodeToString(packet.Data),
-				"device-id":          dh.device.Id,
-			}, err)
-		}
-	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		nniIntfID, err := IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
-		if err != nil {
-			return olterrors.NewErrInvalidValue(log.Fields{
-				"egress-nni-port": egressPortNo,
-				"device-id":       dh.device.Id,
-			}, err)
-		}
-		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
-
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-nni", log.Fields{
-				"uplink-pkt": uplinkPkt,
-				"packet":     hex.EncodeToString(packet.Data),
-				"device-id":  dh.device.Id,
-			})
-		}
-
-		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
-			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
-				"packet":    hex.EncodeToString(packet.Data),
-				"device-id": dh.device.Id,
-			}, err)
-		}
-	} else {
-		logger.Warnw(ctx, "packet-out-to-this-interface-type-not-implemented", log.Fields{
-			"egress-port-no": egressPortNo,
-			"egressPortType": egressPortType,
-			"packet":         hex.EncodeToString(packet.Data),
-			"device-id":      dh.device.Id,
-		})
-	}
-	return nil
-}
-
-func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
-	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
-}
-
-func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
-
-	// start the heartbeat check towards the OLT.
-	var timerCheck *time.Timer
-
-	for {
-		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
-		select {
-		case <-heartbeatTimer.C:
-			ctxWithTimeout, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.GrpcTimeoutInterval)
-			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
-				logger.Warnw(ctx, "hearbeat-failed", log.Fields{"device-id": dh.device.Id})
-				if timerCheck == nil {
-					// start a after func, when expired will update the state to the core
-					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
-				}
-			} else {
-				if timerCheck != nil {
-					if timerCheck.Stop() {
-						logger.Debugw(ctx, "got-hearbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
-					}
-					timerCheck = nil
-				}
-				logger.Debugw(ctx, "hearbeat",
-					log.Fields{"signature": heartBeat,
-						"device-id": dh.device.Id})
-			}
-			cancel()
-		case <-dh.stopHeartbeatCheck:
-			logger.Debugw(ctx, "stopping-heart-beat-check", log.Fields{"device-id": dh.device.Id})
-			return
-		}
-	}
-}
-
-func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
-	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
-		_ = olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
-	}
-
-	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
-		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
-			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-		}
-		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
-			_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
-		}
-		go dh.cleanupDeviceResources(ctx)
-
-		dh.lockDevice.RLock()
-		// Stop the read indication only if it the routine is active
-		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
-		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
-		// on next execution of the readIndication routine.
-		if dh.isReadIndicationRoutineActive {
-			dh.stopIndications <- true
-		}
-		dh.lockDevice.RUnlock()
-
-		dh.transitionMap.Handle(ctx, DeviceInit)
-
-	}
-}
-
-// EnablePort to enable Pon interface
-func (dh *DeviceHandler) EnablePort(ctx context.Context, port *voltha.Port) error {
-	logger.Debugw(ctx, "enable-port", log.Fields{"Device": dh.device, "port": port})
-	return dh.modifyPhyPort(ctx, port, true)
-}
-
-// DisablePort to disable pon interface
-func (dh *DeviceHandler) DisablePort(ctx context.Context, port *voltha.Port) error {
-	logger.Debugw(ctx, "disable-port", log.Fields{"Device": dh.device, "port": port})
-	return dh.modifyPhyPort(ctx, port, false)
-}
-
-//modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
-func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, enablePort bool) error {
-	logger.Infow(ctx, "modifyPhyPort", log.Fields{"port": port, "Enable": enablePort, "device-id": dh.device.Id})
-	if port.GetType() == voltha.Port_ETHERNET_NNI {
-		// Bug is opened for VOL-2505 to support NNI disable feature.
-		logger.Infow(ctx, "voltha-supports-single-nni-hence-disable-of-nni-not-allowed",
-			log.Fields{"device": dh.device, "port": port})
-		return olterrors.NewErrAdapter("illegal-port-request", log.Fields{
-			"port-type":    port.GetType,
-			"enable-state": enablePort}, nil)
-	}
-	// fetch interfaceid from PortNo
-	ponID := PortNoToIntfID(port.GetPortNo(), voltha.Port_PON_OLT)
-	ponIntf := &oop.Interface{IntfId: ponID}
-	var operStatus voltha.OperStatus_Types
-	if enablePort {
-		operStatus = voltha.OperStatus_ACTIVE
-		out, err := dh.Client.EnablePonIf(ctx, ponIntf)
-
-		if err != nil {
-			return olterrors.NewErrAdapter("pon-port-enable-failed", log.Fields{
-				"device-id": dh.device.Id,
-				"port":      port}, err)
-		}
-		// updating interface local cache for collecting stats
-		dh.activePorts.Store(ponID, true)
-		logger.Infow(ctx, "enabled-pon-port", log.Fields{"out": out, "device-id": dh.device, "Port": port})
-	} else {
-		operStatus = voltha.OperStatus_UNKNOWN
-		out, err := dh.Client.DisablePonIf(ctx, ponIntf)
-		if err != nil {
-			return olterrors.NewErrAdapter("pon-port-disable-failed", log.Fields{
-				"device-id": dh.device.Id,
-				"port":      port}, err)
-		}
-		// updating interface local cache for collecting stats
-		dh.activePorts.Store(ponID, false)
-		logger.Infow(ctx, "disabled-pon-port", log.Fields{"out": out, "device-id": dh.device, "Port": port})
-	}
-	if err := dh.coreProxy.PortStateUpdate(ctx, dh.device.Id, voltha.Port_PON_OLT, port.PortNo, operStatus); err != nil {
-		return olterrors.NewErrAdapter("port-state-update-failed", log.Fields{
-			"device-id": dh.device.Id,
-			"port":      port.PortNo}, err)
-	}
-	return nil
-}
-
-//disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
-func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, ports []*voltha.Port) error {
-	// Disable the port and update the oper_port_status to core
-	// if the Admin state of the port is disabled on reboot and re-enable device.
-	for _, port := range ports {
-		if port.AdminState == common.AdminState_DISABLED {
-			if err := dh.DisablePort(ctx, port); err != nil {
-				return olterrors.NewErrAdapter("port-disable-failed", log.Fields{
-					"device-id": dh.device.Id,
-					"port":      port}, err)
-			}
-		}
-	}
-	return nil
-}
-
-//populateActivePorts to populate activePorts map
-func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*voltha.Port) {
-	logger.Infow(ctx, "populateActivePorts", log.Fields{"device-id": dh.device.Id})
-	for _, port := range ports {
-		if port.Type == voltha.Port_ETHERNET_NNI {
-			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
-			} else {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), false)
-			}
-		}
-		if port.Type == voltha.Port_PON_OLT {
-			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), true)
-			} else {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), false)
-			}
-		}
-	}
-}
-
-// ChildDeviceLost deletes ONU and clears pon resources related to it.
-func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32) error {
-	logger.Debugw(ctx, "child-device-lost", log.Fields{"pdeviceID": dh.device.Id})
-	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
-	onuKey := dh.formOnuKey(intfID, onuID)
-	onuDevice, ok := dh.onus.Load(onuKey)
-	if !ok {
-		return olterrors.NewErrAdapter("failed-to-load-onu-details",
-			log.Fields{
-				"device-id": dh.device.Id,
-				"onu-id":    onuID,
-				"intf-id":   intfID}, nil).Log()
-	}
-	var sn *oop.SerialNumber
-	var err error
-	if sn, err = dh.deStringifySerialNumber(onuDevice.(*OnuDevice).serialNumber); err != nil {
-		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
-			log.Fields{
-				"devicer-id":    dh.device.Id,
-				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
-	}
-
-	for uniID := 0; uniID < MaxUnisPerOnu; uniID++ {
-		var flowRemoveData pendingFlowRemoveData
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uint32(uniID)}
-		dh.lockDevice.RLock()
-		if flowRemoveData, ok = dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-			dh.lockDevice.RUnlock()
-			continue
-		}
-		dh.lockDevice.RUnlock()
-
-		log.Debugw("wait-for-flow-remove-complete-before-processing-child-device-lost",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		// Wait for all flow removes to finish first
-		<-flowRemoveData.allFlowsRemoved
-		log.Debugw("flow-removes-complete-for-subscriber",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-	}
-
-	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
-	if _, err := dh.Client.DeleteOnu(log.WithSpanFromContext(context.Background(), ctx), onu); err != nil {
-		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
-			"device-id": dh.device.Id,
-			"onu-id":    onuID}, err).Log()
-	}
-	//clear PON resources associated with ONU
-	var onuGemData []rsrcMgr.OnuGemInfo
-	if onuMgr, ok := dh.resourceMgr.ResourceMgrs[intfID]; !ok {
-		logger.Warnw(ctx, "failed-to-get-resource-manager-for-interface-Id", log.Fields{
-			"device-id": dh.device.Id,
-			"intf-id":   intfID})
-	} else {
-		if err := onuMgr.GetOnuGemInfo(ctx, intfID, &onuGemData); err != nil {
-			logger.Warnw(ctx, "failed-to-get-onu-info-for-pon-port", log.Fields{
-				"device-id": dh.device.Id,
-				"intf-id":   intfID,
-				"error":     err})
-		} else {
-			for i, onu := range onuGemData {
-				if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
-					logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
-					if err := dh.clearUNIData(ctx, &onu); err != nil {
-						logger.Warnw(ctx, "failed-to-clear-uni-data-for-onu", log.Fields{
-							"device-id":  dh.device.Id,
-							"onu-device": onu,
-							"error":      err})
-					}
-					// Clear flowids for gem cache.
-					for _, gem := range onu.GemPorts {
-						dh.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gem)
-					}
-					onuGemData = append(onuGemData[:i], onuGemData[i+1:]...)
-					err := onuMgr.AddOnuGemInfo(ctx, intfID, onuGemData)
-					if err != nil {
-						logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
-							"intf-id":    intfID,
-							"onu-device": onu,
-							"onu-gem":    onuGemData,
-							"error":      err})
-						//Not returning error on cleanup.
-					}
-					logger.Debugw(ctx, "removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGemData})
-					dh.resourceMgr.FreeonuID(ctx, intfID, []uint32{onu.OnuID})
-					break
-				}
-			}
-		}
-	}
-	dh.onus.Delete(onuKey)
-	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
-	return nil
-}
-
-func getInPortFromFlow(flow *of.OfpFlowStats) uint32 {
-	for _, field := range flows.GetOfbFields(flow) {
-		if field.Type == flows.IN_PORT {
-			return field.GetPort()
-		}
-	}
-	return InvalidPort
-}
-
-func getOutPortFromFlow(flow *of.OfpFlowStats) uint32 {
-	for _, action := range flows.GetActions(flow) {
-		if action.Type == flows.OUTPUT {
-			if out := action.GetOutput(); out != nil {
-				return out.GetPort()
-			}
-		}
-	}
-	return InvalidPort
-}
-
-func (dh *DeviceHandler) incrementActiveFlowRemoveCount(ctx context.Context, flow *of.OfpFlowStats) {
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "increment-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "increment-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		dh.lockDevice.Lock()
-		defer dh.lockDevice.Unlock()
-		flowRemoveData, ok := dh.pendingFlowRemoveDataPerSubscriber[key]
-		if !ok {
-			flowRemoveData = pendingFlowRemoveData{
-				pendingFlowRemoveCount: 0,
-				allFlowsRemoved:        make(chan struct{}),
-			}
-		}
-		flowRemoveData.pendingFlowRemoveCount++
-		dh.pendingFlowRemoveDataPerSubscriber[key] = flowRemoveData
-
-		logger.Debugw(ctx, "current-flow-remove-count–increment",
-			log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
-				"currCnt": dh.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
-	}
-}
-
-func (dh *DeviceHandler) decrementActiveFlowRemoveCount(ctx context.Context, flow *of.OfpFlowStats) {
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "decrement-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(uint32(inPort), uint32(outPort))
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "decrement-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		dh.lockDevice.Lock()
-		defer dh.lockDevice.Unlock()
-		if val, ok := dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-			logger.Fatalf(ctx, "flow-remove-key-not-found", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		} else {
-			if val.pendingFlowRemoveCount > 0 {
-				val.pendingFlowRemoveCount--
-			}
-			logger.Debugw(ctx, "current-flow-remove-count-after-decrement",
-				log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
-					"currCnt": dh.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
-			// If all flow removes have finished, then close the channel to signal the receiver
-			// to go ahead with flow adds.
-			if val.pendingFlowRemoveCount == 0 {
-				close(val.allFlowsRemoved)
-				delete(dh.pendingFlowRemoveDataPerSubscriber, key)
-				return
-			}
-			dh.pendingFlowRemoveDataPerSubscriber[key] = val
-		}
-	}
-}
-
-func (dh *DeviceHandler) waitForFlowRemoveToFinish(ctx context.Context, flow *of.OfpFlowStats) {
-	var flowRemoveData pendingFlowRemoveData
-	var ok bool
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		dh.lockDevice.RLock()
-		if flowRemoveData, ok = dh.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-			logger.Debugw(ctx, "no-pending-flow-to-remove", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-			dh.lockDevice.RUnlock()
-			return
-		}
-		dh.lockDevice.RUnlock()
-
-		// Wait for all flow removes to finish first
-		<-flowRemoveData.allFlowsRemoved
-
-		logger.Debugw(ctx, "all-flows-cleared--handling-flow-add-now", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-	}
-}
-
-func getPorts(flow *of.OfpFlowStats) (uint32, uint32) {
-	inPort := getInPortFromFlow(flow)
-	outPort := getOutPortFromFlow(flow)
-
-	if inPort == InvalidPort || outPort == InvalidPort {
-		return inPort, outPort
-	}
-
-	if isControllerFlow := IsControllerBoundFlow(outPort); isControllerFlow {
-		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
-		if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
-			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
-				return uniPort, outPort
-			}
-		}
-	} else {
-		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
-		if portType := IntfIDToPortTypeName(outPort); portType == voltha.Port_PON_OLT {
-			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
-				return inPort, uniPort
-			}
-			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
-		} else if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
-			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
-				return uniPort, outPort
-			}
-		}
-	}
-
-	return InvalidPort, InvalidPort
-}
-
-func extractOmciTransactionID(omciPkt []byte) uint16 {
-	if len(omciPkt) > 3 {
-		d := omciPkt[0:2]
-		transid := binary.BigEndian.Uint16(d)
-		return transid
-	}
-	return 0
-}
-
-// StoreOnuDevice stores the onu parameters to the local cache.
-func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
-	onuKey := dh.formOnuKey(onuDevice.intfID, onuDevice.onuID)
-	dh.onus.Store(onuKey, onuDevice)
-}
-
-func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
-	var err error
-	var sn *oop.SerialNumber
-	var ID uint32
-	resp := new(voltha.ReturnValues)
-	valueparam := new(oop.ValueParam)
-	ctx = log.WithSpanFromContext(context.Background(), ctx)
-	log.Infow("getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
-	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
-		return nil, err
-	}
-	ID = device.ProxyAddress.GetOnuId()
-	Onu := oop.Onu{IntfId: device.ParentPortNo, OnuId: ID, SerialNumber: sn}
-	valueparam.Onu = &Onu
-	valueparam.Value = value
-
-	// This API is unsupported until agent patch is added
-	resp.Unsupported = uint32(value)
-	_ = ctx
-
-	// Uncomment this code once agent changes are complete and tests
-	/*
-		resp, err = dh.Client.GetValue(ctx, valueparam)
-		if err != nil {
-			log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
-			return nil, err
-		}
-	*/
-
-	log.Infow("get-ext-value", log.Fields{"resp": resp, "device-id": dh.device, "onu-id": device.Id, "pon-intf": device.ParentPortNo})
-	return resp, nil
+func (dh *DeviceHandler) getSubscriberInfoFromFlow(flow *of.OfpFlowStats) {
+	return
 }
