@@ -247,6 +247,11 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	flowMgr.packetInGemPort = make(map[rsrcMgr.PacketInInfoKey]uint32)
 	ponPorts := rMgr.DevInfo.GetPonPorts()
 	flowMgr.onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo, ponPorts)
+	flowMgr.onuGemInfoLock = sync.RWMutex{}
+	flowMgr.pendingFlowDelete = sync.Map{}
+	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
+	flowMgr.perGemPortLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
+	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//Load the onugem info cache from kv store on flowmanager start
 	for idx = 0; idx < ponPorts; idx++ {
 		if flowMgr.onuGemInfo[idx], err = rMgr.GetOnuGemInfo(ctx, idx); err != nil {
@@ -255,11 +260,6 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 		//Load flowID list per gem map per interface from the kvstore.
 		flowMgr.loadFlowIDlistForGem(ctx, idx)
 	}
-	flowMgr.onuGemInfoLock = sync.RWMutex{}
-	flowMgr.pendingFlowDelete = sync.Map{}
-	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
-	flowMgr.perGemPortLock = mapmutex.NewCustomizedMapMutex(300, 100000000, 10000000, 1.1, 0.2)
-	flowMgr.interfaceToMcastQueueMap = make(map[uint32]*queueInfoBrief)
 	//load interface to multicast queue map from kv store
 	flowMgr.loadInterfaceToMulticastQueueMap(ctx)
 	logger.Info("initialization-of-flow-manager-success")
