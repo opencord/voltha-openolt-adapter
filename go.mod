@@ -10,7 +10,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4
 	github.com/opencord/voltha-lib-go/v3 v3.2.5
 	github.com/opencord/voltha-protos/v3 v3.4.1
-	github.com/opentracing/opentracing-go v1.1.0
 	go.etcd.io/etcd v0.0.0-20190930204107-236ac2a90522
 	google.golang.org/grpc v1.25.1
 )

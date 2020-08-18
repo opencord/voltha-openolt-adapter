@@ -45,7 +45,6 @@ import (
 	of "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
-	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -681,10 +680,10 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)),
 		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(opentracing.GlobalTracer())),
+			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)))
 
 	if err != nil {

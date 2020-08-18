@@ -99,6 +99,7 @@ func (a *adapter) start(ctx context.Context) {
 	// Setup Log Config
 	cm := conf.NewConfigManager(ctx, a.kvClient, a.config.KVStoreType, a.config.KVStoreAddress, a.config.KVStoreTimeout)
 	go conf.StartLogLevelConfigProcessing(cm, ctx)
+	go conf.StartLogFeaturesConfigProcessing(cm, ctx)
 
 	// Setup Kafka Client
 	if a.kafkaClient, err = newKafkaClient(ctx, "sarama", a.config.KafkaAdapterAddress); err != nil {
