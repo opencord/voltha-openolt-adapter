@@ -163,7 +163,7 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 // the resources.
 func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
-	logger.Debugf(ctx, "Init new resource manager , address: %s, deviceid: %s", KVStoreAddress, deviceID)
+	logger.Debugf(ctx, "Init new resource manager , address: %s, device-id: %s", KVStoreAddress, deviceID)
 	ResourceMgr.Address = KVStoreAddress
 	ResourceMgr.DeviceType = deviceType
 	ResourceMgr.DevInfo = devInfo

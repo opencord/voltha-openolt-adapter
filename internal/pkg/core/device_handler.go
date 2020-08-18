@@ -356,7 +356,7 @@ Loop:
 	for {
 		select {
 		case <-dh.stopIndications:
-			logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"deviceID:": dh.device.Id})
+			logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"device-id": dh.device.Id})
 			break Loop
 		default:
 			indication, err := indications.Recv()
@@ -380,7 +380,7 @@ Loop:
 				backoff := time.NewTimer(indicationBackoff.NextBackOff())
 				select {
 				case <-dh.stopIndications:
-					logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"deviceID:": dh.device.Id})
+					logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"device-id": dh.device.Id})
 					if !backoff.Stop() {
 						<-backoff.C
 					}
@@ -467,7 +467,7 @@ func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication 
 	// Send or clear Alarm
 	if err := dh.eventMgr.oltUpDownIndication(ctx, oltIndication, dh.device.Id, raisedTs); err != nil {
 		return olterrors.NewErrAdapter("failed-indication", log.Fields{
-			"device_id":  dh.device.Id,
+			"device-id":  dh.device.Id,
 			"indication": oltIndication,
 			"timestamp":  raisedTs}, err)
 	}
@@ -846,7 +846,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 	for {
 		select {
 		case <-dh.stopCollector:
-			logger.Debugw(ctx, "stopping-collector-for-olt", log.Fields{"deviceID:": dh.device.Id})
+			logger.Debugw(ctx, "stopping-collector-for-olt", log.Fields{"device-id": dh.device.Id})
 			return
 		case <-time.After(time.Duration(dh.metrics.ToPmConfigs().DefaultFreq) * time.Second):
 
@@ -1564,7 +1564,7 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 
 	ports, err := dh.coreProxy.ListDevicePorts(ctx, device.Id)
 	if err != nil {
-		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device": device.Id}, err)
+		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device-id": device.Id}, err)
 	}
 	if err := dh.disableAdminDownPorts(ctx, ports); err != nil {
 		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
@@ -2073,7 +2073,7 @@ func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*volth
 
 // ChildDeviceLost deletes ONU and clears pon resources related to it.
 func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32) error {
-	logger.Debugw(ctx, "child-device-lost", log.Fields{"pdeviceID": dh.device.Id})
+	logger.Debugw(ctx, "child-device-lost", log.Fields{"parent-device-id": dh.device.Id})
 	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
 	onuKey := dh.formOnuKey(intfID, onuID)
 	onuDevice, ok := dh.onus.Load(onuKey)
