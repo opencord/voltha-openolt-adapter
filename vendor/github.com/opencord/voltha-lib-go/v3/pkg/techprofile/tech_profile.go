@@ -454,7 +454,7 @@ func (t *TechProfileMgr) GetTPInstanceFromKVStore(ctx context.Context, techProfi
 	case epon:
 		resPtr = &KvEponIns
 	default:
-		log.Errorw("unknown-tech", log.Fields{"tech": pathSlice[0]})
+		logger.Errorw(ctx, "unknown-tech", log.Fields{"tech": pathSlice[0]})
 		return nil, fmt.Errorf("unknown-tech-%s", pathSlice[0])
 	}
 
@@ -572,13 +572,13 @@ func (t *TechProfileMgr) CreateTechProfInstance(ctx context.Context, techProfile
 		if tp != nil {
 			if err := t.validateInstanceControlAttr(ctx, tp.InstanceCtrl); err != nil {
 				logger.Error(ctx, "invalid-instance-ctrl-attr--using-default-tp")
-				tp = t.getDefaultEponProfile()
+				tp = t.getDefaultEponProfile(ctx)
 			} else {
 				logger.Infow(ctx, "using-specified-tp-from-kv-store", log.Fields{"tpid": techProfiletblID})
 			}
 		} else {
 			logger.Info(ctx, "tp-not-found-on-kv--creating-default-tp")
-			tp = t.getDefaultEponProfile()
+			tp = t.getDefaultEponProfile(ctx)
 		}
 
 		if tpEponInstance = t.allocateEponTPInstance(ctx, uniPortName, tp, intfId, tpInstancePath); tpEponInstance == nil {
@@ -788,22 +788,22 @@ func (t *TechProfileMgr) allocateEponTPInstance(ctx context.Context, uniPortName
 	var gemPorts []uint32
 	var err error
 
-	log.Infow("Allocating TechProfileMgr instance from techprofile template", log.Fields{"uniPortName": uniPortName, "intfId": intfId, "numGem": tp.NumGemPorts})
+	logger.Infow(ctx, "Allocating TechProfileMgr instance from techprofile template", log.Fields{"uniPortName": uniPortName, "intfId": intfId, "numGem": tp.NumGemPorts})
 
 	if tp.InstanceCtrl.Onu == "multi-instance" {
 		if tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1); err != nil {
-			log.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
+			logger.Errorw(ctx, "Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
 			return nil
 		}
 	} else { // "single-instance"
 		if tpInst, err := t.getSingleInstanceEponTp(ctx, tpInstPath); err != nil {
-			log.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
+			logger.Errorw(ctx, "Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
 			return nil
 		} else if tpInst == nil {
 			// No "single-instance" tp found on one any uni port for the given TP ID
 			// Allocate a new TcontID or AllocID
 			if tcontIDs, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeAllocID(), 1); err != nil {
-				log.Errorw("Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
+				logger.Errorw(ctx, "Error getting alloc id from rsrcrMgr", log.Fields{"intfId": intfId})
 				return nil
 			}
 		} else {
@@ -811,12 +811,12 @@ func (t *TechProfileMgr) allocateEponTPInstance(ctx context.Context, uniPortName
 			tcontIDs = append(tcontIDs, tpInst.AllocID)
 		}
 	}
-	log.Debugw("Num GEM ports in TP:", log.Fields{"NumGemPorts": tp.NumGemPorts})
+	logger.Debugw(ctx, "Num GEM ports in TP:", log.Fields{"NumGemPorts": tp.NumGemPorts})
 	if gemPorts, err = t.resourceMgr.GetResourceID(ctx, intfId, t.resourceMgr.GetResourceTypeGemPortID(), tp.NumGemPorts); err != nil {
-		log.Errorw("Error getting gemport ids from rsrcrMgr", log.Fields{"intfId": intfId, "numGemports": tp.NumGemPorts})
+		logger.Errorw(ctx, "Error getting gemport ids from rsrcrMgr", log.Fields{"intfId": intfId, "numGemports": tp.NumGemPorts})
 		return nil
 	}
-	log.Infow("Allocated tconts and GEM ports successfully", log.Fields{"tconts": tcontIDs, "gemports": gemPorts})
+	logger.Infow(ctx, "Allocated tconts and GEM ports successfully", log.Fields{"tconts": tcontIDs, "gemports": gemPorts})
 	for index := 0; index < int(tp.NumGemPorts); index++ {
 		usQueueAttributeList = append(usQueueAttributeList,
 			iUpstreamQueueAttribute{GemportID: gemPorts[index],
@@ -837,7 +837,7 @@ func (t *TechProfileMgr) allocateEponTPInstance(ctx context.Context, uniPortName
 				DiscardConfig:             tp.UpstreamQueueAttributeList[index].DiscardConfig})
 	}
 
-	log.Info("length of DownstreamGemPortAttributeList", len(tp.DownstreamQueueAttributeList))
+	logger.Info(ctx, "length of DownstreamGemPortAttributeList", len(tp.DownstreamQueueAttributeList))
 	for index := 0; index < int(tp.NumGemPorts); index++ {
 		dsQueueAttributeList = append(dsQueueAttributeList,
 			iDownstreamQueueAttribute{GemportID: gemPorts[index],
@@ -977,13 +977,13 @@ func (t *TechProfileMgr) getDefaultTechProfile(ctx context.Context) *DefaultTech
 }
 
 // getDefaultTechProfile function for EPON
-func (t *TechProfileMgr) getDefaultEponProfile() *DefaultEponProfile {
+func (t *TechProfileMgr) getDefaultEponProfile(ctx context.Context) *DefaultEponProfile {
 
 	var usQueueAttributeList []UpstreamQueueAttribute
 	var dsQueueAttributeList []DownstreamQueueAttribute
 
 	for _, pbit := range t.config.DefaultPbits {
-		log.Debugw("Creating Queue", log.Fields{"pbit": pbit})
+		logger.Debugw(ctx, "Creating Queue", log.Fields{"pbit": pbit})
 		usQueueAttributeList = append(usQueueAttributeList,
 			UpstreamQueueAttribute{
 				MaxQueueSize:              defaultMaxQueueSize,
@@ -1389,7 +1389,7 @@ func (t *TechProfileMgr) FindAllTpInstances(ctx context.Context, techProfiletblI
 		case epon:
 			return tpInstancesEpon
 		default:
-			log.Errorw("unknown-technology", log.Fields{"tech": tech})
+			logger.Errorw(ctx, "unknown-technology", log.Fields{"tech": tech})
 			return nil
 		}
 	}
