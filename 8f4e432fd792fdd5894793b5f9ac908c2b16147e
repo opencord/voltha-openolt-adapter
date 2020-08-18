@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4cb7824_b6543007",
+        "filename": "go.mod",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-08-18T14:00:06Z",
+      "side": 0,
+      "message": "need a \"make mod-update\"\n...or just re-add this line.",
+      "revId": "8f4e432fd792fdd5894793b5f9ac908c2b16147e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
