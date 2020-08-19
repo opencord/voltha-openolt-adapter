@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c719262_493f239e",
+        "filename": "internal/pkg/olterrors/olterrors.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1000107
+      },
+      "writtenOn": "2020-08-19T19:24:08Z",
+      "side": 1,
+      "message": "\"func\" should be capitalized -\u003e \"loggerFunc\"",
+      "range": {
+        "startLine": 115,
+        "startChar": 1,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "8c5fec0455cdb97c15bb824ff1e7e0f3c4287c59",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
