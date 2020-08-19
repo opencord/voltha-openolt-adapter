@@ -18,6 +18,7 @@
 package olterrors
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
@@ -111,22 +112,22 @@ func (e *ErrAdapter) Log() error {
 
 // LogAt logs the error at the specified level and then returns the error
 func (e *ErrAdapter) LogAt(level log.LogLevel) error {
-	logger := log.Debugw
+	loggerFunc := logger.Debugw
 	switch level {
 	case log.InfoLevel:
-		logger = log.Infow
+		loggerFunc = logger.Infow
 	case log.WarnLevel:
-		logger = log.Warnw
+		loggerFunc = logger.Warnw
 	case log.ErrorLevel:
-		logger = log.Errorw
+		loggerFunc = logger.Errorw
 	case log.FatalLevel:
-		logger = log.Fatalw
+		loggerFunc = logger.Fatalw
 	}
 	local := e.fields
 	if e.wrapped != nil {
 		local = merge(e.fields, log.Fields{"wrapped": e.wrapped})
 	}
-	logger(e.name, local)
+	loggerFunc(context.Background(), e.name, local)
 	return e
 }
 

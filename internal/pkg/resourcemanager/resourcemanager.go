@@ -519,7 +519,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint
 			FlowInfo := RsrcMgr.GetFlowIDInfo(ctx, ponIntfID, int32(ONUID), int32(uniID), uint32(flowID))
 			er := getFlowIDFromFlowInfo(ctx, FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanVid, vlanPcp...)
 			if er == nil {
-				log.Debugw("Found flowid for the vlan, pcp, and gem",
+				logger.Debugw(ctx, "Found flowid for the vlan, pcp, and gem",
 					log.Fields{"flowID": flowID, "vlanVid": vlanVid, "vlanPcp": vlanPcp, "gemPortID": gemportID})
 				return flowID, er
 			}

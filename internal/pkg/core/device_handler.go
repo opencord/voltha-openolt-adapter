@@ -270,7 +270,7 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 	}
 
 	if port, err := dh.coreProxy.GetDevicePort(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, portNum); err == nil && port.Type == portType {
-		log.Debug(ctx, "port-already-exists-updating-oper-status-of-port")
+		logger.Debug(ctx, "port-already-exists-updating-oper-status-of-port")
 		if err := dh.coreProxy.PortStateUpdate(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, portType, portNum, operStatus); err != nil {
 			return olterrors.NewErrAdapter("failed-to-update-port-state", log.Fields{
 				"device-id":   dh.device.Id,
@@ -2103,11 +2103,11 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		}
 		dh.lockDevice.RUnlock()
 
-		log.Debugw("wait-for-flow-remove-complete-before-processing-child-device-lost",
+		logger.Debugw(ctx, "wait-for-flow-remove-complete-before-processing-child-device-lost",
 			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
 		// Wait for all flow removes to finish first
 		<-flowRemoveData.allFlowsRemoved
-		log.Debugw("flow-removes-complete-for-subscriber",
+		logger.Debugw(ctx, "flow-removes-complete-for-subscriber",
 			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
 	}
 
@@ -2321,7 +2321,7 @@ func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device,
 	resp := new(voltha.ReturnValues)
 	valueparam := new(oop.ValueParam)
 	ctx = log.WithSpanFromContext(context.Background(), ctx)
-	log.Infow("getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	logger.Infow(ctx, "getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
 	if sn, err = dh.deStringifySerialNumber(device.SerialNumber); err != nil {
 		return nil, err
 	}
@@ -2338,11 +2338,11 @@ func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device,
 	/*
 		resp, err = dh.Client.GetValue(ctx, valueparam)
 		if err != nil {
-			log.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
+			logger.Errorw("error-while-getValue", log.Fields{"DeviceID": dh.device, "onu-id": onuid, "error": err})
 			return nil, err
 		}
 	*/
 
-	log.Infow("get-ext-value", log.Fields{"resp": resp, "device-id": dh.device, "onu-id": device.Id, "pon-intf": device.ParentPortNo})
+	logger.Infow(ctx, "get-ext-value", log.Fields{"resp": resp, "device-id": dh.device, "onu-id": device.Id, "pon-intf": device.ParentPortNo})
 	return resp, nil
 }
