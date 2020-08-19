@@ -802,6 +802,6 @@ func (em *OpenOltEventMgr) onuDifferentialReachExceededIndication(ctx context.Co
 	if err := em.eventProxy.SendDeviceEvent(ctx, de, voltha.EventCategory_EQUIPMENT, voltha.EventSubCategory_ONU, raisedTs); err != nil {
 		return err
 	}
-	log.Debugw("onu-differential-reach-exceeded–event-sent-to-kafka", log.Fields{"onu-id": onuDRE.OnuId, "intf-id": onuDRE.IntfId})
+	logger.Debugw(ctx, "onu-differential-reach-exceeded–event-sent-to-kafka", log.Fields{"onu-id": onuDRE.OnuId, "intf-id": onuDRE.IntfId})
 	return nil
 }

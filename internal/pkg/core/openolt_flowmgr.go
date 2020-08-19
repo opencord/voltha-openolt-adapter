@@ -954,7 +954,7 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 	}
 	if _, ok := classifier[VlanVid]; ok {
 		vlanVid = classifier[VlanVid].(uint32)
-		log.Debugw("found-vlan-in-the-flow",
+		logger.Debugw(ctx, "found-vlan-in-the-flow",
 			log.Fields{
 				"vlan-vid":  vlanVid,
 				"intf-id":   intfID,
@@ -1460,7 +1460,7 @@ func (f *OpenOltFlowMgr) DeleteTechProfileInstances(ctx context.Context, intfID 
 			// return err
 			// We should continue to delete tech-profile instances for other TP IDs
 		}
-		log.Debugw("tech-profile-deleted", log.Fields{"device-id": f.deviceHandler.device.Id, "tp-id": tpID})
+		logger.Debugw(ctx, "tech-profile-deleted", log.Fields{"device-id": f.deviceHandler.device.Id, "tp-id": tpID})
 	}
 	return nil
 }
@@ -3713,7 +3713,7 @@ func formulateSetFieldActionInfoFromFlow(ctx context.Context, field *ofp.OfpOxmF
 		} else if fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_PCP {
 			pcp := ofbField.GetVlanPcp()
 			actionInfo[VlanPcp] = pcp
-			log.Debugw("action-set-vlan-pcp", log.Fields{"actionInfo[VLAN_PCP]": actionInfo[VlanPcp].(uint32)})
+			logger.Debugw(ctx, "action-set-vlan-pcp", log.Fields{"actionInfo[VLAN_PCP]": actionInfo[VlanPcp].(uint32)})
 		} else {
 			logger.Errorw(ctx, "unsupported-action-set-field-type", log.Fields{"type": fieldtype})
 		}
@@ -3874,7 +3874,7 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint3
 //getCTagFromPacket retrieves and returns c-tag and priority value from a packet.
 func getCTagFromPacket(ctx context.Context, packet []byte) (uint16, uint8, error) {
 	if packet == nil || len(packet) < 18 {
-		log.Error("unable-get-c-tag-from-the-packet--invalid-packet-length ")
+		logger.Error(ctx, "unable-get-c-tag-from-the-packet--invalid-packet-length ")
 		return 0, 0, errors.New("invalid packet length")
 	}
 	outerEthType := (uint16(packet[12]) << 8) | uint16(packet[13])

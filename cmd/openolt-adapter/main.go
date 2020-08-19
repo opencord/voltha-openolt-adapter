@@ -474,12 +474,12 @@ func main() {
 
 	// Setup default logger - applies for packages that do not have specific logger set
 	if _, err := log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
-		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
+		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
 	}
 
 	// Update all loggers (provisionned via init) with a common field
 	if err := log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
-		log.With(log.Fields{"error": err}).Fatal("Cannot setup logging")
+		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
 	}
 
 	log.SetAllLogLevel(logLevel)
