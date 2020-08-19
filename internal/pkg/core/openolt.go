@@ -358,10 +358,10 @@ func (oo *OpenOLT) Start_omci_test(ctx context.Context, device *voltha.Device, r
 func (oo *OpenOLT) Get_ext_value(ctx context.Context, deviceID string, device *voltha.Device, valueparam voltha.ValueType_Type) (*voltha.ReturnValues, error) {
 	var err error
 	resp := new(voltha.ReturnValues)
-	log.Infow("Get_ext_value", log.Fields{"device-id": deviceID, "onu-id": device.Id})
+	logger.Infow(ctx, "Get_ext_value", log.Fields{"device-id": deviceID, "onu-id": device.Id})
 	if handler := oo.getDeviceHandler(deviceID); handler != nil {
 		if resp, err = handler.getExtValue(ctx, device, valueparam); err != nil {
-			log.Errorw("error-occurred-during-get-ext-value", log.Fields{"device-id": deviceID, "onu-id": device.Id,
+			logger.Errorw(ctx, "error-occurred-during-get-ext-value", log.Fields{"device-id": deviceID, "onu-id": device.Id,
 				"error": err})
 			return nil, err
 		}
