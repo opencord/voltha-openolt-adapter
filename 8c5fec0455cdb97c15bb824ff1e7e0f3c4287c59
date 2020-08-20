@@ -22,6 +22,30 @@
       "revId": "8c5fec0455cdb97c15bb824ff1e7e0f3c4287c59",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96e589d6_d4ae158c",
+        "filename": "internal/pkg/olterrors/olterrors.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-08-20T04:00:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c719262_493f239e",
+      "range": {
+        "startLine": 115,
+        "startChar": 1,
+        "endLine": 115,
+        "endChar": 11
+      },
+      "revId": "8c5fec0455cdb97c15bb824ff1e7e0f3c4287c59",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
