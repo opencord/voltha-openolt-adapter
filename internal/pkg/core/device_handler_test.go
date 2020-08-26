@@ -32,6 +32,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
 	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
@@ -143,7 +144,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	cp := newMockCoreProxy()
 	ap := &mocks.MockAdapterProxy{}
 	ep := &mocks.MockEventProxy{}
-	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
+	cfg := &config.AdapterFlags{OmccEncryption: true}
+	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config: cfg}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1},
