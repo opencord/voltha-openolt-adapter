@@ -40,6 +40,7 @@ import (
 	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v3/go/openolt"
 	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 )
 
 func newMockCoreProxy() *mocks.MockCoreProxy {
@@ -143,7 +144,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	cp := newMockCoreProxy()
 	ap := &mocks.MockAdapterProxy{}
 	ep := &mocks.MockEventProxy{}
-	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep}
+	cfg := &config.AdapterFlags{OmccEncryption:true}
+	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config:cfg}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1},
