@@ -23,6 +23,7 @@ import (
 	"io"
 
 	openolt "github.com/opencord/voltha-protos/v3/go/openolt"
+	config "github.com/opencord/voltha-protos/v3/go/ext/config"
 	tech_profile "github.com/opencord/voltha-protos/v3/go/tech_profile"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -244,7 +245,7 @@ func (ooc *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.Value
 }
 
 // OnuItuPonAlarmSet mocks the OnuItuPonAlarmSet function of Openoltclient.
-func (ooc *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *openolt.OnuItuPonAlarm, opts ...grpc.CallOption) (*openolt.Empty, error) {
+func (ooc *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *config.OnuItuPonAlarm, opts ...grpc.CallOption) (*openolt.Empty, error) {
 	return &openolt.Empty{}, nil
 }
 
