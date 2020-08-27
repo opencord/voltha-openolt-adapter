@@ -128,6 +128,7 @@ sca: ## Runs static code analysis with the golangci-lint tool
 	@mkdir -p ./sca-report
 	@echo "Running static code analysis..."
 	@${GOLANGCI_LINT} run --deadline=4m --out-format junit-xml ./... | tee ./sca-report/sca-report.xml
+	cat ./sca-report/sca-report.xml
 	@echo ""
 	@echo "Static code analysis OK"
 
@@ -147,3 +148,4 @@ help: ## Print help for each Makefile target
 	@echo
 	@grep '^[[:alpha:]_-]*:.* ##' $(MAKEFILE_LIST) \
 		| sort | awk 'BEGIN {FS=":.* ## "}; {printf "%-25s : %s\n", $$1, $$2};'
+
