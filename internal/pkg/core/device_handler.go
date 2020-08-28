@@ -1274,6 +1274,11 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 		dh.onus.Store(onuKey, NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuInd.GetOnuId(), onuInd.GetIntfId(), onuDevice.ProxyAddress.DeviceId, false))
 
 	}
+	if onuInd.OperState == "down" && onuInd.FailReason != oop.OnuIndication_ONU_ACTIVATION_FAIL_REASON_NONE {
+		if err := dh.eventMgr.onuActivationIndication(ctx, onuActivationFailEvent, onuInd, dh.device.Id, time.Now().UnixNano()); err != nil {
+			logger.Warnw(ctx, "onu-activation-indication-reporting-failed", log.Fields{"error": err})
+		}
+	}
 	if err := dh.updateOnuStates(ctx, onuDevice, onuInd); err != nil {
 		return olterrors.NewErrCommunication("state-update-failed", errFields, err)
 	}
