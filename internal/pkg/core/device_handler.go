@@ -1307,6 +1307,9 @@ func (dh *DeviceHandler) updateOnuStates(ctx context.Context, onuDevice *voltha.
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err)
 		}
+		if err := dh.eventMgr.onuActivationIndication(ctx, onuActivationFailEvent, onuInd, dh.device.Id, time.Now().UnixNano()); err != nil {
+			logger.Warnw(ctx, "onu-activation-indication-failed", log.Fields{"error": err})
+		}
 	case "up":
 		logger.Debugw(ctx, "sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "device-id": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
@@ -1318,6 +1321,9 @@ func (dh *DeviceHandler) updateOnuStates(ctx context.Context, onuDevice *voltha.
 				"source":        "openolt",
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err)
+		}
+		if err := dh.eventMgr.onuActivationIndication(ctx, onuActivationSuccessEvent, onuInd, dh.device.Id, time.Now().UnixNano()); err != nil {
+			logger.Warnw(ctx, "onu-activation-indication-failed", log.Fields{"error": err})
 		}
 	default:
 		return olterrors.NewErrInvalidValue(log.Fields{"oper-state": onuInd.OperState}, nil)
