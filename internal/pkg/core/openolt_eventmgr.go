@@ -45,6 +45,7 @@ const (
 	onuSignalDegradeEvent               = "ONU_SIGNAL_DEGRADE"
 	onuDriftOfWindowEvent               = "ONU_DRIFT_OF_WINDOW"
 	onuActivationFailEvent              = "ONU_ACTIVATION_FAIL"
+	onuActivationSuccessEvent           = "ONU_ACTIVATION_SUCCESS"
 	onuLossOmciEvent                    = "ONU_LOSS_OF_OMCI_CHANNEL"
 	onuLossOfKeySyncEvent               = "ONU_LOSS_OF_KEY_SYNC"
 	onuLossOfFrameEvent                 = "ONU_LOSS_OF_FRAME"
@@ -130,9 +131,6 @@ func (em *OpenOltEventMgr) ProcessEvents(ctx context.Context, alarmInd *oop.Alar
 	case *oop.AlarmIndication_DyingGaspInd:
 		logger.Debugw(ctx, "received-dying-gasp-indication", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuDyingGaspIndication(ctx, alarmInd.GetDyingGaspInd(), deviceID, raisedTs)
-	case *oop.AlarmIndication_OnuActivationFailInd:
-		logger.Debugw(ctx, "received-onu-activation-fail-indication ", log.Fields{"alarm-ind": alarmInd})
-		err = em.onuActivationFailIndication(ctx, alarmInd.GetOnuActivationFailInd(), deviceID, raisedTs)
 	case *oop.AlarmIndication_OnuLossOmciInd:
 		logger.Debugw(ctx, "received-onu-loss-omci-indication ", log.Fields{"alarm-ind": alarmInd})
 		err = em.onuLossOmciIndication(ctx, alarmInd.GetOnuLossOmciInd(), deviceID, raisedTs)
@@ -423,25 +421,25 @@ func (em *OpenOltEventMgr) onuAlarmIndication(ctx context.Context, onuAlarm *oop
 	return nil
 }
 
-func (em *OpenOltEventMgr) onuActivationFailIndication(ctx context.Context, oaf *oop.OnuActivationFailureIndication, deviceID string, raisedTs int64) error {
+func (em *OpenOltEventMgr) onuActivationIndication(ctx context.Context, eventName string, onuInd *oop.OnuIndication, deviceID string, raisedTs int64) error {
 	var de voltha.DeviceEvent
 	context := make(map[string]string)
 	/* Populating event context */
-	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(oaf.IntfId), base10)
-	context[ContextOnuOnuID] = strconv.FormatUint(uint64(oaf.OnuId), base10)
-	context[ContextOnuFailureReaseon] = strconv.FormatUint(uint64(oaf.FailReason), base10)
+	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(onuInd.IntfId), base10)
+	context[ContextOnuOnuID] = strconv.FormatUint(uint64(onuInd.OnuId), base10)
+	context[ContextOnuFailureReaseon] = onuInd.FailReason.String()
 
-	em.populateContextWithSerialDeviceID(context, oaf.IntfId, oaf.OnuId)
+	em.populateContextWithSerialDeviceID(context, onuInd.IntfId, onuInd.OnuId)
 
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	de.DeviceEventName = fmt.Sprintf("%s_%s", onuActivationFailEvent, "RAISE_EVENT")
+	de.DeviceEventName = eventName
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEvent(ctx, &de, voltha.EventCategory_EQUIPMENT, voltha.EventSubCategory_PON, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw(ctx, "onu-activation-failure-event-sent-to-kafka", log.Fields{"onu-id": oaf.OnuId, "intf-id": oaf.IntfId})
+	logger.Debugw(ctx, "onu-activation-failure-event-sent-to-kafka", log.Fields{"onu-id": onuInd.OnuId, "intf-id": onuInd.IntfId})
 	return nil
 }
 
