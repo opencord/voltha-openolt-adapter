@@ -59,6 +59,30 @@
     },
     {
       "key": {
+        "uuid": "e155f46b_ef1d5346",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-08-31T17:24:54Z",
+      "side": 1,
+      "message": "We are trying to assign the OLT Device ID here. For all events raised by the OLT Adapter we want to keep it consistent and keep the ResourceId carry the OLT Device ID. The OnuDeviceId is carried in the context, which gets populated inside the function populateContextWithSerialDeviceID",
+      "parentUuid": "c2512f7e_b88b7390",
+      "range": {
+        "startLine": 437,
+        "startChar": 1,
+        "endLine": 437,
+        "endChar": 25
+      },
+      "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "51c29a33_7b9b7821",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 2
