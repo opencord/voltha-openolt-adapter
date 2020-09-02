@@ -43,8 +43,9 @@ import (
 )
 
 type adapter struct {
-	instanceID       string
-	config           *config.AdapterFlags
+	instanceID string
+	config     *config.AdapterFlags
+	//	deviceHandler    *ac.DeviceHandler
 	iAdapter         adapters.IAdapter
 	kafkaClient      kafka.Client
 	kvClient         kvstore.Client
