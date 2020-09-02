@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -38,6 +39,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v3/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v3/pkg/log"
 	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v3/go/common"
@@ -76,6 +78,7 @@ type pendingFlowRemoveData struct {
 type DeviceHandler struct {
 	device        *voltha.Device
 	coreProxy     adapterif.CoreProxy
+	config        *config.AdapterFlags
 	AdapterProxy  adapterif.AdapterProxy
 	EventProxy    adapterif.EventProxy
 	openOLT       *OpenOLT
@@ -116,6 +119,11 @@ type OnuDevice struct {
 	proxyDeviceID string
 	losRaised     bool
 	rdiRaised     bool
+}
+
+type basicAuthRpcCreds struct {
+	user   string
+	secret string
 }
 
 var pmNames = []string{
@@ -670,6 +678,17 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	return nil
 }
 
+func (cred *basicAuthRpcCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	res := make(map[string]string)
+	credString := cred.user + ":" + cred.secret
+	res["Authorization"] = "Basic " + base64.StdEncoding.EncodeToString([]byte(credString))
+	return res, nil
+}
+
+func (cred *basicAuthRpcCreds) RequireTransportSecurity() bool {
+	return false
+}
+
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
@@ -677,6 +696,7 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
+		grpc.WithPerRPCCredentials(&basicAuthRpcCreds{user: dh.config.Username, secret: dh.config.Password}),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
 			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)),
