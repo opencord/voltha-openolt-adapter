@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5bdb5891_010559f0",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-02T15:49:13Z",
+      "side": 1,
+      "message": "Let us not use config parameters approach for passing credentials as we want to support  dynamic updates for same. Let us consume them as k8s secrets and read them for Secrets mounted as files. Refer to my patches for VOL-3421\n\nAlso, we need to support loading of updated secrets once they change. Once the secret has been updated with \u0027kubectl edit secret\u0027 command, it may take 30 seconds to 1 minute for that to reflect in content of mounted files. We need to write an additional logic for periodic reload of secret from mounted files to reflect the changed secret. To start with, we can do it in new struct created in device_manager as part of this change as a PoC.",
+      "revId": "a1eb934891a216c289c5303e73e555d3efdef38d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e23708b3_5d93a9db",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-02T15:49:13Z",
+      "side": 1,
+      "message": "Add comments for this method indicating that we are trying to align to HTTP Basic Authentication and sending credentials as \"Authorization: Basic base64(username:password)\" format in metadata for each gRPC call",
+      "revId": "a1eb934891a216c289c5303e73e555d3efdef38d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
