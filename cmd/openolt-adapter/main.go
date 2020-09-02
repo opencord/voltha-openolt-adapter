@@ -28,6 +28,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/opencord/voltha-lib-go/v3/pkg/adapters"
 	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
 	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
@@ -143,6 +144,35 @@ func (a *adapter) start(ctx context.Context) {
 
 	// check the readiness and liveliness and update the probe status
 	a.checkServicesReadiness(ctx)
+}
+
+// watchForCredentialChange watches for any changes in oltcredentials secret
+func watchForCredentialChange(ctx context.Context) {
+	watcher, _ := fsnotify.NewWatcher()
+	defer watcher.Close()
+
+	done := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			// watch for events
+			case event := <-watcher.Events:
+				logger.Debugf(ctx, "EVENT: ", event)
+				ac.UpdateRPCCredentials(ctx)
+
+			// watch for errors
+			case err := <-watcher.Errors:
+				logger.Errorf(ctx, "error-watching-for-secret-change", err)
+			}
+		}
+	}()
+
+	if err := watcher.Add("/etc/openoltagent/credentials"); err != nil {
+		logger.Error(ctx, err)
+	}
+
+	<-done
 }
 
 /**
@@ -525,6 +555,8 @@ func main() {
 	}
 
 	go ad.start(probeCtx)
+
+	watchForCredentialChange(ctx)
 
 	code := waitForExit(ctx)
 	logger.Infow(ctx, "received-a-closing-signal", log.Fields{"code": code})
