@@ -54,6 +54,8 @@ const (
 	defaultTraceEnabled          = false
 	defaultTraceAgentAddress     = "127.0.0.1:6831"
 	defaultLogCorrelationEnabled = true
+	defaultUsername              = "admin"
+	defaultPassword              = "voltha"
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -83,6 +85,8 @@ type AdapterFlags struct {
 	TraceEnabled                bool
 	TraceAgentAddress           string
 	LogCorrelationEnabled       bool
+	Username                    string
+	Password                    string
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -110,6 +114,8 @@ func NewAdapterFlags() *AdapterFlags {
 		TraceEnabled:                defaultTraceEnabled,
 		TraceAgentAddress:           defaultTraceAgentAddress,
 		LogCorrelationEnabled:       defaultLogCorrelationEnabled,
+		Username:                    defaultUsername,
+		Password:                    defaultPassword,
 	}
 	return &adapterFlags
 }
@@ -185,6 +191,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Whether to enrich log statements with fields denoting operation being executed for achieving correlation?")
 	flag.BoolVar(&(so.LogCorrelationEnabled), "log_correlation_enabled", defaultLogCorrelationEnabled, help)
+
+	help = fmt.Sprintf("Username for Authentication")
+	flag.StringVar(&(so.Username), "username", defaultUsername, help)
+
+	help = fmt.Sprintf("Password for Authentication")
+	flag.StringVar(&(so.Password), "password", defaultPassword, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
