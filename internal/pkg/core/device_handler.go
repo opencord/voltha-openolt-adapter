@@ -19,10 +19,12 @@ package core
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"strconv"
 	"strings"
@@ -118,6 +120,11 @@ type OnuDevice struct {
 	rdiRaised     bool
 }
 
+type basicAuthRPCCreds struct {
+	user   string
+	secret string
+}
+
 var pmNames = []string{
 	"rx_bytes",
 	"rx_packets",
@@ -128,6 +135,8 @@ var pmNames = []string{
 	"tx_mcast_packets",
 	"tx_bcast_packets",
 }
+
+var username, password []byte
 
 //NewOnuDevice creates a new Onu Device
 func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxyDevID string, losRaised bool) *OnuDevice {
@@ -670,13 +679,45 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	return nil
 }
 
+// GetRequestMetadata aligns to the HTTP Basic Authentication and returns the credentials in format of
+// "Authorization: Basic base64(username:password)"  for each gRPC call
+func (cred *basicAuthRPCCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	res := make(map[string]string)
+	credString := cred.user + ":" + cred.secret
+	res["Authorization"] = "Basic " + base64.StdEncoding.EncodeToString([]byte(credString))
+	return res, nil
+}
+
+func (cred *basicAuthRPCCreds) RequireTransportSecurity() bool {
+	return false
+}
+
+// UpdateRPCCredentials reads the credentials from oltcredentials secret
+func UpdateRPCCredentials(ctx context.Context) {
+	var err error
+
+	username, err = ioutil.ReadFile("/etc/openoltagent/credentials/username")
+	if err != nil {
+		logger.Errorf(ctx, "error-reading-file", err)
+	}
+
+	password, err = ioutil.ReadFile("/etc/openoltagent/credentials/password")
+	if err != nil {
+		logger.Errorf(ctx, "error-reading-file", err)
+	}
+}
+
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
+
+	UpdateRPCCredentials(ctx)
+
 	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
+		grpc.WithPerRPCCredentials(&basicAuthRPCCreds{user: string(username), secret: string(password)}),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
 			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)),
