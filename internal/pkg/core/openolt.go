@@ -75,6 +75,8 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 //Start starts (logs) the device manager
 func (oo *OpenOLT) Start(ctx context.Context) error {
 	logger.Info(ctx, "starting-device-manager")
+	var dh *DeviceHandler = new(DeviceHandler)
+	dh.watchForCredentialChange(ctx)
 	logger.Info(ctx, "device-manager-started")
 	return nil
 }
