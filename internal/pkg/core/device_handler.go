@@ -19,10 +19,12 @@ package core
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"strconv"
 	"strings"
@@ -30,6 +32,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v3"
+	"github.com/fsnotify/fsnotify"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -72,6 +75,11 @@ type pendingFlowRemoveData struct {
 	allFlowsRemoved        chan struct{}
 }
 
+type basicAuthRPCCreds struct {
+	user   string
+	secret string
+}
+
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	device        *voltha.Device
@@ -97,6 +105,7 @@ type DeviceHandler struct {
 	activePorts                   sync.Map
 	stopIndications               chan bool
 	isReadIndicationRoutineActive bool
+	credentials                   *basicAuthRPCCreds
 
 	// pendingFlowRemoveDataPerSubscriber map is used to maintain the context on a per
 	// subscriber basis for the number of pending flow removes. This data is used
@@ -159,6 +168,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adap
 	dh.activePorts = sync.Map{}
 	dh.stopIndications = make(chan bool, 1)
 	dh.pendingFlowRemoveDataPerSubscriber = make(map[pendingFlowRemoveDataKey]pendingFlowRemoveData)
+	dh.watchForCredentialChange(context.Background())
 
 	//TODO initialize the support classes.
 	return &dh
@@ -180,6 +190,34 @@ func (dh *DeviceHandler) stop(ctx context.Context) {
 	logger.Debug(ctx, "stopping-device-agent")
 	dh.exitChannel <- 1
 	logger.Debug(ctx, "device-agent-stopped")
+}
+
+// watchForCredentialChange watches for any changes in oltcredentials secret
+func (dh *DeviceHandler) watchForCredentialChange(ctx context.Context) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		logger.Error(ctx, err)
+	}
+
+	go func() {
+		for {
+			select {
+			// watch for events
+			case event := <-watcher.Events:
+				logger.Debugw(ctx, "change-detected-in-credentials-folder-content : ", log.Fields{"event": event})
+				dh.UpdateRPCCredentials(ctx)
+
+			// watch for errors
+			case err := <-watcher.Errors:
+				logger.Errorw(ctx, "error-watching-for-credential-change", log.Fields{"err": err})
+			}
+		}
+	}()
+
+	if err = watcher.Add("/etc/openoltagent/credentials"); err != nil {
+		logger.Error(ctx, err)
+	}
+
 }
 
 func macifyIP(ip net.IP) string {
@@ -670,13 +708,45 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	return nil
 }
 
+// GetRequestMetadata aligns to the HTTP Basic Authentication and returns the credentials in format of
+// "Authorization: Basic base64(username:password)"  for each gRPC call
+func (cred *basicAuthRPCCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	res := make(map[string]string)
+	credString := cred.user + ":" + cred.secret
+	res["Authorization"] = "Basic " + base64.StdEncoding.EncodeToString([]byte(credString))
+	return res, nil
+}
+
+func (cred *basicAuthRPCCreds) RequireTransportSecurity() bool {
+	return false
+}
+
+// UpdateRPCCredentials reads the credentials from oltcredentials secret
+func (dh *DeviceHandler) UpdateRPCCredentials(ctx context.Context) {
+	username, err := ioutil.ReadFile("/etc/openoltagent/credentials/username")
+	if err != nil {
+		logger.Errorw(ctx, "error-reading-file : /etc/openoltagent/credentials/username", log.Fields{"err": err})
+	}
+
+	password, err := ioutil.ReadFile("/etc/openoltagent/credentials/password")
+	if err != nil {
+		logger.Errorw(ctx, "error-reading-file : /etc/openoltagent/credentials/password", log.Fields{"err": err})
+	}
+
+	dh.credentials = &basicAuthRPCCreds{user: string(username), secret: string(password)}
+
+}
+
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
+	dh.UpdateRPCCredentials(ctx)
+
 	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
+		grpc.WithPerRPCCredentials(dh.credentials),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
 			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)),
