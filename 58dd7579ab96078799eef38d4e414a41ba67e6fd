@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ebaf3b4_b9f4623d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1310,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-03T06:08:28Z",
+      "side": 1,
+      "message": "The OnuIndication is sent by the openolt agent in the following cases\n1. OnuActivation \n2. OnuDeactivation",
+      "parentUuid": "8d460802_a894c951",
+      "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "33d5d671_edeedac0",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2020-08-28T19:02:39Z",
       "side": 1,
       "message": "Same comment as above.",
+      "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5526fe5_8afd5d64",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1325,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-03T06:08:28Z",
+      "side": 1,
+      "message": "The OnuIndication is sent by the openolt agent in the following cases\n1. OnuActivation \n2. OnuDeactivation",
+      "parentUuid": "33d5d671_edeedac0",
       "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
@@ -83,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0014b9d4_d77e21fb",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-03T06:08:28Z",
+      "side": 1,
+      "message": "yes, the deviceID is the Olt device ID",
+      "parentUuid": "e155f46b_ef1d5346",
+      "range": {
+        "startLine": 437,
+        "startChar": 1,
+        "endLine": 437,
+        "endChar": 25
+      },
+      "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "51c29a33_7b9b7821",
         "filename": "internal/pkg/core/openolt_eventmgr.go",
         "patchSetId": 2
@@ -94,6 +154,24 @@
       "writtenOn": "2020-08-28T19:02:39Z",
       "side": 1,
       "message": "I don\u0027t think we really need this RAISE_EVENT in this case. There is not going to be any corresponding CLEAR_EVENT...",
+      "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b97a4bb_60acef1b",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-03T06:08:28Z",
+      "side": 1,
+      "message": "Addressed the comment.",
+      "parentUuid": "51c29a33_7b9b7821",
       "revId": "58dd7579ab96078799eef38d4e414a41ba67e6fd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
