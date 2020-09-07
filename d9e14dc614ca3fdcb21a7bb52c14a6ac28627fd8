@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebc31dbf_df6ced41",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-07T09:56:48Z",
+      "side": 1,
+      "message": "A better message would be \"change-detected-in-credentials-folder-content\". Better use Debugw method and have event as a log Field. Better use w version of logger methods wherever needed",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f59a1a7c_ac00aa6a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-07T09:56:48Z",
+      "side": 1,
+      "message": "Avoid global variables, can\u0027t they be part of basicAuthRPCCreds  struct",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95d20bc8_8c9bb34e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-07T09:56:48Z",
+      "side": 1,
+      "message": "Also log the name of file",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a077418_67d965fe",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-07T09:56:48Z",
+      "side": 1,
+      "message": "Also log the name of file",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
