@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "c90a31d5_e11f69ac",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000612
+      },
+      "writtenOn": "2020-09-08T09:18:55Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "f59a1a7c_ac00aa6a",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95d20bc8_8c9bb34e",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -53,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "92308313_57e9da5b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 1000612
+      },
+      "writtenOn": "2020-09-08T09:18:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95d20bc8_8c9bb34e",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a077418_67d965fe",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -67,6 +103,24 @@
       "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae5225c7_c3b3798b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 1000612
+      },
+      "writtenOn": "2020-09-08T09:18:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a077418_67d965fe",
+      "revId": "d9e14dc614ca3fdcb21a7bb52c14a6ac28627fd8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
