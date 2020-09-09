@@ -43,6 +43,18 @@ import (
 	"github.com/opencord/voltha-protos/v3/go/voltha"
 )
 
+const (
+	NumPonPorts  = 2
+	OnuIDStart   = 1
+	OnuIDEnd     = 32
+	AllocIDStart = 1
+	AllocIDEnd   = 10
+	GemIDStart   = 1
+	GemIDEnd     = 10
+	FlowIDStart  = 1
+	FlowIDEnd    = 10
+)
+
 func newMockCoreProxy() *mocks.MockCoreProxy {
 	mcp := mocks.MockCoreProxy{
 		Devices:     make(map[string]*voltha.Device),
@@ -153,7 +165,7 @@ func newMockDeviceHandler() *DeviceHandler {
 		Pools:      []*oop.DeviceInfo_DeviceResourceRanges_Pool{{}},
 	}}
 
-	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: 2}
+	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: NumPonPorts}
 	rsrMgr := resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
@@ -192,7 +204,15 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.resourceMgr.ResourceMgrs[1] = ponmgr
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	dh.flowMgr = NewFlowManager(ctx, dh, dh.resourceMgr)
+	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr)
+	dh.totalPonPorts = NumPonPorts
+	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
+	for i := 0; i < int(dh.totalPonPorts); i++ {
+		// Instantiate flow manager
+		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr); dh.flowMgr[i] == nil {
+			return nil
+		}
+	}
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}, handler: dh}
 	dh.transitionMap = &TransitionMap{}
