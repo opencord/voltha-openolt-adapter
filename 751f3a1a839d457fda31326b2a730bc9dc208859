@@ -16,6 +16,24 @@
       "revId": "751f3a1a839d457fda31326b2a730bc9dc208859",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90cd7fd7_7f1e472f",
+        "filename": "go.mod",
+        "patchSetId": 14
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-09T15:13:12Z",
+      "side": 1,
+      "message": "voltha-protos 3.4.4 has the required proto  changes, voltha-prots 3.4.5 version was released\nafter the first version of this patch is submitted,so the voltha 3.4.5 is missed \nhere, it is updated now.",
+      "parentUuid": "866fca38_9165d16e",
+      "revId": "751f3a1a839d457fda31326b2a730bc9dc208859",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
