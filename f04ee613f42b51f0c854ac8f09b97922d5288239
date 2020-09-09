@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "368e72a0_98b61b8f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 1279,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-09-09T18:09:44Z",
+      "side": 1,
+      "message": "Should this be onu-activation-indication-reporting-failed because the reporting of the event failed on kafka.\nThe \"onu-activation-indication-failed\" is true anyway once you are inside \"if onuInd.OperState \u003d\u003d \"down\" \u0026\u0026 onuInd.FailReason !\u003d oop.OnuIndication_ONU_ACTIVATION_FAIL_REASON_NONE\".\nDo we we need another log to warn for \"onu-activation-indication-failed\" just after \"if onuInd.OperState \u003d\u003d \"down\" \u0026\u0026 onuInd.FailReason !\u003d oop.OnuIndication_ONU_ACTIVATION_FAIL_REASON_NONE\" ?",
+      "range": {
+        "startLine": 1279,
+        "startChar": 22,
+        "endLine": 1279,
+        "endChar": 54
+      },
+      "revId": "f04ee613f42b51f0c854ac8f09b97922d5288239",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
