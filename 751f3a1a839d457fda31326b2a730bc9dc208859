@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "866fca38_9165d16e",
+        "filename": "go.mod",
+        "patchSetId": 14
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-09-09T14:53:20Z",
+      "side": 1,
+      "message": "in the other patch we are going to 3.4.5 why 3.4.4 here ?",
+      "revId": "751f3a1a839d457fda31326b2a730bc9dc208859",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
