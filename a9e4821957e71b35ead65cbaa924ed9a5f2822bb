@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e9e910b_0bd805a8",
+        "filename": "VERSION",
+        "patchSetId": 13
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2020-09-09T14:18:32Z",
+      "side": 1,
+      "message": "I think you should just change the version to 2.5.4-dev",
+      "revId": "a9e4821957e71b35ead65cbaa924ed9a5f2822bb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
