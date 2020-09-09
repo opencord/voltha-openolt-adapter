@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf6cd46c_25d07dce",
+        "filename": "VERSION",
+        "patchSetId": 15
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-09-09T15:26:47Z",
+      "side": 1,
+      "message": "this needs to be the next version, \n2.5.5-dev so to release it\u0027s enough to remove the -dev",
+      "revId": "9e0ec68e83bc1ceb4574ff9d13b68724450d143d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
