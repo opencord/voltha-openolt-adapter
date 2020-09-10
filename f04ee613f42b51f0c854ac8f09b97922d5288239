@@ -22,6 +22,30 @@
       "revId": "f04ee613f42b51f0c854ac8f09b97922d5288239",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "245522f1_6fe962c8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 1279,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2020-09-10T06:29:06Z",
+      "side": 1,
+      "message": "updated the code as per the comment.",
+      "parentUuid": "368e72a0_98b61b8f",
+      "range": {
+        "startLine": 1279,
+        "startChar": 22,
+        "endLine": 1279,
+        "endChar": 54
+      },
+      "revId": "f04ee613f42b51f0c854ac8f09b97922d5288239",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
