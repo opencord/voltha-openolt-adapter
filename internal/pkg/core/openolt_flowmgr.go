@@ -307,7 +307,7 @@ func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.Ofp
 
 func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
 	classifierInfo map[string]interface{}, actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpID uint32,
-	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) {
+	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) error {
 	var allocID uint32
 	var gemPorts []uint32
 	var TpInst interface{}
@@ -327,13 +327,15 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, on
 	// is because the flow is an NNI flow and there would be no onu resources associated with it
 	// TODO: properly deal with NNI flows
 	if onuID == 0 {
-		logger.Errorw(ctx, "no-onu-id-for-flow",
-			log.Fields{
+		cause := "no-onu-id-for-flow"
+		fields := log.Fields{
+				"onu": onuID,
 				"port-no":   portNo,
 				"classifer": classifierInfo,
 				"action":    actionInfo,
-				"device-id": f.deviceHandler.device.Id})
-		return
+				"device-id": f.deviceHandler.device.Id}
+		logger.Errorw(ctx, cause, fields)
+		return olterrors.NewErrNotFound(cause, fields, nil)
 	}
 
 	uni := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
@@ -358,7 +360,9 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, on
 		if allocID == 0 || gemPorts == nil || TpInst == nil {
 			logger.Error(ctx, "alloc-id-gem-ports-tp-unavailable")
 			f.perUserFlowHandleLock.Unlock(tpLockMapKey)
-			return
+			return olterrors.NewErrNotFound(
+				"alloc-id-gem-ports-tp-unavailable",
+				nil, nil)
 		}
 		args := make(map[string]uint32)
 		args[IntfID] = intfID
@@ -373,16 +377,18 @@ func (f *OpenOltFlowMgr) divideAndAddFlow(ctx context.Context, intfID uint32, on
 		f.checkAndAddFlow(ctx, args, classifierInfo, actionInfo, flow, TpInst, gemPorts, TpID, uni)
 		f.perUserFlowHandleLock.Unlock(tpLockMapKey)
 	} else {
-		logger.Errorw(ctx, "failed-to-acquire-per-user-flow-handle-lock",
-			log.Fields{
-				"intf-id":     intfID,
-				"onu-id":      onuID,
-				"uni-id":      uniID,
-				"flow-id":     flow.Id,
-				"flow-cookie": flow.Cookie,
-				"device-id":   f.deviceHandler.device.Id})
-		return
+		cause := "failed-to-acquire-per-user-flow-handle-lock"
+		fields := log.Fields{
+			"intf-id":     intfID,
+			"onu-id":      onuID,
+			"uni-id":      uniID,
+			"flow-id":     flow.Id,
+			"flow-cookie": flow.Cookie,
+			"device-id":   f.deviceHandler.device.Id}
+		logger.Errorw(ctx, cause, fields)
+		return olterrors.NewErrAdapter(cause, fields, nil)
 	}
+	return nil
 }
 
 // CreateSchedulerQueues creates traffic schedulers on the device with the given scheduler configuration and traffic shaping info
@@ -2545,7 +2551,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 				"intf-id": intfID,
 				"onu-id":  onuID,
 				"uni-id":  uniID})
-		f.divideAndAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
+		return f.divideAndAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
 	} else {
 		pendingFlowDelComplete := make(chan bool)
 		go f.waitForFlowDeletesToCompleteForOnu(ctx, intfID, onuID, uniID, pendingFlowDelComplete)
@@ -2556,7 +2562,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 					"intf-id": intfID,
 					"onu-id":  onuID,
 					"uni-id":  uniID})
-			f.divideAndAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
+			return f.divideAndAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, uint32(TpID), UsMeterID, DsMeterID, flowMetadata)
 
 		case <-time.After(10 * time.Second):
 			return olterrors.NewErrTimeout("pending-flow-deletes",
