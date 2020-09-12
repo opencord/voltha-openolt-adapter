@@ -1,0 +1,8 @@
+Code-Review+2: Matteo Scandolo <teo@opennetworking.org>
+Code-Review+1: Girish Gowdra <girish@opennetworking.org>
+Verified+1: Jenkins Technical User <do-not-reply@opennetworking.org>
+Submitted-by: Matteo Scandolo <teo@opennetworking.org>
+Submitted-at: Sat, 12 Sep 2020 02:48:27 +0000
+Reviewed-on: https://gerrit.opencord.org/c/voltha-openolt-adapter/+/20465
+Project: voltha-openolt-adapter
+Branch: refs/heads/master
