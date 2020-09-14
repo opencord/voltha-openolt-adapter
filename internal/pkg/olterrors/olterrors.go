@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"strings"
 )
 
@@ -203,7 +203,7 @@ type ErrPersistence struct {
 }
 
 // NewErrPersistence constructs a new error based on the given values
-func NewErrPersistence(operation, entityType string, ID uint32, fields log.Fields, wrapped error) LoggableError {
+func NewErrPersistence(operation, entityType string, ID uint64, fields log.Fields, wrapped error) LoggableError {
 	return &ErrPersistence{
 		ErrAdapter{
 			name: "unable-to-persist",
@@ -265,7 +265,7 @@ type ErrFlowOp struct {
 }
 
 // NewErrFlowOp constructs a new error based on the given values
-func NewErrFlowOp(operation string, ID uint32, fields log.Fields, wrapped error) LoggableError {
+func NewErrFlowOp(operation string, ID uint64, fields log.Fields, wrapped error) LoggableError {
 	return &ErrPersistence{
 		ErrAdapter{
 			name: "unable-to-perform-flow-operation",

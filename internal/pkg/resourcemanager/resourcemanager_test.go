@@ -27,13 +27,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/opencord/voltha-lib-go/v3/pkg/db"
-	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
-	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
-	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
-	"github.com/opencord/voltha-protos/v3/go/openolt"
+	"github.com/opencord/voltha-lib-go/v4/pkg/db"
+	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
+	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
+	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
+	"github.com/opencord/voltha-protos/v4/go/openolt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -315,55 +315,6 @@ func TestOpenOltResourceMgr_Delete(t *testing.T) {
 	}
 }
 
-func TestOpenOltResourceMgr_FreeFlowID(t *testing.T) {
-	type args struct {
-		IntfID uint32
-		onuID  int32
-		uniID  int32
-		FlowID uint32
-	}
-	tests := []struct {
-		name   string
-		fields *fields
-		args   args
-	}{
-		{"FreeFlowID-1", getResMgr(), args{1, 2, 2, 2}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			RsrcMgr.FreeFlowID(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
-		})
-	}
-}
-
-func TestOpenOltResourceMgr_FreeFlowIDs(t *testing.T) {
-
-	type args struct {
-		IntfID uint32
-		onuID  uint32
-		uniID  uint32
-		FlowID []uint32
-	}
-	tests := []struct {
-		name   string
-		fields *fields
-		args   args
-	}{
-		{"FreeFlowIDs-1", getResMgr(), args{1, 2, 2, []uint32{1, 2}}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			RsrcMgr.FreeFlowIDs(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
-		})
-	}
-}
-
 func TestOpenOltResourceMgr_FreePONResourcesForONU(t *testing.T) {
 	type args struct {
 		intfID uint32
@@ -473,16 +424,20 @@ func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 		name   string
 		fields *fields
 		args   args
-		want   []uint32
+		want   []uint64
 	}{
-		{"GetCurrentFlowIDsForOnu-1", getResMgr(), args{1, 2, 2}, []uint32{}},
+		{"GetCurrentFlowIDsForOnu-1", getResMgr(), args{1, 2, 2}, []uint64{1,2}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if got := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			got, err := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID)
+			if err != nil {
+				t.Errorf("GetCurrentFlowIDsForOnu() returned error")
+			}
+			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetCurrentFlowIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -510,45 +465,6 @@ func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 			defer cancel()
 			if got := RsrcMgr.GetCurrentGEMPortIDsForOnu(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetCurrentGEMPortIDsForOnu() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestOpenOltResourceMgr_GetFlowID(t *testing.T) {
-
-	type args struct {
-		ponIntfID       uint32
-		ONUID           int32
-		uniID           int32
-		gemportID       uint32
-		flowStoreCookie uint64
-		flowCategory    string
-		vlanVid         uint32
-		vlanPcp         []uint32
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		want    uint32
-		wantErr error
-	}{
-		{"GetFlowID-1", getResMgr(), args{1, 2, 2, 2, 2,
-			"HSIA", 33, nil}, 0, errors.New("failed to get flows")},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			got, err := RsrcMgr.GetFlowID(ctx, tt.args.ponIntfID, tt.args.ONUID, tt.args.uniID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
-			if err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
-				t.Errorf("GetFlowID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
-				t.Errorf("GetFlowID() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -675,33 +591,6 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 	}
 }
 
-func TestOpenOltResourceMgr_IsFlowCookieOnKVStore(t *testing.T) {
-	type args struct {
-		ponIntfID       uint32
-		onuID           int32
-		uniID           int32
-		flowStoreCookie uint64
-	}
-	tests := []struct {
-		name   string
-		fields *fields
-		args   args
-		want   bool
-	}{
-		{"IsFlowCookieOnKVStore-1", getResMgr(), args{1, 2, 2, 2}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if got := RsrcMgr.IsFlowCookieOnKVStore(ctx, tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowStoreCookie); got != tt.want {
-				t.Errorf("IsFlowCookieOnKVStore() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 
 	type args struct {
@@ -795,8 +684,8 @@ func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
 		ponIntfID int32
 		onuID     int32
 		uniID     int32
-		flowID    uint32
-		flowData  *[]FlowInfo
+		flowID    uint64
+		flowData  FlowInfo
 	}
 	tests := []struct {
 		name    string
@@ -804,14 +693,14 @@ func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"UpdateFlowIDInfo-1", getResMgr(), args{1, 2, 2, 2, &[]FlowInfo{}}, errors.New("")},
+		{"UpdateFlowIDInfo-1", getResMgr(), args{1, 2, 2, 2, FlowInfo{}}, errors.New("")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.UpdateFlowIDInfo(ctx, tt.args.ponIntfID, tt.args.onuID, tt.args.uniID, tt.args.flowID, tt.args.flowData); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			if err := RsrcMgr.UpdateFlowIDInfo(ctx, uint32(tt.args.ponIntfID), tt.args.onuID, tt.args.uniID, tt.args.flowID, tt.args.flowData); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateFlowIDInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -953,77 +842,6 @@ func TestSetKVClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := SetKVClient(context.Background(), tt.args.backend, tt.args.address, tt.args.DeviceID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("SetKVClient() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_getFlowIDFromFlowInfo(t *testing.T) {
-	type args struct {
-		FlowInfo        *[]FlowInfo
-		flowID          uint32
-		gemportID       uint32
-		flowStoreCookie uint64
-		flowCategory    string
-		vlanVid         uint32
-		vlanPcp         []uint32
-	}
-	flowInfo := &[]FlowInfo{
-		{
-			&openolt.Flow{
-				FlowId:    1,
-				GemportId: 1,
-				Classifier: &openolt.Classifier{
-					OPbits: 1,
-					OVid:   33,
-				},
-				Action: &openolt.Action{
-					Cmd: &openolt.ActionCmd{
-						AddOuterTag: true,
-					},
-					OVid: 7,
-				},
-			},
-			1,
-			"HSIA_FLOW",
-			2000,
-		},
-		{
-			&openolt.Flow{
-				GemportId: 1,
-				Classifier: &openolt.Classifier{
-					OVid: 0,
-				},
-				Action: &openolt.Action{
-					Cmd: &openolt.ActionCmd{
-						TrapToHost: true,
-					},
-				},
-			},
-			1,
-			"EAPOL",
-			3000,
-		},
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr error
-	}{
-		{"getFlowIdFromFlowInfo-1", args{}, errors.New("invalid flow-info")},
-		{"getFlowIdFromFlowInfo-2", args{flowInfo, 1, 1, 1,
-			"HSIA_FLOW", 33, []uint32{1, 2}}, errors.New("invalid flow-info")},
-		{"getFlowIdFromFlowInfo-2", args{flowInfo, 1, 1, 1,
-			"EAPOL", 33, []uint32{1, 2}}, errors.New("invalid flow-info")},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := getFlowIDFromFlowInfo(context.Background(), tt.args.FlowInfo, tt.args.flowID, tt.args.gemportID, tt.args.flowStoreCookie, tt.args.flowCategory, tt.args.vlanVid, tt.args.vlanPcp...)
-			if reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
-				t.Errorf("getFlowIDFromFlowInfo() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err == nil {
-				t.Log("return'd nil")
 			}
 		})
 	}

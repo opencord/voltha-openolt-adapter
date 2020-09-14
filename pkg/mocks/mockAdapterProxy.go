@@ -22,7 +22,7 @@ import (
 	"errors"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/opencord/voltha-protos/v3/go/inter_container"
+	"github.com/opencord/voltha-protos/v4/go/inter_container"
 )
 
 // MockAdapterProxy mocks the AdapterProxy interface.

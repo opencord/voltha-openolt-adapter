@@ -19,10 +19,10 @@ package core
 
 import (
 	"context"
-	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
+	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 	"math"
 	"reflect"
 	"testing"
