@@ -604,7 +604,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// clean the flowMgr
 	for i := 0; i < intfNum; i++ {
-		flowMgr[i].onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo, intfNum)
+		flowMgr[i].onuGemInfo = make([]rsrcMgr.OnuGemInfo, 0)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -637,13 +637,13 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// check that each entry of onuGemInfo has the correct number of ONUs
 	for i := 0; i < intfNum; i++ {
-		lenofOnu := len(flowMgr[i].onuGemInfo[uint32(i)])
+		lenofOnu := len(flowMgr[i].onuGemInfo)
 		if onuNum != lenofOnu {
 			t.Errorf("OnuGemInfo length is not as expected len = %d, want %d", lenofOnu, onuNum)
 		}
 
 		for o := 1; o <= onuNum; o++ {
-			lenOfGemPorts := len(flowMgr[i].onuGemInfo[uint32(i)][o-1].GemPorts)
+			lenOfGemPorts := len(flowMgr[i].onuGemInfo[o-1].GemPorts)
 			// check that each onuEntry has 1 gemPort
 			if lenOfGemPorts != 1 {
 				t.Errorf("Expected 1 GemPort per ONU, found %d", lenOfGemPorts)
@@ -651,7 +651,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 			// check that the value of the gemport is correct
 			gemID, _ := strconv.Atoi(fmt.Sprintf("90%d%d", i, o-1))
-			currentValue := flowMgr[i].onuGemInfo[uint32(i)][o-1].GemPorts[0]
+			currentValue := flowMgr[i].onuGemInfo[o-1].GemPorts[0]
 			if uint32(gemID) != currentValue {
 				t.Errorf("Expected GemPort value to be %d, found %d", gemID, currentValue)
 			}
@@ -698,11 +698,11 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
 				flowMgr[tt.args.intfID].deleteGemPortFromLocalCache(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
-			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfo[tt.args.intfID][0].GemPorts)
+			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
 				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
 			}
-			gemPorts := flowMgr[tt.args.intfID].onuGemInfo[tt.args.intfID][0].GemPorts
+			gemPorts := flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts
 			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
 				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
@@ -968,6 +968,32 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	//flowMetadata := &voltha.FlowMetadata{
 	//	Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	//}
+/*
+	uniPortName := "olt-{1234}/pon-{1}/onu-{1}/uni-{0}"
+	TpInst, err := flowMgr[1].techprofile[1].CreateTechProfInstance(nil, 64, uniPortName, 1)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+	xgPonInst := TpInst.(*tp.TechProfile)
+	xgPonInst.UsScheduler.Priority = 1
+	xgPonInst.UsScheduler.Direction = "upstream"
+	xgPonInst.UsScheduler.AllocID = 1
+	xgPonInst.UsScheduler.AdditionalBw = "None"
+	xgPonInst.UsScheduler.QSchedPolicy = "PQ"
+	xgPonInst.UsScheduler.Weight = 4
+
+	xgPonInst.DsScheduler.Priority = 1
+	xgPonInst.DsScheduler.Direction = "upstream"
+	xgPonInst.DsScheduler.AllocID = 1
+	xgPonInst.DsScheduler.AdditionalBw = "None"
+	xgPonInst.DsScheduler.QSchedPolicy = "PQ"
+	xgPonInst.DsScheduler.Weight = 4
+
+	xgPonInst = append(xgPonInst.UpstreamGemPortAttributeList, )
+
+ */
 
 	TpInst := &tp.TechProfile{
 		Name:                 "Test-Tech-Profile",
@@ -980,6 +1006,39 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			Uni: "16",
 		},
 	}
+	TpInst.UsScheduler.Priority = 1
+	TpInst.UsScheduler.Direction = "upstream"
+	TpInst.UsScheduler.AllocID = 1
+	TpInst.UsScheduler.AdditionalBw = "None"
+	TpInst.UsScheduler.QSchedPolicy = "PQ"
+	TpInst.UsScheduler.Weight = 4
+
+	TpInst.DsScheduler.Priority = 1
+	TpInst.DsScheduler.Direction = "upstream"
+	TpInst.DsScheduler.AllocID = 1
+	TpInst.DsScheduler.AdditionalBw = "None"
+	TpInst.DsScheduler.QSchedPolicy = "PQ"
+	TpInst.DsScheduler.Weight = 4
+
+	TpInst.UpstreamGemPortAttributeList = make([]tp.IGemPortAttribute, 4)
+	TpInst.UpstreamGemPortAttributeList[0].GemportID = 1
+	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00000011"
+	TpInst.UpstreamGemPortAttributeList[0].GemportID = 2
+	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00001100"
+	TpInst.UpstreamGemPortAttributeList[0].GemportID = 3
+	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00110000"
+	TpInst.UpstreamGemPortAttributeList[0].GemportID = 4
+	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b11000000"
+
+	TpInst.DownstreamGemPortAttributeList = make([]tp.IGemPortAttribute, 4)
+	TpInst.DownstreamGemPortAttributeList[0].GemportID = 1
+	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00000011"
+	TpInst.DownstreamGemPortAttributeList[0].GemportID = 2
+	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00001100"
+	TpInst.DownstreamGemPortAttributeList[0].GemportID = 3
+	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00110000"
+	TpInst.DownstreamGemPortAttributeList[0].GemportID = 4
+	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b11000000"
 
 	type args struct {
 		args           map[string]uint32
@@ -1014,7 +1073,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				uniID:          16,
 				portNo:         1,
 				TpInst:         TpInst,
-				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				allocID:        []uint32{0x8001},
 				gemPorts:       []uint32{1, 2, 3, 4},
 				TpID:           64,
 				uni:            "16",
@@ -1033,7 +1092,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				uniID:          16,
 				portNo:         1,
 				TpInst:         TpInst,
-				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				allocID:        []uint32{0x8001},
 				gemPorts:       []uint32{1, 2, 3, 4},
 				TpID:           64,
 				uni:            "16",
@@ -1052,7 +1111,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				uniID:          16,
 				portNo:         1,
 				TpInst:         TpInst,
-				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				allocID:        []uint32{0x8001},
 				gemPorts:       []uint32{1, 2, 3, 4},
 				TpID:           64,
 				uni:            "16",
@@ -1071,7 +1130,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				uniID:          16,
 				portNo:         1,
 				TpInst:         TpInst,
-				allocID:        []uint32{0x8001, 0x8002, 0x8003, 0x8004},
+				allocID:        []uint32{0x8001},
 				gemPorts:       []uint32{1, 2, 3, 4},
 				TpID:           64,
 				uni:            "16",

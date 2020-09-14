@@ -75,7 +75,7 @@ func (g *OpenOltGroupMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry
 	}
 	// group members not created yet. So let's store the group
 	if err := g.resourceMgr.AddFlowGroupToKVStore(ctx, group, true); err != nil {
-		return olterrors.NewErrPersistence("add", "flow-group", group.Desc.GroupId, log.Fields{"group": group}, err)
+		return olterrors.NewErrPersistence("add", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 	}
 	logger.Infow(ctx, "add-group-operation-performed-on-the-device-successfully ", log.Fields{"groupToOlt": groupToOlt})
 	return nil
@@ -99,7 +99,7 @@ func (g *OpenOltGroupMgr) DeleteGroup(ctx context.Context, group *ofp.OfpGroupEn
 	}
 	//remove group from the store
 	if err := g.resourceMgr.RemoveFlowGroupFromKVStore(ctx, group.Desc.GroupId, false); err != nil {
-		return olterrors.NewErrPersistence("delete", "flow-group", group.Desc.GroupId, log.Fields{"group": group}, err)
+		return olterrors.NewErrPersistence("delete", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 	}
 	logger.Debugw(ctx, "delete-group-operation-performed-on-the-device-successfully ", log.Fields{"groupToOlt": groupToOlt})
 	return nil
@@ -159,7 +159,7 @@ func (g *OpenOltGroupMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEn
 	//save the modified group
 	if errAdd == nil && errRemoved == nil {
 		if err := g.resourceMgr.AddFlowGroupToKVStore(ctx, group, false); err != nil {
-			return olterrors.NewErrPersistence("add", "flow-group", group.Desc.GroupId, log.Fields{"group": group}, err)
+			return olterrors.NewErrPersistence("add", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 		}
 		logger.Infow(ctx, "modify-group-was-success--storing-group",
 			log.Fields{
