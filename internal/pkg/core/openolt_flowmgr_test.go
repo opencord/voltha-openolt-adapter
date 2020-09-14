@@ -604,7 +604,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// clean the flowMgr
 	for i := 0; i < intfNum; i++ {
-		flowMgr[i].onuGemInfo = make(map[uint32][]rsrcMgr.OnuGemInfo, intfNum)
+		flowMgr[i].onuGemInfo = make([]rsrcMgr.OnuGemInfo, 0)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -637,13 +637,13 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// check that each entry of onuGemInfo has the correct number of ONUs
 	for i := 0; i < intfNum; i++ {
-		lenofOnu := len(flowMgr[i].onuGemInfo[uint32(i)])
+		lenofOnu := len(flowMgr[i].onuGemInfo)
 		if onuNum != lenofOnu {
 			t.Errorf("OnuGemInfo length is not as expected len = %d, want %d", lenofOnu, onuNum)
 		}
 
 		for o := 1; o <= onuNum; o++ {
-			lenOfGemPorts := len(flowMgr[i].onuGemInfo[uint32(i)][o-1].GemPorts)
+			lenOfGemPorts := len(flowMgr[i].onuGemInfo[o-1].GemPorts)
 			// check that each onuEntry has 1 gemPort
 			if lenOfGemPorts != 1 {
 				t.Errorf("Expected 1 GemPort per ONU, found %d", lenOfGemPorts)
@@ -651,7 +651,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 			// check that the value of the gemport is correct
 			gemID, _ := strconv.Atoi(fmt.Sprintf("90%d%d", i, o-1))
-			currentValue := flowMgr[i].onuGemInfo[uint32(i)][o-1].GemPorts[0]
+			currentValue := flowMgr[i].onuGemInfo[o-1].GemPorts[0]
 			if uint32(gemID) != currentValue {
 				t.Errorf("Expected GemPort value to be %d, found %d", gemID, currentValue)
 			}
@@ -698,11 +698,11 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
 				flowMgr[tt.args.intfID].deleteGemPortFromLocalCache(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
-			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfo[tt.args.intfID][0].GemPorts)
+			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
 				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
 			}
-			gemPorts := flowMgr[tt.args.intfID].onuGemInfo[tt.args.intfID][0].GemPorts
+			gemPorts := flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts
 			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
 				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
@@ -979,6 +979,8 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			Onu: "1",
 			Uni: "16",
 		},
+		UsScheduler: sc{
+			Priority:1,}
 	}
 
 	type args struct {

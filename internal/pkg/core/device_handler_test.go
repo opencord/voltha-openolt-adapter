@@ -209,7 +209,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
 	for i := 0; i < int(dh.totalPonPorts); i++ {
 		// Instantiate flow manager
-		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr); dh.flowMgr[i] == nil {
+		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
 			return nil
 		}
 	}
