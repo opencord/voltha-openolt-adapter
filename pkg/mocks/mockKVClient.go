@@ -72,9 +72,8 @@ func (kvclient *MockKVClient) List(ctx context.Context, key string) (map[string]
 
 // Get mock function implementation for KVClient
 func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
-	logger.Debugw(ctx, "Warning Warning Warning: Get of MockKVClient called", log.Fields{"key": key})
+	logger.Debugw(ctx, "Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
-		logger.Debug(ctx, "Warning Key Not Blank")
 		if strings.Contains(key, "meter_id/{0,62,8}/{upstream}") {
 			meterConfig := ofp.OfpMeterConfig{
 				Flags:   0,
@@ -135,12 +134,8 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		}
 		if strings.Contains(key, "/{olt}/{0,-1,-1}/flow_id_info/") {
 			//multicast flow
-			data := []resourcemanager.FlowInfo{
-				{
+			data := resourcemanager.FlowInfo{
 					Flow:            &openolt.Flow{FlowId: 1, OnuId: 0, UniId: 0, GemportId: 4000},
-					FlowStoreCookie: uint64(48132224281636694),
-					LogicalFlowID:   3961977515762683568,
-				},
 			}
 			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
 			str, _ := json.Marshal(data)
@@ -148,13 +143,8 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		}
 
 		if strings.Contains(key, FlowIDInfo) {
-
-			data := []resourcemanager.FlowInfo{
-				{
+			data := resourcemanager.FlowInfo{
 					Flow:            &openolt.Flow{FlowId: 1, OnuId: 1, UniId: 1, GemportId: 1},
-					FlowStoreCookie: uint64(48132224281636694),
-					LogicalFlowID:   1,
-				},
 			}
 			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
 			str, _ := json.Marshal(data)
