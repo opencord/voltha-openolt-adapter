@@ -138,8 +138,6 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			data := []resourcemanager.FlowInfo{
 				{
 					Flow:            &openolt.Flow{FlowId: 1, OnuId: 0, UniId: 0, GemportId: 4000},
-					FlowStoreCookie: uint64(48132224281636694),
-					LogicalFlowID:   3961977515762683568,
 				},
 			}
 			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
@@ -152,8 +150,6 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			data := []resourcemanager.FlowInfo{
 				{
 					Flow:            &openolt.Flow{FlowId: 1, OnuId: 1, UniId: 1, GemportId: 1},
-					FlowStoreCookie: uint64(48132224281636694),
-					LogicalFlowID:   1,
 				},
 			}
 			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
