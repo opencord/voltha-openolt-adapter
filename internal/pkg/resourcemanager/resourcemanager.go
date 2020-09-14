@@ -68,14 +68,19 @@ const (
 	// We preserve the groups under "FlowGroupsCached" directory in the KV store temporarily. Having set members,
 	// we remove the group from the cached group store.
 	FlowGroupCached = "flow_groups_cached/{%d}"
+
+	//Path on the KV store for storing list of Flow IDs for a given subscriber
+	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_ids
+	FlowIdPath = "{%s}/flow_ids"
+	//Flow Id info: Use to store more metadata associated with the flow_id
+	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_id_info/<flow_id>
+	FlowIdInfoPath = "{%s}/flow_id_info/{%d}"
 )
 
 // FlowInfo holds the flow information
 type FlowInfo struct {
 	Flow            *openolt.Flow
-	FlowStoreCookie uint64
-	FlowCategory    string
-	LogicalFlowID   uint64
+	IsSymmtricFlow  bool
 }
 
 // OnuGemInfo holds onu information along with gem port list and uni port list
@@ -446,16 +451,16 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, ponIntfID uint3
 		return 0, err
 	}
 	// Get ONU id for a provided pon interface ID.
-	ONUID, err := RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
+	onuID, err := RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
 		ponrmgr.ONU_ID, 1)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to get resource for interface %d for type %s",
 			ponIntfID, ponrmgr.ONU_ID)
 		return 0, err
 	}
-	if ONUID != nil {
-		RsrcMgr.ResourceMgrs[ponIntfID].InitResourceMap(ctx, fmt.Sprintf("%d,%d", ponIntfID, ONUID[0]))
-		return ONUID[0], err
+	if onuID != nil {
+		RsrcMgr.ResourceMgrs[ponIntfID].InitResourceMap(ctx, fmt.Sprintf("%d,%d", ponIntfID, onuID[0]))
+		return onuID[0], err
 	}
 
 	return 0, err // return OnuID 0 on error
@@ -464,81 +469,92 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, ponIntfID uint3
 // GetFlowIDInfo returns the slice of flow info of the given pon-port
 // Note: For flows which trap from the NNI and not really associated with any particular
 // ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) GetFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32, flowID uint32) *[]FlowInfo {
-	var flows []FlowInfo
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32, flowID uint64) *FlowInfo {
+	var flowInfo FlowInfo
 
-	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	if err := RsrcMgr.ResourceMgrs[ponIntfID].GetFlowIDInfo(ctx, FlowPath, flowID, &flows); err != nil {
-		logger.Errorw(ctx, "Error while getting flows from KV store", log.Fields{"flowId": flowID})
+	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
+	Path := fmt.Sprintf(FlowIdInfoPath, subs, flowID)
+
+	value, err := RsrcMgr.KVStore.Get(ctx, Path)
+	if err == nil {
+		if value != nil {
+			Val, err := toByte(value.Value)
+			if err != nil {
+				logger.Errorw(ctx, "Failed to convert flowinfo into byte array", log.Fields{"error": err, "subs": subs})
+				return nil
+			}
+			if err = json.Unmarshal(Val, &flowInfo); err != nil {
+				logger.Errorw(ctx, "Failed to unmarshal", log.Fields{"error": err, "subs": subs})
+				return nil
+			}
+		}
+	}
+	if flowInfo.Flow == nil {
+		logger.Debugw(ctx, "No flowInfo found in KV store", log.Fields{"subs": subs})
 		return nil
 	}
-	if len(flows) == 0 {
-		logger.Debugw(ctx, "No flowInfo found in KV store", log.Fields{"flowPath": FlowPath})
-		return nil
-	}
-	return &flows
+	return &flowInfo
 }
 
 // GetCurrentFlowIDsForOnu fetches flow ID from the resource manager
 // Note: For flows which trap from the NNI and not really associated with any particular
 // ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(ctx context.Context, PONIntfID uint32, ONUID int32, UNIID int32) []uint32 {
+func (RsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32) []uint64 {
 
-	FlowPath := fmt.Sprintf("%d,%d,%d", PONIntfID, ONUID, UNIID)
-	if mgrs, exist := RsrcMgr.ResourceMgrs[PONIntfID]; exist {
-		return mgrs.GetCurrentFlowIDsForOnu(ctx, FlowPath)
+	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
+	path := fmt.Sprintf(FlowIdPath, subs)
+
+	var data []uint64
+	value, err := RsrcMgr.KVStore.Get(ctx, path)
+	if err == nil {
+		if value != nil {
+			Val, _ := toByte(value.Value)
+			if err = json.Unmarshal(Val, &data); err != nil {
+				logger.Error(ctx, "Failed to unmarshal")
+				return nil
+			}
+		}
 	}
-	return nil
+	return data
 }
 
 // UpdateFlowIDInfo updates flow info for the given pon interface, onu id, and uni id
 // Note: For flows which trap from the NNI and not really associated with any particular
 // ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo(ctx context.Context, ponIntfID int32, onuID int32, uniID int32,
-	flowID uint32, flowData *[]FlowInfo) error {
-	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	return RsrcMgr.ResourceMgrs[uint32(ponIntfID)].UpdateFlowIDInfoForOnu(ctx, FlowPath, flowID, *flowData)
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
+	flowID uint64, flowData FlowInfo) error {
+
+	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
+	path := fmt.Sprintf(FlowIdInfoPath, subs, flowID)
+
+	var value []byte
+	var err error
+	value, err = json.Marshal(flowData)
+	if err != nil {
+		logger.Errorf(ctx, "failed to Marshal, resource path %s", path)
+		return err
+	}
+
+	if err = RsrcMgr.KVStore.Put(ctx, path, value); err != nil {
+		logger.Errorf(ctx, "Failed to update resource %s", path)
+	}
+	return err
 }
 
-// GetFlowID return flow ID for a given pon interface id, onu id and uni id
-func (RsrcMgr *OpenOltResourceMgr) GetFlowID(ctx context.Context, ponIntfID uint32, ONUID int32, uniID int32,
-	gemportID uint32,
-	flowStoreCookie uint64,
-	flowCategory string, vlanVid uint32, vlanPcp ...uint32) (uint32, error) {
+// RemoveFlowIDInfo remove flow info for the given pon interface, onu id, and uni id
+// Note: For flows which trap from the NNI and not really associated with any particular
+// ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
+func (RsrcMgr *OpenOltResourceMgr) RemoveFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
+	flowID uint64) error {
+
+	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
+	path := fmt.Sprintf(FlowIdInfoPath, subs, flowID)
 
 	var err error
-	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, ONUID, uniID)
-
-	RsrcMgr.FlowIDMgmtLock.Lock()
-	defer RsrcMgr.FlowIDMgmtLock.Unlock()
-
-	FlowIDs := RsrcMgr.ResourceMgrs[ponIntfID].GetCurrentFlowIDsForOnu(ctx, FlowPath)
-	if FlowIDs != nil {
-		logger.Debugw(ctx, "Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "ONUID": ONUID, "uniID": uniID, "KVpath": FlowPath})
-		for _, flowID := range FlowIDs {
-			FlowInfo := RsrcMgr.GetFlowIDInfo(ctx, ponIntfID, int32(ONUID), int32(uniID), uint32(flowID))
-			er := getFlowIDFromFlowInfo(ctx, FlowInfo, flowID, gemportID, flowStoreCookie, flowCategory, vlanVid, vlanPcp...)
-			if er == nil {
-				logger.Debugw(ctx, "Found flowid for the vlan, pcp, and gem",
-					log.Fields{"flowID": flowID, "vlanVid": vlanVid, "vlanPcp": vlanPcp, "gemPortID": gemportID})
-				return flowID, er
-			}
-		}
+	if err = RsrcMgr.KVStore.Delete(ctx, path); err != nil {
+		logger.Errorf(ctx, "Failed to delete resource %s", path)
 	}
-	logger.Debug(ctx, "No matching flows with flow cookie or flow category, allocating new flowid")
-	FlowIDs, err = RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
-		ponrmgr.FLOW_ID, 1)
-	if err != nil {
-		logger.Errorf(ctx, "Failed to get resource for interface %d for type %s",
-			ponIntfID, ponrmgr.FLOW_ID)
-		return uint32(0), err
-	}
-	if FlowIDs != nil {
-		_ = RsrcMgr.ResourceMgrs[ponIntfID].UpdateFlowIDForOnu(ctx, FlowPath, FlowIDs[0], true)
-		return FlowIDs[0], err
-	}
-
-	return 0, err
+	return err
 }
 
 // GetAllocID return the first Alloc ID for a given pon interface id and onu id and then update the resource map on
@@ -738,47 +754,6 @@ func (RsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 	}
 }
 
-// FreeFlowID returns the free flow id for a given interface, onu id and uni id
-func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(ctx context.Context, IntfID uint32, onuID int32,
-	uniID int32, FlowID uint32) {
-	var IntfONUID string
-	var err error
-
-	RsrcMgr.FlowIDMgmtLock.Lock()
-	defer RsrcMgr.FlowIDMgmtLock.Unlock()
-
-	FlowIds := make([]uint32, 0)
-	FlowIds = append(FlowIds, FlowID)
-	IntfONUID = fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
-	err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(ctx, IntfONUID, FlowID, false)
-	if err != nil {
-		logger.Errorw(ctx, "Failed to Update flow id  for", log.Fields{"intf": IntfONUID})
-	}
-	RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(ctx, IntfONUID, FlowID)
-
-	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.FLOW_ID, FlowIds)
-}
-
-// FreeFlowIDs releases the flow Ids
-func (RsrcMgr *OpenOltResourceMgr) FreeFlowIDs(ctx context.Context, IntfID uint32, onuID uint32,
-	uniID uint32, FlowID []uint32) {
-	RsrcMgr.FlowIDMgmtLock.Lock()
-	defer RsrcMgr.FlowIDMgmtLock.Unlock()
-
-	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.FLOW_ID, FlowID)
-
-	var IntfOnuIDUniID string
-	var err error
-	for _, flow := range FlowID {
-		IntfOnuIDUniID = fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
-		err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(ctx, IntfOnuIDUniID, flow, false)
-		if err != nil {
-			logger.Errorw(ctx, "Failed to Update flow id for", log.Fields{"intf": IntfOnuIDUniID})
-		}
-		RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(ctx, IntfOnuIDUniID, flow)
-	}
-}
-
 // FreeAllocID frees AllocID on the PON resource pool and also frees the allocID association
 // for the given OLT device.
 func (RsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, IntfID uint32, onuID uint32,
@@ -826,13 +801,6 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 		GEMPortIDs)
 	RsrcMgr.GemPortIDMgmtLock[intfID].Unlock()
 
-	RsrcMgr.FlowIDMgmtLock.Lock()
-	FlowIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentFlowIDsForOnu(ctx, IntfOnuIDUniID)
-	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
-		ponrmgr.FLOW_ID,
-		FlowIDs)
-	RsrcMgr.FlowIDMgmtLock.Unlock()
-
 	// Clear resource map associated with (pon_intf_id, gemport_id) tuple.
 	RsrcMgr.ResourceMgrs[intfID].RemoveResourceMap(ctx, IntfOnuIDUniID)
 	// Clear the ONU Id associated with the (pon_intf_id, gemport_id) tuple.
@@ -843,23 +811,15 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 // IsFlowCookieOnKVStore checks if the given flow cookie is present on the kv store
 // Returns true if the flow cookie is found, otherwise it returns false
-func (RsrcMgr *OpenOltResourceMgr) IsFlowCookieOnKVStore(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
-	flowStoreCookie uint64) bool {
+func (RsrcMgr *OpenOltResourceMgr) IsFlowOnKvStore(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
+	flowID uint64) bool {
 
-	FlowPath := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	FlowIDs := RsrcMgr.ResourceMgrs[ponIntfID].GetCurrentFlowIDsForOnu(ctx, FlowPath)
+	FlowIDs := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, ponIntfID, onuID, uniID)
 	if FlowIDs != nil {
-		logger.Debugw(ctx, "Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "onuID": onuID, "uniID": uniID, "KVpath": FlowPath})
-		for _, flowID := range FlowIDs {
-			FlowInfo := RsrcMgr.GetFlowIDInfo(ctx, ponIntfID, int32(onuID), int32(uniID), uint32(flowID))
-			if FlowInfo != nil {
-				logger.Debugw(ctx, "Found flows", log.Fields{"flows": *FlowInfo, "flowId": flowID})
-				for _, Info := range *FlowInfo {
-					if Info.FlowStoreCookie == flowStoreCookie {
-						logger.Debug(ctx, "Found flow matching with flowStore cookie", log.Fields{"flowId": flowID, "flowStoreCookie": flowStoreCookie})
-						return true
-					}
-				}
+		logger.Debugw(ctx, "Found flowId(s) for this ONU", log.Fields{"pon": ponIntfID, "onuID": onuID, "uniID": uniID})
+		for _, id := range FlowIDs {
+			if flowID == id {
+				return true
 			}
 		}
 	}
@@ -1017,30 +977,6 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveMeterIDForOnu(ctx context.Context, Dire
 	return nil
 }
 
-func getFlowIDFromFlowInfo(ctx context.Context, FlowInfo *[]FlowInfo, flowID, gemportID uint32, flowStoreCookie uint64, flowCategory string,
-	vlanVid uint32, vlanPcp ...uint32) error {
-	if FlowInfo != nil {
-		for _, Info := range *FlowInfo {
-			if int32(gemportID) == Info.Flow.GemportId && flowCategory != "" && Info.FlowCategory == flowCategory {
-				logger.Debug(ctx, "Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
-				if Info.FlowCategory == "HSIA_FLOW" {
-					if err := checkVlanAndPbitEqualityForFlows(vlanVid, Info, vlanPcp[0]); err == nil {
-						return nil
-					}
-				}
-			}
-			if int32(gemportID) == Info.Flow.GemportId && flowStoreCookie != 0 && Info.FlowStoreCookie == flowStoreCookie {
-				if flowCategory != "" && Info.FlowCategory == flowCategory {
-					logger.Debug(ctx, "Found flow matching with flow category", log.Fields{"flowId": flowID, "FlowCategory": flowCategory})
-					return nil
-				}
-			}
-		}
-	}
-	logger.Debugw(ctx, "the flow can be related to a different service", log.Fields{"flow_info": FlowInfo})
-	return errors.New("invalid flow-info")
-}
-
 func checkVlanAndPbitEqualityForFlows(vlanVid uint32, Info FlowInfo, vlanPcp uint32) error {
 	if err := checkVlanEqualityForFlows(vlanVid, Info); err != nil {
 		return err
@@ -1122,14 +1058,14 @@ func (RsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, IntfID uin
 
 	if err = RsrcMgr.ResourceMgrs[IntfID].GetOnuGemInfo(ctx, IntfID, &onuGemData); err != nil {
 		logger.Errorf(ctx, "failed to get onuifo for intfid %d", IntfID)
-		return olterrors.NewErrPersistence("get", "OnuGemInfo", IntfID,
+		return olterrors.NewErrPersistence("get", "OnuGemInfo", uint64(IntfID),
 			log.Fields{"onuGem": onuGem, "intfID": IntfID}, err)
 	}
 	onuGemData = append(onuGemData, onuGem)
 	err = RsrcMgr.ResourceMgrs[IntfID].AddOnuGemInfo(ctx, IntfID, onuGemData)
 	if err != nil {
 		logger.Error(ctx, "Failed to add onugem to kv store")
-		return olterrors.NewErrPersistence("set", "OnuGemInfo", IntfID,
+		return olterrors.NewErrPersistence("set", "OnuGemInfo", uint64(IntfID),
 			log.Fields{"onuGemData": onuGemData, "intfID": IntfID}, err)
 	}
 
@@ -1306,7 +1242,7 @@ func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore(ctx context.Context) error 
 }
 
 //UpdateFlowIDsForGem updates flow id per gemport
-func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf uint32, gem uint32, flowIDs []uint32) error {
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf uint32, gem uint32, flowIDs []uint64) error {
 	var val []byte
 	path := fmt.Sprintf(FlowIDsForGem, intf)
 
@@ -1316,7 +1252,7 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 		return err
 	}
 	if flowsForGem == nil {
-		flowsForGem = make(map[uint32][]uint32)
+		flowsForGem = make(map[uint32][]uint64)
 	}
 	flowsForGem[gem] = flowIDs
 	val, err = json.Marshal(flowsForGem)
@@ -1366,9 +1302,9 @@ func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 }
 
 //GetFlowIDsGemMapForInterface gets flowids per gemport and interface
-func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Context, intf uint32) (map[uint32][]uint32, error) {
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Context, intf uint32) (map[uint32][]uint64, error) {
 	path := fmt.Sprintf(FlowIDsForGem, intf)
-	var flowsForGem map[uint32][]uint32
+	var flowsForGem map[uint32][]uint64
 	var val []byte
 	RsrcMgr.flowIDToGemInfoLock.RLock()
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
@@ -1537,4 +1473,17 @@ func (RsrcMgr *OpenOltResourceMgr) GetFlowGroupFromKVStore(ctx context.Context, 
 		return true, groupInfo, nil
 	}
 	return false, groupInfo, nil
+}
+
+// toByte converts an interface value to a []byte.  The interface should either be of
+// a string type or []byte.  Otherwise, an error is returned.
+func toByte(value interface{}) ([]byte, error) {
+	switch t := value.(type) {
+	case []byte:
+		return value.([]byte), nil
+	case string:
+		return []byte(value.(string)), nil
+	default:
+		return nil, fmt.Errorf("unexpected-type-%T", t)
+	}
 }
