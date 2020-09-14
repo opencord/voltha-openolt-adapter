@@ -191,7 +191,8 @@ type GemPortAttribute struct {
 	McastGemID       uint32        `json:"multicast_gem_id"`
 }
 
-type iScheduler struct {
+// Instance of IScheduler
+type IScheduler struct {
 	AllocID      uint32 `json:"alloc_id"`
 	Direction    string `json:"direction"`
 	AdditionalBw string `json:"additional_bw"`
@@ -199,7 +200,9 @@ type iScheduler struct {
 	Weight       uint32 `json:"weight"`
 	QSchedPolicy string `json:"q_sched_policy"`
 }
-type iGemPortAttribute struct {
+
+// Instance of GemPortAttribute
+type IGemPortAttribute struct {
 	GemportID        uint32        `json:"gemport_id"`
 	MaxQueueSize     string        `json:"max_q_size"`
 	PbitMap          string        `json:"pbit_map"`
@@ -239,10 +242,10 @@ type TechProfile struct {
 	Version                        int                 `json:"version"`
 	NumGemPorts                    uint32              `json:"num_gem_ports"`
 	InstanceCtrl                   InstanceControl     `json:"instance_control"`
-	UsScheduler                    iScheduler          `json:"us_scheduler"`
-	DsScheduler                    iScheduler          `json:"ds_scheduler"`
-	UpstreamGemPortAttributeList   []iGemPortAttribute `json:"upstream_gem_port_attribute_list"`
-	DownstreamGemPortAttributeList []iGemPortAttribute `json:"downstream_gem_port_attribute_list"`
+	UsScheduler                    IScheduler          `json:"us_scheduler"`
+	DsScheduler                    IScheduler          `json:"ds_scheduler"`
+	UpstreamGemPortAttributeList   []IGemPortAttribute `json:"upstream_gem_port_attribute_list"`
+	DownstreamGemPortAttributeList []IGemPortAttribute `json:"downstream_gem_port_attribute_list"`
 }
 
 // QThresholds struct for EPON
@@ -646,10 +649,10 @@ func (t *TechProfileMgr) validateInstanceControlAttr(ctx context.Context, instCt
 
 func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName string, tp *DefaultTechProfile, intfId uint32, tpInstPath string) *TechProfile {
 
-	var usGemPortAttributeList []iGemPortAttribute
-	var dsGemPortAttributeList []iGemPortAttribute
-	var dsMulticastGemAttributeList []iGemPortAttribute
-	var dsUnicastGemAttributeList []iGemPortAttribute
+	var usGemPortAttributeList []IGemPortAttribute
+	var dsGemPortAttributeList []IGemPortAttribute
+	var dsMulticastGemAttributeList []IGemPortAttribute
+	var dsUnicastGemAttributeList []IGemPortAttribute
 	var tcontIDs []uint32
 	var gemPorts []uint32
 	var err error
@@ -694,7 +697,7 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 	logger.Infow(ctx, "Allocated tconts and GEM ports successfully", log.Fields{"tconts": tcontIDs, "gemports": gemPorts})
 	for index := 0; index < int(tp.NumGemPorts); index++ {
 		usGemPortAttributeList = append(usGemPortAttributeList,
-			iGemPortAttribute{GemportID: gemPorts[index],
+			IGemPortAttribute{GemportID: gemPorts[index],
 				MaxQueueSize:     tp.UpstreamGemPortAttributeList[index].MaxQueueSize,
 				PbitMap:          tp.UpstreamGemPortAttributeList[index].PbitMap,
 				AesEncryption:    tp.UpstreamGemPortAttributeList[index].AesEncryption,
@@ -710,7 +713,7 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 	for index := 0; index < int(len(tp.DownstreamGemPortAttributeList)); index++ {
 		if isMulticastGem(tp.DownstreamGemPortAttributeList[index].IsMulticast) {
 			dsMulticastGemAttributeList = append(dsMulticastGemAttributeList,
-				iGemPortAttribute{
+				IGemPortAttribute{
 					McastGemID:       tp.DownstreamGemPortAttributeList[index].McastGemID,
 					MaxQueueSize:     tp.DownstreamGemPortAttributeList[index].MaxQueueSize,
 					PbitMap:          tp.DownstreamGemPortAttributeList[index].PbitMap,
@@ -725,7 +728,7 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 					SControlList:     tp.DownstreamGemPortAttributeList[index].SControlList})
 		} else {
 			dsUnicastGemAttributeList = append(dsUnicastGemAttributeList,
-				iGemPortAttribute{
+				IGemPortAttribute{
 					MaxQueueSize:     tp.DownstreamGemPortAttributeList[index].MaxQueueSize,
 					PbitMap:          tp.DownstreamGemPortAttributeList[index].PbitMap,
 					AesEncryption:    tp.DownstreamGemPortAttributeList[index].AesEncryption,
@@ -739,7 +742,7 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 	//add unicast downstream GEM ports to dsGemPortAttributeList
 	for index := 0; index < int(tp.NumGemPorts); index++ {
 		dsGemPortAttributeList = append(dsGemPortAttributeList,
-			iGemPortAttribute{GemportID: gemPorts[index],
+			IGemPortAttribute{GemportID: gemPorts[index],
 				MaxQueueSize:     dsUnicastGemAttributeList[index].MaxQueueSize,
 				PbitMap:          dsUnicastGemAttributeList[index].PbitMap,
 				AesEncryption:    dsUnicastGemAttributeList[index].AesEncryption,
@@ -761,14 +764,14 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 		Version:              tp.Version,
 		NumGemPorts:          tp.NumGemPorts,
 		InstanceCtrl:         tp.InstanceCtrl,
-		UsScheduler: iScheduler{
+		UsScheduler: IScheduler{
 			AllocID:      tcontIDs[0],
 			Direction:    tp.UsScheduler.Direction,
 			AdditionalBw: tp.UsScheduler.AdditionalBw,
 			Priority:     tp.UsScheduler.Priority,
 			Weight:       tp.UsScheduler.Weight,
 			QSchedPolicy: tp.UsScheduler.QSchedPolicy},
-		DsScheduler: iScheduler{
+		DsScheduler: IScheduler{
 			AllocID:      tcontIDs[0],
 			Direction:    tp.DsScheduler.Direction,
 			AdditionalBw: tp.DsScheduler.AdditionalBw,

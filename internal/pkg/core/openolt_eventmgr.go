@@ -23,12 +23,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	"github.com/opencord/voltha-protos/v3/go/common"
-	oop "github.com/opencord/voltha-protos/v3/go/openolt"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"github.com/opencord/voltha-protos/v4/go/common"
+	oop "github.com/opencord/voltha-protos/v4/go/openolt"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
 const (

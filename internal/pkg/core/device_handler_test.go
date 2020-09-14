@@ -27,20 +27,20 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v3/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v3/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
-	"github.com/opencord/voltha-lib-go/v3/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v3/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v4/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
-	of "github.com/opencord/voltha-protos/v3/go/openflow_13"
-	ofp "github.com/opencord/voltha-protos/v3/go/openflow_13"
-	oop "github.com/opencord/voltha-protos/v3/go/openolt"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
+	of "github.com/opencord/voltha-protos/v4/go/openflow_13"
+	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/v4/go/openolt"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
 const (
@@ -209,7 +209,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
 	for i := 0; i < int(dh.totalPonPorts); i++ {
 		// Instantiate flow manager
-		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr); dh.flowMgr[i] == nil {
+		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
 			return nil
 		}
 	}

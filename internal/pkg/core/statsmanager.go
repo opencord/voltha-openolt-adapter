@@ -24,10 +24,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	"github.com/opencord/voltha-protos/v3/go/openolt"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"github.com/opencord/voltha-protos/v4/go/openolt"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
 var mutex = &sync.Mutex{}
