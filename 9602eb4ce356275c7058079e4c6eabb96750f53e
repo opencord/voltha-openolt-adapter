@@ -34,6 +34,24 @@
       "revId": "9602eb4ce356275c7058079e4c6eabb96750f53e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d92b5069_7d482d73",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-09-14T15:30:36Z",
+      "side": 1,
+      "message": "perfect, thanks!",
+      "parentUuid": "3facb185_47255e99",
+      "revId": "9602eb4ce356275c7058079e4c6eabb96750f53e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
