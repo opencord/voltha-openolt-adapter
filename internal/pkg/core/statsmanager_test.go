@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/opencord/voltha-protos/v3/go/openolt"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	"github.com/opencord/voltha-protos/v4/go/openolt"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
 func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {

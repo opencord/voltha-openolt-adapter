@@ -26,20 +26,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
 
-	"github.com/opencord/voltha-lib-go/v3/pkg/adapters"
-	com "github.com/opencord/voltha-lib-go/v3/pkg/adapters/common"
-	conf "github.com/opencord/voltha-lib-go/v3/pkg/config"
-	"github.com/opencord/voltha-lib-go/v3/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v3/pkg/kafka"
-	"github.com/opencord/voltha-lib-go/v3/pkg/log"
-	"github.com/opencord/voltha-lib-go/v3/pkg/probe"
-	"github.com/opencord/voltha-lib-go/v3/pkg/version"
+	"github.com/opencord/voltha-lib-go/v4/pkg/adapters"
+	com "github.com/opencord/voltha-lib-go/v4/pkg/adapters/common"
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
+	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v4/pkg/probe"
+	"github.com/opencord/voltha-lib-go/v4/pkg/version"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	ac "github.com/opencord/voltha-openolt-adapter/internal/pkg/core"
-	ic "github.com/opencord/voltha-protos/v3/go/inter_container"
-	"github.com/opencord/voltha-protos/v3/go/voltha"
+	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
+	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
 type adapter struct {
