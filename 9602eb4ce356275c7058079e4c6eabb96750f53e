@@ -16,6 +16,24 @@
       "revId": "9602eb4ce356275c7058079e4c6eabb96750f53e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3facb185_47255e99",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-09-14T15:23:37Z",
+      "side": 1,
+      "message": "Yes, it is safe to assume intf-ids are 0 indexed. That is how BAL indexes it.",
+      "parentUuid": "dd2f2f4c_91381ee5",
+      "revId": "9602eb4ce356275c7058079e4c6eabb96750f53e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
