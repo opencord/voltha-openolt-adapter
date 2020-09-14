@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd2f2f4c_91381ee5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-09-14T07:57:43Z",
+      "side": 1,
+      "message": "how we do correlate this with the intfID ? is is just that the interface number will act as index. if so, is it safe enough to a some we are always going to have the numbering going from 0 with no gaps ?",
+      "revId": "9602eb4ce356275c7058079e4c6eabb96750f53e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
