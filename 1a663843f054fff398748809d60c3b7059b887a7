@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c597610_0df3795a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 736,
+      "author": {
+        "id": 1000526
+      },
+      "writtenOn": "2020-09-15T06:39:24Z",
+      "side": 1,
+      "message": "You should not be always creating a new basicAuthRPCCreds object on detecting updated credentials. The grpc client has been given pointer of basicAuthRPCCreds at the time of its creation; creating a new basicAuthRPCCreds object and replacing it won\u0027t serve the purpose.\n\nUpdate the username/password into basicAuthRPCCreds object if it is already created; see below\n\nif dh.credentials \u003d\u003d nil {\n    dh.credentials \u003d \u0026basicAuthRPCCreds{user: string(username), secret: string(password)}\n} else {\n    dh.credentials.user \u003d username\n    dh.credentials.secret \u003d password\n}",
+      "revId": "1a663843f054fff398748809d60c3b7059b887a7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
