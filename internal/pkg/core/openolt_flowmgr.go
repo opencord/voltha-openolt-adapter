@@ -22,6 +22,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/opencord/voltha-lib-go/v4/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
@@ -32,8 +35,6 @@ import (
 	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
-	"strings"
-	"sync"
 
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"google.golang.org/grpc/codes"
@@ -1687,13 +1688,13 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(ctx context.Context, intfID ui
 	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		delGemPortMsg,
 		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
-		f.deviceHandler.device.Type,
+		f.deviceHandler.openOLT.config.Topic,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, ""); sendErr != nil {
 		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter",
 			log.Fields{
-				"from-adapter":  f.deviceHandler.device.Type,
+				"from-adapter":  f.deviceHandler.openOLT.config.Topic,
 				"to-adapter":    onuDev.deviceType,
 				"onu-id":        onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID,
@@ -1728,13 +1729,13 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		delTcontMsg,
 		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
-		f.deviceHandler.device.Type,
+		f.deviceHandler.openOLT.config.Topic,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, ""); sendErr != nil {
 		return olterrors.NewErrCommunication("send-delete-tcont-to-onu-adapter",
 			log.Fields{
-				"from-adapter": f.deviceHandler.device.Type,
+				"from-adapter": f.deviceHandler.openOLT.config.Topic,
 				"to-adapter":   onuDev.deviceType, "onu-id": onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID,
 				"device-id":     f.deviceHandler.device.Id}, sendErr)
@@ -2331,14 +2332,14 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
 		tpDownloadMsg,
 		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-		f.deviceHandler.device.Type,
+		f.deviceHandler.openOLT.config.Topic,
 		onuDev.deviceType,
 		onuDev.deviceID,
 		onuDev.proxyDeviceID, "")
 	if sendErr != nil {
 		return olterrors.NewErrCommunication("send-techprofile-download-request",
 			log.Fields{
-				"from-adapter":  f.deviceHandler.device.Type,
+				"from-adapter":  f.deviceHandler.openOLT.config.Topic,
 				"to-adapter":    onuDev.deviceType,
 				"onu-id":        onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID}, sendErr)

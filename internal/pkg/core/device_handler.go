@@ -636,10 +636,10 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 		onuInd := oop.OnuIndication{}
 		onuInd.OperState = "down"
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			dh.openOLT.config.Topic, onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
 			_ = olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
-				"source":        "openolt",
+				"source":        dh.openOLT.config.Topic,
 				"onu-indicator": onuInd,
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err).LogAt(log.ErrorLevel)
@@ -949,10 +949,10 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 
 	omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
 	if err := dh.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx), omciMsg,
-		ic.InterAdapterMessageType_OMCI_REQUEST, dh.device.Type, deviceType,
+		ic.InterAdapterMessageType_OMCI_REQUEST, dh.openOLT.config.Topic, deviceType,
 		deviceID, proxyDeviceID, ""); err != nil {
 		return olterrors.NewErrCommunication("omci-request", log.Fields{
-			"source":          dh.device.Type,
+			"source":          dh.openOLT.config.Topic,
 			"destination":     deviceType,
 			"onu-id":          deviceID,
 			"proxy-device-id": proxyDeviceID}, err)
@@ -1296,11 +1296,11 @@ func (dh *DeviceHandler) updateOnuStates(ctx context.Context, onuDevice *voltha.
 		logger.Debugw(ctx, "sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "device-id": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			dh.openOLT.config.Topic, onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
 			return olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
 				"onu-indicator": onuInd,
-				"source":        "openolt",
+				"source":        dh.openOLT.config.Topic,
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err)
 		}
@@ -1308,11 +1308,11 @@ func (dh *DeviceHandler) updateOnuStates(ctx context.Context, onuDevice *voltha.
 		logger.Debugw(ctx, "sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "device-id": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 		// TODO NEW CORE do not hardcode adapter name. Handler needs Adapter reference
 		err := dh.AdapterProxy.SendInterAdapterMessage(ctx, onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+			dh.openOLT.config.Topic, onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 		if err != nil {
 			return olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
 				"onu-indicator": onuInd,
-				"source":        "openolt",
+				"source":        dh.openOLT.config.Topic,
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err)
 		}
@@ -1531,10 +1531,10 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 	if onuDevices != nil {
 		for _, onuDevice := range onuDevices.Items {
 			err := dh.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.TODO(), ctx), &onuInd, ic.InterAdapterMessageType_ONU_IND_REQUEST,
-				"openolt", onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
+				dh.openOLT.config.Topic, onuDevice.Type, onuDevice.Id, onuDevice.ProxyAddress.DeviceId, "")
 			if err != nil {
 				logger.Errorw(ctx, "failed-to-send-inter-adapter-message", log.Fields{"OnuInd": onuInd,
-					"From Adapter": "openolt", "DeviceType": onuDevice.Type, "device-id": onuDevice.Id})
+					"From Adapter": dh.openOLT.config.Topic, "DeviceType": onuDevice.Type, "device-id": onuDevice.Id})
 			}
 
 		}
