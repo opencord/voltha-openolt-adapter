@@ -773,6 +773,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 				logger.Errorw(ctx, "CreateSchedulerQueues-failed-upstream",
 					log.Fields{
 						"error":     err,
+						"onu-id":    onuID,
+						"uni-id":    uniID,
+						"intf-id":   intfID,
 						"meter-id":  UsMeterID,
 						"device-id": f.deviceHandler.device.Id})
 				return 0, nil, nil
@@ -785,6 +788,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 				logger.Errorw(ctx, "CreateSchedulerQueues-failed-downstream",
 					log.Fields{
 						"error":     err,
+						"onu-id":    onuID,
+						"uni-id":    uniID,
+						"intf-id":   intfID,
 						"meter-id":  DsMeterID,
 						"device-id": f.deviceHandler.device.Id})
 				return 0, nil, nil
@@ -1759,8 +1765,8 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 			"device-id": f.deviceHandler.device.Id})
 
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
-		OnuId:         int32(onuID), // OnuId not required
-		UniId:         int32(uniID), // UniId not used
+		OnuId:         int32(onuID),                           // OnuId not required
+		UniId:         int32(uniID),                           // UniId not used
 		FlowId:        flowID,
 		FlowType:      Downstream,
 		NetworkIntfId: int32(networkInterfaceID),
@@ -2984,8 +2990,8 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 	}
 	logger.Debugw(ctx, "created-action-proto", log.Fields{"action": *actionProto})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
-		OnuId:         int32(onuID), // OnuId not required
-		UniId:         int32(uniID), // UniId not used
+		OnuId:         int32(onuID),                           // OnuId not required
+		UniId:         int32(uniID),                           // UniId not used
 		FlowId:        flowID,
 		FlowType:      Downstream,
 		AllocId:       int32(allocID), // AllocId not used
@@ -3091,8 +3097,8 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 	}
 	logger.Debugw(ctx, "created-action-proto-for-the-igmp-flow", log.Fields{"action": *actionProto})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
-		OnuId:         int32(onuID), // OnuId not required
-		UniId:         int32(uniID), // UniId not used
+		OnuId:         int32(onuID),                           // OnuId not required
+		UniId:         int32(uniID),                           // UniId not used
 		FlowId:        flowID,
 		FlowType:      Downstream,
 		AllocId:       int32(allocID), // AllocId not used
