@@ -773,6 +773,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 				logger.Errorw(ctx, "CreateSchedulerQueues-failed-upstream",
 					log.Fields{
 						"error":     err,
+						"onu-id":    onuID,
+						"uni-id":    uniID,
+						"intf-id":   intfID,
 						"meter-id":  UsMeterID,
 						"device-id": f.deviceHandler.device.Id})
 				return 0, nil, nil
@@ -785,6 +788,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 				logger.Errorw(ctx, "CreateSchedulerQueues-failed-downstream",
 					log.Fields{
 						"error":     err,
+						"onu-id":    onuID,
+						"uni-id":    uniID,
+						"intf-id":   intfID,
 						"meter-id":  DsMeterID,
 						"device-id": f.deviceHandler.device.Id})
 				return 0, nil, nil
