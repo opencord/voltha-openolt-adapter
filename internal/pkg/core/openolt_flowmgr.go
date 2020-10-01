@@ -943,7 +943,9 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(ctx context.Context, intfID uint3
 		}
 	}
 
-	/* Already this info available classifier? */
+	// Fix with BAL3.4.8.5
+	/*
+	// Already this info available classifier?
 	downlinkAction[PopVlan] = true
 	// vlan_vid is a uint32.  must be type asserted as such or conversion fails
 	dlClVid, ok := downlinkClassifier[VlanVid].(uint32)
@@ -955,6 +957,7 @@ func (f *OpenOltFlowMgr) addDownstreamDataFlow(ctx context.Context, intfID uint3
 			"vlan-id":   VlanVid,
 			"device-id": f.deviceHandler.device.Id}, nil).Log()
 	}
+	*/
 
 	return f.addHSIAFlow(ctx, intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
 		Downstream, logicalFlow, allocID, gemportID, tpID)
@@ -1040,7 +1043,7 @@ func (f *OpenOltFlowMgr) addHSIAFlow(ctx context.Context, intfID uint32, onuID u
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action, "device-id": f.deviceHandler.device.Id}, err).Log()
 	}
-	logger.Debugw(ctx, "created-action-proto",
+	logger.Debugw(ctx, "ggc: created-action-proto",
 		log.Fields{
 			"action":    *actionProto,
 			"device-id": f.deviceHandler.device.Id})
@@ -1428,6 +1431,7 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 			classifier.OVid = vid
 		}
 	}
+
 	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
 		vid := uint32(metadata)
 		if vid != ReservedVlan {
@@ -1467,6 +1471,7 @@ func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo ma
 		action.Cmd.RemoveOuterTag = true
 		if _, ok := actionInfo[VlanPcp]; ok {
 			action.Cmd.RemarkInnerPbits = true
+			// TODO : Fix ipbits
 			action.IPbits = actionInfo[VlanPcp].(uint32)
 			if _, ok := actionInfo[VlanVid]; ok {
 				action.Cmd.TranslateInnerTag = true
@@ -1481,6 +1486,10 @@ func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo ma
 			action.Cmd.RemarkOuterPbits = true
 			if _, ok := classifierInfo[VlanVid]; ok {
 				action.IVid = classifierInfo[VlanVid].(uint32)
+				if _, ok := classifierInfo[VlanPcp]; ok {
+					action.IPbits = classifierInfo[VlanPcp].(uint32)
+					logger.Info(nil, "ggc: filling action ipbit", log.Fields{"pcp": action.IPbits})
+				}
 				action.Cmd.TranslateInnerTag = true
 			}
 		}
