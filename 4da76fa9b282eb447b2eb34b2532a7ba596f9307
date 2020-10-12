@@ -1,0 +1,174 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf9dfc8e_0971677a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1041,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "remove commented code",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2bf70c45_1c8e9663",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 2297,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7555e4b_a6718fa8",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 2776,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "should we not populate the map with still one mapping ?",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21611bf4_50a09e6e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 2784,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "maybe it\u0027s my ignorance, what is 1 ? can we extract it as a constant and explain ?",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2802acc_a9f5fa61",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 3440,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "explicitly set to 0 here for clarity",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d80377e9_1cb6f164",
+        "filename": "internal/pkg/core/openolt_flowmgr_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 995,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "remove",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e6e3f63_2b45fe8d",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "worth return error and not just log ?",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc297b7b_9936300b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "same",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6756716_462a130b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "return the error",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0ca373d_858003c4",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-12T09:25:42Z",
+      "side": 1,
+      "message": "same, the error here is just logged and not returned",
+      "revId": "4da76fa9b282eb447b2eb34b2532a7ba596f9307",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
