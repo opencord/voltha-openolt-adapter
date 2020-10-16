@@ -35,7 +35,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/EagleChen/mapmutex"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -141,22 +140,11 @@ const (
 	//NoneUniID constant
 	NoneUniID = -1
 
-	// MapMutex
-	maxRetry  = 300
-	maxDelay  = 100000000
-	baseDelay = 10000000
-	factor    = 1.1
-	jitter    = 0.2
+	maxConcurrentFlowsPerSub = 20
 
 	bitMapPrefix = "0b"
 	pbit1        = '1'
 )
-
-type tpLockKey struct {
-	intfID uint32
-	onuID  uint32
-	uniID  uint32
-}
 
 type schedQueue struct {
 	direction    tp_pb.Direction
@@ -170,13 +158,6 @@ type schedQueue struct {
 	flowMetadata *voltha.FlowMetadata
 }
 
-// pendingFlowRemoveDataKey is key to pendingFlowRemoveDataPerSubscriber map
-type pendingFlowRemoveDataKey struct {
-	intfID uint32
-	onuID  uint32
-	uniID  uint32
-}
-
 // subscriberDataPathFlowIDKey is key to subscriberDataPathFlowIDMap map
 type subscriberDataPathFlowIDKey struct {
 	intfID    uint32
@@ -186,12 +167,12 @@ type subscriberDataPathFlowIDKey struct {
 	tpID      uint32
 }
 
-// pendingFlowRemoveData is value stored in pendingFlowRemoveDataPerSubscriber map
-// This holds the number of pending flow removes and also a signal channel to
-// to indicate the receiver when all flow removes are handled
-type pendingFlowRemoveData struct {
-	pendingFlowRemoveCount uint32
-	allFlowsRemoved        chan struct{}
+type flowControlBlock struct {
+	ctx          context.Context      // Flow handler context
+	addFlow      bool                 // if true flow to be added, else removed
+	flow         *voltha.OfpFlowStats // Flow message
+	flowMetadata *voltha.FlowMetadata // FlowMetadata that contains flow meter information. This can be nil for Flow remove
+	errChan      *chan error          // channel to report the Flow handling error
 }
 
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
@@ -215,21 +196,12 @@ type OpenOltFlowMgr struct {
 	// We need to have a global lock on the onuGemInfo map
 	onuGemInfoLock sync.RWMutex
 
-	// The mapmutex.Mutex can be fine tuned to use mapmutex.NewCustomizedMapMutex
-	perUserFlowHandleLock *mapmutex.Mutex
-
-	// pendingFlowRemoveDataPerSubscriber map is used to maintain the context on a per
-	// subscriber basis for the number of pending flow removes. This data is used
-	// to process all the flow removes for a subscriber before handling flow adds.
-	// Interleaving flow delete and flow add processing has known to cause PON resource
-	// management contentions on a per subscriber bases, so we need ensure ordering.
-	pendingFlowRemoveDataPerSubscriber     map[pendingFlowRemoveDataKey]pendingFlowRemoveData
-	pendingFlowRemoveDataPerSubscriberLock sync.RWMutex
-
 	// Map of voltha flowID associated with subscriberDataPathFlowIDKey
 	// This information is not persisted on Kv store and hence should be reconciled on adapter restart
 	subscriberDataPathFlowIDMap     map[subscriberDataPathFlowIDKey]uint64
 	subscriberDataPathFlowIDMapLock sync.RWMutex
+
+	incomingFlows []chan flowControlBlock
 }
 
 //NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
@@ -248,15 +220,24 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 		return nil
 	}
 	flowMgr.onuIdsLock = sync.RWMutex{}
-	flowMgr.pendingFlowRemoveDataPerSubscriberLock = sync.RWMutex{}
 	flowMgr.flowsUsedByGemPort = make(map[uint32][]uint64)
 	flowMgr.packetInGemPort = make(map[rsrcMgr.PacketInInfoKey]uint32)
 	flowMgr.packetInGemPortLock = sync.RWMutex{}
 	flowMgr.onuGemInfoLock = sync.RWMutex{}
-	flowMgr.perUserFlowHandleLock = mapmutex.NewCustomizedMapMutex(maxRetry, maxDelay, baseDelay, factor, jitter)
-	flowMgr.pendingFlowRemoveDataPerSubscriber = make(map[pendingFlowRemoveDataKey]pendingFlowRemoveData)
 	flowMgr.subscriberDataPathFlowIDMap = make(map[subscriberDataPathFlowIDKey]uint64)
 	flowMgr.subscriberDataPathFlowIDMapLock = sync.RWMutex{}
+
+	// Create a slice of buffered channels for handling concurrent flows per subscriber
+	// The additional entry (+1) is to handle the NNI trap flows on a separate channel from individual ONUs channel
+	flowMgr.incomingFlows = make([]chan flowControlBlock, MaxOnusPerPon+1)
+	for i := range flowMgr.incomingFlows {
+		flowMgr.incomingFlows[i] = make(chan flowControlBlock, maxConcurrentFlowsPerSub)
+		// Spin up a go routine to handling incoming flows (add/remove).
+		// There will be on go routine per ONU.
+		// This routine will be blocked on the flowMgr.incomingFlows[] channel for incoming flows.
+		go flowMgr.perSubscriberFlowHandlerRoutine(flowMgr.incomingFlows[i])
+	}
+
 	//Load the onugem info cache from kv store on flowmanager start
 	if flowMgr.onuGemInfo, err = rMgr.GetOnuGemInfo(ctx, ponPortIdx); err != nil {
 		logger.Error(ctx, "failed-to-load-onu-gem-info-cache")
@@ -337,51 +318,36 @@ func (f *OpenOltFlowMgr) processAddFlow(ctx context.Context, intfID uint32, onuI
 		"uni":       uni,
 		"device-id": f.deviceHandler.device.Id})
 
-	tpLockMapKey := tpLockKey{intfID, onuID, uniID}
-	if f.perUserFlowHandleLock.TryLock(tpLockMapKey) {
-		logger.Debugw(ctx, "dividing-flow-create-tcont-gem-ports", log.Fields{
-			"device-id":  f.deviceHandler.device.Id,
-			"intf-id":    intfID,
-			"onu-id":     onuID,
-			"uni-id":     uniID,
-			"port-no":    portNo,
-			"classifier": classifierInfo,
-			"action":     actionInfo,
-			"usmeter-id": UsMeterID,
-			"dsmeter-id": DsMeterID,
-			"tp-id":      TpID})
-		allocID, gemPorts, TpInst = f.createTcontGemports(ctx, intfID, onuID, uniID, uni, portNo, TpID, UsMeterID, DsMeterID, flowMetadata)
-		if allocID == 0 || gemPorts == nil || TpInst == nil {
-			logger.Error(ctx, "alloc-id-gem-ports-tp-unavailable")
-			f.perUserFlowHandleLock.Unlock(tpLockMapKey)
-			return olterrors.NewErrNotFound(
-				"alloc-id-gem-ports-tp-unavailable",
-				nil, nil)
-		}
-		args := make(map[string]uint32)
-		args[IntfID] = intfID
-		args[OnuID] = onuID
-		args[UniID] = uniID
-		args[PortNo] = portNo
-		args[AllocID] = allocID
-
-		/* Flows can be added specific to gemport if p-bits are received.
-		 * If no pbit mentioned then adding flows for all gemports
-		 */
-		f.checkAndAddFlow(ctx, args, classifierInfo, actionInfo, flow, TpInst, gemPorts, TpID, uni)
-		f.perUserFlowHandleLock.Unlock(tpLockMapKey)
-	} else {
-		cause := "failed-to-acquire-per-user-flow-handle-lock"
-		fields := log.Fields{
-			"intf-id":     intfID,
-			"onu-id":      onuID,
-			"uni-id":      uniID,
-			"flow-id":     flow.Id,
-			"flow-cookie": flow.Cookie,
-			"device-id":   f.deviceHandler.device.Id}
-		logger.Errorw(ctx, cause, fields)
-		return olterrors.NewErrAdapter(cause, fields, nil)
+	logger.Debugw(ctx, "dividing-flow-create-tcont-gem-ports", log.Fields{
+		"device-id":  f.deviceHandler.device.Id,
+		"intf-id":    intfID,
+		"onu-id":     onuID,
+		"uni-id":     uniID,
+		"port-no":    portNo,
+		"classifier": classifierInfo,
+		"action":     actionInfo,
+		"usmeter-id": UsMeterID,
+		"dsmeter-id": DsMeterID,
+		"tp-id":      TpID})
+	allocID, gemPorts, TpInst = f.createTcontGemports(ctx, intfID, onuID, uniID, uni, portNo, TpID, UsMeterID, DsMeterID, flowMetadata)
+	if allocID == 0 || gemPorts == nil || TpInst == nil {
+		logger.Error(ctx, "alloc-id-gem-ports-tp-unavailable")
+		return olterrors.NewErrNotFound(
+			"alloc-id-gem-ports-tp-unavailable",
+			nil, nil)
 	}
+	args := make(map[string]uint32)
+	args[IntfID] = intfID
+	args[OnuID] = onuID
+	args[UniID] = uniID
+	args[PortNo] = portNo
+	args[AllocID] = allocID
+
+	/* Flows can be added specific to gemport if p-bits are received.
+	 * If no pbit mentioned then adding flows for all gemports
+	 */
+	f.checkAndAddFlow(ctx, args, classifierInfo, actionInfo, flow, TpInst, gemPorts, TpID, uni)
+
 	return nil
 }
 
@@ -2058,9 +2024,6 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 //RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
 
-	f.incrementActiveFlowRemoveCount(ctx, flow)
-	defer f.decrementActiveFlowRemoveCount(ctx, flow)
-
 	logger.Infow(ctx, "removing-flow", log.Fields{"flow": *flow})
 	var direction string
 	actionInfo := make(map[string]interface{})
@@ -2086,22 +2049,8 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 		direction = Downstream
 	}
 
-	_, intfID, onuID, uniID, _, _, err := FlowExtractInfo(ctx, flow, direction)
-	if err != nil {
-		return err
-	}
-
-	userKey := tpLockKey{intfID, onuID, uniID}
-
 	// Serialize flow removes on a per subscriber basis
-	if f.perUserFlowHandleLock.TryLock(userKey) {
-		err = f.clearFlowFromDeviceAndResourceManager(ctx, flow, direction)
-		f.perUserFlowHandleLock.Unlock(userKey)
-	} else {
-		// Ideally this should never happen
-		logger.Errorw(ctx, "failed-to-acquire-lock-to-remove-flow--remove-aborted", log.Fields{"flow": flow})
-		return errors.New("failed-to-acquire-per-user-lock")
-	}
+	err := f.clearFlowFromDeviceAndResourceManager(ctx, flow, direction)
 
 	return err
 }
@@ -2120,6 +2069,58 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 		}
 	}
 	return false
+}
+
+// RouteFlowToSubscriberChannel routes incoming to subscriber specific channel
+func (f *OpenOltFlowMgr) RouteFlowToSubscriberChannel(ctx context.Context, flow *voltha.OfpFlowStats, addFlow bool, flowMetadata *voltha.FlowMetadata) error {
+	// Step1 : Fill flowControlBlock
+	// Step2 : Push the flowControlBlock to subscriber channel
+	// Step3 : Wait on response channel for response
+	logger.Debugw(ctx, "process-flow", log.Fields{"flow": flow, "addFlow": addFlow})
+	errChan := make(chan error)
+	flowCb := flowControlBlock{
+		ctx:          ctx,
+		addFlow:      addFlow,
+		flow:         flow,
+		flowMetadata: flowMetadata,
+		errChan:      &errChan,
+	}
+	inPort, outPort := getPorts(flow)
+	var onuID uint32
+	if inPort != InvalidPort && outPort != InvalidPort {
+		_, _, onuID, _ = ExtractAccessFromFlow(inPort, outPort)
+	}
+	// Send the flowCb on the ONU flow channel
+	f.incomingFlows[onuID] <- flowCb
+	// Wait on the channel for flow handlers return value
+	err := <-errChan
+	logger.Debugw(ctx, "process-flow--received-resp", log.Fields{"flow": flow, "addFlow": addFlow, "err": err})
+	return err
+}
+
+func (f *OpenOltFlowMgr) perSubscriberFlowHandlerRoutine(subscriberFlowChannel chan flowControlBlock) {
+	for {
+		// block on the channel to receive an incoming flow
+		// process the flow completely before proceeding to handle the next flow
+		flowCb := <-subscriberFlowChannel
+		if flowCb.addFlow {
+			logger.Debugw(flowCb.ctx, "adding-flow",
+				log.Fields{"device-id": f.deviceHandler.device.Id,
+					"flowToAdd": flowCb.flow})
+			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
+			err := f.AddFlow(flowCb.ctx, flowCb.flow, flowCb.flowMetadata)
+			// Pass the return value over the return channel
+			*flowCb.errChan <- err
+		} else {
+			logger.Debugw(flowCb.ctx, "removing-flow",
+				log.Fields{"device-id": f.deviceHandler.device.Id,
+					"flowToRemove": flowCb.flow})
+			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
+			err := f.RemoveFlow(flowCb.ctx, flowCb.flow)
+			// Pass the return value over the return channel
+			*flowCb.errChan <- err
+		}
+	}
 }
 
 // AddFlow add flow to device
@@ -2182,11 +2183,6 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 		return f.addIgmpTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 	}
 
-	// If we are here it is not a trap-from-nni flow, i.e., it is subscriber specific flow.
-	// Wait for any FlowRemoves for that specific subscriber to finish first
-	// The goal here is to serialize FlowRemove and FlowAdd. FlowRemove take priority
-	f.waitForFlowRemoveToFinish(ctx, flow)
-
 	f.resourceMgr.AddUniPortToOnuInfo(ctx, intfID, onuID, portNo)
 
 	TpID, err := getTpIDFromFlow(ctx, flow)
@@ -2213,28 +2209,6 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 
 	}
 	return f.processAddFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, TpID, UsMeterID, DsMeterID, flowMetadata)
-}
-
-//WaitForFlowRemoveToFinishForSubscriber blocks until flow removes are complete for a given subscriber
-func (f *OpenOltFlowMgr) WaitForFlowRemoveToFinishForSubscriber(ctx context.Context, intfID uint32, onuID uint32, uniID uint32) {
-	var flowRemoveData pendingFlowRemoveData
-	var ok bool
-
-	key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-	logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-	f.pendingFlowRemoveDataPerSubscriberLock.RLock()
-	if flowRemoveData, ok = f.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-		logger.Debugw(ctx, "no-pending-flow-to-remove", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		f.pendingFlowRemoveDataPerSubscriberLock.RUnlock()
-		return
-	}
-	f.pendingFlowRemoveDataPerSubscriberLock.RUnlock()
-
-	// Wait for all flow removes to finish first
-	<-flowRemoveData.allFlowsRemoved
-
-	logger.Debugw(ctx, "all-flows-cleared--handling-flow-add-now", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
 }
 
 // handleFlowWithGroup adds multicast flow to the device.
@@ -3261,91 +3235,6 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 	}
 	// Remove flow from KV store
 	return f.resourceMgr.RemoveFlowIDInfo(ctx, networkInterfaceID, onuID, uniID, flowID)
-}
-
-func (f *OpenOltFlowMgr) incrementActiveFlowRemoveCount(ctx context.Context, flow *ofp.OfpFlowStats) {
-
-	f.pendingFlowRemoveDataPerSubscriberLock.Lock()
-	defer f.pendingFlowRemoveDataPerSubscriberLock.Unlock()
-
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "increment-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "increment-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		flowRemoveData, ok := f.pendingFlowRemoveDataPerSubscriber[key]
-		if !ok {
-			flowRemoveData = pendingFlowRemoveData{
-				pendingFlowRemoveCount: 0,
-				allFlowsRemoved:        make(chan struct{}),
-			}
-		}
-		flowRemoveData.pendingFlowRemoveCount++
-		f.pendingFlowRemoveDataPerSubscriber[key] = flowRemoveData
-
-		logger.Debugw(ctx, "current-flow-remove-count–increment",
-			log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
-				"currCnt": f.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
-	}
-}
-
-func (f *OpenOltFlowMgr) decrementActiveFlowRemoveCount(ctx context.Context, flow *ofp.OfpFlowStats) {
-	f.pendingFlowRemoveDataPerSubscriberLock.Lock()
-	defer f.pendingFlowRemoveDataPerSubscriberLock.Unlock()
-
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "decrement-flow-remove-count-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "decrement-flow-remove-count-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		if val, ok := f.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-			logger.Fatalf(ctx, "flow-remove-key-not-found", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		} else {
-			if val.pendingFlowRemoveCount > 0 {
-				val.pendingFlowRemoveCount--
-			}
-			logger.Debugw(ctx, "current-flow-remove-count-after-decrement",
-				log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID,
-					"currCnt": f.pendingFlowRemoveDataPerSubscriber[key].pendingFlowRemoveCount})
-			// If all flow removes have finished, then close the channel to signal the receiver
-			// to go ahead with flow adds.
-			if val.pendingFlowRemoveCount == 0 {
-				close(val.allFlowsRemoved)
-				delete(f.pendingFlowRemoveDataPerSubscriber, key)
-				return
-			}
-			f.pendingFlowRemoveDataPerSubscriber[key] = val
-		}
-	}
-}
-
-func (f *OpenOltFlowMgr) waitForFlowRemoveToFinish(ctx context.Context, flow *ofp.OfpFlowStats) {
-	var flowRemoveData pendingFlowRemoveData
-	var ok bool
-	inPort, outPort := getPorts(flow)
-	logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-inPort-out-port", log.Fields{"inPort": inPort, "out-port": outPort})
-	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, onuID, uniID := ExtractAccessFromFlow(inPort, outPort)
-		key := pendingFlowRemoveDataKey{intfID: intfID, onuID: onuID, uniID: uniID}
-		logger.Debugw(ctx, "wait-for-flow-remove-to-finish-for-subscriber", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-
-		f.pendingFlowRemoveDataPerSubscriberLock.RLock()
-		if flowRemoveData, ok = f.pendingFlowRemoveDataPerSubscriber[key]; !ok {
-			logger.Debugw(ctx, "no-pending-flow-to-remove", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-			f.pendingFlowRemoveDataPerSubscriberLock.RUnlock()
-			return
-		}
-		f.pendingFlowRemoveDataPerSubscriberLock.RUnlock()
-
-		// Wait for all flow removes to finish first
-		<-flowRemoveData.allFlowsRemoved
-
-		logger.Debugw(ctx, "all-flows-cleared--handling-flow-add-now", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID})
-	}
 }
 
 // reconcileSubscriberDataPathFlowIDMap reconciles subscriberDataPathFlowIDMap from KV store
