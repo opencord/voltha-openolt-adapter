@@ -2047,7 +2047,9 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 			}
 
 			keySymm := subscriberDataPathFlowIDKey{intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), direction: inverseDirection, tpID: tpID}
+			f.subscriberDataPathFlowIDMapLock.Lock()
 			delete(f.subscriberDataPathFlowIDMap, keySymm)
+			f.subscriberDataPathFlowIDMapLock.Unlock()
 		}
 	}
 	return nil
