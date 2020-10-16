@@ -53,13 +53,37 @@ func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfile
 
 	if techProfiletblID == 64 {
 		return &tp.TechProfile{
-			Name:                           "mock-tech-profile",
-			SubscriberIdentifier:           "257",
-			ProfileType:                    "mock",
-			Version:                        0,
-			NumGemPorts:                    2,
-			UpstreamGemPortAttributeList:   nil,
-			DownstreamGemPortAttributeList: nil,
+			Name:                 "mock-tech-profile",
+			SubscriberIdentifier: "257",
+			ProfileType:          "mock",
+			Version:              0,
+			NumGemPorts:          1,
+			UsScheduler: tp.IScheduler{
+				AllocID:      1,
+				Direction:    "upstream",
+				AdditionalBw: "None",
+				Priority:     0,
+				Weight:       0,
+				QSchedPolicy: "",
+			},
+			DsScheduler: tp.IScheduler{
+				AllocID:      1,
+				Direction:    "downstream",
+				AdditionalBw: "None",
+				Priority:     0,
+				Weight:       0,
+				QSchedPolicy: "",
+			},
+			UpstreamGemPortAttributeList: []tp.IGemPortAttribute{{
+				GemportID: 1,
+				PbitMap:   "0b11111111",
+			},
+			},
+			DownstreamGemPortAttributeList: []tp.IGemPortAttribute{{
+				GemportID: 1,
+				PbitMap:   "0b11111111",
+			},
+			},
 		}, nil
 	} else if techProfiletblID == 65 {
 		return &tp.EponProfile{
