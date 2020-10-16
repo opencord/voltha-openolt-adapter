@@ -44,7 +44,7 @@ import (
 )
 
 const (
-	NumPonPorts  = 2
+	NumPonPorts  = 16
 	OnuIDStart   = 1
 	OnuIDEnd     = 32
 	AllocIDStart = 1
@@ -160,7 +160,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config: cfg}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
-		IntfIds:    []uint32{0, 1},
+		IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		Technology: "xgs-pon",
 		Pools:      []*oop.DeviceInfo_DeviceResourceRanges_Pool{{}},
 	}}
@@ -193,15 +193,16 @@ func newMockDeviceHandler() *DeviceHandler {
 
 	ponmgr := &ponrmgr.PONResourceManager{
 		DeviceID: "onu-1",
-		IntfIDs:  []uint32{0, 1},
+		IntfIDs:  []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
 		},
 		PonResourceRanges: ranges,
 		SharedIdxByType:   sharedIdxByType,
 	}
-	dh.resourceMgr.ResourceMgrs[0] = ponmgr
-	dh.resourceMgr.ResourceMgrs[1] = ponmgr
+	for i := 0; i < NumPonPorts; i++ {
+		dh.resourceMgr.ResourceMgrs[uint32(i)] = ponmgr
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr)
