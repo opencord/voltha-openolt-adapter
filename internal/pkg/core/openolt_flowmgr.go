@@ -1940,7 +1940,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 }
 
 // nolint: gocyclo
-func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection string) error {
+func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection string) error {
 	var flowInfo *rsrcMgr.FlowInfo
 	logger.Infow(ctx, "clear-flow-from-resource-manager",
 		log.Fields{
@@ -2047,7 +2047,9 @@ func (f *OpenOltFlowMgr) clearFlowFromResourceManager(ctx context.Context, flow 
 			}
 
 			keySymm := subscriberDataPathFlowIDKey{intfID: Intf, onuID: uint32(onuID), uniID: uint32(uniID), direction: inverseDirection, tpID: tpID}
+			f.subscriberDataPathFlowIDMapLock.Lock()
 			delete(f.subscriberDataPathFlowIDMap, keySymm)
+			f.subscriberDataPathFlowIDMapLock.Unlock()
 		}
 	}
 	return nil
@@ -2077,7 +2079,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 
 	if flows.HasGroup(flow) {
 		direction = Multicast
-		return f.clearFlowFromResourceManager(ctx, flow, direction)
+		return f.clearFlowFromDeviceAndResourceManager(ctx, flow, direction)
 	} else if IsUpstream(actionInfo[Output].(uint32)) {
 		direction = Upstream
 	} else {
@@ -2093,7 +2095,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 
 	// Serialize flow removes on a per subscriber basis
 	if f.perUserFlowHandleLock.TryLock(userKey) {
-		err = f.clearFlowFromResourceManager(ctx, flow, direction) //TODO: Take care of the limitations
+		err = f.clearFlowFromDeviceAndResourceManager(ctx, flow, direction)
 		f.perUserFlowHandleLock.Unlock(userKey)
 	} else {
 		// Ideally this should never happen
