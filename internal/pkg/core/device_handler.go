@@ -1424,26 +1424,25 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
-			ponIf := dh.getPonIfFromFlow(ctx, flow)
+			ponIf := dh.getPonIfFromFlow(flow)
 
 			logger.Debugw(ctx, "removing-flow",
 				log.Fields{"device-id": device.Id,
 					"ponIf":        ponIf,
 					"flowToRemove": flow})
-			err := dh.flowMgr[ponIf].RemoveFlow(ctx, flow)
+			err := dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, false, nil)
 			if err != nil {
 				errorsList = append(errorsList, err)
 			}
 		}
 
 		for _, flow := range flows.ToAdd.Items {
-			ponIf := dh.getPonIfFromFlow(ctx, flow)
+			ponIf := dh.getPonIfFromFlow(flow)
 			logger.Debugw(ctx, "adding-flow",
 				log.Fields{"device-id": device.Id,
 					"ponIf":     ponIf,
 					"flowToAdd": flow})
-			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
-			err := dh.flowMgr[ponIf].AddFlow(ctx, flow, flowMetadata)
+			err := dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
 			if err != nil {
 				errorsList = append(errorsList, err)
 			}
@@ -2082,15 +2081,6 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
 	}
 
-	for uniID := 0; uniID < MaxUnisPerOnu; uniID++ {
-		logger.Debugw(ctx, "wait-for-flow-remove-complete-before-processing-child-device-lost",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		dh.flowMgr[intfID].WaitForFlowRemoveToFinishForSubscriber(ctx, intfID, onuID, uint32(uniID))
-		logger.Debugw(ctx, "flow-removes-complete-for-subscriber",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		// TODO: Would be good to delete the subscriber entry from flowMgr.pendingFlowRemoveDataPerSubscriber map
-	}
-
 	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
 	if _, err := dh.Client.DeleteOnu(log.WithSpanFromContext(context.Background(), ctx), onu); err != nil {
 		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
@@ -2245,7 +2235,7 @@ func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device,
 	return resp, nil
 }
 
-func (dh *DeviceHandler) getPonIfFromFlow(ctx context.Context, flow *of.OfpFlowStats) uint32 {
+func (dh *DeviceHandler) getPonIfFromFlow(flow *of.OfpFlowStats) uint32 {
 	// Default to PON0
 	var intfID uint32
 	inPort, outPort := getPorts(flow)
