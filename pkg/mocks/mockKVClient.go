@@ -54,6 +54,8 @@ const (
 	FlowGroupCached = "flow_groups_cached"
 	//OnuPacketIn to extract gem port from packet-in
 	OnuPacketIn = "onu_packetin"
+	// OnuGemInfoPath has path on the kvstore to store OnuGemInfo info per PON interface
+	OnuGemInfoPath = "onu_gem_info"
 )
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -71,6 +73,7 @@ func (kvclient *MockKVClient) List(ctx context.Context, key string) (map[string]
 }
 
 // Get mock function implementation for KVClient
+// nolint: gocyclo
 func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVPair, error) {
 	logger.Debugw(ctx, "Get of MockKVClient called", log.Fields{"key": key})
 	if key != "" {
@@ -114,7 +117,8 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			return nil, errors.New("invalid meter")
 		}
 		if strings.Contains(key, TpIDPathSuffix) {
-			str, _ := json.Marshal(64)
+			data := []uint32{64}
+			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowIDpool) {
@@ -152,12 +156,14 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		}
 		if strings.Contains(key, GemportIDs) {
 			logger.Debug(ctx, "Error Error Error Key:", GemportIDs)
-			str, _ := json.Marshal(1)
+			data := []uint32{1}
+			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, AllocIDs) {
 			logger.Debug(ctx, "Error Error Error Key:", AllocIDs)
-			str, _ := json.Marshal(1)
+			data := []uint32{1}
+			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, FlowGroup) || strings.Contains(key, FlowGroupCached) {
@@ -169,9 +175,13 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			str, _ := json.Marshal(&groupInfo)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
-
 		if strings.Contains(key, OnuPacketIn) {
 			return getPacketInGemPort(key)
+		}
+		if strings.Contains(key, OnuGemInfoPath) {
+			var data []resourcemanager.OnuGemInfo
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 
 		maps := make(map[string]*kvstore.KVPair)
@@ -222,7 +232,6 @@ func getParamsFromPacketInKey(key string) []string {
 // Put mock function implementation for KVClient
 func (kvclient *MockKVClient) Put(ctx context.Context, key string, value interface{}) error {
 	if key != "" {
-
 		return nil
 	}
 	return errors.New("key didn't find")
