@@ -1430,7 +1430,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 				log.Fields{"device-id": device.Id,
 					"ponIf":        ponIf,
 					"flowToRemove": flow})
-			err := dh.flowMgr[ponIf].RemoveFlow(ctx, flow)
+			err := dh.flowMgr[ponIf].RouteFlowToSubscriberChannel(ctx, flow, false, nil)
 			if err != nil {
 				errorsList = append(errorsList, err)
 			}
@@ -1443,7 +1443,7 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 					"ponIf":     ponIf,
 					"flowToAdd": flow})
 			// If there are active Flow Remove in progress for a given subscriber, wait until it completes
-			err := dh.flowMgr[ponIf].AddFlow(ctx, flow, flowMetadata)
+			err := dh.flowMgr[ponIf].RouteFlowToSubscriberChannel(ctx, flow, true, flowMetadata)
 			if err != nil {
 				errorsList = append(errorsList, err)
 			}
@@ -2078,15 +2078,6 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			log.Fields{
 				"devicer-id":    dh.device.Id,
 				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
-	}
-
-	for uniID := 0; uniID < MaxUnisPerOnu; uniID++ {
-		logger.Debugw(ctx, "wait-for-flow-remove-complete-before-processing-child-device-lost",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		dh.flowMgr[intfID].WaitForFlowRemoveToFinishForSubscriber(ctx, intfID, onuID, uint32(uniID))
-		logger.Debugw(ctx, "flow-removes-complete-for-subscriber",
-			log.Fields{"int-id": intfID, "onu-id": onuID, "uni-id": uniID})
-		// TODO: Would be good to delete the subscriber entry from flowMgr.pendingFlowRemoveDataPerSubscriber map
 	}
 
 	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}

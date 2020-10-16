@@ -1,7 +1,5 @@
 # github.com/DataDog/zstd v1.4.1
 github.com/DataDog/zstd
-# github.com/EagleChen/mapmutex v0.0.0-20180418073615-e1a5ae258d8d
-github.com/EagleChen/mapmutex
 # github.com/Shopify/sarama v1.23.1
 github.com/Shopify/sarama
 # github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878
