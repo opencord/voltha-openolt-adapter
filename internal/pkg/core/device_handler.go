@@ -1657,15 +1657,10 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}
-	cloned := proto.Clone(device).(*voltha.Device)
-	cloned.OperStatus = voltha.OperStatus_UNKNOWN
-	cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
-	if err := dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
-		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{
-			"device-id":      device.Id,
-			"connect-status": cloned.ConnectStatus,
-			"oper-status":    cloned.OperStatus}, err).Log()
-	}
+	// There is no need to update the core about operation status and connection status of the OLT.
+	// The OLT is getting deleted anyway and the core might have already cleared the OLT device from its DB.
+	// So any attempt to update the operation status and connection status of the OLT will result in core throwing an error back,
+	// because the device does not exist in DB.
 	return nil
 }
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
@@ -1935,7 +1930,14 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
+		// One case where we have seen core returning an error for GetDevice call is after OLT device delete.
+		// After OLT delete, the adapter asks for OLT to reboot. When OLT is rebooted, shortly we loose heartbeat.
+		// The 'startHeartbeatCheck' then asks the device to be marked unreachable towards the core, but the core
+		// has already deleted the device and returns error. In this particular scenario, it is Ok because any necessary
+		// cleanup in the adapter was already done during DeleteDevice API handler routine.
 		_ = olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		// Immediately return, otherwise accessing a null 'device' struct would cause panic
+		return
 	}
 
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
