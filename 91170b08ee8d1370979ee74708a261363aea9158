@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9b3780e_f09594e9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1427,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-19T09:31:01Z",
+      "side": 1,
+      "message": "why was ctx removed here ?",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e1190e9_a376156d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-19T09:31:01Z",
+      "side": 1,
+      "message": "to be abundantly zealous, this is not a per subscriber flow handling but per ONU, in theory eat ONU could have multiple subscribers, correct ? I\u0027d modify the comment and the patch commit message",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}

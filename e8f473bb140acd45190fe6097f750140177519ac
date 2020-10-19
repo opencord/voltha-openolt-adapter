@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9122aa38_fe717aa9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2090,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-19T09:31:01Z",
+      "side": 0,
+      "message": "why was this removed ? is it to make it async as is the flow installation ?",
+      "revId": "e8f473bb140acd45190fe6097f750140177519ac",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
