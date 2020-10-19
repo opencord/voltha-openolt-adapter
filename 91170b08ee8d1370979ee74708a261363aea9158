@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9d288649_67c6d265",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1427,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-10-19T17:15:39Z",
+      "side": 1,
+      "message": "During code review I noticed that the ctx was an unused parameter in the getPonIfFromFlow function. \nSo I removed it from the function input parameter.\nIt is not really relevant for this particular review but I did it as a general code cleanup.",
+      "parentUuid": "d9b3780e_f09594e9",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2e1190e9_a376156d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2020-10-19T09:31:01Z",
       "side": 1,
       "message": "to be abundantly zealous, this is not a per subscriber flow handling but per ONU, in theory eat ONU could have multiple subscribers, correct ? I\u0027d modify the comment and the patch commit message",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee925c35_45dee4a2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-10-19T17:15:39Z",
+      "side": 1,
+      "message": "You are right. This is per ONU to be accurate and not per subscriber. Let me fix it.",
+      "parentUuid": "2e1190e9_a376156d",
       "revId": "91170b08ee8d1370979ee74708a261363aea9158",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true

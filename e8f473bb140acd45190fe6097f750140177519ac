@@ -16,6 +16,24 @@
       "revId": "e8f473bb140acd45190fe6097f750140177519ac",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3696ca15_69a67125",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2090,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-10-19T17:15:39Z",
+      "side": 0,
+      "message": "This is not needed per the new scheme of things we are doing to achieve the async flow handling behavior.",
+      "parentUuid": "9122aa38_fe717aa9",
+      "revId": "e8f473bb140acd45190fe6097f750140177519ac",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
