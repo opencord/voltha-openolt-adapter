@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "3ceafad4_de943824",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1427,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-20T08:25:47Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9d288649_67c6d265",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e1190e9_a376156d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 5
@@ -69,6 +87,24 @@
       "revId": "91170b08ee8d1370979ee74708a261363aea9158",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20cf21fa_8df46fab",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-20T08:25:47Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ee925c35_45dee4a2",
+      "revId": "91170b08ee8d1370979ee74708a261363aea9158",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
