@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3cb4305c_ba070fd3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1830,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-10-26T17:08:50Z",
+      "side": 1,
+      "message": "I\u0027d actually move the pkt-in to debug",
+      "revId": "3e525ce3901558452906f96fb0144c5853183586",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
