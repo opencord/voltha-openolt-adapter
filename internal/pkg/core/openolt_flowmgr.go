@@ -2485,12 +2485,15 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 	} else if packetIn.IntfType == "nni" {
 		logicalPortNum = IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
-	logger.Infow(ctx, "retrieved-logicalport-from-packet-in",
-		log.Fields{
-			"logical-port-num": logicalPortNum,
-			"intf-type":        packetIn.IntfType,
-			"packet":           hex.EncodeToString(packetIn.Pkt),
-		})
+
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "retrieved-logicalport-from-packet-in",
+			log.Fields{
+				"logical-port-num": logicalPortNum,
+				"intf-type":        packetIn.IntfType,
+				"packet":           hex.EncodeToString(packetIn.Pkt),
+			})
+	}
 	return logicalPortNum, nil
 }
 

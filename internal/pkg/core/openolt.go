@@ -243,7 +243,7 @@ func (oo *OpenOLT) Update_flows_bulk(ctx context.Context, device *voltha.Device,
 
 //Update_flows_incrementally updates (add/remove) the flows on a given device
 func (oo *OpenOLT) Update_flows_incrementally(ctx context.Context, device *voltha.Device, flows *openflow_13.FlowChanges, groups *openflow_13.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
-	logger.Debugw(ctx, "Update_flows_incrementally", log.Fields{"device-id": device.Id, "flows": flows, "flowMetadata": flowMetadata})
+	logger.Infow(ctx, "Update_flows_incrementally", log.Fields{"device-id": device.Id, "flows": flows, "flowMetadata": flowMetadata})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.UpdateFlowsIncrementally(ctx, device, flows, groups, flowMetadata)
 	}
