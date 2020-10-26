@@ -1826,7 +1826,6 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		}
 
 		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
-
 		if logger.V(log.DebugLevel) {
 			logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
 				"egress-port-no": egressPortNo,
