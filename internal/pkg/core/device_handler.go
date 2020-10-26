@@ -1827,17 +1827,15 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 
 		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
 
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
-				"egress-port-no": egressPortNo,
-				"intf-id":        intfID,
-				"onu-id":         onuID,
-				"uni-id":         uniID,
-				"gem-port-id":    gemPortID,
-				"packet":         hex.EncodeToString(packet.Data),
-				"device-id":      dh.device.Id,
-			})
-		}
+		logger.Infow(ctx, "sending-packet-to-onu", log.Fields{
+			"egress-port-no": egressPortNo,
+			"intf-id":        intfID,
+			"onu-id":         onuID,
+			"uni-id":         uniID,
+			"gem-port-id":    gemPortID,
+			"packet":         hex.EncodeToString(packet.Data),
+			"device-id":      dh.device.Id,
+		})
 
 		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
 			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
@@ -1862,13 +1860,11 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo int, packet
 		}
 		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
 
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-nni", log.Fields{
-				"uplink-pkt": uplinkPkt,
-				"packet":     hex.EncodeToString(packet.Data),
-				"device-id":  dh.device.Id,
-			})
-		}
+		logger.Infow(ctx, "sending-packet-to-nni", log.Fields{
+			"uplink-pkt": uplinkPkt,
+			"packet":     hex.EncodeToString(packet.Data),
+			"device-id":  dh.device.Id,
+		})
 
 		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
 			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
