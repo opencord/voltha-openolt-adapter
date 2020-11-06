@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
@@ -34,6 +35,7 @@ import (
 
 //OpenOLT structure holds the OLT information
 type OpenOLT struct {
+	configManager               *conf.ConfigManager
 	deviceHandlers              map[string]*DeviceHandler
 	coreProxy                   adapterif.CoreProxy
 	adapterProxy                adapterif.AdapterProxy
@@ -53,7 +55,7 @@ type OpenOLT struct {
 //NewOpenOLT returns a new instance of OpenOLT
 func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	coreProxy adapterif.CoreProxy, adapterProxy adapterif.AdapterProxy,
-	eventProxy adapterif.EventProxy, cfg *config.AdapterFlags) *OpenOLT {
+	eventProxy adapterif.EventProxy, cfg *config.AdapterFlags, cm *conf.ConfigManager) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
@@ -69,6 +71,7 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	openOLT.HeartbeatFailReportInterval = cfg.HeartbeatFailReportInterval
 	openOLT.GrpcTimeoutInterval = cfg.GrpcTimeoutInterval
 	openOLT.lockDeviceHandlersMap = sync.RWMutex{}
+	openOLT.configManager = cm
 	return &openOLT
 }
 
@@ -118,7 +121,7 @@ func (oo *OpenOLT) Adopt_device(ctx context.Context, device *voltha.Device) erro
 	logger.Infow(ctx, "adopt-device", log.Fields{"device-id": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
+		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo, oo.configManager)
 		oo.addDeviceHandlerToMap(handler)
 		go handler.AdoptDevice(ctx, device)
 		// Launch the creation of the device topic
@@ -173,7 +176,7 @@ func (oo *OpenOLT) Reconcile_device(ctx context.Context, device *voltha.Device) 
 	logger.Infow(ctx, "reconcile-device", log.Fields{"device-id": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo)
+		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo, oo.configManager)
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
 		handler.transitionMap.Handle(ctx, DeviceInit)

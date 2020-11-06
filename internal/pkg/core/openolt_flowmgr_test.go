@@ -64,7 +64,7 @@ func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	rsrMgr := resourcemanager.NewResourceMgr(ctx, "olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo)
+	rsrMgr := resourcemanager.NewResourceMgr(ctx, "olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo, "service/voltha")
 	for key := range rsrMgr.ResourceMgrs {
 		rsrMgr.ResourceMgrs[key].KVStore = &db.Backend{}
 		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}

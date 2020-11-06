@@ -41,7 +41,8 @@ const (
 
 	//Constants for passing command line arugments
 	OLT_MODEL_ARG = "--olt_model"
-	PATH_PREFIX   = "service/voltha/resource_manager/{%s}"
+
+	PATH_PREFIX = "%s/resource_manager/{%s}"
 
 	/*The path under which configuration data is stored is defined as technology/device agnostic.
 	  That means the path does not include any specific technology/device variable. Using technology/device
@@ -51,7 +52,8 @@ const (
 	  Default kv client of PonResourceManager reads from/writes to PATH_PREFIX defined above.
 	  That is why, an additional kv client (named KVStoreForConfig) is defined to read from the config path.
 	*/
-	PATH_PREFIX_FOR_CONFIG = "service/voltha/resource_manager/config"
+
+	PATH_PREFIX_FOR_CONFIG = "%s/resource_manager/config"
 	/*The resource ranges for a given device model should be placed
 	  at 'resource_manager/<technology>/resource_ranges/<olt_model_type>'
 	  path on the KV store.
@@ -165,7 +167,7 @@ func newKVClient(ctx context.Context, storeType string, address string, timeout 
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func SetKVClient(ctx context.Context, Technology string, Backend string, Addr string, configClient bool) *db.Backend {
+func SetKVClient(ctx context.Context, Technology string, Backend string, Addr string, configClient bool, basePathKvStore string) *db.Backend {
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
 	kvClient, err := newKVClient(ctx, Backend, Addr, KVSTORE_RETRY_TIMEOUT)
@@ -176,9 +178,9 @@ func SetKVClient(ctx context.Context, Technology string, Backend string, Addr st
 
 	var pathPrefix string
 	if configClient {
-		pathPrefix = PATH_PREFIX_FOR_CONFIG
+		pathPrefix = fmt.Sprintf(PATH_PREFIX_FOR_CONFIG, basePathKvStore)
 	} else {
-		pathPrefix = fmt.Sprintf(PATH_PREFIX, Technology)
+		pathPrefix = fmt.Sprintf(PATH_PREFIX, basePathKvStore, Technology)
 	}
 
 	kvbackend := &db.Backend{
@@ -192,20 +194,20 @@ func SetKVClient(ctx context.Context, Technology string, Backend string, Addr st
 }
 
 // NewPONResourceManager creates a new PON resource manager.
-func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string) (*PONResourceManager, error) {
+func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string) (*PONResourceManager, error) {
 	var PONMgr PONResourceManager
 	PONMgr.Technology = Technology
 	PONMgr.DeviceType = DeviceType
 	PONMgr.DeviceID = DeviceID
 	PONMgr.Backend = Backend
 	PONMgr.Address = Address
-	PONMgr.KVStore = SetKVClient(ctx, Technology, Backend, Address, false)
+	PONMgr.KVStore = SetKVClient(ctx, Technology, Backend, Address, false, basePathKvStore)
 	if PONMgr.KVStore == nil {
 		logger.Error(ctx, "KV Client initilization failed")
 		return nil, errors.New("Failed to init KV client")
 	}
 	// init kv client to read from the config path
-	PONMgr.KVStoreForConfig = SetKVClient(ctx, Technology, Backend, Address, true)
+	PONMgr.KVStoreForConfig = SetKVClient(ctx, Technology, Backend, Address, true, basePathKvStore)
 	if PONMgr.KVStoreForConfig == nil {
 		logger.Error(ctx, "KV Config Client initilization failed")
 		return nil, errors.New("Failed to init KV Config client")

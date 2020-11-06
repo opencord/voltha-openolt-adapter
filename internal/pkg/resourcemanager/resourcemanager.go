@@ -40,8 +40,8 @@ import (
 const (
 	// KvstoreTimeout specifies the time out for KV Store Connection
 	KvstoreTimeout = 5 * time.Second
-	// BasePathKvStore - service/voltha/openolt/<device_id>
-	BasePathKvStore = "service/voltha/openolt/{%s}"
+	// BasePathKvStore - <pathPrefix>/openolt/<device_id>
+	BasePathKvStore = "%s/openolt/{%s}"
 	// TpIDPathSuffix - <(pon_id, onu_id, uni_id)>/tp_id
 	TpIDPathSuffix = "{%d,%d,%d}/tp_id"
 	//MeterIDPathSuffix - <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
@@ -140,7 +140,7 @@ func newKVClient(ctx context.Context, storeType string, address string, timeout 
 }
 
 // SetKVClient sets the KV client and return a kv backend
-func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string) *db.Backend {
+func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string, basePathKvStore string) *db.Backend {
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
 	kvClient, err := newKVClient(ctx, backend, addr, KvstoreTimeout)
@@ -154,7 +154,7 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 		StoreType:  backend,
 		Address:    addr,
 		Timeout:    KvstoreTimeout,
-		PathPrefix: fmt.Sprintf(BasePathKvStore, DeviceID)}
+		PathPrefix: fmt.Sprintf(BasePathKvStore, basePathKvStore, DeviceID)}
 
 	return kvbackend
 }
@@ -162,7 +162,7 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
-func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo) *OpenOltResourceMgr {
+func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
 	logger.Debugf(ctx, "Init new resource manager , address: %s, device-id: %s", KVStoreAddress, deviceID)
 	ResourceMgr.DeviceID = deviceID
@@ -172,7 +172,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string,
 	NumPONPorts := devInfo.GetPonPorts()
 
 	Backend := kvStoreType
-	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID)
+	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID, basePathKvStore)
 	if ResourceMgr.KVStore == nil {
 		logger.Error(ctx, "Failed to setup KV store")
 	}
@@ -241,7 +241,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string,
 		Ranges[technology] = TechRange
 
 		RsrcMgrsByTech[technology], err = ponrmgr.NewPONResourceManager(ctx, technology, deviceType, deviceID,
-			Backend, ResourceMgr.Address)
+			Backend, ResourceMgr.Address, basePathKvStore)
 		if err != nil {
 			logger.Errorf(ctx, "Failed to create pon resource manager instance for technology %s", technology)
 			return nil
@@ -1213,7 +1213,7 @@ func (RsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 	//remove them one by one
 	for key := range value {
 		// Formulate the right key path suffix ti be delete
-		stringToBeReplaced := fmt.Sprintf(BasePathKvStore, RsrcMgr.DeviceID) + "/"
+		stringToBeReplaced := fmt.Sprintf(BasePathKvStore, RsrcMgr.KVStore.PathPrefix, RsrcMgr.DeviceID) + "/"
 		replacedWith := ""
 		key = strings.Replace(key, stringToBeReplaced, replacedWith, 1)
 
