@@ -98,6 +98,7 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Setup Log Config
 	cm := conf.NewConfigManager(ctx, a.kvClient, a.config.KVStoreType, a.config.KVStoreAddress, a.config.KVStoreTimeout)
+
 	go conf.StartLogLevelConfigProcessing(cm, ctx)
 	go conf.StartLogFeaturesConfigProcessing(cm, ctx)
 
@@ -127,7 +128,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 
 	// Create the open OLT adapter
-	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config); err != nil {
+	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config, cm); err != nil {
 		logger.Fatalw(ctx, "error-starting-openolt", log.Fields{"error": err})
 	}
 
@@ -345,10 +346,10 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 
 func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProxy,
 	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
-	cfg *config.AdapterFlags) (*ac.OpenOLT, error) {
+	cfg *config.AdapterFlags, cm *conf.ConfigManager) (*ac.OpenOLT, error) {
 	logger.Info(ctx, "starting-open-olt")
 	var err error
-	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, cfg)
+	sOLT := ac.NewOpenOLT(ctx, a.kip, cp, ap, ep, cfg, cm)
 
 	if err = sOLT.Start(ctx); err != nil {
 		return nil, err

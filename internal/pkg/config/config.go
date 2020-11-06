@@ -60,7 +60,8 @@ const (
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	InstanceID                  string
+	AdapterName                 string
+	InstanceID                  string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
 	KafkaAdapterAddress         string
 	KafkaClusterAddress         string
 	KVStoreType                 string
