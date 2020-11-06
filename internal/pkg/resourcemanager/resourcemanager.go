@@ -140,7 +140,7 @@ func newKVClient(ctx context.Context, storeType string, address string, timeout 
 }
 
 // SetKVClient sets the KV client and return a kv backend
-func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string) *db.Backend {
+func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string, basePathKvStore string) *db.Backend {
 	// TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 	// issue between kv store and backend , core is not calling NewBackend directly
 	kvClient, err := newKVClient(ctx, backend, addr, KvstoreTimeout)
@@ -154,7 +154,7 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 		StoreType:  backend,
 		Address:    addr,
 		Timeout:    KvstoreTimeout,
-		PathPrefix: fmt.Sprintf(BasePathKvStore, DeviceID)}
+		PathPrefix: fmt.Sprintf(basePathKvStore, DeviceID)}
 
 	return kvbackend
 }
@@ -162,7 +162,7 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
-func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo) *OpenOltResourceMgr {
+func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
 	logger.Debugf(ctx, "Init new resource manager , address: %s, device-id: %s", KVStoreAddress, deviceID)
 	ResourceMgr.DeviceID = deviceID
@@ -172,7 +172,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string,
 	NumPONPorts := devInfo.GetPonPorts()
 
 	Backend := kvStoreType
-	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID)
+	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID, basePathKvStore)
 	if ResourceMgr.KVStore == nil {
 		logger.Error(ctx, "Failed to setup KV store")
 	}
@@ -241,7 +241,7 @@ func NewResourceMgr(ctx context.Context, deviceID string, KVStoreAddress string,
 		Ranges[technology] = TechRange
 
 		RsrcMgrsByTech[technology], err = ponrmgr.NewPONResourceManager(ctx, technology, deviceType, deviceID,
-			Backend, ResourceMgr.Address)
+			Backend, ResourceMgr.Address, basePathKvStore)
 		if err != nil {
 			logger.Errorf(ctx, "Failed to create pon resource manager instance for technology %s", technology)
 			return nil
