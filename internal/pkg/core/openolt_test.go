@@ -25,6 +25,7 @@ package core
 import (
 	"context"
 	"errors"
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"reflect"
 	"testing"
 
@@ -99,19 +100,20 @@ func TestNewOpenOLT(t *testing.T) {
 		name        string
 		fields      *fields
 		configFlags *config.AdapterFlags
+		cm          *conf.ConfigManager
 		want        *OpenOLT
 	}{
-		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"},
+		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"}, &conf.ConfigManager{},
 			&OpenOLT{numOnus: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"}},
-		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"},
+		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}, &conf.ConfigManager{},
 			&OpenOLT{numOnus: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}},
-		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"},
+		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"}, &conf.ConfigManager{},
 			&OpenOLT{numOnus: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := NewOpenOLT(tt.fields.ctx, tt.fields.kafkaICProxy, tt.fields.coreProxy, tt.fields.adapterProxy,
-				tt.fields.eventProxy, tt.configFlags); reflect.TypeOf(got) != reflect.TypeOf(tt.want) && got != nil {
+				tt.fields.eventProxy, tt.configFlags, tt.cm); reflect.TypeOf(got) != reflect.TypeOf(tt.want) && got != nil {
 				t.Errorf("NewOpenOLT() error = %v, wantErr %v", got, tt.want)
 			}
 		})

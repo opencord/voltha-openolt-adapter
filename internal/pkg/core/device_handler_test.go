@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"net"
 	"reflect"
 	"sync"
@@ -156,9 +157,10 @@ func newMockDeviceHandler() *DeviceHandler {
 	cp := newMockCoreProxy()
 	ap := &mocks.MockAdapterProxy{}
 	ep := &mocks.MockEventProxy{}
+	cm := &conf.ConfigManager{}
 	cfg := &config.AdapterFlags{OmccEncryption: true}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config: cfg}
-	dh := NewDeviceHandler(cp, ap, ep, device, openOLT)
+	dh := NewDeviceHandler(cp, ap, ep, device, openOLT, cm)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		Technology: "xgs-pon",

@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"errors"
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"testing"
 	"time"
 
@@ -104,12 +105,13 @@ func Test_startInterContainerProxy(t *testing.T) {
 
 func Test_startOpenOLT(t *testing.T) {
 	a, _ := mockserver.StartMockServers(1)
+	cm := &conf.ConfigManager{}
 	_ = a.StartAt(0)
 	defer a.StopAt(0)
 
 	ad := newMockAdapter()
 	oolt, err := ad.startOpenOLT(context.TODO(), nil,
-		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config)
+		ad.coreProxy, ad.adapterProxy, ad.eventProxy, ad.config, cm)
 	if oolt != nil {
 		t.Log("Open OLT ", oolt)
 	}
