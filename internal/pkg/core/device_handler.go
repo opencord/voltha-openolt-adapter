@@ -34,10 +34,13 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+
 	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"github.com/opencord/voltha-lib-go/v4/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
+
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v4/go/common"
@@ -57,6 +60,7 @@ const (
 
 //DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
+	cm            *config.ConfigManager
 	device        *voltha.Device
 	coreProxy     adapterif.CoreProxy
 	AdapterProxy  adapterif.AdapterProxy
@@ -122,8 +126,9 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy, device *voltha.Device, adapter *OpenOLT) *DeviceHandler {
+func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy, device *voltha.Device, adapter *OpenOLT, cm *config.ConfigManager) *DeviceHandler {
 	var dh DeviceHandler
+	dh.cm = cm
 	dh.coreProxy = cp
 	dh.AdapterProxy = ap
 	dh.EventProxy = ep
@@ -764,7 +769,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	dh.totalPonPorts = deviceInfo.GetPonPorts()
 
 	// Instantiate resource manager
-	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, deviceInfo); dh.resourceMgr == nil {
+	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, deviceInfo, dh.cm.Backend.PathPrefix); dh.resourceMgr == nil {
 		return olterrors.ErrResourceManagerInstantiating
 	}
 
