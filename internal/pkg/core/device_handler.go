@@ -338,7 +338,6 @@ Loop:
 	for {
 		select {
 		case <-dh.stopIndications:
-			logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"device-id": dh.device.Id})
 			break Loop
 		default:
 			indication, err := indications.Recv()
@@ -416,7 +415,6 @@ Loop:
 }
 
 func (dh *DeviceHandler) startOpenOltIndicationStream(ctx context.Context) (oop.Openolt_EnableIndicationClient, error) {
-
 	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
 	if err != nil {
 		return nil, olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
@@ -657,6 +655,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
 	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
+	logger.Infow(ctx, "Starting gRPC connection", log.Fields{"device-id":     dh.device.Id})
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
@@ -672,6 +671,7 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 			"device-id":     dh.device.Id,
 			"host-and-port": dh.device.GetHostAndPort()}, err)
 	}
+	logger.Infow(ctx, "Started gRPC connection", log.Fields{"device-id":     dh.device.Id})
 	return nil
 }
 
@@ -1904,17 +1904,19 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
 		select {
 		case <-heartbeatTimer.C:
+			logger.Infow(ctx, "Sending-heart-beat", log.Fields{"device-id": dh.device.Id})
 			ctxWithTimeout, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.GrpcTimeoutInterval)
 			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
 				logger.Warnw(ctx, "hearbeat-failed", log.Fields{"device-id": dh.device.Id})
 				if timerCheck == nil {
 					// start a after func, when expired will update the state to the core
-					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
+					//timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
+					dh.updateStateUnreachable(ctx)
 				}
 			} else {
 				if timerCheck != nil {
 					if timerCheck.Stop() {
-						logger.Debugw(ctx, "got-hearbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
+						logger.Infow(ctx, "got-hearbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
 					}
 					timerCheck = nil
 				}
@@ -1931,6 +1933,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 }
 
 func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
+	logger.Infow(ctx, "handling unreachable state", log.Fields{"device": dh.device.Id})
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
 		// One case where we have seen core returning an error for GetDevice call is after OLT device delete.
@@ -1938,32 +1941,41 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		// The 'startHeartbeatCheck' then asks the device to be marked unreachable towards the core, but the core
 		// has already deleted the device and returns error. In this particular scenario, it is Ok because any necessary
 		// cleanup in the adapter was already done during DeleteDevice API handler routine.
-		_ = olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		_ = olterrors.NewErrNotFound("device-not-found", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		logger.Errorw(ctx, "device-not-found", log.Fields{"device-id": dh.device.Id})
 		// Immediately return, otherwise accessing a null 'device' struct would cause panic
 		return
 	}
 
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
-		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
-			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-		}
-		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
-			_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
-		}
-		go dh.cleanupDeviceResources(ctx)
+		logger.Infow(ctx, "Updating core about device Disconnection", log.Fields{"device-id": dh.device.Id})
+		go func () {
+			if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
+				_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+			}
+			// TODO REMOVE this because it causes child device lost --> actually do check in the core related to parent state
+			//if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
+			//	_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+			//}
 
-		dh.lockDevice.RLock()
-		// Stop the read indication only if it the routine is active
-		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
-		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
-		// on next execution of the readIndication routine.
-		if dh.isReadIndicationRoutineActive {
-			dh.stopIndications <- true
-		}
-		dh.lockDevice.RUnlock()
+			//TODO remove this.
+			//go dh.cleanupDeviceResources(ctx)
 
-		dh.transitionMap.Handle(ctx, DeviceInit)
+			dh.lockDevice.RLock()
+			// Stop the read indication only if it the routine is active
+			// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+			// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+			// on next execution of the readIndication routine.
+			if dh.isReadIndicationRoutineActive {
+				dh.stopIndications <- true
+			}
+			dh.lockDevice.RUnlock()
+		}()
+		//This initiates re-check for the connection.
+		dh.transitionMap.Handle(ctx, GrpcDisconnected)
 
+	} else {
+		logger.Infow(ctx, "status of device is not REACHABLE", log.Fields{"device": dh.device.Id, "status": dh.device.ConnectStatus})
 	}
 }
 

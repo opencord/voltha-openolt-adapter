@@ -48,7 +48,7 @@ const (
 	// defaultHearbeatFailReportInterval is the time adapter will wait before updating the state to the core.
 	defaultHearbeatFailReportInterval = 0 * time.Second
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
-	defaultGrpcTimeoutInterval   = 2 * time.Second
+	defaultGrpcTimeoutInterval   = 1 * time.Second
 	defaultCurrentReplica        = 1
 	defaultTotalReplicas         = 1
 	defaultTraceEnabled          = false

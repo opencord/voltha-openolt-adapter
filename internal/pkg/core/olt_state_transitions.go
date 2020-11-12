@@ -98,7 +98,7 @@ func NewTransitionMap(dh *DeviceHandler) *TransitionMap {
 	// If gRpc session fails, re-establish the grpc session
 	transitionMap.transitions[GrpcDisconnected] =
 		Transition{
-			previousState: []DeviceState{deviceStateConnected, deviceStateDown},
+			previousState: []DeviceState{deviceStateConnected, deviceStateUp, deviceStateDown},
 			currentState:  deviceStateInit,
 			before:        []TransitionHandler{dh.doStateInit},
 			after:         []TransitionHandler{dh.postInit}}
@@ -146,6 +146,8 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 // Handle moves the state machine to next state based on the trigger and invokes the before and
 // after handlers if the transition is a valid transition
 func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
+	logger.Infow(ctx, "handling transition", log.Fields{
+		"trigger":       trigger})
 
 	// Check whether the transtion is valid from current state
 	if !tMap.isValidTransition(trigger) {
@@ -162,7 +164,7 @@ func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 		logger.Debugw(ctx, "no-handlers-for-before", log.Fields{"trigger": trigger})
 	}
 	for _, handler := range beforeHandlers {
-		logger.Debugw(ctx, "running-before-handler", log.Fields{"handler": funcName(handler)})
+		logger.Infow(ctx, "running-before-handler", log.Fields{"handler": funcName(handler)})
 		if err := handler(ctx); err != nil {
 			// TODO handle error
 			logger.Error(ctx, err)
@@ -180,11 +182,14 @@ func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 		logger.Debugw(ctx, "no-handlers-for-after", log.Fields{"trigger": trigger})
 	}
 	for _, handler := range afterHandlers {
-		logger.Debugw(ctx, "running-after-handler", log.Fields{"handler": funcName(handler)})
+		logger.Infow(ctx, "running-after-handler", log.Fields{"handler": funcName(handler)})
 		if err := handler(ctx); err != nil {
 			// TODO handle error
 			logger.Error(ctx, err)
 			return
 		}
 	}
+	logger.Infow(ctx, "finished-handling-transition", log.Fields{
+		"current-state": tMap.currentDeviceState,
+		"trigger":       trigger})
 }
