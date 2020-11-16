@@ -213,7 +213,7 @@ func NewPONResourceManager(ctx context.Context, Technology string, DeviceType st
 		return nil, errors.New("Failed to init KV Config client")
 	}
 	// Initialize techprofile for this technology
-	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(ctx, &PONMgr, Backend, Address); PONMgr.TechProfileMgr == nil {
+	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(ctx, &PONMgr, Backend, Address, basePathKvStore); PONMgr.TechProfileMgr == nil {
 		logger.Error(ctx, "Techprofile initialization failed")
 		return nil, errors.New("Failed to init tech profile")
 	}

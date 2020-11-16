@@ -16,6 +16,7 @@
 package techprofile
 
 import (
+	"fmt"
 	"github.com/opencord/voltha-lib-go/v4/pkg/db"
 	"time"
 )
@@ -32,7 +33,7 @@ const (
 	defaultKVStoreTimeout = 5 * time.Second //in seconds
 
 	// Tech profile path prefix in kv store
-	defaultKVPathPrefix = "service/voltha/technology_profiles"
+	defaultKVPathPrefix = "%s/technology_profiles"
 
 	// Tech profile path in kv store
 	defaultTechProfileKVPath = "%s/%d" // <technology>/<tech_profile_tableID>
@@ -109,7 +110,7 @@ type TechProfileFlags struct {
 	DefaultNumGemPorts   uint32
 }
 
-func NewTechProfileFlags(KVStoreType string, KVStoreAddress string) *TechProfileFlags {
+func NewTechProfileFlags(KVStoreType string, KVStoreAddress string, basePathKvStore string) *TechProfileFlags {
 	// initialize with default values
 	var techProfileFlags = TechProfileFlags{
 		KVBackend:            nil,
@@ -117,7 +118,7 @@ func NewTechProfileFlags(KVStoreType string, KVStoreAddress string) *TechProfile
 		KVStoreType:          KVStoreType,
 		KVStoreTimeout:       defaultKVStoreTimeout,
 		DefaultTPName:        defaultTechProfileName,
-		TPKVPathPrefix:       defaultKVPathPrefix,
+		TPKVPathPrefix:       fmt.Sprintf(defaultKVPathPrefix, basePathKvStore),
 		TPVersion:            defaultVersion,
 		TPFileKVPath:         defaultTechProfileKVPath,
 		TPInstanceKVPath:     defaultTPInstanceKVPath,

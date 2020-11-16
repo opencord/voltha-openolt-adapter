@@ -419,10 +419,10 @@ func newKVClient(ctx context.Context, storeType string, address string, timeout 
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func NewTechProfile(ctx context.Context, resourceMgr iPonResourceMgr, KVStoreType string, KVStoreAddress string) (*TechProfileMgr, error) {
+func NewTechProfile(ctx context.Context, resourceMgr iPonResourceMgr, KVStoreType string, KVStoreAddress string, basePathKvStore string) (*TechProfileMgr, error) {
 	var techprofileObj TechProfileMgr
 	logger.Debug(ctx, "Initializing techprofile Manager")
-	techprofileObj.config = NewTechProfileFlags(KVStoreType, KVStoreAddress)
+	techprofileObj.config = NewTechProfileFlags(KVStoreType, KVStoreAddress, basePathKvStore)
 	techprofileObj.config.KVBackend = techprofileObj.SetKVClient(ctx)
 	if techprofileObj.config.KVBackend == nil {
 		logger.Error(ctx, "Failed to initialize KV backend\n")
