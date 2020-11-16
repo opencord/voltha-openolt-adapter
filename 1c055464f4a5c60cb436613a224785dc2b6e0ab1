@@ -34,6 +34,24 @@
       "revId": "1c055464f4a5c60cb436613a224785dc2b6e0ab1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88611b2b_f546b617",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1962,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-11-16T20:08:55Z",
+      "side": 1,
+      "message": "Got it. Is there a separate rw-core patch for this?",
+      "parentUuid": "d511fa90_f2e0a338",
+      "revId": "1c055464f4a5c60cb436613a224785dc2b6e0ab1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
