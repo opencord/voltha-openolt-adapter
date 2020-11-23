@@ -54,8 +54,8 @@ const (
 	// OnuPacketINPath path on the kvstore to store packetin gemport,which will be used for packetin, packetout
 	//format: onu_packetin/{<intfid>,<onuid>,<logicalport>}/{<vlanId>,<priority>}
 	OnuPacketINPath = OnuPacketINPathPrefix + "/{%d,%d}"
-	//FlowIDsForGem flowids_per_gem/<intfid>
-	FlowIDsForGem = "flowids_per_gem/{%d}"
+	//FlowIDsForGem flowids_per_gem/<intf-id, gem-port-id>  => list of flow-ids
+	FlowIDsForGem = "flowids_per_gem/{%d, %d}"
 	//McastQueuesForIntf multicast queues for pon interfaces
 	McastQueuesForIntf = "mcast_qs_for_int"
 	//FlowGroup flow_groups/<flow_group_id>
@@ -134,7 +134,7 @@ func newKVClient(ctx context.Context, storeType string, address string, timeout 
 	case "consul":
 		return kvstore.NewConsulClient(ctx, address, timeout)
 	case "etcd":
-		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
+		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel, true)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
@@ -1297,21 +1297,20 @@ func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore(ctx context.Context) error 
 	return nil
 }
 
-//UpdateFlowIDsForGem updates flow id per gemport
-func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf uint32, gem uint32, flowIDs []uint64) error {
+//UpdateFlowIDForGem updates the flowID to list of flowIDs per {intf, gemport}
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDForGem(ctx context.Context, intf uint32, gem uint32, flowID uint64) error {
 	var val []byte
-	path := fmt.Sprintf(FlowIDsForGem, intf)
+	var flowIDs []uint64
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
 
-	flowsForGem, err := RsrcMgr.GetFlowIDsGemMapForInterface(ctx, intf)
+	flowIDs, err := RsrcMgr.GetFlowIDsForGem(ctx, intf, gem)
 	if err != nil {
 		logger.Error(ctx, "Failed to ger flowids for interface", log.Fields{"error": err, "intf": intf})
 		return err
 	}
-	if flowsForGem == nil {
-		flowsForGem = make(map[uint32][]uint64)
-	}
-	flowsForGem[gem] = flowIDs
-	val, err = json.Marshal(flowsForGem)
+	flowIDs = appendUnique64bit(flowIDs, flowID)
+
+	val, err = json.Marshal(flowIDs)
 	if err != nil {
 		logger.Error(ctx, "Failed to marshal data", log.Fields{"error": err})
 		return err
@@ -1321,42 +1320,41 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
 		return err
 	}
-	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowsForGem[gem]})
+	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowIDs})
 	return nil
 }
 
-//DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
-func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) {
-	path := fmt.Sprintf(FlowIDsForGem, intf)
+//UpdateFlowIDForGem updates flowID list per {intf, gemport}
+func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf uint32, gem uint32, flowIDs []uint64) error {
 	var val []byte
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
 
-	flowsForGem, err := RsrcMgr.GetFlowIDsGemMapForInterface(ctx, intf)
-	if err != nil {
-		logger.Error(ctx, "Failed to ger flowids for interface", log.Fields{"error": err, "intf": intf})
-		return
-	}
-	if flowsForGem == nil {
-		logger.Error(ctx, "No flowids found ", log.Fields{"intf": intf, "gemport": gem})
-		return
-	}
-	// once we get the flows per gem map from kv , just delete the gem entry from the map
-	delete(flowsForGem, gem)
-	// once gem entry is deleted update the kv store.
-	val, err = json.Marshal(flowsForGem)
+	val, err := json.Marshal(flowIDs)
 	if err != nil {
 		logger.Error(ctx, "Failed to marshal data", log.Fields{"error": err})
-		return
+		return err
 	}
 
 	if err = RsrcMgr.KVStore.Put(ctx, path, val); err != nil {
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
+		return err
+	}
+	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowIDs})
+	return nil
+}
+
+//DeleteFlowIDsForGem deletes the flowID list entry per {intf, gem} from kvstore.
+func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) {
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
+	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
+		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"error": err, "path": path})
 	}
 }
 
-//GetFlowIDsGemMapForInterface gets flowids per gemport and interface
-func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Context, intf uint32) (map[uint32][]uint64, error) {
-	path := fmt.Sprintf(FlowIDsForGem, intf)
-	var flowsForGem map[uint32][]uint64
+//GetFlowIDsForGem gets flowIDs per {intf, gemport}
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) ([]uint64, error) {
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
+	var flowsForGem []uint64
 	var val []byte
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
 	if err != nil {
@@ -1551,4 +1549,14 @@ func checkForFlowIDInList(FlowIDList []uint64, FlowID uint64) (bool, uint64) {
 		}
 	}
 	return false, 0
+}
+
+
+func appendUnique64bit(slice []uint64, item uint64) []uint64 {
+	for _, sliceElement := range slice {
+		if sliceElement == item {
+			return slice
+		}
+	}
+	return append(slice, item)
 }
