@@ -24,7 +24,7 @@ import (
 )
 
 type TechProfileIf interface {
-	SetKVClient(ctx context.Context) *db.Backend
+	SetKVClient(ctx context.Context, pathPrefix string) *db.Backend
 	GetTechProfileInstanceKVPath(ctx context.Context, techProfiletblID uint32, uniPortName string) string
 	GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error)
 	CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfId uint32) (interface{}, error)
