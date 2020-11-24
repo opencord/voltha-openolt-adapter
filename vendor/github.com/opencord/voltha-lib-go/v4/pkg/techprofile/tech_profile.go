@@ -382,13 +382,13 @@ const (
 	epon   = "EPON"
 )
 
-func (t *TechProfileMgr) SetKVClient(ctx context.Context) *db.Backend {
+func (t *TechProfileMgr) SetKVClient(ctx context.Context, pathPrefix string) *db.Backend {
 	kvClient, err := newKVClient(ctx, t.config.KVStoreType, t.config.KVStoreAddress, t.config.KVStoreTimeout)
 	if err != nil {
 		logger.Errorw(ctx, "failed-to-create-kv-client",
 			log.Fields{
 				"type": t.config.KVStoreType, "address": t.config.KVStoreAddress,
-				"timeout": t.config.KVStoreTimeout, "prefix": t.config.TPKVPathPrefix,
+				"timeout": t.config.KVStoreTimeout, "prefix": pathPrefix,
 				"error": err.Error(),
 			})
 		return nil
@@ -398,7 +398,7 @@ func (t *TechProfileMgr) SetKVClient(ctx context.Context) *db.Backend {
 		StoreType:  t.config.KVStoreType,
 		Address:    t.config.KVStoreAddress,
 		Timeout:    t.config.KVStoreTimeout,
-		PathPrefix: t.config.TPKVPathPrefix}
+		PathPrefix: pathPrefix}
 
 	/* TODO : Make sure direct call to NewBackend is working fine with backend , currently there is some
 		  issue between kv store and backend , core is not calling NewBackend directly
@@ -423,7 +423,8 @@ func NewTechProfile(ctx context.Context, resourceMgr iPonResourceMgr, KVStoreTyp
 	var techprofileObj TechProfileMgr
 	logger.Debug(ctx, "Initializing techprofile Manager")
 	techprofileObj.config = NewTechProfileFlags(KVStoreType, KVStoreAddress, basePathKvStore)
-	techprofileObj.config.KVBackend = techprofileObj.SetKVClient(ctx)
+	techprofileObj.config.KVBackend = techprofileObj.SetKVClient(ctx, techprofileObj.config.TPKVPathPrefix)
+	techprofileObj.config.DefaultTpKVBackend = techprofileObj.SetKVClient(ctx, techprofileObj.config.defaultTpKvPathPrefix)
 	if techprofileObj.config.KVBackend == nil {
 		logger.Error(ctx, "Failed to initialize KV backend\n")
 		return nil, errors.New("KV backend init failed")
@@ -510,7 +511,7 @@ func (t *TechProfileMgr) getTPFromKVStore(ctx context.Context, techProfiletblID 
 	var kvtechprofile DefaultTechProfile
 	key := fmt.Sprintf(t.config.TPFileKVPath, t.resourceMgr.GetTechnology(), techProfiletblID)
 	logger.Debugw(ctx, "Getting techprofile from KV store", log.Fields{"techProfiletblID": techProfiletblID, "Key": key})
-	kvresult, err := t.config.KVBackend.Get(ctx, key)
+	kvresult, err := t.config.DefaultTpKVBackend.Get(ctx, key)
 	if err != nil {
 		logger.Errorw(ctx, "Error while fetching value from KV store", log.Fields{"key": key})
 		return nil
@@ -534,7 +535,7 @@ func (t *TechProfileMgr) getEponTPFromKVStore(ctx context.Context, techProfiletb
 	var kvtechprofile DefaultEponProfile
 	key := fmt.Sprintf(t.config.TPFileKVPath, t.resourceMgr.GetTechnology(), techProfiletblID)
 	logger.Debugw(ctx, "Getting techprofile from KV store", log.Fields{"techProfiletblID": techProfiletblID, "Key": key})
-	kvresult, err := t.config.KVBackend.Get(ctx, key)
+	kvresult, err := t.config.DefaultTpKVBackend.Get(ctx, key)
 	if err != nil {
 		logger.Errorw(ctx, "Error while fetching value from KV store", log.Fields{"key": key})
 		return nil
