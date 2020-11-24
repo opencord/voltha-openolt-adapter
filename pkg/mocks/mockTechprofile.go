@@ -31,7 +31,7 @@ type MockTechProfile struct {
 }
 
 // SetKVClient to mock techprofile SetKVClient method
-func (m MockTechProfile) SetKVClient(ctx context.Context) *db.Backend {
+func (m MockTechProfile) SetKVClient(ctx context.Context, pathPrefix string) *db.Backend {
 	return &db.Backend{Client: &MockKVClient{}}
 }
 

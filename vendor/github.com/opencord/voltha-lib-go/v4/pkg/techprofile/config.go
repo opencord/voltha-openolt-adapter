@@ -32,7 +32,11 @@ const (
 
 	defaultKVStoreTimeout = 5 * time.Second //in seconds
 
-	// Tech profile path prefix in kv store
+	// Tech profile path prefix in kv store (for the TP template)
+	// NOTE that this hardcoded to service/voltha as the TP template is shared across stacks
+	defaultTpKvPathPrefix = "service/voltha/technology_profiles"
+
+	// Tech profile path prefix in kv store (for TP instances)
 	defaultKVPathPrefix = "%s/technology_profiles"
 
 	// Tech profile path in kv store
@@ -94,38 +98,41 @@ const (
 
 // TechprofileFlags represents the set of configurations used
 type TechProfileFlags struct {
-	KVStoreAddress       string
-	KVStoreType          string
-	KVStoreTimeout       time.Duration
-	KVBackend            *db.Backend
-	TPKVPathPrefix       string
-	TPFileKVPath         string
-	TPInstanceKVPath     string
-	DefaultTPName        string
-	TPVersion            int
-	NumGemPorts          uint32
-	DefaultPbits         []string
-	LogLevel             int
-	DefaultTechProfileID uint32
-	DefaultNumGemPorts   uint32
+	KVStoreAddress        string
+	KVStoreType           string
+	KVStoreTimeout        time.Duration
+	KVBackend             *db.Backend // this is the backend used to store TP instances
+	DefaultTpKVBackend    *db.Backend // this is the backend used to read the TP profile
+	TPKVPathPrefix        string
+	defaultTpKvPathPrefix string
+	TPFileKVPath          string
+	TPInstanceKVPath      string
+	DefaultTPName         string
+	TPVersion             int
+	NumGemPorts           uint32
+	DefaultPbits          []string
+	LogLevel              int
+	DefaultTechProfileID  uint32
+	DefaultNumGemPorts    uint32
 }
 
 func NewTechProfileFlags(KVStoreType string, KVStoreAddress string, basePathKvStore string) *TechProfileFlags {
 	// initialize with default values
 	var techProfileFlags = TechProfileFlags{
-		KVBackend:            nil,
-		KVStoreAddress:       KVStoreAddress,
-		KVStoreType:          KVStoreType,
-		KVStoreTimeout:       defaultKVStoreTimeout,
-		DefaultTPName:        defaultTechProfileName,
-		TPKVPathPrefix:       fmt.Sprintf(defaultKVPathPrefix, basePathKvStore),
-		TPVersion:            defaultVersion,
-		TPFileKVPath:         defaultTechProfileKVPath,
-		TPInstanceKVPath:     defaultTPInstanceKVPath,
-		DefaultTechProfileID: DEFAULT_TECH_PROFILE_TABLE_ID,
-		DefaultNumGemPorts:   defaultGemportsCount,
-		DefaultPbits:         []string{defaultPbits},
-		LogLevel:             defaultLogLevel,
+		KVBackend:             nil,
+		KVStoreAddress:        KVStoreAddress,
+		KVStoreType:           KVStoreType,
+		KVStoreTimeout:        defaultKVStoreTimeout,
+		DefaultTPName:         defaultTechProfileName,
+		TPKVPathPrefix:        fmt.Sprintf(defaultKVPathPrefix, basePathKvStore),
+		defaultTpKvPathPrefix: defaultTpKvPathPrefix,
+		TPVersion:             defaultVersion,
+		TPFileKVPath:          defaultTechProfileKVPath,
+		TPInstanceKVPath:      defaultTPInstanceKVPath,
+		DefaultTechProfileID:  DEFAULT_TECH_PROFILE_TABLE_ID,
+		DefaultNumGemPorts:    defaultGemportsCount,
+		DefaultPbits:          []string{defaultPbits},
+		LogLevel:              defaultLogLevel,
 	}
 
 	return &techProfileFlags
