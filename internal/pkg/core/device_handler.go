@@ -379,10 +379,6 @@ Loop:
 				logger.Errorw(ctx, "read-indication-error",
 					log.Fields{"err": err,
 						"device-id": dh.device.Id})
-				if device.AdminState == voltha.AdminState_DELETED {
-					logger.Debug(ctx, "device-deleted--stopping-the-read-indication-thread")
-					break Loop
-				}
 				// Close the stream, and re-initialize it
 				if err = indications.CloseSend(); err != nil {
 					// Ok to ignore here, because we landed here due to a problem on the stream
@@ -1655,6 +1651,12 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	dh.stopCollector <- true
 	// stop the heartbeat check routine
 	dh.stopHeartbeatCheck <- true
+	dh.lockDevice.RLock()
+	// Stop the read indication only if it the routine is active
+	if dh.isReadIndicationRoutineActive {
+		dh.stopIndications <- true
+	}
+	dh.lockDevice.RUnlock()
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
