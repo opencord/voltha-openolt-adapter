@@ -24,6 +24,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
 	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
+	"github.com/opencord/voltha-lib-go/v4/pkg/events"
 	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
@@ -39,7 +40,7 @@ type OpenOLT struct {
 	deviceHandlers              map[string]*DeviceHandler
 	coreProxy                   adapterif.CoreProxy
 	adapterProxy                adapterif.AdapterProxy
-	eventProxy                  adapterif.EventProxy
+	eventProxy                  events.EventProxy
 	kafkaICProxy                kafka.InterContainerProxy
 	config                      *config.AdapterFlags
 	numOnus                     int
@@ -55,7 +56,7 @@ type OpenOLT struct {
 //NewOpenOLT returns a new instance of OpenOLT
 func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	coreProxy adapterif.CoreProxy, adapterProxy adapterif.AdapterProxy,
-	eventProxy adapterif.EventProxy, cfg *config.AdapterFlags, cm *conf.ConfigManager) *OpenOLT {
+	eventProxy events.EventProxy, cfg *config.AdapterFlags, cm *conf.ConfigManager) *OpenOLT {
 	var openOLT OpenOLT
 	openOLT.exitChannel = make(chan int, 1)
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)

@@ -26,12 +26,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
-
 	"github.com/opencord/voltha-lib-go/v4/pkg/adapters"
+	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
 	com "github.com/opencord/voltha-lib-go/v4/pkg/adapters/common"
 	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v4/pkg/events"
 	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-lib-go/v4/pkg/probe"
@@ -51,7 +51,7 @@ type adapter struct {
 	kip              kafka.InterContainerProxy
 	coreProxy        adapterif.CoreProxy
 	adapterProxy     adapterif.AdapterProxy
-	eventProxy       adapterif.EventProxy
+	eventProxy       events.EventProxy
 	halted           bool
 	exitChannel      chan int
 	receiverChannels []<-chan *ic.InterContainerMessage
@@ -125,7 +125,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.adapterProxy = com.NewAdapterProxy(ctx, a.kip, a.config.CoreTopic, cm.Backend)
 
 	// Create the event proxy to post events to KAFKA
-	a.eventProxy = com.NewEventProxy(com.MsgClient(a.kafkaClient), com.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
+	a.eventProxy = *events.NewEventProxy(events.MsgClient(a.kafkaClient), events.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 
 	// Create the open OLT adapter
 	if a.iAdapter, err = a.startOpenOLT(ctx, a.kip, a.coreProxy, a.adapterProxy, a.eventProxy, a.config, cm); err != nil {
@@ -345,7 +345,7 @@ func (a *adapter) startInterContainerProxy(ctx context.Context, retries int) (ka
 }
 
 func (a *adapter) startOpenOLT(ctx context.Context, kip kafka.InterContainerProxy,
-	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy,
+	cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep events.EventProxy,
 	cfg *config.AdapterFlags, cm *conf.ConfigManager) (*ac.OpenOLT, error) {
 	logger.Info(ctx, "starting-open-olt")
 	var err error
