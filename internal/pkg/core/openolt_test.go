@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	com "github.com/opencord/voltha-lib-go/v4/pkg/adapters/common"
+	"github.com/opencord/voltha-lib-go/v4/pkg/events"
 	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
@@ -46,7 +47,7 @@ type fields struct {
 	deviceHandlers map[string]*DeviceHandler
 	coreProxy      *com.CoreProxy
 	adapterProxy   *com.AdapterProxy
-	eventProxy     *com.EventProxy
+	eventProxy     *events.EventProxy
 	kafkaICProxy   kafka.InterContainerProxy
 	numOnus        int
 	KVStoreAddress string
