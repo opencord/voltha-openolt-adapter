@@ -34,9 +34,9 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-
 	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
 	"github.com/opencord/voltha-lib-go/v4/pkg/config"
+	"github.com/opencord/voltha-lib-go/v4/pkg/events"
 	"github.com/opencord/voltha-lib-go/v4/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v4/pkg/log"
 	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
@@ -64,7 +64,7 @@ type DeviceHandler struct {
 	device        *voltha.Device
 	coreProxy     adapterif.CoreProxy
 	AdapterProxy  adapterif.AdapterProxy
-	EventProxy    adapterif.EventProxy
+	EventProxy    events.EventProxy
 	openOLT       *OpenOLT
 	exitChannel   chan int
 	lockDevice    sync.RWMutex
@@ -126,7 +126,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 }
 
 //NewDeviceHandler creates a new device handler
-func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep adapterif.EventProxy, device *voltha.Device, adapter *OpenOLT, cm *config.ConfigManager) *DeviceHandler {
+func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep events.EventProxy, device *voltha.Device, adapter *OpenOLT, cm *config.ConfigManager) *DeviceHandler {
 	var dh DeviceHandler
 	dh.cm = cm
 	dh.coreProxy = cp
