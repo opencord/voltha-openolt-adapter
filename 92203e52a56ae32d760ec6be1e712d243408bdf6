@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c6e78663_f129ca42",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2020-12-11T14:55:52Z",
+      "side": 1,
+      "message": "By using an interface here, it allows for different underlying implementation of the event proxy, e.g. we can have an event proxy that sends message to kafka and an event proxy that sends a message via a different messaging bus or something completely different.   It could also be argued to keep it simple and since we will most likely stick with kafka for events then  just make its usage explicit.",
+      "revId": "92203e52a56ae32d760ec6be1e712d243408bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
