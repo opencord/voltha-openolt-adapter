@@ -16,6 +16,24 @@
       "revId": "92203e52a56ae32d760ec6be1e712d243408bdf6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b20dabb_f9cf60d3",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000726
+      },
+      "writtenOn": "2020-12-14T12:18:18Z",
+      "side": 1,
+      "message": "Agree. But that interface also should not be coming from adapter if. Do you agree or shall I keep the interface under adapter if as it was previously there?",
+      "parentUuid": "c6e78663_f129ca42",
+      "revId": "92203e52a56ae32d760ec6be1e712d243408bdf6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
