@@ -730,6 +730,30 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveGemPortIDForOnu(ctx context.Context, in
 	}
 }
 
+//GetUniPortByPonPortGemPortFromKVStore retrieves onu and uni ID associated with the pon and gem ports.
+func (RsrcMgr *OpenOltResourceMgr) GetUniPortByPonPortGemPortFromKVStore(ctx context.Context, PonPort uint32, GemPort uint32) (uint32, uint32, error) {
+	IntfGEMPortPath := fmt.Sprintf("%d,%d", PonPort, GemPort)
+	logger.Debugf(ctx, "Getting ONU and UNI IDs from the path %s", IntfGEMPortPath)
+	var Data []uint32
+	Value, err := RsrcMgr.KVStore.Get(ctx, IntfGEMPortPath)
+	if err == nil {
+		if Value != nil {
+			Val, _ := ponrmgr.ToByte(Value.Value)
+			if err = json.Unmarshal(Val, &Data); err != nil {
+				logger.Errorw(ctx, "Failed to unmarshal", log.Fields{"error": err})
+				return 0, 0, errors.New("failed to unmarshal the data retrieved")
+			}
+		}
+	} else {
+		logger.Errorf(ctx, "Failed to get data from kvstore for %s", IntfGEMPortPath, err)
+		return 0, 0, errors.New("could not get data")
+	}
+	if len(Data) < 2 {
+		return 0, 0, errors.New("invalid data format")
+	}
+	return Data[0], Data[1], nil
+}
+
 // UpdateGEMportsPonportToOnuMapOnKVStore updates onu and uni id associated with the gem port to the kv store
 // This stored information is used when packet_indication is received and we need to derive the ONU Id for which
 // the packet arrived based on the pon_intf and gemport available in the packet_indication
@@ -738,7 +762,7 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateGEMportsPonportToOnuMapOnKVStore(ctx co
 
 	/* Update onu and uni id associated with the gem port to the kv store. */
 	var IntfGEMPortPath string
-	Data := fmt.Sprintf("%d %d", onuID, uniID)
+	Data := []uint32{onuID, uniID}
 	for _, GEM := range gemPorts {
 		IntfGEMPortPath = fmt.Sprintf("%d,%d", PonPort, GEM)
 		Val, err := json.Marshal(Data)

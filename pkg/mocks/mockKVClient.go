@@ -183,6 +183,20 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+		//Interface, GEM port path
+		if strings.Contains(key, "0,255") {
+			//return onuID, uniID associated with the given interface and GEM port
+			data := []uint32{1, 0}
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
+		//Interface, GEM port path
+		if strings.Contains(key, "0,257") {
+			//return onuID, uniID associated with the given interface and GEM port
+			data := []uint32{1, 0}
+			str, _ := json.Marshal(data)
+			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
+		}
 
 		maps := make(map[string]*kvstore.KVPair)
 		maps[key] = &kvstore.KVPair{Key: key}
