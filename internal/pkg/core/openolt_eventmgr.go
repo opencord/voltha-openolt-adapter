@@ -38,6 +38,7 @@ const (
 	onuLopcMissEvent                    = "ONU_LOPC_MISS"
 	onuLopcMicErrorEvent                = "ONU_LOPC_MIC_ERROR"
 	oltLosEvent                         = "OLT_LOSS_OF_SIGNAL"
+	oltCommFailure                      = "OLT_COMMUNICATION_FAILURE"
 	oltIndicationDown                   = "OLT_DOWN_INDICATION"
 	onuDyingGaspEvent                   = "ONU_DYING_GASP"
 	onuSignalsFailEvent                 = "ONU_SIGNALS_FAIL"
@@ -72,8 +73,30 @@ const (
 )
 
 const (
+	// ContextOltAdminState is for the admin state of the Olt in the context of the event
+	ContextOltAdminState = "admin-state"
+	// ContextOltConnectState is for the connect state of the Olt in the context of the event
+	ContextOltConnectState = "connect-state"
 	// ContextOltOperState is for the operational state of the Olt in the context of the event
 	ContextOltOperState = "oper-state"
+	// ContextOltVendor is for the Olt vendor in the context of the event
+	ContextOltVendor = "vendor"
+	// ContextOltType is for the Olt type in the context of the event
+	ContextOltType = "type"
+	// ContextOltParentID is for the Olt parent id in the context of the event
+	ContextOltParentID = "parent-id"
+	// ContextOltParentPortNo is for the Olt parent port no in the context of the event
+	ContextOltParentPortNo = "parent-port-no"
+	// ContextOltFirmwareVersion is for the Olt firmware version in the context of the event
+	ContextOltFirmwareVersion = "firmware-version"
+	// ContextOltHardwareVersion is for the Olt hardware version in the context of the event
+	ContextOltHardwareVersion = "hardware-version"
+	// ContextOltSerialNumber is for the serial number of the OLT
+	ContextOltSerialNumber = "serial-number"
+	// ContextOltMacAddress is for the OLT mac address
+	ContextOltMacAddress = "mac-address"
+	// ContextDeviceID is for the device id in the context of the event
+	ContextDeviceID = "id"
 	// ContextOnuOnuID is for the Onu Id in the context of the event
 	ContextOnuOnuID = "onu-id"
 	// ContextOnuPonIntfID is for the PON interface Id on which the Onu Event occurred
@@ -175,6 +198,40 @@ func (em *OpenOltEventMgr) ProcessEvents(ctx context.Context, alarmInd *oop.Alar
 	if err != nil {
 		_ = olterrors.NewErrCommunication("publish-message", log.Fields{"indication-type": alarmInd}, err).LogAt(log.WarnLevel)
 	}
+}
+
+func (em *OpenOltEventMgr) oltCommunicationFailureEvent(ctx context.Context, device *voltha.Device, raisedTs int64) {
+	if device == nil {
+		logger.Warnw(ctx, "device-nil-failed-to-send-olt-communication-failure-alarm", log.Fields{})
+		return
+	}
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	context[ContextOltOperState] = device.OperStatus.String()
+	context[ContextOltAdminState] = device.AdminState.String()
+	context[ContextOltVendor] = device.Vendor
+	context[ContextOltConnectState] = device.ConnectStatus.String()
+	context[ContextOltType] = device.Type
+	context[ContextOltParentID] = device.ParentId
+	context[ContextOltParentPortNo] = fmt.Sprintf("%d", device.ParentPortNo)
+	context[ContextDeviceID] = device.Id
+	context[ContextOltFirmwareVersion] = device.FirmwareVersion
+	context[ContextOltHardwareVersion] = device.HardwareVersion
+	context[ContextOltSerialNumber] = device.SerialNumber
+	context[ContextOltMacAddress] = device.MacAddress
+	de.Context = context
+	de.ResourceId = device.Id
+
+	if device.ConnectStatus == voltha.ConnectStatus_UNREACHABLE {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", oltCommFailure, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", oltCommFailure, "CLEAR_EVENT")
+	}
+
+	if err := em.eventProxy.SendDeviceEvent(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_OLT, raisedTs); err != nil {
+		logger.Errorw(ctx, "failed-to-send-olt-comm-failure-alarm", log.Fields{"err": err})
+	}
+	logger.Infow(ctx, "olt-comm-failure-alarm-sent-to-kafka", log.Fields{})
 }
 
 // oltUpDownIndication handles Up and Down state of an OLT
