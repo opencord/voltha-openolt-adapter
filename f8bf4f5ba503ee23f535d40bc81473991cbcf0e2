@@ -52,6 +52,24 @@
       "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0c8c7f5_a542b6b7",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2574,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-12-17T10:30:21Z",
+      "side": 1,
+      "message": "ok got it now, yes your suggestion seems better. I\u0027ll correct the code.",
+      "parentUuid": "76a14fc2_51d502c0",
+      "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
