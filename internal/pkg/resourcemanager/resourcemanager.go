@@ -1076,9 +1076,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, p
 
 //DeletePacketInGemPortForOnu deletes the packet-in gemport for ONU
 func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) error {
-
 	path := fmt.Sprintf(OnuPacketINPathPrefix, intfID, onuID, logicalPort)
-
 	value, err := rsrcMgr.KVStore.List(ctx, path)
 	if err != nil {
 		logger.Errorf(ctx, "failed-to-read-value-from-path-%s", path)
@@ -1087,8 +1085,9 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 
 	//remove them one by one
 	for key := range value {
-		// Formulate the right key path suffix ti be delete
-		stringToBeReplaced := fmt.Sprintf(BasePathKvStore, rsrcMgr.KVStore.PathPrefix, rsrcMgr.DeviceID) + "/"
+		// Remove the PathPrefix from the path on KV key.
+		// gemPortForPacketInInfo cache uses OnuPacketINPath as the key
+		stringToBeReplaced := rsrcMgr.KVStore.PathPrefix + "/"
 		replacedWith := ""
 		key = strings.Replace(key, stringToBeReplaced, replacedWith, 1)
 		// update cache
@@ -1096,11 +1095,13 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 		delete(rsrcMgr.gemPortForPacketInInfo, key)
 		rsrcMgr.gemPortForPacketInInfoLock.Unlock()
 
-		logger.Debugf(ctx, "removing-key-%s", key)
-		if err := rsrcMgr.KVStore.Delete(ctx, key); err != nil {
-			logger.Errorf(ctx, "failed-to-remove-resource-%s", key)
-			return err
-		}
+		logger.Debugw(ctx, "removed-key-from-packetin-gem-port-cache", log.Fields{"key": key, "cache-len": len(rsrcMgr.gemPortForPacketInInfo)})
+	}
+
+	logger.Debugw(ctx, "delete-packetin-gem-port", log.Fields{"realPath": path})
+	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
+		return err
 	}
 
 	return nil
