@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b3f65d9_b12625a5",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:22:49Z",
+      "side": 1,
+      "message": "do you also have a patch to expose these to the helm chart ?",
+      "revId": "eba72f604ae7abdcdda087b182238adffafe9b64",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8237df8b_68516ecf",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:22:49Z",
+      "side": 1,
+      "message": "should these be started only if the two command lines parameters are se to true ?",
+      "revId": "eba72f604ae7abdcdda087b182238adffafe9b64",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16acef4e_3bad49f8",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:22:49Z",
+      "side": 1,
+      "message": "missing documentation for these methods",
+      "revId": "eba72f604ae7abdcdda087b182238adffafe9b64",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
