@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d0d94904_46528dec",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-12-17T18:49:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8af1faa_0bd5f1ae",
+      "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cdac2743_96b59d7b",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a240384_e5bff828",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-12-17T18:49:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cdac2743_96b59d7b",
+      "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7cc5e3eb_0f4b16b2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2298,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-12-17T18:49:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9aef2ae_954a2084",
+      "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b148a45_ddabcdb8",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "2f94d467_d4604509",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2310,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-12-17T18:49:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b148a45_ddabcdb8",
+      "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "995ff101_ff4f674e",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -84,6 +156,24 @@
       "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9280fb6c_f7f565ab",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2312,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2020-12-17T18:49:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "995ff101_ff4f674e",
+      "revId": "050a87048a7443409d9863eddfc7bc1480c4b976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
