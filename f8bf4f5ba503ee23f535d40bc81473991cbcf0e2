@@ -34,6 +34,24 @@
       "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "76a14fc2_51d502c0",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2574,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T10:21:11Z",
+      "side": 1,
+      "message": "what I\u0027m saying is that you can just do \nif len(uniPortInfo) \u003e 2 {\n   logger.Debugw(ctx, \"found-uni-port-by-pon-and-gem-ports\",\n\t\t\tlog.Fields{\n\t\t\t\"intfID\":       intfID,\n\t\t\t\"gemPortID\":    gemPortID,\n\t\t\t\"onuID, uniID\": uniPortInfo})\n  return uniPortInfo[0], uniPortInfo[1], nil\n}\n\ncontinue otherwise no need for the accurate flag at all",
+      "parentUuid": "8c3c24db_33a15915",
+      "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
