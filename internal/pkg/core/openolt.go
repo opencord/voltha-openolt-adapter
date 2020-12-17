@@ -50,6 +50,8 @@ type OpenOLT struct {
 	HeartbeatFailReportInterval time.Duration
 	GrpcTimeoutInterval         time.Duration
 	lockDeviceHandlersMap       sync.RWMutex
+	enableONUStats              bool
+	enableGemStats              bool
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
@@ -72,6 +74,8 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	openOLT.GrpcTimeoutInterval = cfg.GrpcTimeoutInterval
 	openOLT.lockDeviceHandlersMap = sync.RWMutex{}
 	openOLT.configManager = cm
+	openOLT.enableONUStats = cfg.EnableONUStats
+	openOLT.enableGemStats = cfg.EnableGEMStats
 	return &openOLT
 }
 
