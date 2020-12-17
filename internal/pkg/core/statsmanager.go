@@ -20,7 +20,7 @@ package core
 import (
 	"context"
 	"fmt"
-	"strconv"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"sync"
 	"time"
 
@@ -30,7 +30,68 @@ import (
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
+const (
+	//NNIStats statType constant
+	NNIStats = "NNIStats"
+	//PONStats statType constant
+	PONStats = "PONStats"
+	//ONUStats statType constant
+	ONUStats = "ONUStats"
+	//GEMStats statType constant
+	GEMStats = "GEMStats"
+
+	//RxBytes constant
+	RxBytes = "RxBytes"
+	//RxPackets constant
+	RxPackets = "RxPackets"
+	//TxBytes constant
+	TxBytes = "TxBytes"
+	//TxPackets constant
+	TxPackets = "TxPackets"
+	//FecCodewords constant
+	FecCodewords = "FecCodewords"
+	//BipUnits constant
+	BipUnits = "BipUnits"
+	//BipErrors constant
+	BipErrors = "BipErrors"
+	//RxPloamsNonIdle constant
+	RxPloamsNonIdle = "RxPloamsNonIdle"
+	//RxPloamsError constant
+	RxPloamsError = "RxPloamsError"
+	//RxOmci constant
+	RxOmci = "RxOmci"
+	//RxOmciPacketsCrcError constant
+	RxOmciPacketsCrcError = "RxOmciPacketsCrcError"
+	//PositiveDrift constant
+	PositiveDrift = "PositiveDrift"
+	//NegativeDrift constant
+	NegativeDrift = "NegativeDrift"
+	//DelimiterMissDetection constant
+	DelimiterMissDetection = "DelimiterMissDetection"
+	//FecCorrectedSymbols constant
+	FecCorrectedSymbols = "FecCorrectedSymbols"
+	//FecCodewordsCorrected constant
+	FecCodewordsCorrected = "FecCodewordsCorrected"
+	//fecCodewordsUncorrectable constant
+	fecCodewordsUncorrectable = "fec_codewords_uncorrectable"
+	//FecCorrectedUnits constant
+	FecCorrectedUnits = "FecCorrectedUnits"
+	//XGEMKeyErrors constant
+	XGEMKeyErrors = "XGEMKeyErrors"
+	//XGEMLoss constant
+	XGEMLoss = "XGEMLOSS"
+	//BerReported constant
+	BerReported = "BerReported"
+	//LcdgErrors constant
+	LcdgErrors = "LcdgErrors"
+	//RdiErrors constant
+	RdiErrors = "RdiErrors"
+)
+
 var mutex = &sync.Mutex{}
+
+var onuStats = make(chan *openolt.OnuStatistics, 100)
+var gemStats = make(chan *openolt.GemPortStatistics, 100)
 
 // PonPort representation
 type PonPort struct {
@@ -204,6 +265,12 @@ func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatist
 	NumPonPorts := Dev.resourceMgr.DevInfo.GetPonPorts()
 	Ports, _ = InitPorts(ctx, "pon", Dev.device.Id, NumPonPorts)
 	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]*PonPort)
+	if StatMgr.Device.openOLT.enableONUStats {
+		go StatMgr.publishOnuStats()
+	}
+	if StatMgr.Device.openOLT.enableGemStats {
+		go StatMgr.publishGemStats()
+	}
 	return &StatMgr
 }
 
@@ -361,8 +428,108 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 	return ponval
 }
 
-// publishMatrics will publish the pon port metrics
-func (StatMgr OpenOltStatisticsMgr) publishMetrics(ctx context.Context, val map[string]float32,
+// converGemStats will convert gem stats response to kpi context
+func (StatMgr *OpenOltStatisticsMgr) convertGemStats(gemStats *openolt.GemPortStatistics) map[string]float32 {
+	gemStatsVal := make(map[string]float32)
+	gemStatsVal[IntfID] = float32(gemStats.IntfId)
+	gemStatsVal[GemID] = float32(gemStats.GemportId)
+	gemStatsVal[RxPackets] = float32(gemStats.RxPackets)
+	gemStatsVal[RxBytes] = float32(gemStats.RxBytes)
+	gemStatsVal[TxPackets] = float32(gemStats.TxPackets)
+	gemStatsVal[TxBytes] = float32(gemStats.TxBytes)
+	return gemStatsVal
+}
+
+// convertONUStats will convert onu stats response to kpi context
+func (StatMgr *OpenOltStatisticsMgr) convertONUStats(onuStats *openolt.OnuStatistics) map[string]float32 {
+	onuStatsVal := make(map[string]float32)
+	onuStatsVal[IntfID] = float32(onuStats.IntfId)
+	onuStatsVal[OnuID] = float32(onuStats.OnuId)
+	onuStatsVal[PositiveDrift] = float32(onuStats.PositiveDrift)
+	onuStatsVal[NegativeDrift] = float32(onuStats.NegativeDrift)
+	onuStatsVal[DelimiterMissDetection] = float32(onuStats.DelimiterMissDetection)
+	onuStatsVal[BipErrors] = float32(onuStats.BipErrors)
+	onuStatsVal[BipUnits] = float32(onuStats.BipUnits)
+	onuStatsVal[FecCorrectedSymbols] = float32(onuStats.FecCorrectedSymbols)
+	onuStatsVal[FecCodewordsCorrected] = float32(onuStats.FecCodewordsCorrected)
+	onuStatsVal[fecCodewordsUncorrectable] = float32(onuStats.FecCodewordsUncorrectable)
+	onuStatsVal[FecCodewords] = float32(onuStats.FecCodewords)
+	onuStatsVal[FecCorrectedUnits] = float32(onuStats.FecCorrectedUnits)
+	onuStatsVal[XGEMKeyErrors] = float32(onuStats.XgemKeyErrors)
+	onuStatsVal[XGEMLoss] = float32(onuStats.XgemLoss)
+	onuStatsVal[RxPloamsError] = float32(onuStats.RxPloamsError)
+	onuStatsVal[RxPloamsNonIdle] = float32(onuStats.RxPloamsNonIdle)
+	onuStatsVal[RxOmci] = float32(onuStats.RxOmci)
+	onuStatsVal[RxOmciPacketsCrcError] = float32(onuStats.RxOmciPacketsCrcError)
+	onuStatsVal[RxBytes] = float32(onuStats.RxBytes)
+	onuStatsVal[RxPackets] = float32(onuStats.RxPackets)
+	onuStatsVal[TxBytes] = float32(onuStats.TxBytes)
+	onuStatsVal[TxPackets] = float32(onuStats.TxPackets)
+	onuStatsVal[BerReported] = float32(onuStats.BerReported)
+	onuStatsVal[LcdgErrors] = float32(onuStats.LcdgErrors)
+	onuStatsVal[RdiErrors] = float32(onuStats.RdiErrors)
+	return onuStatsVal
+}
+
+// collectOnuStats will collect the onu metrics
+func (StatMgr *OpenOltStatisticsMgr) collectOnuStats(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
+	onu := &openolt.Onu{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID}
+	logger.Debugw(ctx, "pulling-onu-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
+	if stats, err := StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
+		onuStats <- stats
+	} else {
+		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "err": err})
+	}
+}
+
+// collectOnuAndGemStats will collect both onu and gem metrics
+func (StatMgr *OpenOltStatisticsMgr) collectOnuAndGemStats(ctx context.Context, onuGemInfo []rsrcMgr.OnuGemInfo) {
+	if !StatMgr.Device.openOLT.enableONUStats && !StatMgr.Device.openOLT.enableGemStats {
+		return
+	}
+
+	for _, onuInfo := range onuGemInfo {
+		if StatMgr.Device.openOLT.enableONUStats {
+			go StatMgr.collectOnuStats(ctx, onuInfo)
+		}
+		if StatMgr.Device.openOLT.enableGemStats {
+			go StatMgr.collectGemStats(ctx, onuInfo)
+		}
+	}
+}
+
+// collectGemStats will collect gem metrics
+func (StatMgr *OpenOltStatisticsMgr) collectGemStats(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
+	for _, gem := range onuGemInfo.GemPorts {
+		logger.Debugw(ctx, "pulling-gem-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem})
+		onuPacket := &openolt.OnuPacket{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID, GemportId: gem}
+		if stats, err := StatMgr.Device.Client.GetGemPortStatistics(context.Background(), onuPacket); err == nil {
+			gemStats <- stats
+		} else {
+			logger.Errorw(ctx, "error-while-getting-gem-stats-for-onu",
+				log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem, "err": err})
+		}
+	}
+}
+
+// publishGemStats will publish the gem metrics
+func (StatMgr *OpenOltStatisticsMgr) publishGemStats() {
+	for {
+		statValue := StatMgr.convertGemStats(<-gemStats)
+		StatMgr.publishMetrics(context.Background(), GEMStats, statValue, &voltha.Port{Label: "GEM"}, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+	}
+}
+
+// publishOnuStats will publish the onu metrics
+func (StatMgr *OpenOltStatisticsMgr) publishOnuStats() {
+	for {
+		statValue := StatMgr.convertONUStats(<-onuStats)
+		StatMgr.publishMetrics(context.Background(), ONUStats, statValue, &voltha.Port{Label: "ONU"}, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+	}
+}
+
+// publishMetrics will publish the pon port metrics
+func (StatMgr OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statType string, val map[string]float32,
 	port *voltha.Port, devID string, devType string) {
 	logger.Debugw(ctx, "publish-metrics",
 		log.Fields{
@@ -376,17 +543,18 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(ctx context.Context, val map[
 	metricsContext["oltid"] = devID
 	metricsContext["devicetype"] = devType
 	metricsContext["portlabel"] = port.Label
-	metricsContext["portno"] = strconv.Itoa(int(port.PortNo))
 
-	if port.Type == voltha.Port_ETHERNET_NNI {
+	if statType == NNIStats {
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI
-	} else {
+	} else if statType == PONStats {
 		volthaEventSubCatgry = voltha.EventSubCategory_PON
+	} else if statType == GEMStats || statType == ONUStats {
+		volthaEventSubCatgry = voltha.EventSubCategory_ONT
 	}
 
 	raisedTs := time.Now().UnixNano()
 	mmd := voltha.MetricMetaData{
-		Title:    port.Type.String(),
+		Title:    statType,
 		Ts:       float64(raisedTs),
 		Context:  metricsContext,
 		DeviceId: devID,
@@ -400,7 +568,7 @@ func (StatMgr OpenOltStatisticsMgr) publishMetrics(ctx context.Context, val map[
 	ke.Ts = float64(time.Now().UnixNano())
 
 	if err := StatMgr.Device.EventProxy.SendKpiEvent(ctx, "STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
-		logger.Errorw(ctx, "failed-to-send-pon-stats", log.Fields{"err": err})
+		logger.Errorw(ctx, "failed-to-send-stats", log.Fields{"err": err})
 	}
 }
 

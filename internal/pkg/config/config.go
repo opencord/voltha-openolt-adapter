@@ -55,6 +55,8 @@ const (
 	defaultTraceAgentAddress     = "127.0.0.1:6831"
 	defaultLogCorrelationEnabled = true
 	defaultOmccEncryption        = false
+	defaultEnableONUStats        = false
+	defaultEnableGEMStats        = false
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -86,6 +88,8 @@ type AdapterFlags struct {
 	TraceAgentAddress           string
 	LogCorrelationEnabled       bool
 	OmccEncryption              bool
+	EnableONUStats              bool
+	EnableGEMStats              bool
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -114,6 +118,8 @@ func NewAdapterFlags() *AdapterFlags {
 		TraceAgentAddress:           defaultTraceAgentAddress,
 		LogCorrelationEnabled:       defaultLogCorrelationEnabled,
 		OmccEncryption:              defaultOmccEncryption,
+		EnableONUStats:              defaultEnableONUStats,
+		EnableGEMStats:              defaultEnableGEMStats,
 	}
 	return &adapterFlags
 }
@@ -192,6 +198,12 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("OMCI Channel encryption status")
 	flag.BoolVar(&(so.OmccEncryption), "omcc_encryption", defaultOmccEncryption, help)
+
+	help = fmt.Sprintf("Enable ONU Statistics")
+	flag.BoolVar(&(so.EnableONUStats), "enable_onu_stats", defaultEnableONUStats, help)
+
+	help = fmt.Sprintf("Enable GEM Statistics")
+	flag.BoolVar(&(so.EnableGEMStats), "enable_gem_stats", defaultEnableGEMStats, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
