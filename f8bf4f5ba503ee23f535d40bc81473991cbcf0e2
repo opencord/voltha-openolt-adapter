@@ -16,6 +16,24 @@
       "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c3c24db_33a15915",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2574,
+      "author": {
+        "id": 1000498
+      },
+      "writtenOn": "2020-12-17T10:18:14Z",
+      "side": 1,
+      "message": "if the data in the cache is not accurate somehow, we want to look up the KV store and reach the accurate data from there, if any",
+      "parentUuid": "4e712ed1_4415321e",
+      "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
