@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e712ed1_4415321e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2574,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T09:25:46Z",
+      "side": 1,
+      "message": "why do you need the `accurate` flag at all ? can you just flip the check to \u003e 2 and do the return in there ?",
+      "revId": "f8bf4f5ba503ee23f535d40bc81473991cbcf0e2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
