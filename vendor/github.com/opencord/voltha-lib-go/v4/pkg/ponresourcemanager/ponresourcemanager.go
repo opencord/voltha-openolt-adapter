@@ -112,8 +112,11 @@ const (
 	FLOW_ID_RESOURCE_MAP_PATH = "{%s}/{%s}/flow_ids"
 
 	//Flow Id info: Use to store more metadata associated with the flow_id
-	//Format: <device_id>/<(pon_intf_id, onu_id)>/flow_id_info/<flow_id>
-	FLOW_ID_INFO_PATH = "{%s}/{%s}/flow_id_info/{%d}"
+	FLOW_ID_INFO_PATH_PREFIX = "{%s}/flow_id_info"
+	//Format: <device_id>/flow_id_info/<(pon_intf_id, onu_id)>
+	FLOW_ID_INFO_PATH_INTF_ONU_PREFIX = "{%s}/flow_id_info/{%s}"
+	//Format: <device_id>/flow_id_info/<(pon_intf_id, onu_id)><flow_id>
+	FLOW_ID_INFO_PATH = FLOW_ID_INFO_PATH_PREFIX + "/{%s}/{%d}"
 
 	//path on the kvstore to store onugem info map
 	//format: <device-id>/onu_gem_info/<intfid>
@@ -1030,6 +1033,20 @@ func (PONRMgr *PONResourceManager) RemoveFlowIDInfo(ctx context.Context, IntfONU
 	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
 
 	if err := PONRMgr.KVStore.Delete(ctx, Path); err != nil {
+		logger.Errorf(ctx, "Falied to remove resource %s", Path)
+		return false
+	}
+	return true
+}
+
+func (PONRMgr *PONResourceManager) RemoveAllFlowIDInfo(ctx context.Context, IntfONUID string) bool {
+	/*
+	    Remove flow_id_info details configured for the ONU.
+	   :param pon_intf_onu_id: reference of PON interface id and onu id
+	*/
+	Path := fmt.Sprintf(FLOW_ID_INFO_PATH_INTF_ONU_PREFIX, PONRMgr.DeviceID, IntfONUID)
+
+	if err := PONRMgr.KVStore.DeleteWithPrefix(ctx, Path); err != nil {
 		logger.Errorf(ctx, "Falied to remove resource %s", Path)
 		return false
 	}

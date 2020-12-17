@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -74,9 +73,10 @@ const (
 	//FlowIDPath - Path on the KV store for storing list of Flow IDs for a given subscriber
 	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_ids
 	FlowIDPath = "{%s}/flow_ids"
-	//FlowIDInfoPath - Used to store more metadata associated with the flow_id
-	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_id_info/<flow_id>
-	FlowIDInfoPath = "{%s}/flow_id_info/{%d}"
+	//FlowIDInfoBasePath - Used to store more metadata associated with the flow_id
+	FlowIDInfoBasePath = "{%s}/flow_id_info"
+	//FlowIDInfoPath Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_id_info/<flow_id>
+	FlowIDInfoPath = FlowIDInfoBasePath + "/{%d}"
 )
 
 // FlowInfo holds the flow information
@@ -853,6 +853,31 @@ func (RsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 	}
 }
 
+// FreeFlowID returns the free flow id for a given interface, onu id and uni id
+func (RsrcMgr *OpenOltResourceMgr) FreeFlowID(ctx context.Context, IntfID uint32, onuID int32,
+	uniID int32, FlowID uint32) {
+	var IntfONUID string
+	var err error
+
+	FlowIds := make([]uint32, 0)
+	FlowIds = append(FlowIds, FlowID)
+	IntfONUID = fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
+	err = RsrcMgr.ResourceMgrs[IntfID].UpdateFlowIDForOnu(ctx, IntfONUID, FlowID, false)
+	if err != nil {
+		logger.Errorw(ctx, "Failed to Update flow id  for", log.Fields{"intf": IntfONUID})
+	}
+	RsrcMgr.ResourceMgrs[IntfID].RemoveFlowIDInfo(ctx, IntfONUID, FlowID)
+
+	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.FLOW_ID, FlowIds)
+}
+
+// RemoveAllFlowIDInfo releases the flow Ids
+func (RsrcMgr *OpenOltResourceMgr) RemoveAllFlowIDInfo(ctx context.Context, IntfID uint32, onuID int32, uniID int32) {
+	IntfOnuIDUniID := fmt.Sprintf("%d,%d,%d", IntfID, onuID, uniID)
+	Path := fmt.Sprintf(FlowIDInfoBasePath, IntfOnuIDUniID)
+	RsrcMgr.KVStore.DeleteWithPrefix(ctx, Path)
+}
+
 // FreeAllocID frees AllocID on the PON resource pool and also frees the allocID association
 // for the given OLT device.
 func (RsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, IntfID uint32, onuID uint32,
@@ -1227,25 +1252,12 @@ func (RsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, p
 //DeletePacketInGemPortForOnu deletes the packet-in gemport for ONU
 func (RsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) error {
 
-	path := fmt.Sprintf(OnuPacketINPathPrefix, intfID, onuID, logicalPort)
-	value, err := RsrcMgr.KVStore.List(ctx, path)
-	if err != nil {
-		logger.Errorf(ctx, "failed-to-read-value-from-path-%s", path)
-		return errors.New("failed-to-read-value-from-path-" + path)
-	}
-
-	//remove them one by one
-	for key := range value {
-		// Formulate the right key path suffix ti be delete
-		stringToBeReplaced := fmt.Sprintf(BasePathKvStore, RsrcMgr.KVStore.PathPrefix, RsrcMgr.DeviceID) + "/"
-		replacedWith := ""
-		key = strings.Replace(key, stringToBeReplaced, replacedWith, 1)
-
-		logger.Debugf(ctx, "removing-key-%s", key)
-		if err := RsrcMgr.KVStore.Delete(ctx, key); err != nil {
-			logger.Errorf(ctx, "failed-to-remove-resource-%s", key)
-			return err
-		}
+	//retrieve stored gem port from the store first.
+	Path := fmt.Sprintf(OnuPacketINPathPrefix, intfID, onuID, logicalPort)
+	logger.Debugw(ctx, "Deleting ONUPacketIN", log.Fields{"realPath": Path})
+	if err := RsrcMgr.KVStore.DeleteWithPrefix(ctx, Path); err != nil {
+		logger.Errorf(ctx, "failed to remove resource %s", Path)
+		return err
 	}
 
 	return nil
@@ -1462,6 +1474,16 @@ func (RsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, int
 		return err
 	}
 	logger.Debugw(ctx, "added multicast queue info to KV store successfully", log.Fields{"path": path, "mcastQueueInfo": mcastQueues[intf], "interfaceId": intf})
+	return nil
+}
+
+func (RsrcMgr *OpenOltResourceMgr) RemoveMcastQueueForIntf(ctx context.Context) error {
+	path := McastQueuesForIntf
+	err := RsrcMgr.KVStore.Delete(ctx, path)
+	if err != nil {
+		logger.Errorw(ctx, "Failed to remove mcast-queue-for-intf", log.Fields{"error": err})
+		return err
+	}
 	return nil
 }
 
