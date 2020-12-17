@@ -1263,12 +1263,10 @@ func (PONRMgr *PONResourceManager) GenerateNextID(ctx context.Context, Resource 
 	*/
 	ByteArray, err := ToByte(Resource[POOL])
 	if err != nil {
-		logger.Error(ctx, "Failed to convert resource to byte array")
 		return 0, err
 	}
 	Data := bitmap.TSFromData(ByteArray, false)
 	if Data == nil {
-		logger.Error(ctx, "Failed to get data from byte array")
 		return 0, errors.New("Failed to get data from byte array")
 	}
 
@@ -1278,6 +1276,9 @@ func (PONRMgr *PONResourceManager) GenerateNextID(ctx context.Context, Resource 
 		if !Data.Get(Idx) {
 			break
 		}
+	}
+	if Idx == Len {
+		return 0, errors.New("resource-exhausted--no-free-id-in-the-pool")
 	}
 	Data.Set(Idx, true)
 	res := uint32(Resource[START_IDX].(float64))
@@ -1303,6 +1304,10 @@ func (PONRMgr *PONResourceManager) ReleaseID(ctx context.Context, Resource map[s
 		return false
 	}
 	Idx := Id - uint32(Resource[START_IDX].(float64))
+	if Idx >= uint32(Data.Len()) {
+		logger.Errorf(ctx, "ID %d is out of the boundaries of the pool", Id)
+		return false
+	}
 	Data.Set(int(Idx), false)
 	Resource[POOL] = Data.Data(false)
 
@@ -1320,6 +1325,10 @@ func (PONRMgr *PONResourceManager) reserveID(ctx context.Context, TSData *bitmap
 		return false
 	}
 	Idx := Id - StartIndex
+	if Idx >= uint32(Data.Len()) {
+		logger.Errorf(ctx, "Reservation failed. ID %d is out of the boundaries of the pool", Id)
+		return false
+	}
 	Data.Set(int(Idx), true)
 	return true
 }
