@@ -135,6 +135,8 @@ const (
 	PortNo = "portNo"
 	//AllocID constant
 	AllocID = "allocId"
+	//GemID constant
+	GemID = "gemId"
 
 	//NoneOnuID constant
 	NoneOnuID = -1
