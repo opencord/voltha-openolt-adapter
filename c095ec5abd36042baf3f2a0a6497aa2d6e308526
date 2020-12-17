@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba667080_6027810c",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:35:27Z",
+      "side": 1,
+      "message": "since this method is used for both RAISED and CLEARED I woudl just name it oltCommunicationEvent",
+      "revId": "c095ec5abd36042baf3f2a0a6497aa2d6e308526",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d52ed70_2fccfff9",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:35:27Z",
+      "side": 1,
+      "message": "I think a better log here is `device-is-nil-can\u0027t-send-olt-communication-failure-alarm` also remove the log.Fields{} and thus logger.Warn is good enough.",
+      "revId": "c095ec5abd36042baf3f2a0a6497aa2d6e308526",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c717f6bf_3c96220e",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2020-12-17T14:35:27Z",
+      "side": 1,
+      "message": "Debugw, also please do populate the Fields with something meaningful.",
+      "revId": "c095ec5abd36042baf3f2a0a6497aa2d6e308526",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
