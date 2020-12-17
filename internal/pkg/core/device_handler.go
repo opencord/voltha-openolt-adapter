@@ -899,7 +899,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 					intfID := PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)
 					cmnni := dh.portStats.collectNNIMetrics(intfID)
 					logger.Debugw(ctx, "collect-nni-metrics", log.Fields{"metrics": cmnni})
-					go dh.portStats.publishMetrics(ctx, cmnni, port, dh.device.Id, dh.device.Type)
+					go dh.portStats.publishMetrics(ctx, NNIStats, cmnni, port, dh.device.Id, dh.device.Type)
 					logger.Debugw(ctx, "publish-nni-metrics", log.Fields{"nni-port": port.Label})
 				}
 				// PON Stats
@@ -908,9 +908,15 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 					if val, ok := dh.activePorts.Load(intfID); ok && val == true {
 						cmpon := dh.portStats.collectPONMetrics(intfID)
 						logger.Debugw(ctx, "collect-pon-metrics", log.Fields{"metrics": cmpon})
-						go dh.portStats.publishMetrics(ctx, cmpon, port, dh.device.Id, dh.device.Type)
+						go dh.portStats.publishMetrics(ctx, PONStats, cmpon, port, dh.device.Id, dh.device.Type)
 					}
 					logger.Debugw(ctx, "publish-pon-metrics", log.Fields{"pon-port": port.Label})
+
+					//ONU & Gem Stats
+					onuGemInfo := dh.flowMgr[intfID].onuGemInfo
+					if len(onuGemInfo) != 0 {
+						go dh.portStats.collectOnuAndGemStats(ctx, onuGemInfo)
+					}
 				}
 			}
 		}

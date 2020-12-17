@@ -69,8 +69,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 		SouthBoundPort map[uint32]*PonPort
 	}
 	type args struct {
-		val  map[string]float32
-		port *voltha.Port
+		val      map[string]float32
+		port     *voltha.Port
+		statType string
 	}
 	ponmap := map[uint32]*PonPort{}
 	ponmap[0] = &PonPort{
@@ -126,6 +127,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 	dhandlerNNI.portStats = &OpenOltStatisticsMgr{Device: nil, SouthBoundPort: nil, NorthBoundPort: nnimap}
 	dhandlerPON := newMockDeviceHandler()
 	dhandlerPON.portStats = &OpenOltStatisticsMgr{Device: nil, SouthBoundPort: ponmap, NorthBoundPort: nil}
+	dhandlerONU := newMockDeviceHandler()
+	dhandlerGEM := newMockDeviceHandler()
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -139,8 +143,9 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: nil,
 			},
 			args: args{
-				val:  nval,
-				port: &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
+				val:      nval,
+				port:     &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
+				statType: NNIStats,
 			},
 		},
 		{
@@ -151,8 +156,33 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: ponmap,
 			},
 			args: args{
-				val:  pval,
-				port: &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
+				val:      pval,
+				port:     &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
+				statType: PONStats,
+			},
+		},
+		{
+			name: "PublishONUMetrics-1",
+			fields: fields{
+				Device:         dhandlerONU,
+				NorthBoundPort: nil,
+				SouthBoundPort: nil,
+			},
+			args: args{
+				port:     &voltha.Port{Label: "ONU"},
+				statType: ONUStats,
+			},
+		},
+		{
+			name: "PublishGEMMetrics-1",
+			fields: fields{
+				Device:         dhandlerGEM,
+				NorthBoundPort: nil,
+				SouthBoundPort: nil,
+			},
+			args: args{
+				port:     &voltha.Port{Label: "GEM"},
+				statType: GEMStats,
 			},
 		},
 		// TODO: Add test cases.
@@ -164,7 +194,12 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				NorthBoundPort: tt.fields.NorthBoundPort,
 				SouthBoundPort: tt.fields.SouthBoundPort,
 			}
-			StatMgr.publishMetrics(context.Background(), tt.args.val, tt.args.port, "onu1", "openolt")
+			if tt.args.statType == ONUStats {
+				tt.args.val = StatMgr.convertONUStats(&openolt.OnuStatistics{IntfId: 1, OnuId: 1, PositiveDrift: 123, BipErrors: 22})
+			} else if tt.args.statType == GEMStats {
+				tt.args.val = StatMgr.convertGemStats(&openolt.GemPortStatistics{IntfId: 1, GemportId: 1024, RxPackets: 12, TxBytes: 12})
+			}
+			StatMgr.publishMetrics(context.Background(), tt.args.statType, tt.args.val, tt.args.port, "onu1", "openolt")
 		})
 	}
 }
