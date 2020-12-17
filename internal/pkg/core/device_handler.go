@@ -1587,6 +1587,9 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+
+		dh.resourceMgr.RemoveAllFlowIDInfo(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID))
+
 		tpIDList := dh.resourceMgr.GetTechProfileIDForOnu(ctx, onu.IntfID, onu.OnuID, uniID)
 		for _, tpID := range tpIDList {
 			if err = dh.resourceMgr.RemoveMeterIDForOnu(ctx, "upstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
@@ -1603,12 +1606,6 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 			logger.Debugw(ctx, "failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		logger.Debugw(ctx, "removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
-		if err = dh.resourceMgr.DeletePacketInGemPortForOnu(ctx, onu.IntfID, onu.OnuID, port); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
-		}
-		if err = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID)); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-flow-for", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
-		}
 	}
 	return nil
 }
@@ -1627,6 +1624,7 @@ func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
 	}
 	logger.Debugw(ctx, "nni-", log.Fields{"nni": nni})
 	for _, nniIntfID := range nni {
+		dh.resourceMgr.RemoveAllFlowIDInfo(ctx, uint32(nniIntfID), -1, -1)
 		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
 		_ = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, nniIntfID, -1, -1)
 
@@ -1672,48 +1670,14 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 
 	if dh.resourceMgr != nil {
-		var ponPort uint32
-		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
-			var onuGemData []rsrcMgr.OnuGemInfo
-			err := dh.resourceMgr.ResourceMgrs[ponPort].GetOnuGemInfo(ctx, ponPort, &onuGemData)
-			if err != nil {
-				_ = olterrors.NewErrNotFound("onu", log.Fields{
-					"device-id": dh.device.Id,
-					"pon-port":  ponPort}, err).Log()
-			}
-			for _, onu := range onuGemData {
-				onuID := make([]uint32, 1)
-				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
-				if err = dh.clearUNIData(ctx, &onu); err != nil {
-					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
-				}
-				// Clear flowids for gem cache.
-				for _, gem := range onu.GemPorts {
-					dh.resourceMgr.DeleteFlowIDsForGem(ctx, ponPort, gem)
-				}
-				onuID[0] = onu.OnuID
-				dh.resourceMgr.FreeonuID(ctx, ponPort, onuID)
-			}
-			dh.resourceMgr.DeleteIntfIDGempMapPath(ctx, ponPort)
-			onuGemData = nil
-			err = dh.resourceMgr.DelOnuGemInfoForIntf(ctx, ponPort)
-			if err != nil {
-				logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
-			}
-		}
-		/* Clear the flows from KV store associated with NNI port.
-		   There are mostly trap rules from NNI port (like LLDP)
-		*/
-		if err := dh.clearNNIData(ctx); err != nil {
-			logger.Errorw(ctx, "failed-to-clear-data-for-NNI-port", log.Fields{"device-id": dh.device.Id})
-		}
 
 		/* Clear the resource pool for each PON port in the background */
-		go func() {
-			if err := dh.resourceMgr.Delete(ctx); err != nil {
-				logger.Debug(ctx, err)
-			}
-		}()
+		err := dh.clearPorts(ctx)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to clear resources for the device", log.Fields{"device-id": dh.device.Id})
+		}
+
+		go dh.resourceMgr.Delete(ctx)
 	}
 
 	/*Delete ONU map for the device*/
@@ -1897,6 +1861,58 @@ func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 	return "" + strconv.Itoa(int(intfID)) + "." + strconv.Itoa(int(onuID))
 }
 
+func (dh *DeviceHandler) clearPorts(ctx context.Context) error {
+	/* Clear the KV store data associated with the all the UNI ports
+	   This clears up flow data and also resource map data for various
+	   other pon resources like alloc_id and gemport_id
+	*/
+	logger.Debugf(ctx, "clearing-resources-for-device", log.Fields{"device-id": dh.resourceMgr.DevInfo.DeviceId})
+	if dh.resourceMgr != nil {
+		noOfPonPorts := dh.resourceMgr.DevInfo.GetPonPorts()
+		var ponPort uint32
+		for ponPort = 0; ponPort < noOfPonPorts; ponPort++ {
+			var onuGemData []rsrcMgr.OnuGemInfo
+			err := dh.resourceMgr.ResourceMgrs[ponPort].GetOnuGemInfo(ctx, ponPort, &onuGemData)
+			if err != nil {
+				logger.Errorw(ctx, "failed-to-get-onu-info-for-port ", log.Fields{"ponport": ponPort})
+				return err
+			}
+			for _, onu := range onuGemData {
+				onuID := make([]uint32, 1)
+				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
+				if err = dh.clearUNIData(ctx, &onu); err != nil {
+					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
+				}
+				// Clear flowids for gem cache.
+				for _, gem := range onu.GemPorts {
+					dh.resourceMgr.DeleteFlowIDsForGem(ctx, ponPort, gem)
+				}
+				onuID[0] = onu.OnuID
+				dh.resourceMgr.FreeonuID(ctx, ponPort, onuID)
+			}
+			dh.resourceMgr.DeleteIntfIDGempMapPath(ctx, ponPort)
+			onuGemData = nil
+			err = dh.resourceMgr.DelOnuGemInfoForIntf(ctx, ponPort)
+			if err != nil {
+				logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intf-id": ponPort, "onugeminfo": onuGemData})
+			}
+		}
+		/* Clear the flows from KV store associated with NNI port.
+		   There are mostly trap rules from NNI port (like LLDP)
+		*/
+		if err := dh.clearNNIData(ctx); err != nil {
+			logger.Errorw(ctx, "Failed to clear data for NNI port", log.Fields{"device-id": dh.device.Id})
+		}
+
+		/* Clear Mcast Queues */
+		err := dh.resourceMgr.RemoveMcastQueueForIntf(ctx)
+		if err != nil {
+			logger.Errorw(ctx, "Failed to clear remove mcast queue for intf", log.Fields{"device-id": dh.device.Id})
+		}
+	}
+
+	return nil
+}
 func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 
 	// start the heartbeat check towards the OLT.

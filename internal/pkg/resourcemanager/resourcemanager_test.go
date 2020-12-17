@@ -27,6 +27,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"reflect"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/opencord/voltha-lib-go/v4/pkg/db"
 	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
 	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
@@ -34,12 +41,6 @@ import (
 	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/openolt"
-	"reflect"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
 )
 
 func init() {
@@ -313,6 +314,55 @@ func TestOpenOltResourceMgr_Delete(t *testing.T) {
 			if err := RsrcMgr.Delete(ctx); (err != nil) && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_FreeFlowID(t *testing.T) {
+	type args struct {
+		IntfID uint32
+		onuID  int32
+		uniID  int32
+		FlowID uint32
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+	}{
+		{"FreeFlowID-1", getResMgr(), args{1, 2, 2, 2}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.FreeFlowID(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_FreeFlowIDs(t *testing.T) {
+
+	type args struct {
+		IntfID uint32
+		onuID  uint32
+		uniID  uint32
+		FlowID []uint32
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+	}{
+		{"RemoveAllFlowIDInfo-1", getResMgr(), args{1, 2, 2, []uint32{1, 2}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.RemoveAllFlowIDInfo(ctx, tt.args.IntfID, tt.args.onuID, tt.args.uniID, tt.args.FlowID)
 		})
 	}
 }
