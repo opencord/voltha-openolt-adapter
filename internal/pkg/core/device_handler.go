@@ -596,6 +596,13 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 		voltha.OperStatus_ACTIVE); err != nil {
 		return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
+
+	//Clear olt communication failure event
+	dh.device.ConnectStatus = voltha.ConnectStatus_REACHABLE
+	dh.device.OperStatus = voltha.OperStatus_ACTIVE
+	raisedTs := time.Now().UnixNano()
+	go dh.eventMgr.oltCommunicationEvent(ctx, dh.device, raisedTs)
+
 	return nil
 }
 
@@ -1952,6 +1959,13 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		if err = dh.coreProxy.PortsStateUpdate(ctx, dh.device.Id, 0, voltha.OperStatus_UNKNOWN); err != nil {
 			_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
+
+		//raise olt communication failure event
+		raisedTs := time.Now().UnixNano()
+		device.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+		device.OperStatus = voltha.OperStatus_UNKNOWN
+		go dh.eventMgr.oltCommunicationEvent(ctx, device, raisedTs)
+
 		go dh.cleanupDeviceResources(ctx)
 
 		dh.lockDevice.RLock()
