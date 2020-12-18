@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c27446d1_38420846",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T20:39:42Z",
+      "side": 1,
+      "message": "I am a little wary of logging these huge statistics. These are anyway pushed to kafka to be consumed by external entity. Do you think we really need these debug logs, if not we can remove them.",
+      "range": {
+        "startLine": 477,
+        "startChar": 0,
+        "endLine": 479,
+        "endChar": 65
+      },
+      "revId": "bbcb0170f91ec085fcdd39993393da2c4f7eb798",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3df39f09_9a9ab165",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T20:39:42Z",
+      "side": 1,
+      "message": "[nitpick] The logs generally in this file and else where in the adapter are all in small case and hyphen separated. We have tried to maintain it that way although not consistently. Would you mind change to small case and hyphen separated.",
+      "range": {
+        "startLine": 489,
+        "startChar": 21,
+        "endLine": 489,
+        "endChar": 51
+      },
+      "revId": "bbcb0170f91ec085fcdd39993393da2c4f7eb798",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e7f5191_668250be",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T20:39:42Z",
+      "side": 1,
+      "message": "I do not expect that we will enable ONUStats and GemStats collection by default. This will unnecessarily log warning every time this function is invoked which may not be desired. Should we just remove this log?",
+      "revId": "bbcb0170f91ec085fcdd39993393da2c4f7eb798",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
