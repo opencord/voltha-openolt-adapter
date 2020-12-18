@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6c65f40_82da7b15",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T19:33:57Z",
+      "side": 1,
+      "message": "event",
+      "range": {
+        "startLine": 205,
+        "startChar": 71,
+        "endLine": 205,
+        "endChar": 76
+      },
+      "revId": "cc8a1deda6ac3bfa1ac14e1b77ff6903df05a6c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32e80cbd_7b916a25",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T19:33:57Z",
+      "side": 1,
+      "message": "event",
+      "range": {
+        "startLine": 232,
+        "startChar": 54,
+        "endLine": 232,
+        "endChar": 59
+      },
+      "revId": "cc8a1deda6ac3bfa1ac14e1b77ff6903df05a6c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25c79f27_d4119154",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2020-12-18T19:33:57Z",
+      "side": 1,
+      "message": "event",
+      "range": {
+        "startLine": 234,
+        "startChar": 38,
+        "endLine": 234,
+        "endChar": 43
+      },
+      "revId": "cc8a1deda6ac3bfa1ac14e1b77ff6903df05a6c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
