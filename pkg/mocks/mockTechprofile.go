@@ -43,7 +43,54 @@ func (m MockTechProfile) GetTechProfileInstanceKVPath(ctx context.Context, techP
 
 // GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
 func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error) {
-	logger.Debug(ctx, "Warning Warning Warning: GetTPInstanceFromKVStore")
+	logger.Debug(ctx, "GetTPInstanceFromKVStore")
+	if techProfiletblID == 64 {
+		return &tp.TechProfile{
+			Name:                 "mock-tech-profile",
+			SubscriberIdentifier: "257",
+			ProfileType:          "mock",
+			Version:              0,
+			NumGemPorts:          1,
+			UsScheduler: tp.IScheduler{
+				AllocID:      1,
+				Direction:    "upstream",
+				AdditionalBw: "None",
+				Priority:     0,
+				Weight:       0,
+				QSchedPolicy: "",
+			},
+			DsScheduler: tp.IScheduler{
+				AllocID:      1,
+				Direction:    "downstream",
+				AdditionalBw: "None",
+				Priority:     0,
+				Weight:       0,
+				QSchedPolicy: "",
+			},
+			UpstreamGemPortAttributeList: []tp.IGemPortAttribute{{
+				GemportID: 1,
+				PbitMap:   "0b11111111",
+			},
+			},
+			DownstreamGemPortAttributeList: []tp.IGemPortAttribute{{
+				GemportID: 1,
+				PbitMap:   "0b11111111",
+			},
+			},
+		}, nil
+	} else if techProfiletblID == 65 {
+		return &tp.EponProfile{
+			Name:                         "mock-epon-profile",
+			SubscriberIdentifier:         "257",
+			ProfileType:                  "mock",
+			Version:                      0,
+			NumGemPorts:                  2,
+			UpstreamQueueAttributeList:   nil,
+			DownstreamQueueAttributeList: nil,
+		}, nil
+	} else {
+		return nil, nil
+	}
 	return nil, nil
 
 }
