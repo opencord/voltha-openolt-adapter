@@ -31,6 +31,7 @@ import (
 	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
 	"github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
+	"github.com/opencord/voltha-protos/v4/go/extension"
 )
 
 //OpenOLT structure holds the OLT information
@@ -370,4 +371,30 @@ func (oo *OpenOLT) Get_ext_value(ctx context.Context, deviceID string, device *v
 		}
 	}
 	return resp, nil
+}
+
+
+func (oo *OpenOLT) Single_get_value_request(ctx context.Context, request extension.SingleGetValueRequest) (*extension.SingleGetValueResponse, error) {
+	logger.Infow(ctx, "Single_get_value_request", log.Fields{"request": request})
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) (*extension.SingleGetValueResponse) {
+		 return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+	if handler := oo.getDeviceHandler(request.TargetId); handler != nil {
+		switch  reqType := request.GetRequest().GetRequest().(type){
+		case *extension.GetValueRequest_OltPortInfo:
+			return handler.getOltPortCounters(ctx, reqType.OltPortInfo), nil
+		default:
+			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
+		}
+	}
+
+	logger.Infow(ctx, "Single_get_value_request failed ", log.Fields{"request":request})
+	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE_ID), nil
 }
