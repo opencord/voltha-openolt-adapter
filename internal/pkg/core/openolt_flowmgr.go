@@ -3297,7 +3297,6 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 
 	var onuID = int32(NoneOnuID)
 	var uniID = int32(NoneUniID)
-	var flowID uint64
 	if flowInfo = f.resourceMgr.GetFlowIDInfo(ctx, networkInterfaceID, onuID, uniID, flow.Id); flowInfo == nil {
 		return olterrors.NewErrPersistence("remove", "flow", flow.Id,
 			log.Fields{
@@ -3322,7 +3321,7 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 		return err
 	}
 	// Remove flow from KV store
-	return f.resourceMgr.RemoveFlowIDInfo(ctx, networkInterfaceID, onuID, uniID, flowID)
+	return f.resourceMgr.RemoveFlowIDInfo(ctx, networkInterfaceID, onuID, uniID, flow.Id)
 }
 
 // reconcileSubscriberDataPathFlowIDMap reconciles subscriberDataPathFlowIDMap from KV store
