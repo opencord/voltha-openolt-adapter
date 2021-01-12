@@ -253,3 +253,13 @@ func (ooc *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *config.
 func (ooc *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
 	return &openolt.Empty{}, nil
 }
+
+// GetGemPortStatistics mocks the GetGemPortStatistics function of Openoltclient.
+func (ooc *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.GemPortStatistics, error) {
+	return &openolt.GemPortStatistics{}, nil
+}
+
+// GetOnuStatistics mocks the GetOnuStatistics function of Openoltclient.
+func (ooc *MockOpenoltClient) GetOnuStatistics(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuStatistics, error) {
+	return &openolt.OnuStatistics{}, nil
+}
