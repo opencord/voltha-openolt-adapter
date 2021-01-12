@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f976928c_42edc960",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-01-12T07:11:27Z",
+      "side": 1,
+      "message": "collectOnuStats and collectGemStats methods are called for each ONU one by one. When an ONU is deleted, if it is already in the onuGemInfo map, we will ask openolt agent to get onustats/gemstats. The request will fail and we will ignore the response. So, there is no need to shut down the go routine right now.",
+      "parentUuid": "9b0e58fd_0d00b45b",
+      "revId": "fcbd6e780f5a11497ba3d672a7351c089abd15bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b7c31bbf_2d1944dc",
         "filename": "internal/pkg/core/statsmanager.go",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2021-01-08T17:19:53Z",
       "side": 1,
       "message": "Before the default was to set the sub category to PON.  Now there are no default.  Do these types cover all possibilities?",
+      "revId": "fcbd6e780f5a11497ba3d672a7351c089abd15bf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15c10ef2_0b289bac",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-01-12T07:11:27Z",
+      "side": 1,
+      "message": "Yes, it covers all possibilities right now.",
+      "parentUuid": "b7c31bbf_2d1944dc",
       "revId": "fcbd6e780f5a11497ba3d672a7351c089abd15bf",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
