@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b1c015a_1ac697bd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2513,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-01-13T12:39:55Z",
+      "side": 1,
+      "message": "logger.Errorw",
+      "revId": "aae5a5efd6427f4b45ac396b3449a8476acf26a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebe2286b_8d39f849",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2519,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-01-13T12:39:55Z",
+      "side": 1,
+      "message": "maybe it\u0027s me but I\u0027m missing what this is supposed to mean, can you put a comment on what it is and why should we break here",
+      "revId": "aae5a5efd6427f4b45ac396b3449a8476acf26a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
