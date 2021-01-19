@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a9b8773_20e4f899",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 591,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-01-19T19:15:49Z",
+      "side": 1,
+      "message": "You need a RLock an RUnlock around this because you are reading from the map.",
+      "range": {
+        "startLine": 588,
+        "startChar": 1,
+        "endLine": 591,
+        "endChar": 2
+      },
+      "revId": "09ccc60a95c224f4160fb1447ed1b5e9cc2ae0c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aefb618e_414b6966",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-01-19T19:15:49Z",
+      "side": 1,
+      "message": "I am not sure why you need a \"select\" block here. I think all you needed was the below line of code.\n\nstatInd.chn \u003c- true\n\nIs that correct?",
+      "range": {
+        "startLine": 603,
+        "startChar": 0,
+        "endLine": 608,
+        "endChar": 3
+      },
+      "revId": "09ccc60a95c224f4160fb1447ed1b5e9cc2ae0c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
