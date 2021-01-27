@@ -16,6 +16,24 @@
       "revId": "be811ff88a5be7f18660762eb612d68f7d6b776d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b169a21_2d742b19",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-01-27T21:03:24Z",
+      "side": 1,
+      "message": "I think you misread LocalDevice as LogicalDevice.",
+      "parentUuid": "8ff12b5e_08d58520",
+      "revId": "be811ff88a5be7f18660762eb612d68f7d6b776d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
