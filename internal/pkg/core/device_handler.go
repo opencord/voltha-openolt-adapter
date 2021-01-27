@@ -339,13 +339,13 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 }
 
 func (dh *DeviceHandler) updateLocalDevice(ctx context.Context) {
-	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
 	device, err := dh.coreProxy.GetDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, dh.device.Id)
 	if err != nil || device == nil {
 		logger.Errorf(ctx, "device-not-found", log.Fields{"device-id": dh.device.Id}, err)
 		return
 	}
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
 	dh.device = device
 }
 
@@ -650,8 +650,6 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 
 // doStateDown handle the olt down indication
 func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
-	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
 	logger.Debugw(ctx, "do-state-down-start", log.Fields{"device-id": dh.device.Id})
 
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
@@ -664,7 +662,9 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 
 	//Update the device oper state and connection status
 	cloned.OperStatus = voltha.OperStatus_UNKNOWN
+	dh.lockDevice.Lock()
 	dh.device = cloned
+	dh.lockDevice.Unlock()
 
 	if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
 		return olterrors.NewErrAdapter("state-update-failed", log.Fields{"device-id": device.Id}, err)
@@ -676,7 +676,6 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 		return olterrors.NewErrAdapter("child-device-fetch-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 	for _, onuDevice := range onuDevices.Items {
-
 		// Update onu state as down in onu adapter
 		onuInd := oop.OnuIndication{}
 		onuInd.OperState = "down"
@@ -689,11 +688,16 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 				"device-type":   onuDevice.Type,
 				"device-id":     onuDevice.Id}, err).LogAt(log.ErrorLevel)
 			//Do not return here and continue to process other ONUs
+		} else {
+			logger.Debugw(ctx, "sending inter adapter down ind to onu success", log.Fields{"olt-device-id": device.Id, "onu-device-id": onuDevice.Id})
 		}
 	}
+	dh.lockDevice.Lock()
 	/* Discovered ONUs entries need to be cleared , since after OLT
 	   is up, it starts sending discovery indications again*/
 	dh.discOnus = sync.Map{}
+	dh.lockDevice.Unlock()
+
 	logger.Debugw(ctx, "do-state-down-end", log.Fields{"device-id": device.Id})
 	return nil
 }
