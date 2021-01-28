@@ -34,6 +34,24 @@
       "revId": "be811ff88a5be7f18660762eb612d68f7d6b776d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f8d9531_59f544e8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2021-01-28T14:13:51Z",
+      "side": 1,
+      "message": "lol ... need to change glasses 😊",
+      "parentUuid": "7b169a21_2d742b19",
+      "revId": "be811ff88a5be7f18660762eb612d68f7d6b776d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
