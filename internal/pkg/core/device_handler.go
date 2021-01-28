@@ -201,6 +201,7 @@ func (dh *DeviceHandler) start(ctx context.Context) {
 	logger.Debugw(ctx, "starting-device-agent", log.Fields{"device": dh.device})
 	// Add the initial device to the local model
 	logger.Debug(ctx, "device-agent-started")
+	logger.Debug(ctx, "this is a test patch")
 }
 
 // stop stops the device dh.  Not much to do for now
