@@ -54,6 +54,8 @@ const (
 	LldpEthType = 0x88cc
 	//IPv4EthType IPv4 ethernet type value
 	IPv4EthType = 0x800
+	//PPPoEDEthType PPPoE discovery ethernet type value
+	PPPoEDEthType = 0x8863
 
 	//ReservedVlan Transparent Vlan (Masked Vlan, VLAN_ANY in ONOS Flows)
 	ReservedVlan = 4096
@@ -1274,11 +1276,11 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 	return nil
 }
 
-// Add EAPOL flow to  device with mac, vlanId as classifier for upstream and downstream
-func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
+// Add EthType flow to  device with mac, vlanId as classifier for upstream and downstream
+func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
 	classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32,
-	gemPortID uint32, vlanID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
-	logger.Infow(ctx, "adding-eapol-to-device",
+	gemPortID uint32, vlanID uint32, tpID uint32, pbitToGem map[uint32]uint32, ethType uint32) error {
+	logger.Infow(ctx, "adding-ethType-flow-to-device",
 		log.Fields{
 			"intf-id":    intfID,
 			"onu-id":     onuID,
@@ -1286,13 +1288,14 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 			"alloc-id":   allocID,
 			"gemport-id": gemPortID,
 			"vlan-id":    vlanID,
-			"flow":       logicalFlow})
+			"flow":       logicalFlow,
+			"ethType":    ethType})
 
 	uplinkClassifier := make(map[string]interface{})
 	uplinkAction := make(map[string]interface{})
 
 	// Fill Classfier
-	uplinkClassifier[EthType] = uint32(EapEthType)
+	uplinkClassifier[EthType] = uint32(ethType)
 	uplinkClassifier[PacketTagType] = SingleTag
 	uplinkClassifier[VlanVid] = vlanID
 	uplinkClassifier[VlanPcp] = classifier[VlanPcp]
@@ -1302,11 +1305,12 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{
 			"device-id": f.deviceHandler.device.Id,
 			"onu-id":    onuID,
-			"intf-id":   intfID})
+			"intf-id":   intfID,
+			"ethType":   ethType})
 		return nil
 	}
-	//Add Uplink EAPOL Flow
-	logger.Debugw(ctx, "creating-ul-eapol-flow",
+	//Add Uplink EthType Flow
+	logger.Debugw(ctx, "creating-ul-ethType-flow",
 		log.Fields{
 			"ul_classifier": uplinkClassifier,
 			"ul_action":     uplinkAction,
@@ -1362,11 +1366,12 @@ func (f *OpenOltFlowMgr) addEAPOLFlow(ctx context.Context, intfID uint32, onuID 
 	if err := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); err != nil {
 		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": upstreamFlow}, err).Log()
 	}
-	logger.Infow(ctx, "eapol-ul-flow-added-to-device-successfully",
+	logger.Infow(ctx, "ethType-ul-flow-added-to-device-successfully",
 		log.Fields{
 			"device-id": f.deviceHandler.device.Id,
 			"onu-id":    onuID,
 			"intf-id":   intfID,
+			"ethType":   ethType,
 		})
 	flowInfo := rsrcMgr.FlowInfo{Flow: &upstreamFlow}
 	if err := f.resourceMgr.UpdateFlowIDInfo(ctx, uint32(upstreamFlow.AccessIntfId), upstreamFlow.OnuId, upstreamFlow.UniId, upstreamFlow.FlowId, flowInfo); err != nil {
@@ -2253,13 +2258,19 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 			logger.Info(ctx, "adding-lldp-flow")
 			return f.addLLDPFlow(ctx, flow, portNo)
 		}
+		if ethType.(uint32) == PPPoEDEthType {
+			if voltha.Port_ETHERNET_NNI == IntfIDToPortTypeName(classifierInfo[InPort].(uint32)) {
+				logger.Debug(ctx, "trap-pppoed-from-nni-flow")
+				return f.addTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
+			}
+		}
 	}
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
 			if udpSrc, ok := classifierInfo[UDPSrc]; ok {
 				if udpSrc.(uint32) == uint32(67) || udpSrc.(uint32) == uint32(546) {
 					logger.Debug(ctx, "trap-dhcp-from-nni-flow")
-					return f.addDHCPTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
+					return f.addTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 				}
 			}
 		}
@@ -2604,15 +2615,15 @@ func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint3
 
 }
 
-func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
-	logger.Debug(ctx, "adding-trap-dhcp-of-nni-flow")
+func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
+	logger.Debug(ctx, "adding-trap-of-nni-flow")
 	action := make(map[string]interface{})
 	classifier[PacketTagType] = DoubleTag
 	action[TrapToHost] = true
 	/* We manage flowId resource pool on per PON port basis.
 	   Since this situation is tricky, as a hack, we pass the NNI port
 	   index (network_intf_id) as PON port Index for the flowId resource
-	   pool. Also, there is no ONU Id available for trapping DHCP packets
+	   pool. Also, there is no ONU Id available for trapping packets
 	   on NNI port, use onu_id as -1 (invalid)
 	   ****************** CAVEAT *******************
 	   This logic works if the NNI Port Id falls within the same valid
@@ -2637,6 +2648,13 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		logger.Info(ctx, "flow-exists-not-re-adding")
 		return nil
 	}
+
+	logger.Debugw(ctx, "creating-trap-of-nni-flow",
+		log.Fields{
+			"classifier": classifier,
+			"action":     action,
+			"flowId":     logicalFlow.Id,
+			"intf-id":    networkInterfaceID})
 
 	classifierProto, err := makeOpenOltClassifierField(classifier)
 	if err != nil {
@@ -2664,7 +2682,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlowOnNNI(ctx context.Context, logicalFlow *
 	if err := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); err != nil {
 		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": downstreamflow}, err)
 	}
-	logger.Info(ctx, "dhcp-trap-on-nni-flow-added–to-device-successfully")
+	logger.Info(ctx, "trap-on-nni-flow-added–to-device-successfully")
 	flowInfo := rsrcMgr.FlowInfo{Flow: &downstreamflow}
 	if err := f.resourceMgr.UpdateFlowIDInfo(ctx, networkInterfaceID, int32(onuID), int32(uniID), logicalFlow.Id, flowInfo); err != nil {
 		return olterrors.NewErrPersistence("update", "flow", logicalFlow.Id, log.Fields{"flow": downstreamflow}, err)
@@ -2859,7 +2877,22 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			} else {
 				vlanID = DefaultMgmtVlan
 			}
-			if err := f.addEAPOLFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID, pbitToGem); err != nil {
+			if err := f.addEthTypeBasedFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID, pbitToGem, ethType.(uint32)); err != nil {
+				logger.Warn(ctx, err)
+			}
+		} else if ethType.(uint32) == PPPoEDEthType {
+			logger.Infow(ctx, "adding-pppoed-flow", log.Fields{
+				"intf-id": intfID,
+				"onu-id":  onuID,
+				"uni-id":  uniID,
+			})
+			var vlanID uint32
+			if val, ok := classifierInfo[VlanVid].(uint32); ok {
+				if val != ReservedVlan {
+					vlanID = val & VlanvIDMask
+				}
+			}
+			if err := f.addEthTypeBasedFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID, pbitToGem, ethType.(uint32)); err != nil {
 				logger.Warn(ctx, err)
 			}
 		}
