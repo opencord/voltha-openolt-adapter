@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4150f7dc_ebcec1bb",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2897,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-02-04T13:28:19Z",
+      "side": 1,
+      "message": "this seems to me to be a useless repetition, you can have just one instance of these piece of code and insert the ethType in the log, no need to duplicate the whole if clause.",
+      "revId": "22c092f7771940af1b8ddf0c44023d9f8d444bd9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
