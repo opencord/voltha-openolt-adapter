@@ -305,6 +305,19 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	multicastOfpStats, _ := fu.MkFlowStat(multicastFa)
 	multicastOfpStats.Id = 1
 
+	pppoedFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.EthType(0x8863),
+			fu.TunnelId(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+	pppoedOfpStats, _ := fu.MkFlowStat(pppoedFa)
+
 	type args struct {
 		flow *ofp.OfpFlowStats
 	}
@@ -317,6 +330,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		{"RemoveFlow", args{flow: lldpofpstats}},
 		{"RemoveFlow", args{flow: dhcpofpstats}},
 		{"RemoveFlow", args{flow: multicastOfpStats}},
+		{"RemoveFlow", args{flow: pppoedOfpStats}},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -469,6 +483,19 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		},
 	}
 
+	pppoedFa := &fu.FlowArgs{
+		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(1),
+			fu.EthType(0x8863),
+			fu.TunnelId(536870912),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(uint32(ofp.OfpPortNo_OFPP_CONTROLLER)),
+		},
+	}
+
 	fa9 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(536870912),
@@ -534,6 +561,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	ofpstats10, _ := fu.MkFlowStat(fa10)
 	igmpstats, _ := fu.MkFlowStat(igmpFa)
 	ofpstats11, _ := fu.MkFlowStat(fa11)
+	pppoedstats, _ := fu.MkFlowStat(pppoedFa)
 
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
@@ -563,6 +591,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		//{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
 		//ofpstats10
 		{"AddFlow", args{flow: ofpstats11, flowMetadata: flowMetadata}},
+		{"AddFlow", args{flow: pppoedstats, flowMetadata: flowMetadata}},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -919,6 +948,23 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		KV: kw,
 	}
 
+	// PPPOED
+	pppoedFA := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.EthType(0x8863),
+			fu.VlanPcp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(1048576),
+			fu.PushVlan(0x8100),
+		},
+		KV: kw,
+	}
+
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
 	classifierInfo2 := make(map[string]interface{})
@@ -927,14 +973,18 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	actionInfo3 := make(map[string]interface{})
 	classifierInfo4 := make(map[string]interface{})
 	actionInfo4 := make(map[string]interface{})
+	classifierInfo5 := make(map[string]interface{})
+	actionInfo5 := make(map[string]interface{})
 	flow, _ := fu.MkFlowStat(fa)
 	flow2, _ := fu.MkFlowStat(fa2)
 	flow3, _ := fu.MkFlowStat(fa3)
 	flow4, _ := fu.MkFlowStat(fa4)
+	flow5, _ := fu.MkFlowStat(pppoedFA)
 	formulateClassifierInfoFromFlow(ctx, classifierInfo, flow)
 	formulateClassifierInfoFromFlow(ctx, classifierInfo2, flow2)
 	formulateClassifierInfoFromFlow(ctx, classifierInfo3, flow3)
 	formulateClassifierInfoFromFlow(ctx, classifierInfo4, flow4)
+	formulateClassifierInfoFromFlow(ctx, classifierInfo5, flow5)
 
 	err := formulateActionInfoFromFlow(ctx, actionInfo, classifierInfo, flow)
 	if err != nil {
@@ -958,6 +1008,13 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 	}
 
 	err = formulateActionInfoFromFlow(ctx, actionInfo4, classifierInfo4, flow4)
+	if err != nil {
+		// Error logging is already done in the called function
+		// So just return in case of error
+		return
+	}
+
+	err = formulateActionInfoFromFlow(ctx, actionInfo5, classifierInfo5, flow5)
 	if err != nil {
 		// Error logging is already done in the called function
 		// So just return in case of error
@@ -1093,6 +1150,25 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 				classifierInfo: classifierInfo4,
 				actionInfo:     actionInfo4,
 				flow:           flow4,
+				gemPort:        1,
+				intfID:         1,
+				onuID:          1,
+				uniID:          16,
+				portNo:         1,
+				TpInst:         TpInst,
+				allocID:        []uint32{0x8001},
+				gemPorts:       []uint32{1, 2, 3, 4},
+				TpID:           64,
+				uni:            "16",
+			},
+		},
+		{
+			name: "checkAndAddFlow-5",
+			args: args{
+				args:           nil,
+				classifierInfo: classifierInfo5,
+				actionInfo:     actionInfo5,
+				flow:           flow5,
 				gemPort:        1,
 				intfID:         1,
 				onuID:          1,
@@ -1313,12 +1389,51 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 		},
 		KV: kwTable1Meter1,
 	}
+
 	// Upstream EAPOL - ONU1 UNI0 PON15
 	fa6 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(536870927),
 			fu.Metadata_ofp(1),
 			fu.EthType(0x888E),
+			fu.VlanPcp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 259),
+			fu.TunnelId(16),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(2147483645),
+			fu.PushVlan(0x8100),
+		},
+		KV: kwTable1Meter1,
+	}
+
+	// Upstream PPPOED - ONU1 UNI0 PON0
+	fa7 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.EthType(0x8863),
+			fu.VlanPcp(1),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
+			fu.TunnelId(16),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(2147483645),
+			fu.PushVlan(0x8100),
+		},
+		KV: kwTable1Meter1,
+	}
+
+	// Upstream PPPOED - ONU1 UNI0 PON15
+	fa8 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870927),
+			fu.Metadata_ofp(1),
+			fu.EthType(0x8863),
 			fu.VlanPcp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 259),
 			fu.TunnelId(16),
@@ -1339,6 +1454,8 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 
 	flow5, _ := fu.MkFlowStat(fa5)
 	flow6, _ := fu.MkFlowStat(fa6)
+	flow7, _ := fu.MkFlowStat(fa7)
+	flow8, _ := fu.MkFlowStat(fa8)
 
 	type args struct {
 		ctx          context.Context
@@ -1437,6 +1554,26 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			args: args{
 				ctx:          ctx,
 				flow:         flow6,
+				addFlow:      true,
+				flowMetadata: &flowMetadata1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "RouteFlowToOnuChannel-9",
+			args: args{
+				ctx:          ctx,
+				flow:         flow7,
+				addFlow:      true,
+				flowMetadata: &flowMetadata1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "RouteFlowToOnuChannel-10",
+			args: args{
+				ctx:          ctx,
+				flow:         flow8,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
 			},
