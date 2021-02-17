@@ -1193,6 +1193,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 //addIGMPTrapFlow creates IGMP trap-to-host flow
 func (f *OpenOltFlowMgr) addIGMPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
 	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
+	delete(classifier, VlanVid)
 	return f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, tpID, pbitToGem)
 }
 
@@ -1217,7 +1218,6 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 
 	action[TrapToHost] = true
 	classifier[PacketTagType] = SingleTag
-	delete(classifier, VlanVid)
 
 	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkIntfID, int32(onuID), int32(uniID), logicalFlow.Id); present {
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{"device-id": f.deviceHandler.device.Id})
@@ -2865,8 +2865,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			return
 		}
 	} else if ethType, ok := classifierInfo[EthType]; ok {
-		if ethType.(uint32) == EapEthType || ethType.(uint32) == PPPoEDEthType {
-			logger.Infow(ctx, "adding-ethType-flow", log.Fields{
+		if ethType.(uint32) == EapEthType {
+			logger.Infow(ctx, "adding-eapol-flow", log.Fields{
 				"intf-id": intfID,
 				"onu-id":  onuID,
 				"uni-id":  uniID,
@@ -2879,6 +2879,18 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				vlanID = DefaultMgmtVlan
 			}
 			if err := f.addEthTypeBasedFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID, pbitToGem, ethType.(uint32)); err != nil {
+				logger.Warn(ctx, err)
+			}
+		} else if ethType.(uint32) == PPPoEDEthType {
+			logger.Infow(ctx, "adding-pppoed-flow", log.Fields{
+				"tp-id":    tpID,
+				"alloc-id": allocID,
+				"intf-id":  intfID,
+				"onu-id":   onuID,
+				"uni-id":   uniID,
+			})
+			//Adding PPPOED upstream flow
+			if err := f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
 				logger.Warn(ctx, err)
 			}
 		}
