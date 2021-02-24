@@ -41,6 +41,7 @@ import (
 	ac "github.com/opencord/voltha-openolt-adapter/internal/pkg/core"
 	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
+	"github.com/go-redis/redis/v8"
 )
 
 type adapter struct {
@@ -284,6 +285,10 @@ func newKVClient(ctx context.Context, storeType, address string, timeout time.Du
 	switch storeType {
 	case "etcd":
 		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
+	case "redis":
+		return kvstore.NewRedisClient(address, timeout, false)
+	case "redis-sentinel":
+		return kvstore.NewRedisClient(address, timeout, true)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
@@ -505,7 +510,7 @@ func main() {
 		printBanner()
 	}
 
-	logger.Infow(ctx, "config", log.Fields{"config": *cf})
+	logger.Infow(ctx, "config", log.Fields{"config": *cf, "redis": redis.Nil})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
