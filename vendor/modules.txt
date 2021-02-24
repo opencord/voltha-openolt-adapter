@@ -2,8 +2,6 @@
 github.com/DataDog/zstd
 # github.com/Shopify/sarama v1.23.1
 github.com/Shopify/sarama
-# github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878
-github.com/armon/go-metrics
 # github.com/boljen/go-bitmap v0.0.0-20151001105940-23cd2fb0ce7d
 github.com/boljen/go-bitmap
 # github.com/bsm/sarama-cluster v2.1.15+incompatible
@@ -49,28 +47,12 @@ github.com/grpc-ecosystem/go-grpc-middleware
 github.com/grpc-ecosystem/go-grpc-middleware/tags
 github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing
 github.com/grpc-ecosystem/go-grpc-middleware/util/metautils
-# github.com/hashicorp/consul/api v1.2.0
-github.com/hashicorp/consul/api
-# github.com/hashicorp/go-cleanhttp v0.5.1
-github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-immutable-radix v1.1.0
-github.com/hashicorp/go-immutable-radix
-# github.com/hashicorp/go-rootcerts v1.0.1
-github.com/hashicorp/go-rootcerts
 # github.com/hashicorp/go-uuid v1.0.1
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/golang-lru v0.5.3
-github.com/hashicorp/golang-lru/simplelru
-# github.com/hashicorp/serf v0.8.4
-github.com/hashicorp/serf/coordinate
 # github.com/jcmturner/gofork v1.0.0
 github.com/jcmturner/gofork/encoding/asn1
 github.com/jcmturner/gofork/x/crypto/pbkdf2
-# github.com/mitchellh/go-homedir v1.1.0
-github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.1.2
-github.com/mitchellh/mapstructure
-# github.com/opencord/voltha-lib-go/v4 v4.0.5
+# github.com/opencord/voltha-lib-go/v4 v4.0.10
 github.com/opencord/voltha-lib-go/v4/pkg/adapters
 github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif
 github.com/opencord/voltha-lib-go/v4/pkg/adapters/common
@@ -87,7 +69,7 @@ github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v4/pkg/probe
 github.com/opencord/voltha-lib-go/v4/pkg/techprofile
 github.com/opencord/voltha-lib-go/v4/pkg/version
-# github.com/opencord/voltha-protos/v4 v4.0.10
+# github.com/opencord/voltha-protos/v4 v4.0.12
 github.com/opencord/voltha-protos/v4/go/common
 github.com/opencord/voltha-protos/v4/go/ext/config
 github.com/opencord/voltha-protos/v4/go/extension

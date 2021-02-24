@@ -259,6 +259,14 @@ func (kvclient *MockKVClient) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+// DeleteWithPrefix mock function implementation for KVClient
+func (kvclient *MockKVClient) DeleteWithPrefix(ctx context.Context, prefixKey string) error {
+	if prefixKey == "" {
+		return errors.New("key didn't find")
+	}
+	return nil
+}
+
 // Reserve mock function implementation for KVClient
 func (kvclient *MockKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl time.Duration) (interface{}, error) {
 	if key != "" {

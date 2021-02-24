@@ -25,9 +25,10 @@ package core
 import (
 	"context"
 	"errors"
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"reflect"
 	"testing"
+
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 
 	com "github.com/opencord/voltha-lib-go/v4/pkg/adapters/common"
 	"github.com/opencord/voltha-lib-go/v4/pkg/events"
@@ -104,12 +105,10 @@ func TestNewOpenOLT(t *testing.T) {
 		cm          *conf.ConfigManager
 		want        *OpenOLT
 	}{
-		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"}, &conf.ConfigManager{},
-			&OpenOLT{numOnus: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "consul"}},
+		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "etcd"}, &conf.ConfigManager{},
+			&OpenOLT{numOnus: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "etcd"}},
 		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}, &conf.ConfigManager{},
 			&OpenOLT{numOnus: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}},
-		{"newopenolt-3", &fields{}, &config.AdapterFlags{OnuNumber: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"}, &conf.ConfigManager{},
-			&OpenOLT{numOnus: 3, KVStoreAddress: "3.3.3.3:3", KVStoreType: "consul"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

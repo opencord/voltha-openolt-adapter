@@ -18,9 +18,10 @@ package main
 import (
 	"context"
 	"errors"
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 	"testing"
 	"time"
+
+	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -45,7 +46,7 @@ func newMockAdapter() *adapter {
 func Test_adapter_setKVClient(t *testing.T) {
 	adapt := newMockAdapter()
 	adapt1 := newMockAdapter()
-	adapt1.config.KVStoreType = "consul"
+	adapt1.config.KVStoreType = "etcd"
 	adapt2 := newMockAdapter()
 	adapt2.config.KVStoreType = ""
 	a, _ := mockserver.StartMockServers(1)

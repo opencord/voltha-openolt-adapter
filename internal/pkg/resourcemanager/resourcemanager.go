@@ -131,8 +131,6 @@ type OpenOltResourceMgr struct {
 func newKVClient(ctx context.Context, storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
 	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
-	case "consul":
-		return kvstore.NewConsulClient(ctx, address, timeout)
 	case "etcd":
 		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
 	}

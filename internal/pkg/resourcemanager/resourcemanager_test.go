@@ -27,6 +27,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"reflect"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/opencord/voltha-lib-go/v4/pkg/db"
 	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
 	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
@@ -34,12 +41,6 @@ import (
 	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/openolt"
-	"reflect"
-	"strconv"
-	"strings"
-	"sync"
-	"testing"
-	"time"
 )
 
 func init() {
@@ -200,6 +201,11 @@ func (kvclient *MockResKVClient) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+// DeleteWithPrefix mock function implementation for KVClient
+func (kvclient *MockResKVClient) DeleteWithPrefix(ctx context.Context, prefix string) error {
+	return nil
+}
+
 // Reserve mock function implementation for KVClient
 func (kvclient *MockResKVClient) Reserve(ctx context.Context, key string, value interface{}, ttl time.Duration) (interface{}, error) {
 	return nil, errors.New("key didn't find")
@@ -281,9 +287,7 @@ func TestNewResourceMgr(t *testing.T) {
 		args args
 		want *OpenOltResourceMgr
 	}{
-		{"NewResourceMgr-1", args{"olt1", "1:2", "consul",
-			"onu", &openolt.DeviceInfo{OnuIdStart: 1, OnuIdEnd: 1}, "service/voltha"}, &OpenOltResourceMgr{}},
-		{"NewResourceMgr-2", args{"olt2", "3:4", "etcd",
+		{"NewResourceMgr-2", args{"olt1", "1:2", "etcd",
 			"onu", &openolt.DeviceInfo{OnuIdStart: 1, OnuIdEnd: 1}, "service/voltha"}, &OpenOltResourceMgr{}},
 	}
 	for _, tt := range tests {
@@ -838,8 +842,7 @@ func TestSetKVClient(t *testing.T) {
 		args args
 		want *db.Backend
 	}{
-		{"setKVClient-1", args{"consul", "1.1.1.1:1", "olt1", "service/voltha"}, &db.Backend{}},
-		{"setKVClient-1", args{"etcd", "2.2.2.2:2", "olt2", "service/voltha"}, &db.Backend{}},
+		{"setKVClient-1", args{"etcd", "1.1.1.1:1", "olt1", "service/voltha"}, &db.Backend{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
