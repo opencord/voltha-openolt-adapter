@@ -16,6 +16,24 @@
       "revId": "30da283b4128e34c67bcc52d343206858ef9a717",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa97119b_fbe0d941",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-02-25T23:16:00Z",
+      "side": 1,
+      "message": "*returns seconds",
+      "parentUuid": "ed4675e2_79f4218d",
+      "revId": "30da283b4128e34c67bcc52d343206858ef9a717",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
