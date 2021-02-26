@@ -16,6 +16,24 @@
       "revId": "998ca89bbdd1bd54da3046cd258c6c841249a73f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b774b7f1_8a03e2aa",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2888,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-02-26T13:22:12Z",
+      "side": 1,
+      "message": "If the configuration is wrong, we must use a default value. I chose to use \"false\" so I ignore\nthe error response. But if you think that the default value of AES must be true, I can update it.",
+      "parentUuid": "6116a852_336f1282",
+      "revId": "998ca89bbdd1bd54da3046cd258c6c841249a73f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
