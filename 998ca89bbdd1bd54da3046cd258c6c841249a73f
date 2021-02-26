@@ -52,6 +52,24 @@
       "revId": "998ca89bbdd1bd54da3046cd258c6c841249a73f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e02a23f6_f32261db",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2888,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-02-26T19:12:26Z",
+      "side": 1,
+      "message": "false is ok on failure.",
+      "parentUuid": "696f886b_0a63c0c0",
+      "revId": "998ca89bbdd1bd54da3046cd258c6c841249a73f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
