@@ -185,9 +185,13 @@ func (m MockTechProfile) GetMulticastTrafficQueues(ctx context.Context, tp *tp.T
 	return []*tp_pb.TrafficQueue{{}}
 }
 
-// GetGemportIDForPbit to mock techprofile GetGemportIDForPbit method
-func (m MockTechProfile) GetGemportIDForPbit(ctx context.Context, tp interface{}, Dir tp_pb.Direction, pbit uint32) uint32 {
-	return 0
+// GetGemportForPbit to mock techprofile GetGemportForPbit method
+func (m MockTechProfile) GetGemportForPbit(ctx context.Context, tpInst interface{}, Dir tp_pb.Direction, pbit uint32) interface{} {
+	return tp.IGemPortAttribute{
+		GemportID:     1,
+		PbitMap:       "0b11111111",
+		AesEncryption: "false",
+	}
 }
 
 // FindAllTpInstances to mock techprofile FindAllTpInstances method
