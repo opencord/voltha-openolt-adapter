@@ -34,6 +34,24 @@
       "revId": "30da283b4128e34c67bcc52d343206858ef9a717",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce3d1490_b7069527",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 1000617
+      },
+      "writtenOn": "2021-02-26T15:09:31Z",
+      "side": 1,
+      "message": "The nano-seconds int64 from this call is needed later on at line 592 for the SendKpiEvent.  \n\nScott Baker had a protobuf check in last summer that changed the EventHeader (common for KPI2, Device events, ...) to the protobuf TimeStamp and so raisedTs as nanosecs stays consistent with those calls.",
+      "parentUuid": "aa97119b_fbe0d941",
+      "revId": "30da283b4128e34c67bcc52d343206858ef9a717",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
