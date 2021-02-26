@@ -1089,7 +1089,7 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			_ = tt.devicehandler.onuDiscIndication(ctx, tt.args.onuDiscInd, tt.args.sn)
+			_ = tt.devicehandler.onuDiscIndication(ctx, tt.args.onuDiscInd)
 			//TODO: actually verify test cases
 		})
 	}

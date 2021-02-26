@@ -95,7 +95,7 @@ type DeviceHandler struct {
 	isReadIndicationRoutineActive bool
 
 	totalPonPorts     uint32
-	perOnuChannel     map[string]onuIndicationChannels
+	perOnuChannel     map[uint32]onuIndicationChannels
 	perOnuChannelLock sync.Mutex
 
 	// Slice of channels. Each channel in slice, index by (mcast-group-id modulo MaxNumOfGroupHandlerChannels)
@@ -116,9 +116,8 @@ type OnuDevice struct {
 }
 
 type perOnuIndication struct {
-	ctx          context.Context
-	indication   *oop.Indication
-	serialNumber string
+	ctx        context.Context
+	indication *oop.Indication
 }
 
 type onuIndicationChannels struct {
@@ -179,7 +178,7 @@ func NewDeviceHandler(cp adapterif.CoreProxy, ap adapterif.AdapterProxy, ep even
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	dh.activePorts = sync.Map{}
 	dh.stopIndications = make(chan bool, 1)
-	dh.perOnuChannel = make(map[string]onuIndicationChannels)
+	dh.perOnuChannel = make(map[uint32]onuIndicationChannels)
 	// Create a slice of buffered channels for handling concurrent mcast flow/group.
 	dh.incomingMcastFlowOrGroup = make([]chan McastFlowOrGroupControlBlock, MaxNumOfGroupHandlerChannels)
 	for i := range dh.incomingMcastFlowOrGroup {
@@ -554,18 +553,16 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 
 		onuDiscInd := indication.GetOnuDiscInd()
 		logger.Infow(ctx, "received-onu-discovery-indication", log.Fields{"OnuDiscInd": onuDiscInd, "device-id": dh.device.Id})
-		sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 		//put message  to channel and return immediately
-		dh.putOnuIndicationToChannel(ctx, indication, sn)
+		dh.putOnuIndicationToChannel(ctx, indication, onuDiscInd.GetIntfId())
 	case *oop.Indication_OnuInd:
 		span, ctx := log.CreateChildSpan(ctx, "onu-indication", log.Fields{"device-id": dh.device.Id})
 		defer span.Finish()
 
 		onuInd := indication.GetOnuInd()
 		logger.Infow(ctx, "received-onu-indication", log.Fields{"OnuInd": onuInd, "device-id": dh.device.Id})
-		sn := dh.stringifySerialNumber(onuInd.SerialNumber)
 		//put message  to channel and return immediately
-		dh.putOnuIndicationToChannel(ctx, indication, sn)
+		dh.putOnuIndicationToChannel(ctx, indication, onuInd.GetIntfId())
 	case *oop.Indication_OmciInd:
 		span, ctx := log.CreateChildSpan(ctx, "omci-indication", log.Fields{"device-id": dh.device.Id})
 		defer span.Finish()
@@ -1129,10 +1126,11 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 	return nil
 }
 
-func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication, sn string) error {
+func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
+	sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
 	kwargs := make(map[string]interface{})
@@ -1263,7 +1261,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	return nil
 }
 
-func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndication, serialNumber string) error {
+func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndication) error {
 
 	kwargs := make(map[string]interface{})
 	ponPort := IntfIDToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
@@ -1275,6 +1273,7 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 			"intfId":    onuInd.GetIntfId(),
 			"device-id": dh.device.Id})
 	onuKey := dh.formOnuKey(onuInd.GetIntfId(), onuInd.OnuId)
+	serialNumber := dh.stringifySerialNumber(onuInd.SerialNumber)
 
 	errFields := log.Fields{"device-id": dh.device.Id}
 
@@ -1733,6 +1732,7 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}
+	dh.removeOnuIndicationChannels(ctx)
 	// There is no need to update the core about operation status and connection status of the OLT.
 	// The OLT is getting deleted anyway and the core might have already cleared the OLT device from its DB.
 	// So any attempt to update the operation status and connection status of the OLT will result in core throwing an error back,
@@ -2215,7 +2215,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	}
 	dh.onus.Delete(onuKey)
 	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
-	dh.removeOnuIndicationChannels(ctx, onuDevice.(*OnuDevice).serialNumber)
+	dh.removeOnuIndicationChannels(ctx)
 	return nil
 }
 
@@ -2329,9 +2329,9 @@ func (dh *DeviceHandler) getPonIfFromFlow(flow *of.OfpFlowStats) uint32 {
 	return intfID
 }
 
-func (dh *DeviceHandler) getOnuIndicationChannel(ctx context.Context, sn string) chan perOnuIndication {
+func (dh *DeviceHandler) getOnuIndicationChannel(ctx context.Context, intfID uint32) chan perOnuIndication {
 	dh.perOnuChannelLock.Lock()
-	if ch, ok := dh.perOnuChannel[sn]; ok {
+	if ch, ok := dh.perOnuChannel[intfID]; ok {
 		dh.perOnuChannelLock.Unlock()
 		return ch.indicationChannel
 	}
@@ -2339,36 +2339,34 @@ func (dh *DeviceHandler) getOnuIndicationChannel(ctx context.Context, sn string)
 		//We create a buffered channel here to avoid calling function to be  blocked
 		//in case of multiple indications from the same ONU,
 		//especially in the case where indications are buffered in  OLT.
-		indicationChannel: make(chan perOnuIndication, 5),
+		indicationChannel: make(chan perOnuIndication, 500),
 		stopChannel:       make(chan struct{}),
 	}
-	dh.perOnuChannel[sn] = channels
+	dh.perOnuChannel[intfID] = channels
 	dh.perOnuChannelLock.Unlock()
 	go dh.perOnuIndicationsRoutine(&channels)
 	return channels.indicationChannel
 
 }
 
-func (dh *DeviceHandler) removeOnuIndicationChannels(ctx context.Context, sn string) {
-	logger.Debugw(ctx, "remove-onu-indication-channels", log.Fields{"sn": sn})
+func (dh *DeviceHandler) removeOnuIndicationChannels(ctx context.Context) {
+	logger.Debug(ctx, "remove-onu-indication-channels", log.Fields{"device-id": dh.device.Id})
 	dh.perOnuChannelLock.Lock()
 	defer dh.perOnuChannelLock.Unlock()
-	if ch, ok := dh.perOnuChannel[sn]; ok {
-		close(ch.stopChannel)
-		delete(dh.perOnuChannel, sn)
+	for _, v := range dh.perOnuChannel {
+		close(v.stopChannel)
 	}
-
+	dh.perOnuChannel = make(map[uint32]onuIndicationChannels)
 }
 
-func (dh *DeviceHandler) putOnuIndicationToChannel(ctx context.Context, indication *oop.Indication, sn string) {
+func (dh *DeviceHandler) putOnuIndicationToChannel(ctx context.Context, indication *oop.Indication, intfID uint32) {
 	ind := perOnuIndication{
-		ctx:          ctx,
-		indication:   indication,
-		serialNumber: sn,
+		ctx:        ctx,
+		indication: indication,
 	}
-	logger.Debugw(ctx, "put-onu-indication-to-channel", log.Fields{"indication": indication, "sn": sn})
+	logger.Debugw(ctx, "put-onu-indication-to-channel", log.Fields{"indication": indication, "intfID": intfID})
 	// Send the onuIndication on the ONU channel
-	dh.getOnuIndicationChannel(ctx, sn) <- ind
+	dh.getOnuIndicationChannel(ctx, intfID) <- ind
 }
 
 func (dh *DeviceHandler) perOnuIndicationsRoutine(onuChannels *onuIndicationChannels) {
@@ -2377,21 +2375,19 @@ func (dh *DeviceHandler) perOnuIndicationsRoutine(onuChannels *onuIndicationChan
 		// process one indication per onu, before proceeding to the next one
 		case onuInd := <-onuChannels.indicationChannel:
 			logger.Debugw(onuInd.ctx, "calling-indication", log.Fields{"device-id": dh.device.Id,
-				"ind": onuInd.indication, "sn": onuInd.serialNumber})
+				"ind": onuInd.indication})
 			switch onuInd.indication.Data.(type) {
 			case *oop.Indication_OnuInd:
-				if err := dh.onuIndication(onuInd.ctx, onuInd.indication.GetOnuInd(), onuInd.serialNumber); err != nil {
+				if err := dh.onuIndication(onuInd.ctx, onuInd.indication.GetOnuInd()); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{
 						"type":      "onu-indication",
-						"device-id": dh.device.Id,
-						"sn":        onuInd.serialNumber}, err).Log()
+						"device-id": dh.device.Id}, err).Log()
 				}
 			case *oop.Indication_OnuDiscInd:
-				if err := dh.onuDiscIndication(onuInd.ctx, onuInd.indication.GetOnuDiscInd(), onuInd.serialNumber); err != nil {
+				if err := dh.onuDiscIndication(onuInd.ctx, onuInd.indication.GetOnuDiscInd()); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{
 						"type":      "onu-discovery",
-						"device-id": dh.device.Id,
-						"sn":        onuInd.serialNumber}, err).Log()
+						"device-id": dh.device.Id}, err).Log()
 				}
 			}
 		case <-onuChannels.stopChannel:
