@@ -53,3 +53,13 @@ func (me *MockEventProxy) SendRPCEvent(ctx context.Context, id string, deviceEve
 	}
 	return nil
 }
+
+// EnableLivenessChannel mocks the EnableLivenessChannel function
+func (me *MockEventProxy) EnableLivenessChannel(ctx context.Context, enable bool) chan bool {
+	return nil
+}
+
+// SendLiveness mocks the SendLiveness function
+func (me *MockEventProxy) SendLiveness(ctx context.Context) error {
+	return nil
+}

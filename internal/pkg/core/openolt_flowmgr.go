@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -167,6 +168,21 @@ type schedQueue struct {
 	tpInst       interface{}
 	meterID      uint32
 	flowMetadata *voltha.FlowMetadata
+}
+
+type flowContext struct {
+	intfID      uint32
+	onuID       uint32
+	uniID       uint32
+	portNo      uint32
+	classifier  map[string]interface{}
+	action      map[string]interface{}
+	logicalFlow *ofp.OfpFlowStats
+	allocID     uint32
+	gemPortID   uint32
+	tpID        uint32
+	pbitToGem   map[uint32]uint32
+	gemToAes    map[uint32]bool
 }
 
 // subscriberDataPathFlowIDKey is key to subscriberDataPathFlowIDMap map
@@ -932,24 +948,20 @@ func (f *OpenOltFlowMgr) populateTechProfilePerPonPort(ctx context.Context) erro
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addUpstreamDataPathFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32,
-	portNo uint32, uplinkClassifier map[string]interface{},
-	uplinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
-	uplinkClassifier[PacketTagType] = SingleTag
+func (f *OpenOltFlowMgr) addUpstreamDataPathFlow(ctx context.Context, flowContext *flowContext) error {
+	flowContext.classifier[PacketTagType] = SingleTag
 	logger.Debugw(ctx, "adding-upstream-data-flow",
 		log.Fields{
-			"uplinkClassifier": uplinkClassifier,
-			"uplinkAction":     uplinkAction})
-	return f.addSymmetricDataPathFlow(ctx, intfID, onuID, uniID, portNo, uplinkClassifier, uplinkAction,
-		Upstream, logicalFlow, allocID, gemportID, tpID, pbitToGem)
+			"uplinkClassifier": flowContext.classifier,
+			"uplinkAction":     flowContext.action})
+	return f.addSymmetricDataPathFlow(ctx, flowContext, Upstream)
 	/* TODO: Install Secondary EAP on the subscriber vlan */
 }
 
-func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32,
-	portNo uint32, downlinkClassifier map[string]interface{},
-	downlinkAction map[string]interface{}, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemportID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
+func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowContext *flowContext) error {
+	downlinkClassifier := flowContext.classifier
+	downlinkAction := flowContext.action
+
 	downlinkClassifier[PacketTagType] = DoubleTag
 	logger.Debugw(ctx, "adding-downstream-data-flow",
 		log.Fields{
@@ -959,13 +971,13 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, intfID u
 	if vlan, exists := downlinkClassifier[VlanVid]; exists {
 		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) { //private VLAN given by core
 			if metadata, exists := downlinkClassifier[Metadata]; exists { // inport is filled in metadata by core
-				if uint32(metadata.(uint64)) == MkUniPortNum(ctx, intfID, onuID, uniID) {
+				if uint32(metadata.(uint64)) == MkUniPortNum(ctx, flowContext.intfID, flowContext.onuID, flowContext.uniID) {
 					logger.Infow(ctx, "ignoring-dl-trap-device-flow-from-core",
 						log.Fields{
-							"flow":      logicalFlow,
+							"flow":      flowContext.logicalFlow,
 							"device-id": f.deviceHandler.device.Id,
-							"onu-id":    onuID,
-							"intf-id":   intfID})
+							"onu-id":    flowContext.onuID,
+							"intf-id":   flowContext.intfID})
 					return nil
 				}
 			}
@@ -985,13 +997,10 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, intfID u
 			"device-id": f.deviceHandler.device.Id}, nil).Log()
 	}
 
-	return f.addSymmetricDataPathFlow(ctx, intfID, onuID, uniID, portNo, downlinkClassifier, downlinkAction,
-		Downstream, logicalFlow, allocID, gemportID, tpID, pbitToGem)
+	return f.addSymmetricDataPathFlow(ctx, flowContext, Downstream)
 }
 
-func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, direction string, logicalFlow *ofp.OfpFlowStats,
-	allocID uint32, gemPortID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
+func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowContext *flowContext, direction string) error {
 
 	var inverseDirection string
 	if direction == Upstream {
@@ -1000,6 +1009,15 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, intfID ui
 		inverseDirection = Upstream
 	}
 
+	intfID := flowContext.intfID
+	onuID := flowContext.onuID
+	uniID := flowContext.uniID
+	classifier := flowContext.classifier
+	action := flowContext.action
+	allocID := flowContext.allocID
+	gemPortID := flowContext.gemPortID
+	tpID := flowContext.tpID
+	logicalFlow := flowContext.logicalFlow
 	logger.Infow(ctx, "adding-hsia-flow",
 		log.Fields{
 			"intf-id":     intfID,
@@ -1068,11 +1086,12 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, intfID ui
 		Action:          actionProto,
 		Priority:        int32(logicalFlow.Priority),
 		Cookie:          logicalFlow.Cookie,
-		PortNo:          portNo,
+		PortNo:          flowContext.portNo,
 		TechProfileId:   tpID,
-		ReplicateFlow:   len(pbitToGem) > 0,
-		PbitToGemport:   pbitToGem,
+		ReplicateFlow:   len(flowContext.pbitToGem) > 0,
+		PbitToGemport:   flowContext.pbitToGem,
 		SymmetricFlowId: symmFlowID,
+		GemportToAes:    flowContext.gemToAes,
 	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
 		return olterrors.NewErrFlowOp("add", logicalFlow.Id, nil, err).Log()
@@ -1102,9 +1121,14 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, intfID ui
 	return nil
 }
 
-func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
-	classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32,
-	gemPortID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
+func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowContext) error {
+
+	intfID := flowContext.intfID
+	onuID := flowContext.onuID
+	uniID := flowContext.uniID
+	logicalFlow := flowContext.logicalFlow
+	classifier := flowContext.classifier
+	action := flowContext.action
 
 	networkIntfID, err := getNniIntfID(ctx, classifier, action)
 	if err != nil {
@@ -1158,17 +1182,18 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 		UniId:         int32(uniID),
 		FlowId:        logicalFlow.Id,
 		FlowType:      Upstream,
-		AllocId:       int32(allocID),
+		AllocId:       int32(flowContext.allocID),
 		NetworkIntfId: int32(networkIntfID),
-		GemportId:     int32(gemPortID),
+		GemportId:     int32(flowContext.gemPortID),
 		Classifier:    classifierProto,
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo,
-		TechProfileId: tpID,
-		ReplicateFlow: len(pbitToGem) > 0,
-		PbitToGemport: pbitToGem,
+		PortNo:        flowContext.portNo,
+		TechProfileId: flowContext.tpID,
+		ReplicateFlow: len(flowContext.pbitToGem) > 0,
+		PbitToGemport: flowContext.pbitToGem,
+		GemportToAes:  flowContext.gemToAes,
 	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &dhcpFlow); err != nil {
 		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"dhcp-flow": dhcpFlow}, err).Log()
@@ -1191,15 +1216,20 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, intfID uint32, onu
 }
 
 //addIGMPTrapFlow creates IGMP trap-to-host flow
-func (f *OpenOltFlowMgr) addIGMPTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
-	delete(classifier, VlanVid)
-	return f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifier, action, logicalFlow, allocID, gemPortID, tpID, pbitToGem)
+func (f *OpenOltFlowMgr) addIGMPTrapFlow(ctx context.Context, flowContext *flowContext) error {
+	delete(flowContext.classifier, VlanVid)
+	return f.addUpstreamTrapFlow(ctx, flowContext)
 }
 
 //addUpstreamTrapFlow creates a trap-to-host flow
-func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32, classifier map[string]interface{},
-	action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32, gemPortID uint32, tpID uint32, pbitToGem map[uint32]uint32) error {
+func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *flowContext) error {
+
+	intfID := flowContext.intfID
+	onuID := flowContext.onuID
+	uniID := flowContext.uniID
+	logicalFlow := flowContext.logicalFlow
+	classifier := flowContext.classifier
+	action := flowContext.action
 
 	networkIntfID, err := getNniIntfID(ctx, classifier, action)
 	if err != nil {
@@ -1251,17 +1281,18 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 		UniId:         int32(uniID),
 		FlowId:        logicalFlow.Id,
 		FlowType:      Upstream,
-		AllocId:       int32(allocID),
+		AllocId:       int32(flowContext.allocID),
 		NetworkIntfId: int32(networkIntfID),
-		GemportId:     int32(gemPortID),
+		GemportId:     int32(flowContext.gemPortID),
 		Classifier:    classifierProto,
 		Action:        actionProto,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
-		PortNo:        portNo,
-		TechProfileId: tpID,
-		ReplicateFlow: len(pbitToGem) > 0,
-		PbitToGemport: pbitToGem,
+		PortNo:        flowContext.portNo,
+		TechProfileId: flowContext.tpID,
+		ReplicateFlow: len(flowContext.pbitToGem) > 0,
+		PbitToGemport: flowContext.pbitToGem,
+		GemportToAes:  flowContext.gemToAes,
 	}
 
 	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
@@ -1277,9 +1308,17 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, intfID uint32,
 }
 
 // Add EthType flow to  device with mac, vlanId as classifier for upstream and downstream
-func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
-	classifier map[string]interface{}, action map[string]interface{}, logicalFlow *ofp.OfpFlowStats, allocID uint32,
-	gemPortID uint32, vlanID uint32, tpID uint32, pbitToGem map[uint32]uint32, ethType uint32) error {
+func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *flowContext, vlanID uint32, ethType uint32) error {
+	intfID := flowContext.intfID
+	onuID := flowContext.onuID
+	uniID := flowContext.uniID
+	portNo := flowContext.portNo
+	allocID := flowContext.allocID
+	gemPortID := flowContext.gemPortID
+	logicalFlow := flowContext.logicalFlow
+	classifier := flowContext.classifier
+	action := flowContext.action
+
 	logger.Infow(ctx, "adding-ethType-flow-to-device",
 		log.Fields{
 			"intf-id":    intfID,
@@ -1359,9 +1398,10 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, intfID uint32,
 		Priority:      int32(logicalFlow.Priority),
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo,
-		TechProfileId: tpID,
-		ReplicateFlow: len(pbitToGem) > 0,
-		PbitToGemport: pbitToGem,
+		TechProfileId: flowContext.tpID,
+		ReplicateFlow: len(flowContext.pbitToGem) > 0,
+		PbitToGemport: flowContext.pbitToGem,
+		GemportToAes:  flowContext.gemToAes,
 	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); err != nil {
 		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": upstreamFlow}, err).Log()
@@ -2799,42 +2839,58 @@ func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, 
 func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]uint32, classifierInfo map[string]interface{},
 	actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpInst interface{}, gemPorts []uint32,
 	tpID uint32, uni string) {
-	var gemPort uint32
+	var gemPortID uint32
 	intfID := args[IntfID]
 	onuID := args[OnuID]
 	uniID := args[UniID]
 	portNo := args[PortNo]
 	allocID := args[AllocID]
 	pbitToGem := make(map[uint32]uint32)
+	gemToAes := make(map[uint32]bool)
+
+	var attributes []tp.IGemPortAttribute
+	var direction = tp_pb.Direction_UPSTREAM
+	switch TpInst := TpInst.(type) {
+	case *tp.TechProfile:
+		if IsUpstream(actionInfo[Output].(uint32)) {
+			attributes = TpInst.UpstreamGemPortAttributeList
+		} else {
+			attributes = TpInst.DownstreamGemPortAttributeList
+			direction = tp_pb.Direction_DOWNSTREAM
+		}
+	default:
+		logger.Errorw(ctx, "unsupported-tech", log.Fields{"tpInst": TpInst})
+		return
+	}
 
 	if len(gemPorts) == 1 {
 		// If there is only single gemport use that and do not populate pbitToGem map
-		gemPort = gemPorts[0]
+		gemPortID = gemPorts[0]
+		gemToAes[gemPortID], _ = strconv.ParseBool(attributes[0].AesEncryption)
 	} else if pcp, ok := classifierInfo[VlanPcp]; !ok {
 		for idx, gemID := range gemPorts {
-			switch TpInst := TpInst.(type) {
-			case *tp.TechProfile:
-				pBitMap := TpInst.UpstreamGemPortAttributeList[idx].PbitMap
-				// Trim the bitMapPrefix form the binary string and then iterate each character in the binary string.
-				// If the character is set to pbit1, extract the pcp value from the position of this character in the string.
-				// Update the pbitToGem map with key being the pcp bit and the value being the gemPortID that consumes
-				// this pcp bit traffic.
-				for pos, pbitSet := range strings.TrimPrefix(pBitMap, bitMapPrefix) {
-					if pbitSet == pbit1 {
-						pcp := uint32(len(strings.TrimPrefix(pBitMap, bitMapPrefix))) - 1 - uint32(pos)
-						pbitToGem[pcp] = gemID
-					}
+			pBitMap := attributes[idx].PbitMap
+			// Trim the bitMapPrefix form the binary string and then iterate each character in the binary string.
+			// If the character is set to pbit1, extract the pcp value from the position of this character in the string.
+			// Update the pbitToGem map with key being the pcp bit and the value being the gemPortID that consumes
+			// this pcp bit traffic.
+			for pos, pbitSet := range strings.TrimPrefix(pBitMap, bitMapPrefix) {
+				if pbitSet == pbit1 {
+					pcp := uint32(len(strings.TrimPrefix(pBitMap, bitMapPrefix))) - 1 - uint32(pos)
+					pbitToGem[pcp] = gemID
+					gemToAes[gemID], _ = strconv.ParseBool(attributes[idx].AesEncryption)
 				}
-			default:
-				logger.Errorw(ctx, "unsupported-tech", log.Fields{"tpInst": TpInst})
-				return
 			}
 		}
 	} else { // Extract the exact gemport which maps to the PCP classifier in the flow
-		gemPort = f.techprofile[intfID].GetGemportIDForPbit(ctx, TpInst,
-			tp_pb.Direction_UPSTREAM,
-			pcp.(uint32))
+		if gem := f.techprofile[intfID].GetGemportForPbit(ctx, TpInst, direction, pcp.(uint32)); gem != nil {
+			gemPortID = gem.(tp.IGemPortAttribute).GemportID
+			gemToAes[gemPortID], _ = strconv.ParseBool(gem.(tp.IGemPortAttribute).AesEncryption)
+		}
 	}
+
+	flowContext := &flowContext{intfID, onuID, uniID, portNo, classifierInfo, actionInfo,
+		flow, allocID, gemPortID, tpID, pbitToGem, gemToAes}
 
 	if ipProto, ok := classifierInfo[IPProto]; ok {
 		if ipProto.(uint32) == IPProtoDhcp {
@@ -2846,7 +2902,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				"uni-id":   uniID,
 			})
 			//Adding DHCP upstream flow
-			if err := f.addDHCPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
+			if err := f.addDHCPTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
 			}
 
@@ -2857,7 +2913,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 					"onu-id":           onuID,
 					"uni-id":           uniID,
 					"classifier-info:": classifierInfo})
-			if err := f.addIGMPTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
+			if err := f.addIGMPTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
 			}
 		} else {
@@ -2878,7 +2934,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			} else {
 				vlanID = DefaultMgmtVlan
 			}
-			if err := f.addEthTypeBasedFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, vlanID, tpID, pbitToGem, ethType.(uint32)); err != nil {
+			if err := f.addEthTypeBasedFlow(ctx, flowContext, vlanID, ethType.(uint32)); err != nil {
 				logger.Warn(ctx, err)
 			}
 		} else if ethType.(uint32) == PPPoEDEthType {
@@ -2890,28 +2946,28 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				"uni-id":   uniID,
 			})
 			//Adding PPPOED upstream flow
-			if err := f.addUpstreamTrapFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
+			if err := f.addUpstreamTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
 			}
 		}
-	} else if _, ok := actionInfo[PushVlan]; ok {
+	} else if direction == tp_pb.Direction_UPSTREAM {
 		logger.Infow(ctx, "adding-upstream-data-rule", log.Fields{
 			"intf-id": intfID,
 			"onu-id":  onuID,
 			"uni-id":  uniID,
 		})
 		//Adding HSIA upstream flow
-		if err := f.addUpstreamDataPathFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
+		if err := f.addUpstreamDataPathFlow(ctx, flowContext); err != nil {
 			logger.Warn(ctx, err)
 		}
-	} else if _, ok := actionInfo[PopVlan]; ok {
+	} else if direction == tp_pb.Direction_DOWNSTREAM {
 		logger.Infow(ctx, "adding-downstream-data-rule", log.Fields{
 			"intf-id": intfID,
 			"onu-id":  onuID,
 			"uni-id":  uniID,
 		})
 		//Adding HSIA downstream flow
-		if err := f.addDownstreamDataPathFlow(ctx, intfID, onuID, uniID, portNo, classifierInfo, actionInfo, flow, allocID, gemPort, tpID, pbitToGem); err != nil {
+		if err := f.addDownstreamDataPathFlow(ctx, flowContext); err != nil {
 			logger.Warn(ctx, err)
 		}
 	} else {

@@ -1272,9 +1272,9 @@ func (tpm *TechProfileMgr) GetUsTrafficScheduler(ctx context.Context, tp *TechPr
 		Scheduler: UsScheduler}
 }
 
-func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}, dir tp_pb.Direction, pbit uint32) uint32 {
+func (t *TechProfileMgr) GetGemportForPbit(ctx context.Context, tp interface{}, dir tp_pb.Direction, pbit uint32) interface{} {
 	/*
-	  Function to get the Gemport ID mapped to a pbit.
+	  Function to get the Gemport mapped to a pbit.
 	*/
 	switch tp := tp.(type) {
 	case *TechProfile:
@@ -1289,7 +1289,7 @@ func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}
 					if p, err := strconv.Atoi(string(tp.UpstreamGemPortAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
 						if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
 							logger.Debugw(ctx, "Found-US-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.UpstreamGemPortAttributeList[gemCnt].GemportID})
-							return tp.UpstreamGemPortAttributeList[gemCnt].GemportID
+							return tp.UpstreamGemPortAttributeList[gemCnt]
 						}
 					}
 				}
@@ -1305,7 +1305,7 @@ func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}
 					if p, err := strconv.Atoi(string(tp.DownstreamGemPortAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
 						if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
 							logger.Debugw(ctx, "Found-DS-GEMport-for-Pcp", log.Fields{"pbit": pbit, "GEMport": tp.DownstreamGemPortAttributeList[gemCnt].GemportID})
-							return tp.DownstreamGemPortAttributeList[gemCnt].GemportID
+							return tp.DownstreamGemPortAttributeList[gemCnt]
 						}
 					}
 				}
@@ -1324,7 +1324,7 @@ func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}
 					if p, err := strconv.Atoi(string(tp.UpstreamQueueAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
 						if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
 							logger.Debugw(ctx, "Found-US-Queue-for-Pcp", log.Fields{"pbit": pbit, "Queue": tp.UpstreamQueueAttributeList[gemCnt].GemportID})
-							return tp.UpstreamQueueAttributeList[gemCnt].GemportID
+							return tp.UpstreamQueueAttributeList[gemCnt]
 						}
 					}
 				}
@@ -1340,7 +1340,7 @@ func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}
 					if p, err := strconv.Atoi(string(tp.DownstreamQueueAttributeList[gemCnt].PbitMap[lenOfPbitMap-pbitMapIdx+1])); err == nil {
 						if uint32(pbitMapIdx-2) == pbit && p == 1 { // Check this p-bit is set
 							logger.Debugw(ctx, "Found-DS-Queue-for-Pcp", log.Fields{"pbit": pbit, "Queue": tp.DownstreamQueueAttributeList[gemCnt].GemportID})
-							return tp.DownstreamQueueAttributeList[gemCnt].GemportID
+							return tp.DownstreamQueueAttributeList[gemCnt]
 						}
 					}
 				}
@@ -1350,7 +1350,7 @@ func (t *TechProfileMgr) GetGemportIDForPbit(ctx context.Context, tp interface{}
 	default:
 		logger.Errorw(ctx, "unknown-tech", log.Fields{"tp": tp})
 	}
-	return 0
+	return nil
 }
 
 // FindAllTpInstances returns all TechProfile instances for a given TechProfile table-id, pon interface ID and onu ID.
