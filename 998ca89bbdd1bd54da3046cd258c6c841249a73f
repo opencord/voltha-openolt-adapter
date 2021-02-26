@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6116a852_336f1282",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2888,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-02-26T12:52:08Z",
+      "side": 1,
+      "message": "this explicitly ignores the error, meaning we woudl end up with false in the mapping, is this ok ?",
+      "revId": "998ca89bbdd1bd54da3046cd258c6c841249a73f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
