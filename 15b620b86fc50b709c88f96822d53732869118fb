@@ -81,6 +81,24 @@
       "revId": "15b620b86fc50b709c88f96822d53732869118fb",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6a55ff4_58c341c9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-03-01T22:04:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3109ccc7_0e0f4ce0",
+      "revId": "15b620b86fc50b709c88f96822d53732869118fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
