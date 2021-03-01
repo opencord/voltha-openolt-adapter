@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23111edb_24c4b229",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-01T08:38:47Z",
+      "side": 1,
+      "message": "should this be renamed to perPonChannel and ponIndicationsChannels ?",
+      "revId": "01aa65dce2c31df59305ed09c2d6010ad4aaf07c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0b04e30_a81d61c2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-01T08:38:47Z",
+      "side": 1,
+      "message": "same",
+      "revId": "01aa65dce2c31df59305ed09c2d6010ad4aaf07c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
