@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e29abf63_d879fb30",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-03-01T21:23:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ea0ecaf_2d750cc4",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 29
+      },
+      "revId": "15b620b86fc50b709c88f96822d53732869118fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21acfeae_30edbb1d",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2021-03-01T19:39:56Z",
       "side": 1,
       "message": "The jira description says \"HW does not send ONU serial number in OnuDiscoveryIndication and OnuIndication messages\" . But you access Serial number here, so I am not sure of the intention of moving from per onu channel to per pon port channel. I am not for or against the idea, but trying to understand why this change was needed.",
+      "revId": "15b620b86fc50b709c88f96822d53732869118fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3109ccc7_0e0f4ce0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-03-01T21:23:39Z",
+      "side": 1,
+      "message": "I think it was only the  OnuIndication that serial number is not received in. I need to change the Jira task description. I guess serial number is not a mandatory parameter, so it is not sent in some indications(at least from Edgecore OLTs)",
+      "parentUuid": "21acfeae_30edbb1d",
       "revId": "15b620b86fc50b709c88f96822d53732869118fb",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
