@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "eb793c46_244c3e32",
+        "filename": "VERSION",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-02T13:41:38Z",
+      "side": 1,
+      "message": "do you want to release ? if so you need to just remove the -dev. if you don\u0027t care about releasing please leave the 3.1.4-dev",
+      "revId": "30da283b4128e34c67bcc52d343206858ef9a717",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ed4675e2_79f4218d",
         "filename": "internal/pkg/core/statsmanager.go",
         "patchSetId": 1
