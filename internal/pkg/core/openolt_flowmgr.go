@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/opencord/voltha-lib-go/v4/pkg/meters"
 	"strconv"
 	"strings"
 	"sync"
@@ -511,25 +512,15 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"flow-metadata": sq.flowMetadata,
 			"meter-id":      sq.meterID,
 			"device-id":     f.deviceHandler.device.Id}, nil)
-	} else if len(meterInfo.MeterConfig.Bands) < MaxMeterBand {
-		logger.Errorw(ctx, "invalid-number-of-bands-in-meter",
-			log.Fields{"Bands": meterInfo.MeterConfig.Bands,
-				"meter-id":  sq.meterID,
-				"device-id": f.deviceHandler.device.Id})
-		return olterrors.NewErrInvalidValue(log.Fields{
-			"reason":          "Invalid-number-of-bands-in-meter",
-			"meterband-count": len(meterInfo.MeterConfig.Bands),
-			"metabands":       meterInfo.MeterConfig.Bands,
-			"meter-id":        sq.meterID,
-			"device-id":       f.deviceHandler.device.Id}, nil)
 	}
-	cir := meterInfo.MeterConfig.Bands[0].Rate
-	cbs := meterInfo.MeterConfig.Bands[0].BurstSize
-	eir := meterInfo.MeterConfig.Bands[1].Rate
-	ebs := meterInfo.MeterConfig.Bands[1].BurstSize
-	pir := cir + eir
-	pbs := cbs + ebs
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+
+	var TrafficShaping *tp_pb.TrafficShapingInfo
+	if TrafficShaping, err = meters.GetTrafficShapingInfo(ctx, &meterInfo.MeterConfig); err != nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
