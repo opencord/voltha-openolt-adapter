@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ee1fa4c_3cb3a8a6",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3411,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-03-10T07:52:31Z",
+      "side": 1,
+      "message": "should this be firstBand?",
+      "range": {
+        "startLine": 3411,
+        "startChar": 63,
+        "endLine": 3411,
+        "endChar": 73
+      },
+      "revId": "efb5357ce76c84b8185815d01cc7d5cbeb487976",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
