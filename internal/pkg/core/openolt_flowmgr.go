@@ -486,25 +486,15 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"flow-metadata": sq.flowMetadata,
 			"meter-id":      sq.meterID,
 			"device-id":     f.deviceHandler.device.Id}, nil)
-	} else if len(meterConfig.Bands) < MaxMeterBand {
-		logger.Errorw(ctx, "invalid-number-of-bands-in-meter",
-			log.Fields{"Bands": meterConfig.Bands,
-				"meter-id":  sq.meterID,
-				"device-id": f.deviceHandler.device.Id})
-		return olterrors.NewErrInvalidValue(log.Fields{
-			"reason":          "Invalid-number-of-bands-in-meter",
-			"meterband-count": len(meterConfig.Bands),
-			"metabands":       meterConfig.Bands,
-			"meter-id":        sq.meterID,
-			"device-id":       f.deviceHandler.device.Id}, nil)
 	}
-	cir := meterConfig.Bands[0].Rate
-	cbs := meterConfig.Bands[0].BurstSize
-	eir := meterConfig.Bands[1].Rate
-	ebs := meterConfig.Bands[1].BurstSize
-	pir := cir + eir
-	pbs := cbs + ebs
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+
+	TrafficShaping := f.createTrafficShaping(ctx, meterConfig)
+	if TrafficShaping == nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
@@ -650,14 +640,13 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 				"device-id": f.deviceHandler.device.Id})
 		return nil
 	}
-	cir := KVStoreMeter.Bands[0].Rate
-	cbs := KVStoreMeter.Bands[0].BurstSize
-	eir := KVStoreMeter.Bands[1].Rate
-	ebs := KVStoreMeter.Bands[1].BurstSize
-	pir := cir + eir
-	pbs := cbs + ebs
-
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+	TrafficShaping := f.createTrafficShaping(ctx, KVStoreMeter)
+	if TrafficShaping == nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
@@ -3401,6 +3390,45 @@ func (f *OpenOltFlowMgr) reconcileSubscriberDataPathFlowIDMap(ctx context.Contex
 			}
 		}
 	}
+}
+
+func (f *OpenOltFlowMgr) createTrafficShaping(ctx context.Context, meterConfig *ofp.OfpMeterConfig) *tp_pb.TrafficShapingInfo {
+	switch meterBandSize := len(meterConfig.Bands); {
+	case meterBandSize == 1:
+		band := meterConfig.Bands[0]
+		if band.BurstSize == 0 { // GIR, tcont type 1
+			return &tp_pb.TrafficShapingInfo{Gir: band.Rate}
+		}
+		return &tp_pb.TrafficShapingInfo{Pir: band.Rate, Pbs: band.BurstSize} // PIR, tcont type 4
+	case meterBandSize == 2:
+		firstBand, secondBand := meterConfig.Bands[0], meterConfig.Bands[1]
+		if firstBand.BurstSize == 0 && secondBand.BurstSize == 0 &&
+			firstBand.Rate == secondBand.Rate { // PIR == GIR, tcont type 1
+			return &tp_pb.TrafficShapingInfo{Pir: firstBand.Rate, Gir: secondBand.Rate}
+		}
+		if firstBand.BurstSize > 0 && secondBand.BurstSize > 0 { // PIR, CIR, tcont type 2 or 3
+			if firstBand.Rate > secondBand.Rate { // always PIR >= CIR
+				return &tp_pb.TrafficShapingInfo{Pir: firstBand.Rate, Pbs: secondBand.BurstSize, Cir: secondBand.Rate, Cbs: secondBand.BurstSize}
+			}
+			return &tp_pb.TrafficShapingInfo{Pir: secondBand.Rate, Pbs: secondBand.BurstSize, Cir: firstBand.Rate, Cbs: firstBand.BurstSize}
+		}
+	case meterBandSize == 3: // PIR,CIR,GIR, tcont type 5
+		for i, band := range meterConfig.Bands {
+			if band.BurstSize == 0 { // find GIR
+				bands := make([]*ofp.OfpMeterBandHeader, len(meterConfig.Bands))
+				copy(bands, meterConfig.Bands)
+				pirCirBands := append(bands[:i], bands[i+1:]...)
+				firstBand, secondBand := pirCirBands[0], pirCirBands[1]
+				if firstBand.Rate > secondBand.Rate {
+					return &tp_pb.TrafficShapingInfo{Pir: firstBand.Rate, Pbs: firstBand.BurstSize, Cir: secondBand.Rate, Cbs: secondBand.BurstSize, Gir: band.Rate}
+				}
+				return &tp_pb.TrafficShapingInfo{Pir: secondBand.Rate, Pbs: secondBand.BurstSize, Cir: firstBand.Rate, Cbs: firstBand.BurstSize, Gir: band.Rate}
+			}
+		}
+	default:
+		logger.Errorw(ctx, "invalid-meter-config", log.Fields{"device-id": f.deviceHandler.device.Id})
+	}
+	return nil
 }
 
 // isDatapathFlow declares a flow as datapath flow if it is not a controller bound flow and the flow does not have group
