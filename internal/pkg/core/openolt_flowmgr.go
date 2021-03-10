@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/opencord/voltha-lib-go/v4/pkg/meters"
 	"strconv"
 	"strings"
 	"sync"
@@ -502,25 +503,15 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"flow-metadata": sq.flowMetadata,
 			"meter-id":      sq.meterID,
 			"device-id":     f.deviceHandler.device.Id}, nil)
-	} else if len(meterConfig.Bands) < MaxMeterBand {
-		logger.Errorw(ctx, "invalid-number-of-bands-in-meter",
-			log.Fields{"Bands": meterConfig.Bands,
-				"meter-id":  sq.meterID,
-				"device-id": f.deviceHandler.device.Id})
-		return olterrors.NewErrInvalidValue(log.Fields{
-			"reason":          "Invalid-number-of-bands-in-meter",
-			"meterband-count": len(meterConfig.Bands),
-			"metabands":       meterConfig.Bands,
-			"meter-id":        sq.meterID,
-			"device-id":       f.deviceHandler.device.Id}, nil)
 	}
-	cir := meterConfig.Bands[0].Rate
-	cbs := meterConfig.Bands[0].BurstSize
-	eir := meterConfig.Bands[1].Rate
-	ebs := meterConfig.Bands[1].BurstSize
-	pir := cir + eir
-	pbs := cbs + ebs
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+
+	TrafficShaping := meters.GetTrafficShapingInfo(ctx, meterConfig)
+	if TrafficShaping == nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
@@ -666,14 +657,13 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 				"device-id": f.deviceHandler.device.Id})
 		return nil
 	}
-	cir := KVStoreMeter.Bands[0].Rate
-	cbs := KVStoreMeter.Bands[0].BurstSize
-	eir := KVStoreMeter.Bands[1].Rate
-	ebs := KVStoreMeter.Bands[1].BurstSize
-	pir := cir + eir
-	pbs := cbs + ebs
-
-	TrafficShaping := &tp_pb.TrafficShapingInfo{Cir: cir, Cbs: cbs, Pir: pir, Pbs: pbs}
+	TrafficShaping := meters.GetTrafficShapingInfo(ctx, KVStoreMeter)
+	if TrafficShaping == nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
 
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile[sq.intfID].GetTrafficScheduler(sq.tpInst.(*tp.TechProfile), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
