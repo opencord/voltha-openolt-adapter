@@ -1192,3 +1192,62 @@ func Test_startCollector(t *testing.T) {
 		})
 	}
 }
+
+func TestDeviceHandler_TestReconcileStatus(t *testing.T) {
+
+	// olt disconnect (not reboot)
+	dh1 := newMockDeviceHandler()
+	dh1.adapterPreviouslyConnected = false
+	dh1.agentPreviouslyConnected = true
+
+	// adapter restart
+	dh2 := newMockDeviceHandler()
+	dh2.Client = &mocks.MockOpenoltClient{}
+	dh2.adapterPreviouslyConnected = true
+	dh2.agentPreviouslyConnected = true
+
+	// first connection or olt restart
+	dh3 := newMockDeviceHandler()
+	dh3.Client = &mocks.MockOpenoltClient{}
+	dh3.adapterPreviouslyConnected = false
+	dh3.agentPreviouslyConnected = false
+
+	// olt and adapter restart at the same time (first case)
+	dh4 := newMockDeviceHandler()
+	dh4.Client = &mocks.MockOpenoltClient{}
+	dh4.adapterPreviouslyConnected = true
+	dh4.agentPreviouslyConnected = false
+
+	// adapter restart and olt disconnect at the same time
+	dh5 := newMockDeviceHandler()
+	dh5.Client = &mocks.MockOpenoltClient{}
+	dh5.adapterPreviouslyConnected = true
+	dh5.agentPreviouslyConnected = true
+
+	tests := []struct {
+		name            string
+		devicehandler   *DeviceHandler
+		expectedRestart bool
+		wantErr         bool
+	}{
+		{"dostateup-1", dh1, true, false},
+		{"dostateup-2", dh2, false, false},
+		{"dostateup-3", dh3, false, false},
+		{"dostateup-4", dh4, true, false},
+		{"dostateup-5", dh5, false, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := tt.devicehandler.doStateUp(ctx); (err != nil) != tt.wantErr {
+				t.Logf("DeviceHandler.doStateUp() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			tt.devicehandler.stopCollector <- true //stop the stat collector invoked from doStateUp
+			isRestarted := tt.devicehandler.Client.(*mocks.MockOpenoltClient).IsRestarted
+			if tt.expectedRestart != isRestarted {
+				t.Errorf("olt-reboot-failed expected= %v, got= %v", tt.expectedRestart, isRestarted)
+			}
+		})
+	}
+}

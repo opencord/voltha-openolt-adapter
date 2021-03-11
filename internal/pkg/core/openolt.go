@@ -183,6 +183,7 @@ func (oo *OpenOLT) Reconcile_device(ctx context.Context, device *voltha.Device) 
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		handler := NewDeviceHandler(oo.coreProxy, oo.adapterProxy, oo.eventProxy, device, oo, oo.configManager)
+		handler.adapterPreviouslyConnected = true
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
 		handler.transitionMap.Handle(ctx, DeviceInit)

@@ -31,7 +31,8 @@ import (
 
 // MockOpenoltClient mock struct for OpenoltClient.
 type MockOpenoltClient struct {
-	counter int
+	counter     int
+	IsRestarted bool
 }
 
 // DisableOlt mocks the DisableOlt function of Openoltclient.
@@ -138,6 +139,7 @@ func (ooc *MockOpenoltClient) GetDeviceInfo(ctx context.Context, in *openolt.Emp
 func (ooc *MockOpenoltClient) Reboot(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
 	if ooc.counter == 0 {
 		ooc.counter++
+		ooc.IsRestarted = true
 		return &openolt.Empty{}, nil
 	}
 	return nil, errors.New("reboot failed")
