@@ -101,6 +101,9 @@ type DeviceHandler struct {
 	// Slice of channels. Each channel in slice, index by (mcast-group-id modulo MaxNumOfGroupHandlerChannels)
 	// A go routine per index, waits on a unique channel for incoming mcast flow or group (add/modify/remove).
 	incomingMcastFlowOrGroup []chan McastFlowOrGroupControlBlock
+
+	adapterPreviouslyConnected bool
+	agentPreviouslyConnected   bool
 }
 
 //OnuDevice represents ONU related info
@@ -642,6 +645,18 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	raisedTs := time.Now().UnixNano()
 	go dh.eventMgr.oltCommunicationEvent(ctx, dh.device, raisedTs)
 
+	//check adapter and agent reconcile status
+	//reboot olt if needed (olt disconnection case)
+	if dh.adapterPreviouslyConnected != dh.agentPreviouslyConnected {
+		logger.Warnw(ctx, "different-reconcile-status-between-adapter-and-agent",
+			log.Fields{
+				"device-id":      dh.device.Id,
+				"adapter-status": dh.adapterPreviouslyConnected,
+				"agent-status":   dh.agentPreviouslyConnected,
+			})
+		_ = dh.RebootDevice(ctx, dh.device)
+	}
+
 	return nil
 }
 
@@ -813,6 +828,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 		return olterrors.NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 	dh.totalPonPorts = deviceInfo.GetPonPorts()
+	dh.agentPreviouslyConnected = deviceInfo.PreviouslyConnected
 
 	// Instantiate resource manager
 	if dh.resourceMgr = rsrcMgr.NewResourceMgr(ctx, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, deviceInfo, dh.cm.Backend.PathPrefix); dh.resourceMgr == nil {
@@ -2043,6 +2059,9 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 			dh.stopIndications <- true
 		}
 		dh.lockDevice.RUnlock()
+
+		//reset adapter reconcile flag
+		dh.adapterPreviouslyConnected = false
 
 		dh.transitionMap.Handle(ctx, DeviceInit)
 
