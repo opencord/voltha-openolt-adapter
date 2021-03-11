@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "280ccab4_93e68e23",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 651,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-11T12:53:06Z",
+      "side": 1,
+      "message": "please add \"rebooting device\" to the log.",
+      "revId": "c2ee5f481b5d492040bbf0f9541f7e2ea8133777",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5dfece1_a039bd29",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2000,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-11T12:53:06Z",
+      "side": 1,
+      "message": "is it worth to have an update to the core here with a transient state device_unreachable ? @Khen, thoughts ?",
+      "revId": "c2ee5f481b5d492040bbf0f9541f7e2ea8133777",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
