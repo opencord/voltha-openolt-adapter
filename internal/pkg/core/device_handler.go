@@ -2146,25 +2146,18 @@ func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*volth
 }
 
 // ChildDeviceLost deletes ONU and clears pon resources related to it.
-func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32) error {
+func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32, onuSn string) error {
 	logger.Debugw(ctx, "child-device-lost", log.Fields{"parent-device-id": dh.device.Id})
 	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
 	onuKey := dh.formOnuKey(intfID, onuID)
-	onuDevice, ok := dh.onus.Load(onuKey)
-	if !ok {
-		return olterrors.NewErrAdapter("failed-to-load-onu-details",
-			log.Fields{
-				"device-id": dh.device.Id,
-				"onu-id":    onuID,
-				"intf-id":   intfID}, nil).Log()
-	}
+
 	var sn *oop.SerialNumber
 	var err error
-	if sn, err = dh.deStringifySerialNumber(onuDevice.(*OnuDevice).serialNumber); err != nil {
+	if sn, err = dh.deStringifySerialNumber(onuSn); err != nil {
 		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
 			log.Fields{
 				"devicer-id":    dh.device.Id,
-				"serial-number": onuDevice.(*OnuDevice).serialNumber}, err).Log()
+				"serial-number": onuSn}, err).Log()
 	}
 
 	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
@@ -2187,7 +2180,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 				"error":     err})
 		} else {
 			for i, onu := range onuGemData {
-				if onu.OnuID == onuID && onu.SerialNumber == onuDevice.(*OnuDevice).serialNumber {
+				if onu.OnuID == onuID && onu.SerialNumber == onuSn {
 					logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
 					if err := dh.clearUNIData(ctx, &onu); err != nil {
 						logger.Warnw(ctx, "failed-to-clear-uni-data-for-onu", log.Fields{
@@ -2217,7 +2210,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		}
 	}
 	dh.onus.Delete(onuKey)
-	dh.discOnus.Delete(onuDevice.(*OnuDevice).serialNumber)
+	dh.discOnus.Delete(onuSn)
 	return nil
 }
 
