@@ -350,12 +350,12 @@ func (oo *OpenOLT) enableDisablePort(ctx context.Context, deviceID string, port 
 }
 
 //Child_device_lost deletes the ONU and its references from PONResources
-func (oo *OpenOLT) Child_device_lost(ctx context.Context, deviceID string, pPortNo uint32, onuID uint32) error {
-	logger.Infow(ctx, "Child-device-lost", log.Fields{"parent-device-id": deviceID})
-	if handler := oo.getDeviceHandler(deviceID); handler != nil {
-		return handler.ChildDeviceLost(ctx, pPortNo, onuID)
+func (oo *OpenOLT) Child_device_lost(ctx context.Context, childDevice *voltha.Device) error {
+	logger.Infow(ctx, "Child-device-lost", log.Fields{"parent-device-id": childDevice.ParentId, "child-device-id": childDevice.Id})
+	if handler := oo.getDeviceHandler(childDevice.ParentId); handler != nil {
+		return handler.ChildDeviceLost(ctx, childDevice.ParentPortNo, childDevice.ProxyAddress.OnuId, childDevice.SerialNumber)
 	}
-	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": deviceID}, nil).Log()
+	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": childDevice.ParentId}, nil).Log()
 }
 
 //Start_omci_test not implemented
