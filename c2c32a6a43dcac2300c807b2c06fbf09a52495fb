@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ddeb1884_09ab396b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 648,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-15T21:01:28Z",
+      "side": 1,
+      "message": "I think it\u0027s best to move this before everything in the method. Also here we are effectively rebooting the OLT twice. we only need to actually reboot the device if the adapter think it was not connected (dh.adapterPreviouslyConnected \u003d false) but the device thinks it was (dh.agentPreviouslyConnected \u003d true), in this case the OLT still has some state and we can purge state so we reboot. In the other case (dh.adapterPreviouslyConnected \u003d true) and (dh.agentPreviouslyConnected \u003d false) can we just wipe the device clear from VOLTHA and then re-connect it via the DeviceStateUpdate ?",
+      "revId": "c2c32a6a43dcac2300c807b2c06fbf09a52495fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a20d451b_2b913063",
+        "filename": "internal/pkg/core/device_handler_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-15T21:01:28Z",
+      "side": 1,
+      "message": "please comment more on this:\n// olt disconnect for more than heartbeatfailureReportInterval (not reboot)",
+      "revId": "c2c32a6a43dcac2300c807b2c06fbf09a52495fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
