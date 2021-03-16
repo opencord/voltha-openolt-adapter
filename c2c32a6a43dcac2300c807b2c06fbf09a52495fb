@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "83a0d29e_add6cf61",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 648,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-03-16T06:29:26Z",
+      "side": 1,
+      "message": "First of all,\nIf I move this before everything in the method, I can\u0027t clear olt stuff after new reboot.\nupdateStateUnreachable method has an if condition that controls the olts\u0027 connectstate, and if the connect status is reachable it clears everything. (if device.ConnectStatus \u003d\u003d voltha.ConnectStatus_REACHABLE). If I move this method, the connect state will be unreachable, and I can\u0027t remove its managers, device info, ranges etc. \nSo, if I move this method, I also need to update upsateStateUnreachable method condition. What do you think?\n\nRegarding the second concern, yes we reboot device in two cases. If (dh.adapterPreviouslyConnected \u003d true) and (dh.agentPreviouslyConnected \u003d false), we can clear everything from Voltha and re-connect the device, but what if we receive packet-in, packet-out, any alarm, flow add-remove operation, we can get panic from multiple methods (dh.Client can be nil, a map can be nil etc.), so this change may be hard to implement in a safe manner.",
+      "parentUuid": "ddeb1884_09ab396b",
+      "revId": "c2c32a6a43dcac2300c807b2c06fbf09a52495fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a20d451b_2b913063",
         "filename": "internal/pkg/core/device_handler_test.go",
         "patchSetId": 3
