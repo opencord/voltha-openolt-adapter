@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "740b87e1_621096f0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 648,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-03-16T06:43:41Z",
+      "side": 1,
+      "message": "Wiping out the device from VOLTHA takes some time and also includes async child deletions etc. We need to know when the cleaning is finished from VOLTHA to proceed with connection here. Meanwhile during the deletions we will receive indications for child devices from OLT. I guess that is why we chose to restart OLT to trigger cleanup and get OLT up indication afterwards.",
+      "parentUuid": "ddeb1884_09ab396b",
+      "revId": "c2c32a6a43dcac2300c807b2c06fbf09a52495fb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a20d451b_2b913063",
         "filename": "internal/pkg/core/device_handler_test.go",
         "patchSetId": 3
