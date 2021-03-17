@@ -173,10 +173,10 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
 	help = fmt.Sprintf("Number of seconds for heartbeat check interval.")
-	flag.DurationVar(&(so.HeartbeatCheckInterval), "hearbeat_check_interval", defaultHearbeatCheckInterval, help)
+	flag.DurationVar(&(so.HeartbeatCheckInterval), "heartbeat_check_interval", defaultHearbeatCheckInterval, help)
 
 	help = fmt.Sprintf("Number of seconds adapter has to wait before reporting core on the hearbeat check failure.")
-	flag.DurationVar(&(so.HeartbeatFailReportInterval), "hearbeat_fail_interval", defaultHearbeatFailReportInterval, help)
+	flag.DurationVar(&(so.HeartbeatFailReportInterval), "heartbeat_fail_interval", defaultHearbeatFailReportInterval, help)
 
 	help = fmt.Sprintf("Number of seconds for GRPC timeout.")
 	flag.DurationVar(&(so.GrpcTimeoutInterval), "grpc_timeout_interval", defaultGrpcTimeoutInterval, help)
