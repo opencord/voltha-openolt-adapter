@@ -43,10 +43,10 @@ const (
 	defaultProbeAddress         = ":8080"
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
-	//defaultHearbeatFailReportInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
-	defaultHearbeatCheckInterval = 15 * time.Second
-	// defaultHearbeatFailReportInterval is the time adapter will wait before updating the state to the core.
-	defaultHearbeatFailReportInterval = 0 * time.Second
+	//defaultHeartbeatCheckInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
+	defaultHeartbeatCheckInterval = 15 * time.Second
+	// defaultHeartbeatFailReportInterval is the time adapter will wait before updating the state to the core.
+	defaultHeartbeatFailReportInterval = 0 * time.Second
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
 	defaultGrpcTimeoutInterval   = 2 * time.Second
 	defaultCurrentReplica        = 1
@@ -111,8 +111,8 @@ func NewAdapterFlags() *AdapterFlags {
 		ProbeAddress:                defaultProbeAddress,
 		LiveProbeInterval:           defaultLiveProbeInterval,
 		NotLiveProbeInterval:        defaultNotLiveProbeInterval,
-		HeartbeatCheckInterval:      defaultHearbeatCheckInterval,
-		HeartbeatFailReportInterval: defaultHearbeatFailReportInterval,
+		HeartbeatCheckInterval:      defaultHeartbeatCheckInterval,
+		HeartbeatFailReportInterval: defaultHeartbeatFailReportInterval,
 		GrpcTimeoutInterval:         defaultGrpcTimeoutInterval,
 		TraceEnabled:                defaultTraceEnabled,
 		TraceAgentAddress:           defaultTraceAgentAddress,
@@ -173,10 +173,10 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
 	help = fmt.Sprintf("Number of seconds for heartbeat check interval.")
-	flag.DurationVar(&(so.HeartbeatCheckInterval), "hearbeat_check_interval", defaultHearbeatCheckInterval, help)
+	flag.DurationVar(&(so.HeartbeatCheckInterval), "heartbeat_check_interval", defaultHeartbeatCheckInterval, help)
 
 	help = fmt.Sprintf("Number of seconds adapter has to wait before reporting core on the hearbeat check failure.")
-	flag.DurationVar(&(so.HeartbeatFailReportInterval), "hearbeat_fail_interval", defaultHearbeatFailReportInterval, help)
+	flag.DurationVar(&(so.HeartbeatFailReportInterval), "heartbeat_fail_interval", defaultHeartbeatFailReportInterval, help)
 
 	help = fmt.Sprintf("Number of seconds for GRPC timeout.")
 	flag.DurationVar(&(so.GrpcTimeoutInterval), "grpc_timeout_interval", defaultGrpcTimeoutInterval, help)
