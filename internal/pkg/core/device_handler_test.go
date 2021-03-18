@@ -20,6 +20,7 @@ package core
 import (
 	"context"
 	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
+	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
 	"net"
 	"reflect"
 	"sync"
@@ -193,15 +194,23 @@ func newMockDeviceHandler() *DeviceHandler {
 	ranges["gemport_id_shared"] = uint32(0)
 	ranges["flow_id_shared"] = uint32(0)
 
-	ponmgr := &ponrmgr.PONResourceManager{
-		DeviceID: "onu-1",
-		IntfIDs:  []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-		KVStore: &db.Backend{
-			Client: &mocks.MockKVClient{},
-		},
-		PonResourceRanges: ranges,
-		SharedIdxByType:   sharedIdxByType,
+	ponmgr := &ponrmgr.PONResourceManager{}
+
+	ctx := context.TODO()
+	tpMgr, err := tp.NewTechProfile(ctx, ponmgr, "etcd", "127.0.0.1", "/")
+	if err != nil {
+		logger.Fatal(ctx, err.Error())
 	}
+
+	ponmgr.DeviceID = "onu-1"
+	ponmgr.IntfIDs = []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	ponmgr.KVStore = &db.Backend{
+		Client: &mocks.MockKVClient{},
+	}
+	ponmgr.PonResourceRanges = ranges
+	ponmgr.SharedIdxByType = sharedIdxByType
+	ponmgr.TechProfileMgr = tpMgr
+
 	for i := 0; i < NumPonPorts; i++ {
 		dh.resourceMgr.ResourceMgrs[uint32(i)] = ponmgr
 	}

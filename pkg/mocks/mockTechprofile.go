@@ -198,3 +198,13 @@ func (m MockTechProfile) GetGemportForPbit(ctx context.Context, tpInst interface
 func (m MockTechProfile) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{} {
 	return []tp.TechProfile{}
 }
+
+// GetResourceID to mock techprofile GetResourceID method
+func (m MockTechProfile) GetResourceID(ctx context.Context, IntfID uint32, ResourceType string, NumIDs uint32) ([]uint32, error) {
+	return []uint32{}, nil
+}
+
+// FreeResourceID to mock techprofile FreeResourceID method
+func (m MockTechProfile) FreeResourceID(ctx context.Context, IntfID uint32, ResourceType string, ReleaseContent []uint32) error {
+	return nil
+}

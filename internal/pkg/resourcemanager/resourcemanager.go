@@ -446,7 +446,7 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, ponIntfID uint3
 		return 0, err
 	}
 	// Get ONU id for a provided pon interface ID.
-	onuID, err := RsrcMgr.ResourceMgrs[ponIntfID].GetResourceID(ctx, ponIntfID,
+	onuID, err := RsrcMgr.ResourceMgrs[ponIntfID].TechProfileMgr.GetResourceID(ctx, ponIntfID,
 		ponrmgr.ONU_ID, 1)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to get resource for interface %d for type %s",
@@ -841,7 +841,13 @@ func (RsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 	RsrcMgr.OnuIDMgmtLock[intfID].Lock()
 	defer RsrcMgr.OnuIDMgmtLock[intfID].Unlock()
 
-	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID, ponrmgr.ONU_ID, onuID)
+	if err := RsrcMgr.ResourceMgrs[intfID].TechProfileMgr.FreeResourceID(ctx, intfID, ponrmgr.ONU_ID, onuID); err != nil {
+		logger.Errorw(ctx, "error-while-freeing-onu-id", log.Fields{
+			"intf-id": intfID,
+			"onu-id":  onuID,
+			"err":     err.Error(),
+		})
+	}
 
 	/* Free onu id for a particular interface.*/
 	var IntfonuID string
@@ -861,7 +867,13 @@ func (RsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, IntfID uint3
 	RsrcMgr.RemoveAllocIDForOnu(ctx, IntfID, onuID, uniID, allocID)
 	allocIDs := make([]uint32, 0)
 	allocIDs = append(allocIDs, allocID)
-	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.ALLOC_ID, allocIDs)
+	if err := RsrcMgr.ResourceMgrs[IntfID].TechProfileMgr.FreeResourceID(ctx, IntfID, ponrmgr.ALLOC_ID, allocIDs); err != nil {
+		logger.Errorw(ctx, "error-while-freeing-alloc-id", log.Fields{
+			"intf-id": IntfID,
+			"onu-id":  onuID,
+			"err":     err.Error(),
+		})
+	}
 }
 
 // FreeGemPortID frees GemPortID on the PON resource pool and also frees the gemPortID association
@@ -874,7 +886,13 @@ func (RsrcMgr *OpenOltResourceMgr) FreeGemPortID(ctx context.Context, IntfID uin
 	RsrcMgr.RemoveGemPortIDForOnu(ctx, IntfID, onuID, uniID, gemPortID)
 	gemPortIDs := make([]uint32, 0)
 	gemPortIDs = append(gemPortIDs, gemPortID)
-	RsrcMgr.ResourceMgrs[IntfID].FreeResourceID(ctx, IntfID, ponrmgr.GEMPORT_ID, gemPortIDs)
+	if err := RsrcMgr.ResourceMgrs[IntfID].TechProfileMgr.FreeResourceID(ctx, IntfID, ponrmgr.GEMPORT_ID, gemPortIDs); err != nil {
+		logger.Errorw(ctx, "error-while-freeing-gem-port-id", log.Fields{
+			"intf-id": IntfID,
+			"onu-id":  onuID,
+			"err":     err.Error(),
+		})
+	}
 }
 
 // FreePONResourcesForONU make the pon resources free for a given pon interface and onu id, and the clears the
@@ -886,16 +904,28 @@ func (RsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 	RsrcMgr.AllocIDMgmtLock[intfID].Lock()
 	AllocIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentAllocIDForOnu(ctx, IntfOnuIDUniID)
 
-	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
+	if err := RsrcMgr.ResourceMgrs[intfID].TechProfileMgr.FreeResourceID(ctx, intfID,
 		ponrmgr.ALLOC_ID,
-		AllocIDs)
+		AllocIDs); err != nil {
+		logger.Errorw(ctx, "error-while-freeing-all-alloc-ids-for-onu", log.Fields{
+			"intf-id": intfID,
+			"onu-id":  onuID,
+			"err":     err.Error(),
+		})
+	}
 	RsrcMgr.AllocIDMgmtLock[intfID].Unlock()
 
 	RsrcMgr.GemPortIDMgmtLock[intfID].Lock()
 	GEMPortIDs := RsrcMgr.ResourceMgrs[intfID].GetCurrentGEMPortIDsForOnu(ctx, IntfOnuIDUniID)
-	RsrcMgr.ResourceMgrs[intfID].FreeResourceID(ctx, intfID,
+	if err := RsrcMgr.ResourceMgrs[intfID].TechProfileMgr.FreeResourceID(ctx, intfID,
 		ponrmgr.GEMPORT_ID,
-		GEMPortIDs)
+		GEMPortIDs); err != nil {
+		logger.Errorw(ctx, "error-while-freeing-all-gem-port-ids-for-onu", log.Fields{
+			"intf-id": intfID,
+			"onu-id":  onuID,
+			"err":     err.Error(),
+		})
+	}
 	RsrcMgr.GemPortIDMgmtLock[intfID].Unlock()
 
 	// Clear resource map associated with (pon_intf_id, gemport_id) tuple.
