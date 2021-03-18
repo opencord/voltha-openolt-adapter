@@ -27,6 +27,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
 	"reflect"
 	"strconv"
 	"strings"
@@ -86,6 +87,7 @@ type MockResKVClient struct {
 
 // getResMgr mocks OpenOltResourceMgr struct.
 func getResMgr() *fields {
+	ctx := context.TODO()
 	var resMgr fields
 	resMgr.KVStore = &db.Backend{
 		Client: &MockResKVClient{},
@@ -106,15 +108,21 @@ func getResMgr() *fields {
 	ranges["gemport_id_shared"] = uint32(0)
 	ranges["flow_id_shared"] = uint32(0)
 	resMgr.NumOfPonPorts = 16
-	ponMgr := &ponrmgr.PONResourceManager{
-		DeviceID: "onu-1",
-		IntfIDs:  []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-		KVStore: &db.Backend{
-			Client: &MockResKVClient{},
-		},
-		PonResourceRanges: ranges,
-		SharedIdxByType:   sharedIdxByType,
+	ponMgr := &ponrmgr.PONResourceManager{}
+	tpMgr, err := tp.NewTechProfile(ctx, ponMgr, "etcd", "127.0.0.1", "/")
+	if err != nil {
+		logger.Fatal(ctx, err.Error())
 	}
+
+	ponMgr.DeviceID = "onu-1"
+	ponMgr.IntfIDs = []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	ponMgr.KVStore = &db.Backend{
+		Client: &MockResKVClient{},
+	}
+	ponMgr.PonResourceRanges = ranges
+	ponMgr.SharedIdxByType = sharedIdxByType
+	ponMgr.TechProfileMgr = tpMgr
+
 	var ponIntf uint32
 	for ponIntf = 0; ponIntf < resMgr.NumOfPonPorts; ponIntf++ {
 		resMgr.ResourceMgrs[ponIntf] = ponMgr
