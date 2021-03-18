@@ -703,6 +703,13 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 	   :return list/uint32/None: list, uint32 or None if resource type is
 	    alloc_id/gemport_id, onu_id or invalid type respectively
 	*/
+
+	logger.Infow(ctx, "TEO PON-RM getting-resource-id", log.Fields{
+		"intf-id": IntfID,
+		"resource-type": ResourceType,
+		"num": NumIDs,
+	})
+
 	if NumIDs < 1 {
 		logger.Error(ctx, "Invalid number of resources requested")
 		return nil, fmt.Errorf("Invalid number of resources requested %d", NumIDs)
@@ -771,21 +778,30 @@ func checkValidResourceType(ResourceType string) bool {
 	return false
 }
 
-func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID uint32, ResourceType string, ReleaseContent []uint32) bool {
+func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID uint32, ResourceType string, ReleaseContent []uint32) error {
 	/*
-	   Release alloc/gemport/onu/flow id for given OLT PON interface.
-	   :param pon_intf_id: OLT PON interface id
-	   :param resource_type: String to identify type of resource
-	   :param release_content: required number of ids
-	   :return boolean: True if all IDs in given release_content release else False
-	*/
+	  Release alloc/gemport/onu/flow id for given OLT PON interface.
+	  :param pon_intf_id: OLT PON interface id
+	  :param resource_type: String to identify type of resource
+	  :param release_content: required number of ids
+	  :return boolean: True if all IDs in given release_content release else False
+   */
+
+	logger.Infow(ctx, "TEO PON-RM freeing-resource-id", log.Fields{
+		"intf-id": IntfID,
+		"resource-type": ResourceType,
+		"release-content": ReleaseContent,
+	})
+
 	if !checkValidResourceType(ResourceType) {
-		logger.Error(ctx, "Invalid resource type")
-		return false
+		err := fmt.Errorf("Invalid resource type: %s", ResourceType)
+		logger.Error(ctx, err.Error())
+		return err
 	}
 	if ReleaseContent == nil {
-		logger.Debug(ctx, "Nothing to release")
-		return true
+		err := fmt.Errorf("Nothing to release")
+		logger.Debug(ctx, err.Error())
+		return err
 	}
 	// delegate to the master instance if sharing enabled across instances
 	SharedResourceMgr := PONRMgr.SharedResourceMgrs[PONRMgr.SharedIdxByType[ResourceType]]
@@ -794,22 +810,24 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 	}
 	Path := PONRMgr.GetPath(ctx, IntfID, ResourceType)
 	if Path == "" {
-		logger.Error(ctx, "Failed to get path")
-		return false
+		err := fmt.Errorf("Failed to get path for IntfId %s and ResourceType %s", IntfID, ResourceType)
+		logger.Error(ctx, err.Error())
+		return err
 	}
 	Resource, err := PONRMgr.GetResource(ctx, Path)
 	if err != nil {
-		logger.Error(ctx, "Failed to get resource")
-		return false
+		logger.Error(ctx, err.Error())
+		return err
 	}
 	for _, Val := range ReleaseContent {
 		PONRMgr.ReleaseID(ctx, Resource, Val)
 	}
 	if PONRMgr.UpdateResource(ctx, Path, Resource) != nil {
-		logger.Errorf(ctx, "Free resource for %s failed", Path)
-		return false
+		err := fmt.Errorf("Free resource for %s failed", Path)
+		logger.Errorf(ctx, err.Error())
+		return err
 	}
-	return true
+	return nil
 }
 
 func (PONRMgr *PONResourceManager) UpdateResource(ctx context.Context, Path string, Resource map[string]interface{}) error {
@@ -1256,6 +1274,10 @@ func (PONRMgr *PONResourceManager) GetResourceTypeAllocID() string {
 
 func (PONRMgr *PONResourceManager) GetResourceTypeGemPortID() string {
 	return GEMPORT_ID
+}
+
+func (PONRMgr *PONResourceManager) GetResourceTypeOnuID() string {
+	return ONU_ID
 }
 
 // ToByte converts an interface value to a []byte.  The interface should either be of
