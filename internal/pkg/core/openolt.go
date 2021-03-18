@@ -188,6 +188,11 @@ func (oo *OpenOLT) Reconcile_device(ctx context.Context, device *voltha.Device) 
 		handler.adapterPreviouslyConnected = true
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
+		//Setting state to RECONCILING
+		err := handler.coreProxy.DeviceStateUpdate(ctx, device.Id, device.ConnectStatus, voltha.OperStatus_RECONCILING)
+		if err != nil {
+			return err
+		}
 		handler.transitionMap.Handle(ctx, DeviceInit)
 	}
 	return nil
