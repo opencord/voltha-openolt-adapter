@@ -790,6 +790,20 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		return nil
 	}
 
+	if device.OperStatus == voltha.OperStatus_RECONCILING {
+		logger.Debugln(ctx, "do-state-connected--oper-status-active")
+
+		cloned := proto.Clone(device).(*voltha.Device)
+		cloned.ConnectStatus = voltha.ConnectStatus_REACHABLE
+		cloned.OperStatus = voltha.OperStatus_ACTIVE
+		dh.device = cloned
+
+		//state change will be communicated to core in populateDeviceInfo() along with other device info
+		/*if err = dh.coreProxy.DeviceStateUpdate(ctx, cloned.Id, cloned.ConnectStatus, cloned.OperStatus); err != nil {
+			return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}*/
+	}
+
 	ports, err := dh.coreProxy.ListDevicePorts(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id)
 	if err != nil {
 		/*TODO: needs to handle error scenarios */
