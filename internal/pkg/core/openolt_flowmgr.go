@@ -840,6 +840,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 		}
 		logger.Infow(ctx, "allocated-tcont-and-gem-ports",
 			log.Fields{
+				"intf-id":   intfID,
+				"onu-id":    onuID,
+				"uni-id":    uniID,
 				"alloc-ids": allocIDs,
 				"gemports":  allgemPortIDs,
 				"device-id": f.deviceHandler.device.Id})
