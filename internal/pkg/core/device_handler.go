@@ -729,6 +729,10 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		)))
 
 	if err != nil {
+		uErr := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, dh.device.ConnectStatus, common.OperStatus_RECONCILE_FAILED)
+		if uErr != nil {
+			err = errors.New(err.Error() + "," + uErr.Error())
+		}
 		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.device.Id,
 			"host-and-port": dh.device.GetHostAndPort()}, err)
@@ -744,9 +748,17 @@ func (dh *DeviceHandler) postInit(ctx context.Context) error {
 }
 
 // doStateConnected get the device info and update to voltha core
-func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
-	var err error
+func (dh *DeviceHandler) doStateConnected(ctx context.Context) (err error) {
 	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
+
+	defer func() {
+		if err != nil {
+			uErr := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, dh.device.ConnectStatus, common.OperStatus_RECONCILE_FAILED)
+			if uErr != nil {
+				err = errors.New(err.Error() + ", " + uErr.Error())
+			}
+		}
+	}()
 
 	// Case where OLT is disabled and then rebooted.
 	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
@@ -773,17 +785,9 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		// We should still go ahead an initialize various device handler modules so that when OLT is re-enabled, we have
 		// all the modules initialized and ready to handle incoming ONUs.
 
-		err = dh.initializeDeviceHandlerModules(ctx)
-		if err != nil {
+		if err = dh.initializeHandlerAndReadIndications(ctx); err != nil {
 			return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
-
-		// Start reading indications
-		go func() {
-			if err = dh.readIndications(ctx); err != nil {
-				_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-			}
-		}()
 
 		go startHeartbeatCheck(ctx, dh)
 
@@ -800,8 +804,34 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"ports": ports}, err)
 	}
 
-	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
+	if err = dh.initializeHandlerAndReadIndications(ctx); err != nil {
 		return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+	}
+
+	go dh.updateLocalDevice(ctx)
+
+	if dh.agentPreviouslyConnected {
+		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, dh.device.ConnectStatus, common.OperStatus_ACTIVE); err != nil {
+			return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+	} else {
+		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, dh.device.ConnectStatus, common.OperStatus_UNKNOWN); err != nil {
+			return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+	}
+
+	if device.PmConfigs != nil {
+		dh.UpdatePmConfig(ctx, device.PmConfigs)
+	}
+
+	go startHeartbeatCheck(ctx, dh)
+
+	return nil
+}
+
+func (dh *DeviceHandler) initializeHandlerAndReadIndications(ctx context.Context) error {
+	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
+		return err
 	}
 
 	// Start reading indications
@@ -810,14 +840,6 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 			_ = olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}()
-	go dh.updateLocalDevice(ctx)
-
-	if device.PmConfigs != nil {
-		dh.UpdatePmConfig(ctx, device.PmConfigs)
-	}
-
-	go startHeartbeatCheck(ctx, dh)
-
 	return nil
 }
 
