@@ -744,8 +744,7 @@ func (dh *DeviceHandler) postInit(ctx context.Context) error {
 }
 
 // doStateConnected get the device info and update to voltha core
-func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
-	var err error
+func (dh *DeviceHandler) doStateConnected(ctx context.Context) (err error) {
 	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
 
 	// Case where OLT is disabled and then rebooted.
