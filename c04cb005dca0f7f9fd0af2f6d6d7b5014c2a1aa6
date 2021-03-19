@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "119ff094_b5de4d7f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-03-19T06:08:49Z",
+      "side": 1,
+      "message": "As mentioned in comment below state change will be communicated to core in populateDeviceInfo() function along with other device info.",
+      "parentUuid": "7f7cf43d_1a8fa210",
+      "range": {
+        "startLine": 798,
+        "startChar": 0,
+        "endLine": 798,
+        "endChar": 46
+      },
+      "revId": "c04cb005dca0f7f9fd0af2f6d6d7b5014c2a1aa6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d2201e9_61c2c401",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "c04cb005dca0f7f9fd0af2f6d6d7b5014c2a1aa6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "348a1a0a_599584de",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 804,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-03-19T06:08:49Z",
+      "side": 1,
+      "message": "Will remove this once changes will be finalised !",
+      "parentUuid": "3d2201e9_61c2c401",
+      "range": {
+        "startLine": 801,
+        "startChar": 0,
+        "endLine": 804,
+        "endChar": 5
+      },
+      "revId": "c04cb005dca0f7f9fd0af2f6d6d7b5014c2a1aa6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
