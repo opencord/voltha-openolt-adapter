@@ -2136,7 +2136,10 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 //RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
 
-	logger.Infow(ctx, "removing-flow", log.Fields{"flow": *flow})
+	logger.Infow(ctx, "removing-flow", log.Fields{
+		"flow":      *flow,
+		"device-id": f.deviceHandler.device.Id,
+	})
 	var direction string
 	actionInfo := make(map[string]interface{})
 
@@ -2249,7 +2252,9 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 	logger.Infow(ctx, "adding-flow",
 		log.Fields{
 			"flow":         flow,
-			"flowmetadata": flowMetadata})
+			"flowmetadata": flowMetadata,
+			"device-id":    f.deviceHandler.device.Id,
+		})
 	formulateClassifierInfoFromFlow(ctx, classifierInfo, flow)
 
 	err := formulateActionInfoFromFlow(ctx, actionInfo, classifierInfo, flow)
