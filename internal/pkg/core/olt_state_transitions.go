@@ -41,6 +41,17 @@ const (
 	deviceStateDown
 )
 
+func (d DeviceState) String() string {
+	names := [...]string{
+		"deviceStateNull",
+		"deviceStateInit",
+		"deviceStateConnected",
+		"deviceStateUp",
+		"deviceStateDown",
+	}
+	return names[d]
+}
+
 // Trigger for changing the state
 type Trigger int
 

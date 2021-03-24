@@ -430,9 +430,26 @@ Loop:
 						log.Fields{"err": err,
 							"device-id": dh.device.Id})
 				}
-				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+				// if the connection drops we should retry to establish a new one for a little bit
+				// for now set to 2 Minutes
+				reconnectBackoff := backoff.NewExponentialBackOff()
+				reconnectBackoff.MaxElapsedTime = 2 * time.Minute
+				reconnectOperation := func() error {
+					logger.Debugw(ctx, "attempting-reconnection-to-device",
+						log.Fields{"err": err,
+							"device-id": dh.device.Id})
+					if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+						return err
+					}
+					return nil
+				}
+				if err = backoff.Retry(reconnectOperation, reconnectBackoff); err != nil {
+					logger.Errorw(ctx, "cannot-reconnect-to-device-backoff-expired",
+						log.Fields{"err": err,
+							"device-id": dh.device.Id})
 					return err
 				}
+
 				// once we re-initialized the indication stream, continue to read indications
 				continue
 			}

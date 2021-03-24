@@ -1134,6 +1134,7 @@ func TestDeviceHandler_populateDeviceInfo(t *testing.T) {
 }
 
 func TestDeviceHandler_readIndications(t *testing.T) {
+	t.Skip("Implement actual readIndications tests")
 	dh1 := newMockDeviceHandler()
 	dh2 := newMockDeviceHandler()
 	dh3 := newMockDeviceHandler()
