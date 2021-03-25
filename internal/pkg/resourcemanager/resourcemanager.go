@@ -109,6 +109,12 @@ type GroupInfo struct {
 	OutPorts []uint32
 }
 
+// MeterInfo store meter information at path <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
+type MeterInfo struct {
+	RefCnt      uint8 // number of flow references for this meter. When RefCnt is 0, the MeterInfo should be deleted.
+	MeterConfig ofp.OfpMeterConfig
+}
+
 // OpenOltResourceMgr holds resource related information as provided below for each field
 type OpenOltResourceMgr struct {
 	DeviceID   string      // OLT device id
@@ -1046,15 +1052,14 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateTechProfileIDForOnu(ctx context.Context
 	return err
 }
 
-// UpdateMeterIDForOnu updates the meter id in the KV-Store for the given onu based on the path
+// StoreMeterInfoForOnu updates the meter id in the KV-Store for the given onu based on the path
 // This path is formed as the following: <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
-func (RsrcMgr *OpenOltResourceMgr) UpdateMeterIDForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
-	UniID uint32, TpID uint32, MeterConfig *ofp.OfpMeterConfig) error {
+func (RsrcMgr *OpenOltResourceMgr) StoreMeterInfoForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
+	UniID uint32, TpID uint32, meterInfo *MeterInfo) error {
 	var Value []byte
 	var err error
-
 	IntfOnuUniID := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, TpID, Direction)
-	Value, err = json.Marshal(*MeterConfig)
+	Value, err = json.Marshal(*meterInfo)
 	if err != nil {
 		logger.Error(ctx, "failed to Marshal meter config")
 		return err
@@ -1063,26 +1068,27 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateMeterIDForOnu(ctx context.Context, Dire
 		logger.Errorf(ctx, "Failed to store meter into KV store %s", IntfOnuUniID)
 		return err
 	}
+	logger.Debugw(ctx, "meter info updated successfully", log.Fields{"path": IntfOnuUniID, "meter-info": meterInfo})
 	return err
 }
 
-// GetMeterIDForOnu fetches the meter id from the kv store for the given onu based on the path
+// GetMeterInfoForOnu fetches the meter id from the kv store for the given onu based on the path
 // This path is formed as the following: <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
-func (RsrcMgr *OpenOltResourceMgr) GetMeterIDForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
-	UniID uint32, TpID uint32) (*ofp.OfpMeterConfig, error) {
+func (RsrcMgr *OpenOltResourceMgr) GetMeterInfoForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
+	UniID uint32, TpID uint32) (*MeterInfo, error) {
 	Path := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, TpID, Direction)
-	var meterConfig ofp.OfpMeterConfig
+	var meterInfo MeterInfo
 	Value, err := RsrcMgr.KVStore.Get(ctx, Path)
 	if err == nil {
 		if Value != nil {
-			logger.Debug(ctx, "Found meter in KV store", log.Fields{"Direction": Direction})
+			logger.Debug(ctx, "Found meter info in KV store", log.Fields{"Direction": Direction})
 			Val, er := kvstore.ToByte(Value.Value)
 			if er != nil {
 				logger.Errorw(ctx, "Failed to convert into byte array", log.Fields{"error": er})
 				return nil, er
 			}
-			if er = json.Unmarshal(Val, &meterConfig); er != nil {
-				logger.Error(ctx, "Failed to unmarshal meterconfig", log.Fields{"error": er})
+			if er = json.Unmarshal(Val, &meterInfo); er != nil {
+				logger.Error(ctx, "Failed to unmarshal meter info", log.Fields{"error": er})
 				return nil, er
 			}
 		} else {
@@ -1093,12 +1099,37 @@ func (RsrcMgr *OpenOltResourceMgr) GetMeterIDForOnu(ctx context.Context, Directi
 		logger.Errorf(ctx, "Failed to get Meter config from kvstore for path %s", Path)
 
 	}
-	return &meterConfig, err
+	return &meterInfo, err
+}
+
+// HandleMeterInfoRefCntUpdate increments or decrements the reference counter for a given meter.
+// When reference count becomes 0, it clears the meter information from the kv store
+func (RsrcMgr *OpenOltResourceMgr) HandleMeterInfoRefCntUpdate(ctx context.Context, Direction string,
+	IntfID uint32, OnuID uint32, UniID uint32, TpID uint32, increment bool) error {
+	meterInfo, err := RsrcMgr.GetMeterInfoForOnu(ctx, Direction, IntfID, OnuID, UniID, TpID)
+	if meterInfo == nil || err != nil {
+		return fmt.Errorf("error-fetching-meter-info-for-intf-%d-onu-%d-uni-%d-tp-id-%d-direction-%s", IntfID, OnuID, UniID, TpID, Direction)
+	}
+	if increment {
+		meterInfo.RefCnt++
+	} else {
+		meterInfo.RefCnt--
+		if meterInfo.RefCnt == 0 {
+			if err := RsrcMgr.RemoveMeterInfoForOnu(ctx, Direction, IntfID, OnuID, UniID, TpID); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	if err := RsrcMgr.StoreMeterInfoForOnu(ctx, Direction, IntfID, OnuID, UniID, TpID, meterInfo); err != nil {
+		return err
+	}
+	return nil
 }
 
 // RemoveMeterIDForOnu deletes the meter id from the kV-Store for the given onu based on the path
 // This path is formed as the following: <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
-func (RsrcMgr *OpenOltResourceMgr) RemoveMeterIDForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
+func (RsrcMgr *OpenOltResourceMgr) RemoveMeterInfoForOnu(ctx context.Context, Direction string, IntfID uint32, OnuID uint32,
 	UniID uint32, TpID uint32) error {
 	Path := fmt.Sprintf(MeterIDPathSuffix, IntfID, OnuID, UniID, TpID, Direction)
 	if err := RsrcMgr.KVStore.Delete(ctx, Path); err != nil {
