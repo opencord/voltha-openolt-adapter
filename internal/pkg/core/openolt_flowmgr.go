@@ -1876,18 +1876,7 @@ deleteLoop:
 //clearResources clears pon resources in kv store and the device
 // nolint: gocyclo
 func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowStats, intfID uint32, onuID int32, uniID int32,
-	gemPortID int32, flowID uint64, portNum uint32, direction string) error {
-
-	tpID, err := getTpIDFromFlow(ctx, flow)
-	if err != nil {
-		return olterrors.NewErrNotFound("tp-id",
-			log.Fields{
-				"flow":      flow,
-				"intf-id":   intfID,
-				"onu-id":    onuID,
-				"uni-id":    uniID,
-				"device-id": f.deviceHandler.device.Id}, err)
-	}
+	gemPortID int32, flowID uint64, portNum uint32, tpID uint32) error {
 
 	uni := getUniPortPath(f.deviceHandler.device.Id, intfID, onuID, uniID)
 	tpPath := f.getTPpath(ctx, intfID, uni, tpID)
@@ -1928,9 +1917,6 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, flow *ofp.OfpFlowSt
 				"usedByFlows": flowIDs,
 				"device-id":   f.deviceHandler.device.Id})
 
-		if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, intfID, uint32(onuID), uint32(uniID), tpID, false); err != nil {
-			return err
-		}
 		return nil
 	}
 	logger.Debugf(ctx, "gem-port-id %d is-not-used-by-another-flow--releasing-the-gem-port", gemPortID)
@@ -2086,8 +2072,19 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 		logger.Errorw(ctx, "failed-to-remove-flow-on-kv-store", log.Fields{"error": err})
 		return err
 	}
+	tpID, err := getTpIDFromFlow(ctx, flow)
+	if err != nil {
+		return olterrors.NewErrNotFound("tp-id",
+			log.Fields{
+				"flow":      flow,
+				"intf-id":   Intf,
+				"onu-id":    onuID,
+				"uni-id":    uniID,
+				"device-id": f.deviceHandler.device.Id}, err)
+	}
+
 	if !flowInfo.Flow.ReplicateFlow {
-		if err = f.clearResources(ctx, flow, Intf, onuID, uniID, flowInfo.Flow.GemportId, flowInfo.Flow.FlowId, portNum, flowDirection); err != nil {
+		if err = f.clearResources(ctx, flow, Intf, onuID, uniID, flowInfo.Flow.GemportId, flowInfo.Flow.FlowId, portNum, tpID); err != nil {
 			logger.Errorw(ctx, "failed-to-clear-resources-for-flow", log.Fields{
 				"flow-id":        flow.Id,
 				"stored-flow":    flowInfo.Flow,
@@ -2095,6 +2092,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 				"stored-flow-id": flowInfo.Flow.FlowId,
 				"onu-id":         onuID,
 				"intf":           Intf,
+				"err":            err,
 			})
 			return err
 		}
@@ -2105,7 +2103,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 		}
 		logger.Debugw(ctx, "gems-to-be-cleared", log.Fields{"gems": gems})
 		for _, gem := range gems {
-			if err = f.clearResources(ctx, flow, Intf, onuID, uniID, int32(gem), flowInfo.Flow.FlowId, portNum, flowDirection); err != nil {
+			if err = f.clearResources(ctx, flow, Intf, onuID, uniID, int32(gem), flowInfo.Flow.FlowId, portNum, tpID); err != nil {
 				logger.Errorw(ctx, "failed-to-clear-resources-for-flow", log.Fields{
 					"flow-id":        flow.Id,
 					"stored-flow":    flowInfo.Flow,
@@ -2114,6 +2112,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 					"onu-id":         onuID,
 					"intf":           Intf,
 					"gem":            gem,
+					"err":            err,
 				})
 				return err
 			}
@@ -2135,6 +2134,10 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 			delete(f.subscriberDataPathFlowIDMap, keySymm)
 			f.subscriberDataPathFlowIDMapLock.Unlock()
 		}
+	}
+	// Decrement reference count for the meter associated with the given <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
+	if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, flowDirection, Intf, uint32(onuID), uint32(uniID), tpID, false); err != nil {
+		return err
 	}
 	return nil
 }
