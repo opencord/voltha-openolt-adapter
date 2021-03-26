@@ -1107,13 +1107,25 @@ func (RsrcMgr *OpenOltResourceMgr) GetMeterInfoForOnu(ctx context.Context, Direc
 func (RsrcMgr *OpenOltResourceMgr) HandleMeterInfoRefCntUpdate(ctx context.Context, Direction string,
 	IntfID uint32, OnuID uint32, UniID uint32, TpID uint32, increment bool) error {
 	meterInfo, err := RsrcMgr.GetMeterInfoForOnu(ctx, Direction, IntfID, OnuID, UniID, TpID)
-	if meterInfo == nil || err != nil {
-		return fmt.Errorf("error-fetching-meter-info-for-intf-%d-onu-%d-uni-%d-tp-id-%d-direction-%s", IntfID, OnuID, UniID, TpID, Direction)
+	if err != nil {
+		return err
+	} else if meterInfo == nil {
+		// If increasing reference count we expect the meter information to be present on KV store
+		// But if decrementing the reference count, the meter is possibly already cleared from KV store. Just log warn but do not return error.
+		if increment {
+			logger.Errorf(ctx, "error-fetching-meter-info-for-intf-%d-onu-%d-uni-%d-tp-id-%d-direction-%s", IntfID, OnuID, UniID, TpID, Direction)
+			return fmt.Errorf("error-fetching-meter-info-for-intf-%d-onu-%d-uni-%d-tp-id-%d-direction-%s", IntfID, OnuID, UniID, TpID, Direction)
+		}
+		logger.Warnw(ctx, "meter is already cleared",
+			log.Fields{"intfID": IntfID, "onuID": OnuID, "uniID": UniID, "direction": Direction, "increment": increment})
+		return nil
 	}
+
 	if increment {
 		meterInfo.RefCnt++
 	} else {
 		meterInfo.RefCnt--
+		// If RefCnt become 0 clear the meter information from the DB.
 		if meterInfo.RefCnt == 0 {
 			if err := RsrcMgr.RemoveMeterInfoForOnu(ctx, Direction, IntfID, OnuID, UniID, TpID); err != nil {
 				return err
