@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "767761f8_52766cfc",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-29T14:43:13Z",
+      "side": 1,
+      "message": "by returning an error in the getTrafficShaping method here it would be much more clear.",
+      "revId": "a137496f3f77de4567589a821d7cd82093df5424",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1fbed8b5_0085bd20",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore/etcdclient.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-03-29T14:43:13Z",
+      "side": 1,
+      "message": "why this change ?",
+      "revId": "a137496f3f77de4567589a821d7cd82093df5424",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
