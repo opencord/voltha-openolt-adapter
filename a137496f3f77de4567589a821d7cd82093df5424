@@ -33,6 +33,24 @@
       "revId": "a137496f3f77de4567589a821d7cd82093df5424",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d900452_fd82cbcb",
+        "filename": "vendor/github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore/etcdclient.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-03-30T08:38:23Z",
+      "side": 1,
+      "message": "I think it came from voltha-lib-go version update. I compiled the code using local lib-go, so I think when I run mod update after voltha-lib-go merge, we will see this file anyway.",
+      "parentUuid": "1fbed8b5_0085bd20",
+      "revId": "a137496f3f77de4567589a821d7cd82093df5424",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
