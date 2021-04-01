@@ -28,8 +28,9 @@ endif
 DOCKER_EXTRA_ARGS        ?=
 DOCKER_REGISTRY          ?=
 DOCKER_REPOSITORY        ?=
-DOCKER_TAG               ?= ${VERSION}
+DOCKER_TAG               ?= ${VERSION}$(shell [[ ${DOCKER_LABEL_VCS_DIRTY} == "true" ]] && echo "-dirty" || true)
 ADAPTER_IMAGENAME        := ${DOCKER_REGISTRY}${DOCKER_REPOSITORY}voltha-openolt-adapter:${DOCKER_TAG}
+DOCKER_TARGET            ?= prod
 TYPE                     ?= minimal
 
 ## Docker labels. Only set ref and commit date if committed
@@ -78,9 +79,9 @@ endif
 build: docker-build ## Alias for 'docker build'
 
 docker-build: local-protos local-lib-go ## Build openolt adapter docker image (set BUILD_PROFILED=true to also build the profiled image)
-	docker build $(DOCKER_BUILD_ARGS) -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) --target ${DOCKER_TARGET} -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 ifdef BUILD_PROFILED
-	docker build $(DOCKER_BUILD_ARGS) --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) --target ${DOCKER_TARGET} --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt .
 endif
 
 docker-push: ## Push the docker images to an external repository

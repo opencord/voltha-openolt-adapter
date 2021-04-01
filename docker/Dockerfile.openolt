@@ -15,13 +15,13 @@
 # -------------
 # Build stage
 
-FROM golang:1.13.8-alpine3.11 AS build-env
+FROM --platform=linux/amd64 golang:1.13.8-alpine3.11 AS dev
 
 # Install required packages
 RUN apk add --no-cache build-base=0.5-r1
 
-# Prepare directory structure
-WORKDIR /go/src/github.com/opencord/voltha-openolt-adapter
+# Use Standard go build directory structure
+WORKDIR /go/src
 COPY . .
 
 ARG EXTRA_GO_BUILD_TAGS=""
@@ -33,29 +33,32 @@ ARG org_label_schema_build_date=unknown
 ARG org_opencord_vcs_commit_date=unknown
 ARG org_opencord_vcs_dirty=unknown
 
-# Build openolt
+# Build
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
-RUN go build $EXTRA_GO_BUILD_TAGS -mod=vendor -o /go/bin/openolt \
-	-ldflags \
-	"-X github.com/opencord/voltha-lib-go/v4/pkg/version.version=$org_label_schema_version \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.vcsRef=$org_label_schema_vcs_ref  \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.vcsDirty=$org_opencord_vcs_dirty \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.goVersion=$(go version 2>&1 | sed -E  's/.*go([0-9]+\.[0-9]+\.[0-9]+).*/\1/g') \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.os=$(go env GOHOSTOS) \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.arch=$(go env GOHOSTARCH) \
-	 -X github.com/opencord/voltha-lib-go/v4/pkg/version.buildTime=$org_label_schema_build_date" \
-	 ./cmd/openolt-adapter/
+RUN \
+CGO_ENABLED=0 go build $EXTRA_GO_BUILD_TAGS -mod=vendor -o /app/openolt \
+-ldflags \
+"-X github.com/opencord/voltha-lib-go/v4/pkg/version.version=$org_label_schema_version \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.vcsRef=$org_label_schema_vcs_ref \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.vcsDirty=$org_opencord_vcs_dirty \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.goVersion=$(go version 2>&1 | sed -E  's/.*go([0-9]+\.[0-9]+\.[0-9]+).*/\1/g') \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.os=$(go env GOHOSTOS) \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.arch=$(go env GOHOSTARCH) \
+-X github.com/opencord/voltha-lib-go/v4/pkg/version.buildTime=$org_label_schema_build_date" \
+./cmd/openolt-adapter/
+
+WORKDIR /app
 
 # -------------
 # Image creation stage
 
-FROM alpine:3.11.3
+FROM --platform=linux/amd64 gcr.io/distroless/static:nonroot as prod
 
 # Set the working directory
 WORKDIR /app
 
 # Copy required files
-COPY --from=build-env /go/bin/openolt /app/
+COPY --from=dev /app/openolt /app/openolt
 
 # Label image
 ARG org_label_schema_version=unknown
@@ -65,11 +68,14 @@ ARG org_label_schema_build_date=unknown
 ARG org_opencord_vcs_commit_date=unknown
 ARG org_opencord_vcs_dirty=unknown
 
-LABEL org.label-schema.schema-version=1.0 \
-      org.label-schema.name=voltha-openolt-adapter-go \
-      org.label-schema.version=$org_label_schema_version \
-      org.label-schema.vcs-url=$org_label_schema_vcs_url \
-      org.label-schema.vcs-ref=$org_label_schema_vcs_ref \
-      org.label-schema.build-date=$org_label_schema_build_date \
-      org.opencord.vcs-commit-date=$org_opencord_vcs_commit_date \
-      org.opencord.vcs-dirty=$org_opencord_vcs_dirty
+LABEL \
+org.label-schema.schema-version=1.0 \
+org.label-schema.name=voltha-openolt-adapter-go \
+org.label-schema.version=$org_label_schema_version \
+org.label-schema.vcs-url=$org_label_schema_vcs_url \
+org.label-schema.vcs-ref=$org_label_schema_vcs_ref \
+org.label-schema.build-date=$org_label_schema_build_date \
+org.opencord.vcs-commit-date=$org_opencord_vcs_commit_date \
+org.opencord.vcs-dirty=$org_opencord_vcs_dirty
+
+USER nonroot:nonroot
