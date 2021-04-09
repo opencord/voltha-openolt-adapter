@@ -12,6 +12,8 @@ import (
 	tech_profile "github.com/opencord/voltha-protos/v4/go/tech_profile"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -170,6 +172,7 @@ const OperStatus_ACTIVATING = OperStatus_Types(common.OperStatus_ACTIVATING)
 const OperStatus_TESTING = OperStatus_Types(common.OperStatus_TESTING)
 const OperStatus_ACTIVE = OperStatus_Types(common.OperStatus_ACTIVE)
 const OperStatus_FAILED = OperStatus_Types(common.OperStatus_FAILED)
+const OperStatus_RECONCILING = OperStatus_Types(common.OperStatus_RECONCILING)
 
 // ConnectStatus_Types from public import voltha_protos/common.proto
 type ConnectStatus_Types = common.ConnectStatus_Types
@@ -5458,6 +5461,98 @@ type OpenoltServer interface {
 	OnuItuPonAlarmSet(context.Context, *config.OnuItuPonAlarm) (*Empty, error)
 	GetLogicalOnuDistanceZero(context.Context, *Onu) (*OnuLogicalDistance, error)
 	GetLogicalOnuDistance(context.Context, *Onu) (*OnuLogicalDistance, error)
+}
+
+// UnimplementedOpenoltServer can be embedded to have forward compatible implementations.
+type UnimplementedOpenoltServer struct {
+}
+
+func (*UnimplementedOpenoltServer) DisableOlt(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableOlt not implemented")
+}
+func (*UnimplementedOpenoltServer) ReenableOlt(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReenableOlt not implemented")
+}
+func (*UnimplementedOpenoltServer) ActivateOnu(ctx context.Context, req *Onu) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActivateOnu not implemented")
+}
+func (*UnimplementedOpenoltServer) DeactivateOnu(ctx context.Context, req *Onu) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeactivateOnu not implemented")
+}
+func (*UnimplementedOpenoltServer) DeleteOnu(ctx context.Context, req *Onu) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOnu not implemented")
+}
+func (*UnimplementedOpenoltServer) OmciMsgOut(ctx context.Context, req *OmciMsg) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OmciMsgOut not implemented")
+}
+func (*UnimplementedOpenoltServer) OnuPacketOut(ctx context.Context, req *OnuPacket) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnuPacketOut not implemented")
+}
+func (*UnimplementedOpenoltServer) UplinkPacketOut(ctx context.Context, req *UplinkPacket) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UplinkPacketOut not implemented")
+}
+func (*UnimplementedOpenoltServer) FlowAdd(ctx context.Context, req *Flow) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FlowAdd not implemented")
+}
+func (*UnimplementedOpenoltServer) FlowRemove(ctx context.Context, req *Flow) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FlowRemove not implemented")
+}
+func (*UnimplementedOpenoltServer) HeartbeatCheck(ctx context.Context, req *Empty) (*Heartbeat, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HeartbeatCheck not implemented")
+}
+func (*UnimplementedOpenoltServer) EnablePonIf(ctx context.Context, req *Interface) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnablePonIf not implemented")
+}
+func (*UnimplementedOpenoltServer) DisablePonIf(ctx context.Context, req *Interface) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisablePonIf not implemented")
+}
+func (*UnimplementedOpenoltServer) GetDeviceInfo(ctx context.Context, req *Empty) (*DeviceInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceInfo not implemented")
+}
+func (*UnimplementedOpenoltServer) Reboot(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Reboot not implemented")
+}
+func (*UnimplementedOpenoltServer) CollectStatistics(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CollectStatistics not implemented")
+}
+func (*UnimplementedOpenoltServer) GetOnuStatistics(ctx context.Context, req *Onu) (*OnuStatistics, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOnuStatistics not implemented")
+}
+func (*UnimplementedOpenoltServer) GetGemPortStatistics(ctx context.Context, req *OnuPacket) (*GemPortStatistics, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGemPortStatistics not implemented")
+}
+func (*UnimplementedOpenoltServer) CreateTrafficSchedulers(ctx context.Context, req *tech_profile.TrafficSchedulers) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTrafficSchedulers not implemented")
+}
+func (*UnimplementedOpenoltServer) RemoveTrafficSchedulers(ctx context.Context, req *tech_profile.TrafficSchedulers) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveTrafficSchedulers not implemented")
+}
+func (*UnimplementedOpenoltServer) CreateTrafficQueues(ctx context.Context, req *tech_profile.TrafficQueues) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTrafficQueues not implemented")
+}
+func (*UnimplementedOpenoltServer) RemoveTrafficQueues(ctx context.Context, req *tech_profile.TrafficQueues) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveTrafficQueues not implemented")
+}
+func (*UnimplementedOpenoltServer) EnableIndication(req *Empty, srv Openolt_EnableIndicationServer) error {
+	return status.Errorf(codes.Unimplemented, "method EnableIndication not implemented")
+}
+func (*UnimplementedOpenoltServer) PerformGroupOperation(ctx context.Context, req *Group) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PerformGroupOperation not implemented")
+}
+func (*UnimplementedOpenoltServer) DeleteGroup(ctx context.Context, req *Group) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGroup not implemented")
+}
+func (*UnimplementedOpenoltServer) GetExtValue(ctx context.Context, req *ValueParam) (*common.ReturnValues, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetExtValue not implemented")
+}
+func (*UnimplementedOpenoltServer) OnuItuPonAlarmSet(ctx context.Context, req *config.OnuItuPonAlarm) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnuItuPonAlarmSet not implemented")
+}
+func (*UnimplementedOpenoltServer) GetLogicalOnuDistanceZero(ctx context.Context, req *Onu) (*OnuLogicalDistance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLogicalOnuDistanceZero not implemented")
+}
+func (*UnimplementedOpenoltServer) GetLogicalOnuDistance(ctx context.Context, req *Onu) (*OnuLogicalDistance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLogicalOnuDistance not implemented")
 }
 
 func RegisterOpenoltServer(s *grpc.Server, srv OpenoltServer) {
