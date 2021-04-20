@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ddd30d87_3a304333",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-20T00:45:39Z",
+      "side": 1,
+      "message": "Why are we making the assumption here that this is a reconciliation case? We also traverse this path during normal initialization of the OLT.",
+      "range": {
+        "startLine": 732,
+        "startChar": 85,
+        "endLine": 732,
+        "endChar": 119
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3972473c_deacd0e2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-20T00:45:39Z",
+      "side": 1,
+      "message": "Same comment here. Why are we making the assumption here that this is a reconciliation case?",
+      "range": {
+        "startLine": 756,
+        "startChar": 93,
+        "endLine": 756,
+        "endChar": 120
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24a05ef9_c553fa46",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-20T00:45:39Z",
+      "side": 1,
+      "message": "`dh.agentPreviouslyConnected` being true does not necessarily mean the OperStatus of the device is ACTIVE. The device could be disabled in which case the OperStatus may not ACTIVE afaik. Can you test with BBSIM and see the behavior.\nBasically, disable the OLT, check the OperStatus, the restart the openolt adapter and then check if the OperStatus is retained.\nYou should also do this test for reboot olt case. There are two cases for OLT reboot\n1. Reboot olt, wait for it to come back and connect to voltha and then restart adapter\n2. Reboot olt and before OLT comes back from reboot, restart adapter\nObserve the behavior in both cases and does that meet the expection.\n\nAlso another query about OperStatus. Currently we see to reconcile only Device OperStatus, but there is also port OperStatus. Do we reconcile that too (I haven\u0027t given thought on how this can be done, but just wanted to let you know in case we have not considered that).",
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
