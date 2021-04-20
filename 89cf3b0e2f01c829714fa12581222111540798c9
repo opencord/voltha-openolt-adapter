@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "29997370_aafec87e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-20T03:25:00Z",
+      "side": 1,
+      "message": "Will add state check of RECONCILING if this state has to be kept , but as per discussion over gerrit raised for protos RECONCILE_FAILED state might be removed.",
+      "parentUuid": "ddd30d87_3a304333",
+      "range": {
+        "startLine": 732,
+        "startChar": 85,
+        "endLine": 732,
+        "endChar": 119
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3972473c_deacd0e2",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "df4ea1c6_45e8c076",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-20T03:25:00Z",
+      "side": 1,
+      "message": "Will add state check of RECONCILING if this state has to be kept , but as per discussion over gerrit raised for protos RECONCILE_FAILED state might be removed.",
+      "parentUuid": "3972473c_deacd0e2",
+      "range": {
+        "startLine": 756,
+        "startChar": 93,
+        "endLine": 756,
+        "endChar": 120
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "24a05ef9_c553fa46",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -59,6 +107,24 @@
       "writtenOn": "2021-04-20T00:45:39Z",
       "side": 1,
       "message": "`dh.agentPreviouslyConnected` being true does not necessarily mean the OperStatus of the device is ACTIVE. The device could be disabled in which case the OperStatus may not ACTIVE afaik. Can you test with BBSIM and see the behavior.\nBasically, disable the OLT, check the OperStatus, the restart the openolt adapter and then check if the OperStatus is retained.\nYou should also do this test for reboot olt case. There are two cases for OLT reboot\n1. Reboot olt, wait for it to come back and connect to voltha and then restart adapter\n2. Reboot olt and before OLT comes back from reboot, restart adapter\nObserve the behavior in both cases and does that meet the expection.\n\nAlso another query about OperStatus. Currently we see to reconcile only Device OperStatus, but there is also port OperStatus. Do we reconcile that too (I haven\u0027t given thought on how this can be done, but just wanted to let you know in case we have not considered that).",
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33eead9c_8fa48c8d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-20T03:25:00Z",
+      "side": 1,
+      "message": "Yes, dh.agentPreviouslyConnected is used for the status of connection but not for the actual device status .\n\nWhat would you suggest to do to make it synchronise with the physical device state ?\nShould I do something extra or let it be as it is and let operation state to take course as per the indication ?",
+      "parentUuid": "24a05ef9_c553fa46",
       "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
