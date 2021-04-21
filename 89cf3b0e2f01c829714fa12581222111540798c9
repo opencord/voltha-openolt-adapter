@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d7d4fb11_b57e44c5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-21T02:00:50Z",
+      "side": 1,
+      "message": "Ok, in that case this code snippet will be removed - correct?",
+      "parentUuid": "29997370_aafec87e",
+      "range": {
+        "startLine": 732,
+        "startChar": 85,
+        "endLine": 732,
+        "endChar": 119
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3972473c_deacd0e2",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "62271807_2823a03c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-21T02:00:50Z",
+      "side": 1,
+      "message": "Ok, in that case this code snippet will be removed - correct?",
+      "parentUuid": "df4ea1c6_45e8c076",
+      "range": {
+        "startLine": 756,
+        "startChar": 93,
+        "endLine": 756,
+        "endChar": 120
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "24a05ef9_c553fa46",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -125,6 +173,24 @@
       "side": 1,
       "message": "Yes, dh.agentPreviouslyConnected is used for the status of connection but not for the actual device status .\n\nWhat would you suggest to do to make it synchronise with the physical device state ?\nShould I do something extra or let it be as it is and let operation state to take course as per the indication ?",
       "parentUuid": "24a05ef9_c553fa46",
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4998d300_1d5f3e9c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-04-21T02:00:50Z",
+      "side": 1,
+      "message": "Ok, for now, let it be as it is. But can you test this change for the scenarios I described above with BBSIM and let me know how it goes.",
+      "parentUuid": "33eead9c_8fa48c8d",
       "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
