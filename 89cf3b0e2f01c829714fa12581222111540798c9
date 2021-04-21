@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "6fe4f9e3_d7daf450",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-21T11:21:32Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "d7d4fb11_b57e44c5",
+      "range": {
+        "startLine": 732,
+        "startChar": 85,
+        "endLine": 732,
+        "endChar": 119
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3972473c_deacd0e2",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -144,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "28fef094_21c1aeb6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 756,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-21T11:21:32Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "62271807_2823a03c",
+      "range": {
+        "startLine": 756,
+        "startChar": 93,
+        "endLine": 756,
+        "endChar": 120
+      },
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24a05ef9_c553fa46",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 14
@@ -191,6 +239,24 @@
       "side": 1,
       "message": "Ok, for now, let it be as it is. But can you test this change for the scenarios I described above with BBSIM and let me know how it goes.",
       "parentUuid": "33eead9c_8fa48c8d",
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b29a0b5_f622aaca",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-21T11:21:32Z",
+      "side": 1,
+      "message": "Sure I will give this test case a go and let you know.",
+      "parentUuid": "4998d300_1d5f3e9c",
       "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
