@@ -485,7 +485,7 @@ func isIndicationAllowedDuringOltAdminDown(indication *oop.Indication) bool {
 }
 
 func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication *oop.OltIndication) error {
-	raisedTs := time.Now().UnixNano()
+	raisedTs := time.Now().Unix()
 	if oltIndication.OperState == "up" && dh.transitionMap.currentDeviceState != deviceStateUp {
 		dh.transitionMap.Handle(ctx, DeviceUpInd)
 	} else if oltIndication.OperState == "down" {
@@ -503,7 +503,7 @@ func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication 
 
 // nolint: gocyclo
 func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.Indication) {
-	raisedTs := time.Now().UnixNano()
+	raisedTs := time.Now().Unix()
 	switch indication.Data.(type) {
 	case *oop.Indication_OltInd:
 		span, ctx := log.CreateChildSpan(ctx, "olt-indication", log.Fields{"device-id": dh.device.Id})
@@ -642,7 +642,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	//Clear olt communication failure event
 	dh.device.ConnectStatus = voltha.ConnectStatus_REACHABLE
 	dh.device.OperStatus = voltha.OperStatus_ACTIVE
-	raisedTs := time.Now().UnixNano()
+	raisedTs := time.Now().Unix()
 	go dh.eventMgr.oltCommunicationEvent(ctx, dh.device, raisedTs)
 
 	//check adapter and agent reconcile status
@@ -1157,7 +1157,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	}
 
 	var alarmInd oop.OnuAlarmIndication
-	raisedTs := time.Now().UnixNano()
+	raisedTs := time.Now().Unix()
 	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
 
 		/* When PON cable disconnected and connected back from OLT, it was expected OnuAlarmIndication
@@ -1237,7 +1237,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"pon-intf-id":   ponintfid,
 				"serial-number": sn}, err)
 		}
-		if err := dh.eventMgr.OnuDiscoveryIndication(ctx, onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().UnixNano()); err != nil {
+		if err := dh.eventMgr.OnuDiscoveryIndication(ctx, onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().Unix()); err != nil {
 			logger.Warnw(ctx, "discovery-indication-failed", log.Fields{"error": err})
 		}
 		logger.Infow(ctx, "onu-child-device-added",
@@ -1336,7 +1336,7 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 
 	}
 	if onuInd.OperState == "down" && onuInd.FailReason != oop.OnuIndication_ONU_ACTIVATION_FAIL_REASON_NONE {
-		if err := dh.eventMgr.onuActivationIndication(ctx, onuActivationFailEvent, onuInd, dh.device.Id, time.Now().UnixNano()); err != nil {
+		if err := dh.eventMgr.onuActivationIndication(ctx, onuActivationFailEvent, onuInd, dh.device.Id, time.Now().Unix()); err != nil {
 			logger.Warnw(ctx, "onu-activation-indication-reporting-failed", log.Fields{"error": err})
 		}
 	}
@@ -2043,7 +2043,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		}
 
 		//raise olt communication failure event
-		raisedTs := time.Now().UnixNano()
+		raisedTs := time.Now().Unix()
 		device.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
 		device.OperStatus = voltha.OperStatus_UNKNOWN
 		go dh.eventMgr.oltCommunicationEvent(ctx, device, raisedTs)
