@@ -576,10 +576,10 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 		volthaEventSubCatgry = voltha.EventSubCategory_ONT
 	}
 
-	raisedTs := time.Now().UnixNano()
+	raisedTs := time.Now().Unix()
 	mmd := voltha.MetricMetaData{
 		Title:    statType,
-		Ts:       float64(raisedTs) / (1.0 * 1e9),
+		Ts:       float64(raisedTs),
 		Context:  metricsContext,
 		DeviceId: devID,
 	}
@@ -589,7 +589,7 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 
 	ke.SliceData = []*voltha.MetricInformation{&metricInfo}
 	ke.Type = voltha.KpiEventType_slice
-	ke.Ts = float64(time.Now().UnixNano()) / (1.0 * 1e9)
+	ke.Ts = float64(time.Now().Unix())
 
 	if err := StatMgr.Device.EventProxy.SendKpiEvent(ctx, "STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
 		logger.Errorw(ctx, "failed-to-send-stats", log.Fields{"err": err})
