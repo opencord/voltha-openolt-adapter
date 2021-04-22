@@ -314,6 +314,36 @@ func (oo *OpenOLT) Revert_image_update(ctx context.Context, device *voltha.Devic
 	return nil, olterrors.ErrNotImplemented
 }
 
+//Download_onu_image unimplemented
+func (oo *OpenOLT) Download_onu_image(ctx context.Context, request *voltha.DeviceImageDownloadRequest) (*voltha.DeviceImageResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
+//Get_onu_image_status unimplemented
+func (oo *OpenOLT) Get_onu_image_status(ctx context.Context, in *voltha.DeviceImageRequest) (*voltha.DeviceImageResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
+//Abort_onu_image_upgrade unimplemented
+func (oo *OpenOLT) Abort_onu_image_upgrade(ctx context.Context, in *voltha.DeviceImageRequest) (*voltha.DeviceImageResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
+//Get_onu_images unimplemented
+func (oo *OpenOLT) Get_onu_images(ctx context.Context, deviceID string) (*voltha.OnuImages, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
+//Activate_onu_image unimplemented
+func (oo *OpenOLT) Activate_onu_image(ctx context.Context, in *voltha.DeviceImageRequest) (*voltha.DeviceImageResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
+//Commit_onu_image unimplemented
+func (oo *OpenOLT) Commit_onu_image(ctx context.Context, in *voltha.DeviceImageRequest) (*voltha.DeviceImageResponse, error) {
+	return nil, olterrors.ErrNotImplemented
+}
+
 // Enable_port to Enable PON/NNI interface
 func (oo *OpenOLT) Enable_port(ctx context.Context, deviceID string, port *voltha.Port) error {
 	logger.Infow(ctx, "Enable_port", log.Fields{"device-id": deviceID, "port": port})
