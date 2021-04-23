@@ -260,6 +260,24 @@
       "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb1dfd1d_5a65c851",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 813,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-04-23T09:24:13Z",
+      "side": 1,
+      "message": "I have tested disabling olt and rebooting adapter all states remain same when checked using voltctl but after enabling olt , olt comes back to active state and but onus connect state and operstate does not updated.\n\nAs seen below:\nID                                      TYPE                 ROOT     PARENTID                                SERIALNUMBER    ADMINSTATE    OPERSTATUS    CONNECTSTATUS    REASON\na46482ca-a7f7-4f07-af61-d1dc8cf184c0    openolt              true     ca2f629c-4ac0-4942-aa93-612a5a29f708    BBSIM_OLT_10    ENABLED       ACTIVE        REACHABLE        \na0e2117b-171c-4955-8e47-02279656e956    brcm_openomci_onu    false    a46482ca-a7f7-4f07-af61-d1dc8cf184c0    BBSM000a0001    ENABLED       DISCOVERED    UNREACHABLE      stopping-openomci\n\nand while rebooting olt using voltctl and restarting adapters OperStatus are retained but again if I disable and enable olt same thing is happening .",
+      "parentUuid": "8b29a0b5_f622aaca",
+      "revId": "89cf3b0e2f01c829714fa12581222111540798c9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
