@@ -151,6 +151,8 @@ func TestTransitionMap_isValidTransition(t *testing.T) {
 			true},
 		{"isValidTransition-2", fields{getTranisitions(), deviceStateDown}, args{GrpcConnected},
 			false},
+		{"isValidTransition-3", fields{getTranisitions(), deviceStateConnected}, args{DeviceDownInd},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

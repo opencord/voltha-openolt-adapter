@@ -364,12 +364,6 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	/* get device state */
-	device, err := dh.coreProxy.GetDevice(ctx, dh.device.Id, dh.device.Id)
-	if err != nil || device == nil {
-		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err)
-	}
 
 	// Create an exponential backoff around re-enabling indications. The
 	// maximum elapsed time for the back off is set to 0 so that we will
@@ -445,7 +439,7 @@ Loop:
 			// Reset backoff if we have a successful receive
 			indicationBackoff.Reset()
 			// When OLT is admin down, ignore all indications.
-			if device.AdminState == voltha.AdminState_DISABLED && !isIndicationAllowedDuringOltAdminDown(indication) {
+			if dh.device.AdminState == voltha.AdminState_DISABLED && !isIndicationAllowedDuringOltAdminDown(indication) {
 				logger.Debugw(ctx, "olt-is-admin-down, ignore indication",
 					log.Fields{"indication": indication,
 						"device-id": dh.device.Id})
@@ -461,7 +455,7 @@ Loop:
 }
 
 func (dh *DeviceHandler) startOpenOltIndicationStream(ctx context.Context) (oop.Openolt_EnableIndicationClient, error) {
-
+	logger.Infow(ctx, "enabling read indications", log.Fields{"device-id": dh.device.Id})
 	indications, err := dh.Client.EnableIndication(ctx, new(oop.Empty))
 	if err != nil {
 		return nil, olterrors.NewErrCommunication("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
@@ -469,7 +463,7 @@ func (dh *DeviceHandler) startOpenOltIndicationStream(ctx context.Context) (oop.
 	if indications == nil {
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"indications": nil, "device-id": dh.device.Id}, nil).Log()
 	}
-
+	logger.Infow(ctx, "read indication started successfully", log.Fields{"device-id": dh.device.Id})
 	return indications, nil
 }
 
@@ -508,7 +502,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 	case *oop.Indication_OltInd:
 		span, ctx := log.CreateChildSpan(ctx, "olt-indication", log.Fields{"device-id": dh.device.Id})
 		defer span.Finish()
-
+		logger.Infow(ctx, "received olt indication", log.Fields{"device-id": dh.device.Id, "olt-ind": indication.GetOltInd()})
 		if err := dh.handleOltIndication(ctx, indication.GetOltInd()); err != nil {
 			_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "olt", "device-id": dh.device.Id}, err).Log()
 		}

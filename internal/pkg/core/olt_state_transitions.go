@@ -118,7 +118,7 @@ func NewTransitionMap(dh *DeviceHandler) *TransitionMap {
 	// If olt DOWN indication comes then do sate down
 	transitionMap.transitions[DeviceDownInd] =
 		Transition{
-			previousState: []DeviceState{deviceStateUp},
+			previousState: []DeviceState{deviceStateUp, deviceStateConnected},
 			currentState:  deviceStateDown,
 			before:        []TransitionHandler{dh.doStateDown}}
 
