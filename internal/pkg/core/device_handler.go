@@ -711,7 +711,16 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
-	// Use Intercepters to automatically inject and publish Open Tracing Spans by this GRPC client
+
+	// if the connection is already available, close the previous connection (olt reboot case)
+	if dh.clientCon != nil {
+		if err = dh.clientCon.Close(); err != nil {
+			logger.Errorw(ctx, "failed-to-close-previous-connection", log.Fields{"device-id": dh.device.Id})
+		}
+		logger.Debugw(ctx, "previous-grpc-channel-closed-successfully", log.Fields{"device-id": dh.device.Id})
+	}
+
+	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
