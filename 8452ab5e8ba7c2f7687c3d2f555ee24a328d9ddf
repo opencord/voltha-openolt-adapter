@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ca0b559a_6e201437",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 720,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-05-07T01:07:40Z",
+      "side": 1,
+      "message": "I think you intended to put this in the else block?",
+      "revId": "8452ab5e8ba7c2f7687c3d2f555ee24a328d9ddf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
