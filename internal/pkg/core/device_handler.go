@@ -35,12 +35,12 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
-	"github.com/opencord/voltha-lib-go/v4/pkg/config"
-	"github.com/opencord/voltha-lib-go/v4/pkg/events/eventif"
-	flow_utils "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
+	"github.com/opencord/voltha-lib-go/v5/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v5/pkg/config"
+	"github.com/opencord/voltha-lib-go/v5/pkg/events/eventif"
+	flow_utils "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/pmmetrics"
 
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -528,9 +528,6 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-nni", "device-id": dh.device.Id}, err).Log()
 				}
 			}()
-			if err := dh.resourceMgr.AddNNIToKVStore(ctx, intfOperInd.GetIntfId()); err != nil {
-				logger.Warn(ctx, err)
-			}
 		} else if intfOperInd.GetType() == "pon" {
 			// TODO: Check what needs to be handled here for When PON PORT down, ONU will be down
 			// Handle pon port update
@@ -978,6 +975,15 @@ func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapa
 	}, nil
 }
 
+// GetInterAdapterTechProfileDownloadMessage fetches the TechProfileDownloadMessage for the caller.
+func (dh *DeviceHandler) GetInterAdapterTechProfileDownloadMessage(ctx context.Context, tpPath string, ponPortNum uint32, onuID uint32, uniID uint32) *ic.InterAdapterTechProfileDownloadMessage {
+	ifID, err := IntfIDFromPonPortNum(ctx, ponPortNum)
+	if err != nil {
+		return nil
+	}
+	return dh.flowMgr[ifID].getTechProfileDownloadMessage(ctx ,tpPath, ifID, onuID, uniID)
+}
+
 func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIndication) error {
 	logger.Debugw(ctx, "omci-indication", log.Fields{"intf-id": omciInd.IntfId, "onu-id": omciInd.OnuId, "device-id": dh.device.Id})
 	var deviceType string
@@ -1038,44 +1044,48 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 func (dh *DeviceHandler) ProcessInterAdapterMessage(ctx context.Context, msg *ic.InterAdapterMessage) error {
 	logger.Debugw(ctx, "process-inter-adapter-message", log.Fields{"msgID": msg.Header.Id})
 	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
-		msgID := msg.Header.Id
-		fromTopic := msg.Header.FromTopic
-		toTopic := msg.Header.ToTopic
-		toDeviceID := msg.Header.ToDeviceId
-		proxyDeviceID := msg.Header.ProxyDeviceId
-
-		logger.Debugw(ctx, "omci-request-message-header", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-
-		msgBody := msg.GetBody()
-
-		omciMsg := &ic.InterAdapterOmciMessage{}
-		if err := ptypes.UnmarshalAny(msgBody, omciMsg); err != nil {
-			return olterrors.NewErrAdapter("cannot-unmarshal-omci-msg-body", log.Fields{"msgbody": msgBody}, err)
-		}
-
-		if omciMsg.GetProxyAddress() == nil {
-			onuDevice, err := dh.coreProxy.GetDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, toDeviceID)
-			if err != nil {
-				return olterrors.NewErrNotFound("onu", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-			logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-			if err := dh.sendProxiedMessage(ctx, onuDevice, omciMsg); err != nil {
-				return olterrors.NewErrCommunication("send-failed", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-		} else {
-			logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-			if err := dh.sendProxiedMessage(ctx, nil, omciMsg); err != nil {
-				return olterrors.NewErrCommunication("send-failed", log.Fields{
-					"device-id":     dh.device.Id,
-					"onu-device-id": toDeviceID}, err)
-			}
-		}
+		return dh.handleInterAdapterOmciMsg(ctx, msg)
 	} else {
 		return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil)
+	}
+}
+
+func (dh *DeviceHandler) handleInterAdapterOmciMsg(ctx context.Context, msg *ic.InterAdapterMessage) error {
+	msgID := msg.Header.Id
+	fromTopic := msg.Header.FromTopic
+	toTopic := msg.Header.ToTopic
+	toDeviceID := msg.Header.ToDeviceId
+	proxyDeviceID := msg.Header.ProxyDeviceId
+
+	logger.Debugw(ctx, "omci-request-message-header", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+
+	msgBody := msg.GetBody()
+
+	omciMsg := &ic.InterAdapterOmciMessage{}
+	if err := ptypes.UnmarshalAny(msgBody, omciMsg); err != nil {
+		return olterrors.NewErrAdapter("cannot-unmarshal-omci-msg-body", log.Fields{"msgbody": msgBody}, err)
+	}
+
+	if omciMsg.GetProxyAddress() == nil {
+		onuDevice, err := dh.coreProxy.GetDevice(log.WithSpanFromContext(context.TODO(), ctx), dh.device.Id, toDeviceID)
+		if err != nil {
+			return olterrors.NewErrNotFound("onu", log.Fields{
+				"device-id":     dh.device.Id,
+				"onu-device-id": toDeviceID}, err)
+		}
+		logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+		if err := dh.sendProxiedMessage(ctx, onuDevice, omciMsg); err != nil {
+			return olterrors.NewErrCommunication("send-failed", log.Fields{
+				"device-id":     dh.device.Id,
+				"onu-device-id": toDeviceID}, err)
+		}
+	} else {
+		logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
+		if err := dh.sendProxiedMessage(ctx, nil, omciMsg); err != nil {
+			return olterrors.NewErrCommunication("send-failed", log.Fields{
+				"device-id":     dh.device.Id,
+				"onu-device-id": toDeviceID}, err)
+		}
 	}
 	return nil
 }
@@ -1129,7 +1139,6 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 	if err := dh.flowMgr[intfID].UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
 	}
-	// TODO: need resource manager
 	var pir uint32 = 1000000
 	Onu := oop.Onu{IntfId: intfID, OnuId: uint32(onuID), SerialNumber: serialNum, Pir: pir, OmccEncryption: dh.openOLT.config.OmccEncryption}
 	if _, err := dh.Client.ActivateOnu(ctx, &Onu); err != nil {
@@ -1698,35 +1707,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		if err = dh.resourceMgr.DeletePacketInGemPortForOnu(ctx, onu.IntfID, onu.OnuID, port); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
 		}
-		if err = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID)); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-flow-for", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
-		}
 	}
-	return nil
-}
-
-func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
-	nniUniID := -1
-	nniOnuID := -1
-
-	if dh.resourceMgr == nil {
-		return olterrors.NewErrNotFound("resource-manager", log.Fields{"device-id": dh.device.Id}, nil)
-	}
-	//Free the flow-ids for the NNI port
-	nni, err := dh.resourceMgr.GetNNIFromKVStore(ctx)
-	if err != nil {
-		return olterrors.NewErrPersistence("get", "nni", 0, nil, err)
-	}
-	logger.Debugw(ctx, "nni-", log.Fields{"nni": nni})
-	for _, nniIntfID := range nni {
-		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
-		_ = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, nniIntfID, -1, -1)
-
-	}
-	if err = dh.resourceMgr.DelNNiFromKVStore(ctx); err != nil {
-		return olterrors.NewErrPersistence("clear", "nni", 0, nil, err)
-	}
-
 	return nil
 }
 
@@ -1787,18 +1768,10 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 				onuID[0] = onu.OnuID
 				dh.resourceMgr.FreeonuID(ctx, ponPort, onuID)
 			}
-			dh.resourceMgr.DeleteIntfIDGempMapPath(ctx, ponPort)
-			onuGemData = nil
 			err = dh.resourceMgr.DelOnuGemInfoForIntf(ctx, ponPort)
 			if err != nil {
 				logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
 			}
-		}
-		/* Clear the flows from KV store associated with NNI port.
-		   There are mostly trap rules from NNI port (like LLDP)
-		*/
-		if err := dh.clearNNIData(ctx); err != nil {
-			logger.Errorw(ctx, "failed-to-clear-data-for-NNI-port", log.Fields{"device-id": dh.device.Id})
 		}
 
 		/* Clear the resource pool for each PON port in the background */

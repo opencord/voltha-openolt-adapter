@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package techprofile
+package techprofile_v2
 
 import (
 	"context"
-
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
 	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
 )
 
 type TechProfileIf interface {
 	SetKVClient(ctx context.Context, pathPrefix string) *db.Backend
-	GetTechProfileInstanceKVPath(ctx context.Context, techProfiletblID uint32, uniPortName string) string
-	GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error)
-	CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfId uint32) (interface{}, error)
-	DeleteTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string) error
-	GetprotoBufParamValue(ctx context.Context, paramType string, paramKey string) int32
-	GetUsScheduler(ctx context.Context, tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
-	GetDsScheduler(ctx context.Context, tpInstance *TechProfile) (*tp_pb.SchedulerConfig, error)
-	GetTrafficScheduler(tpInstance *TechProfile, SchedCfg *tp_pb.SchedulerConfig,
-		ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler
-	GetTrafficQueues(ctx context.Context, tp *TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
-	GetMulticastTrafficQueues(ctx context.Context, tp *TechProfile) []*tp_pb.TrafficQueue
+	GetTechProfileInstanceKey(ctx context.Context, tpID uint32, uniPortName string) string
+	GetTPInstance(ctx context.Context, path string) (interface{}, error)
+	CreateTechProfInstance(ctx context.Context, tpID uint32, uniPortName string, intfID uint32) (interface{}, error)
+	DeleteTechProfileInstance(ctx context.Context, tpID uint32, uniPortName string) error
+	GetUsScheduler(tpInstance *tp_pb.TechProfileInstance) *tp_pb.SchedulerConfig
+	GetDsScheduler(tpInstance *tp_pb.TechProfileInstance) *tp_pb.SchedulerConfig
+	GetTrafficScheduler(tpInstance *tp_pb.TechProfileInstance, SchedCfg *tp_pb.SchedulerConfig, ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler
+	GetTrafficQueues(ctx context.Context, tp *tp_pb.TechProfileInstance, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error)
+	GetMulticastTrafficQueues(ctx context.Context, tp *tp_pb.TechProfileInstance) []*tp_pb.TrafficQueue
 	GetGemportForPbit(ctx context.Context, tp interface{}, Dir tp_pb.Direction, pbit uint32) interface{}
-	FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{}
+	FindAllTpInstances(ctx context.Context, oltDeviceID string, tpID uint32, ponIntf uint32, onuID uint32) interface{}
 	GetResourceID(ctx context.Context, IntfID uint32, ResourceType string, NumIDs uint32) ([]uint32, error)
 	FreeResourceID(ctx context.Context, IntfID uint32, ResourceType string, ReleaseContent []uint32) error
 }

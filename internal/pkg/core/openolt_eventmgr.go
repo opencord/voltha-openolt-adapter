@@ -23,8 +23,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/events/eventif"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/events/eventif"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v4/go/common"
 	oop "github.com/opencord/voltha-protos/v4/go/openolt"

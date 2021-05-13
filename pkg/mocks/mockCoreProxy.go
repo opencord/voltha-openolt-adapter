@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v5/pkg/kafka"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 

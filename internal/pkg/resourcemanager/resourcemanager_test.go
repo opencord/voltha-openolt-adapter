@@ -27,7 +27,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
+	tp "github.com/opencord/voltha-lib-go/v5/pkg/techprofile"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,11 +35,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
-	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
+	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/openolt"
 )
@@ -693,34 +693,6 @@ func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 	}
 }
 
-func TestOpenOltResourceMgr_UpdateFlowIDInfo(t *testing.T) {
-	type args struct {
-		ponIntfID int32
-		onuID     int32
-		uniID     int32
-		flowID    uint64
-		flowData  FlowInfo
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		wantErr error
-	}{
-		{"UpdateFlowIDInfo-1", getResMgr(), args{1, 2, 2, 2, FlowInfo{}}, errors.New("")},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := RsrcMgr.UpdateFlowIDInfo(ctx, uint32(tt.args.ponIntfID), tt.args.onuID, tt.args.uniID, tt.args.flowID, tt.args.flowData); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
-				t.Errorf("UpdateFlowIDInfo() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 
 	type args struct {
@@ -745,35 +717,6 @@ func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 			defer cancel()
 			if err := RsrcMgr.UpdateGEMPortIDsForOnu(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.GEMPortList); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateGEMPortIDsForOnu() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOpenOltResourceMgr_UpdateGEMportsPonportToOnuMapOnKVStore(t *testing.T) {
-	type args struct {
-		gemPorts []uint32
-		PonPort  uint32
-		onuID    uint32
-		uniID    uint32
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		wantErr error
-	}{
-		{"UpdateGEMportsPonportToOnuMapOnKVStore-1", getResMgr(), args{[]uint32{1, 2},
-			1, 2, 2}, errors.New("failed to update resource")},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(ctx, tt.args.gemPorts, tt.args.PonPort,
-				tt.args.onuID, tt.args.uniID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
-				t.Errorf("UpdateGEMportsPonportToOnuMapOnKVStore() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

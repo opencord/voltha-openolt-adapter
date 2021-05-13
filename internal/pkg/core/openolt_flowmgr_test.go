@@ -29,10 +29,10 @@ import (
 
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	tp "github.com/opencord/voltha-lib-go/v5/pkg/techprofile"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
@@ -696,7 +696,6 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// Add gemPorts to OnuInfo in parallel threads
 	wg := sync.WaitGroup{}
-
 	for o := 1; o <= onuNum; o++ {
 		for i := 0; i < intfNum; i++ {
 			wg.Add(1)
