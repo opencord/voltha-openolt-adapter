@@ -696,7 +696,6 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// Add gemPorts to OnuInfo in parallel threads
 	wg := sync.WaitGroup{}
-
 	for o := 1; o <= onuNum; o++ {
 		for i := 0; i < intfNum; i++ {
 			wg.Add(1)
