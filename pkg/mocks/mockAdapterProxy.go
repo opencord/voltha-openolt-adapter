@@ -43,3 +43,16 @@ func (ma *MockAdapterProxy) SendInterAdapterMessage(ctx context.Context,
 	}
 	return nil
 }
+
+// TechProfileInstanceRequest mocks TechProfileInstanceRequest function
+func (ma *MockAdapterProxy) TechProfileInstanceRequest(ctx context.Context,
+	tpPath string,
+	parentPonPort uint32,
+	onuID uint32,
+	uniID uint32,
+	fromAdapter string,
+	toAdapter string,
+	toDeviceID string,
+	proxyDeviceID string) (*inter_container.InterAdapterTechProfileDownloadMessage, error) {
+	return nil, nil
+}

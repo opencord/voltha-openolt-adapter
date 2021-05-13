@@ -29,15 +29,10 @@ import (
 
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
-	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
+	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	"github.com/opencord/voltha-protos/v4/go/openolt"
 	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
 )
@@ -48,41 +43,11 @@ func init() {
 	_, _ = log.SetDefaultLogger(log.JSON, log.DebugLevel, nil)
 	flowMgr = newMockFlowmgr()
 }
-func newMockResourceMgr() *resourcemanager.OpenOltResourceMgr {
-	ranges := []*openolt.DeviceInfo_DeviceResourceRanges{
-		{
-			IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-			Technology: "Default",
-		},
-	}
-
-	deviceinfo := &openolt.DeviceInfo{Vendor: "openolt", Model: "openolt", HardwareVersion: "1.0", FirmwareVersion: "1.0",
-		DeviceId: "olt", DeviceSerialNumber: "openolt", PonPorts: 16, Technology: "Default",
-		OnuIdStart: OnuIDStart, OnuIdEnd: OnuIDEnd, AllocIdStart: AllocIDStart, AllocIdEnd: AllocIDEnd,
-		GemportIdStart: GemIDStart, GemportIdEnd: GemIDEnd, FlowIdStart: FlowIDStart, FlowIdEnd: FlowIDEnd,
-		Ranges: ranges,
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	rsrMgr := resourcemanager.NewResourceMgr(ctx, "olt", "127.0.0.1:2379", "etcd", "olt", deviceinfo, "service/voltha")
-	for key := range rsrMgr.ResourceMgrs {
-		rsrMgr.ResourceMgrs[key].KVStore = &db.Backend{}
-		rsrMgr.ResourceMgrs[key].KVStore.Client = &mocks.MockKVClient{}
-		rsrMgr.ResourceMgrs[key].TechProfileMgr = mocks.MockTechProfile{TpID: key}
-	}
-	return rsrMgr
-}
 
 func newMockFlowmgr() []*OpenOltFlowMgr {
-	rMgr := newMockResourceMgr()
 	dh := newMockDeviceHandler()
 
-	rMgr.KVStore = &db.Backend{}
-	rMgr.KVStore.Client = &mocks.MockKVClient{}
-
-	dh.resourceMgr = rMgr
-
-	// onuGemInfo := make([]rsrcMgr.OnuGemInfo, NumPonPorts)
+	// onuGemInfoMap := make([]rsrcMgr.onuGemInfoMap, NumPonPorts)
 	var i uint32
 
 	for i = 0; i < NumPonPorts; i++ {
@@ -90,11 +55,7 @@ func newMockFlowmgr() []*OpenOltFlowMgr {
 		packetInGemPort[rsrcMgr.PacketInInfoKey{IntfID: i, OnuID: i + 1, LogicalPort: i + 1, VlanID: uint16(i), Priority: uint8(i)}] = i + 1
 
 		dh.flowMgr[i].packetInGemPort = packetInGemPort
-		tps := make(map[uint32]tp.TechProfileIf)
-		for key := range rMgr.ResourceMgrs {
-			tps[key] = mocks.MockTechProfile{TpID: key}
-		}
-		dh.flowMgr[i].techprofile = tps
+		dh.flowMgr[i].techprofile = dh.resourceMgr[i].PonRsrMgr.TechProfileMgr
 		interface2mcastQeueuMap := make(map[uint32]*QueueInfoBrief)
 		interface2mcastQeueuMap[0] = &QueueInfoBrief{
 			gemPortID:       4000,
@@ -102,21 +63,22 @@ func newMockFlowmgr() []*OpenOltFlowMgr {
 		}
 		dh.flowMgr[i].grpMgr.interfaceToMcastQueueMap = interface2mcastQeueuMap
 	}
-
 	return dh.flowMgr
 }
 
 func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
-	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
+	tprofile := &tp_pb.TechProfileInstance{Name: "tp1", SubscriberIdentifier: "subscriber1",
 		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
-		InstanceCtrl: tp.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
+		InstanceControl: &tp_pb.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
-	tprofile.UsScheduler.Direction = "UPSTREAM"
-	tprofile.UsScheduler.QSchedPolicy = "WRR"
+	tprofile.UsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
+	tprofile.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
 	tprofile2 := tprofile
-	tprofile2.DsScheduler.Direction = "DOWNSTREAM"
-	tprofile2.DsScheduler.QSchedPolicy = "WRR"
+	tprofile2.DsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
+	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
 	tests := []struct {
 		name       string
@@ -135,17 +97,17 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		{"CreateSchedulerQueues-19", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 5, Upstream)}, false},
 		{"CreateSchedulerQueues-20", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 5, Downstream)}, false},
 
-		{"CreateSchedulerQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 0, Upstream)}, true},
-		{"CreateSchedulerQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 0, Downstream)}, true},
+		{"CreateSchedulerQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 0, Upstream)}, false},
+		{"CreateSchedulerQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 0, Downstream)}, false},
 		{"CreateSchedulerQueues-3", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, createFlowMetadata(tprofile, 2, Upstream)}, true},
 		{"CreateSchedulerQueues-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, createFlowMetadata(tprofile2, 2, Downstream)}, true},
 		{"CreateSchedulerQueues-5", schedQueue{tp_pb.Direction_UPSTREAM, 1, 2, 2, 64, 2, tprofile, 2, createFlowMetadata(tprofile, 3, Upstream)}, true},
 		{"CreateSchedulerQueues-6", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 2, 2, 65, 2, tprofile2, 2, createFlowMetadata(tprofile2, 3, Downstream)}, true},
 
 		//Negative testcases
-		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, &voltha.FlowMetadata{}}, false},
 		{"CreateSchedulerQueues-8", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 0, &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, &voltha.FlowMetadata{}}, false},
 		{"CreateSchedulerQueues-10", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, &voltha.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-12", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, nil}, true},
@@ -161,35 +123,35 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	}
 }
 
-func createFlowMetadata(techProfile *tp.TechProfile, tcontType int, direction string) *voltha.FlowMetadata {
-	var additionalBw string
+func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, direction string) *voltha.FlowMetadata {
+	var additionalBw openoltpb2.AdditionalBW
 	bands := make([]*ofp.OfpMeterBandHeader, 0)
 	switch tcontType {
 	case 1:
 		//tcont-type-1
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
-		additionalBw = "AdditionalBW_None"
+		additionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	case 2:
 		//tcont-type-2
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 60000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
-		additionalBw = "AdditionalBW_None"
+		additionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	case 3:
 		//tcont-type-3
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 100000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 20000, Data: &ofp.OfpMeterBandHeader_Drop{}})
-		additionalBw = "AdditionalBW_NA"
+		additionalBw = tp_pb.AdditionalBW_AdditionalBW_NA
 	case 4:
 		//tcont-type-4
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 200000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
-		additionalBw = "AdditionalBW_BestEffort"
+		additionalBw = tp_pb.AdditionalBW_AdditionalBW_BestEffort
 	case 5:
 		//tcont-type-5
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 100000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
-		additionalBw = "AdditionalBW_BestEffort"
+		additionalBw = tp_pb.AdditionalBW_AdditionalBW_BestEffort
 	default:
 		// do nothing, we will return meter config with no meter bands
 	}
@@ -206,18 +168,20 @@ func createFlowMetadata(techProfile *tp.TechProfile, tcontType int, direction st
 }
 
 func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
-	tprofile := &tp.TechProfile{Name: "tp1", SubscriberIdentifier: "subscriber1",
+	tprofile := &tp_pb.TechProfileInstance{Name: "tp1", SubscriberIdentifier: "subscriber1",
 		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
-		InstanceCtrl: tp.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
+		InstanceControl: &tp_pb.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
-	tprofile.UsScheduler.Direction = "UPSTREAM"
-	tprofile.UsScheduler.AdditionalBw = "AdditionalBW_None"
-	tprofile.UsScheduler.QSchedPolicy = "WRR"
+	tprofile.UsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
+	tprofile.UsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	tprofile.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
 	tprofile2 := tprofile
-	tprofile2.DsScheduler.Direction = "DOWNSTREAM"
-	tprofile2.DsScheduler.AdditionalBw = "AdditionalBW_None"
-	tprofile2.DsScheduler.QSchedPolicy = "WRR"
+	tprofile2.DsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
+	tprofile2.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 	//defTprofile := &tp.DefaultTechProfile{}
 	tests := []struct {
 		name       string
@@ -267,7 +231,6 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 		args args
 	}{
 		{"createTcontGemports-1", args{intfID: 0, onuID: 1, uniID: 1, uni: "16", uniPort: 1, TpID: 64, UsMeterID: 1, DsMeterID: 1, flowMetadata: flowmetadata}},
-		{"createTcontGemports-1", args{intfID: 0, onuID: 1, uniID: 1, uni: "16", uniPort: 1, TpID: 65, UsMeterID: 1, DsMeterID: 1, flowMetadata: flowmetadata}},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -275,11 +238,11 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, _, tpInst := flowMgr[tt.args.intfID].createTcontGemports(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.uni, tt.args.uniPort, tt.args.TpID, tt.args.UsMeterID, tt.args.DsMeterID, tt.args.flowMetadata)
 			switch tpInst := tpInst.(type) {
-			case *tp.TechProfile:
+			case *tp_pb.TechProfileInstance:
 				if tt.args.TpID != 64 {
 					t.Errorf("OpenOltFlowMgr.createTcontGemports() error = different tech, tech %v", tpInst)
 				}
-			case *tp.EponProfile:
+			case *tp_pb.EponTechProfileInstance:
 				if tt.args.TpID != 65 {
 					t.Errorf("OpenOltFlowMgr.createTcontGemports() error = different tech, tech %v", tpInst)
 				}
@@ -680,7 +643,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// clean the flowMgr
 	for i := 0; i < intfNum; i++ {
-		flowMgr[i].onuGemInfo = make([]rsrcMgr.OnuGemInfo, 0)
+		flowMgr[i].onuGemInfoMap = make(map[uint32]*rsrcMgr.OnuGemInfo)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -696,7 +659,6 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	// Add gemPorts to OnuInfo in parallel threads
 	wg := sync.WaitGroup{}
-
 	for o := 1; o <= onuNum; o++ {
 		for i := 0; i < intfNum; i++ {
 			wg.Add(1)
@@ -711,15 +673,15 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 	wg.Wait()
 
-	// check that each entry of onuGemInfo has the correct number of ONUs
+	// check that each entry of onuGemInfoMap has the correct number of ONUs
 	for i := 0; i < intfNum; i++ {
-		lenofOnu := len(flowMgr[i].onuGemInfo)
+		lenofOnu := len(flowMgr[i].onuGemInfoMap)
 		if onuNum != lenofOnu {
-			t.Errorf("OnuGemInfo length is not as expected len = %d, want %d", lenofOnu, onuNum)
+			t.Errorf("onuGemInfoMap length is not as expected len = %d, want %d", lenofOnu, onuNum)
 		}
 
 		for o := 1; o <= onuNum; o++ {
-			lenOfGemPorts := len(flowMgr[i].onuGemInfo[o-1].GemPorts)
+			lenOfGemPorts := len(flowMgr[i].onuGemInfoMap[uint32(o)].GemPorts)
 			// check that each onuEntry has 1 gemPort
 			if lenOfGemPorts != 1 {
 				t.Errorf("Expected 1 GemPort per ONU, found %d", lenOfGemPorts)
@@ -727,7 +689,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 
 			// check that the value of the gemport is correct
 			gemID, _ := strconv.Atoi(fmt.Sprintf("90%d%d", i, o-1))
-			currentValue := flowMgr[i].onuGemInfo[o-1].GemPorts[0]
+			currentValue := flowMgr[i].onuGemInfoMap[uint32(o)].GemPorts[0]
 			if uint32(gemID) != currentValue {
 				t.Errorf("Expected GemPort value to be %d, found %d", gemID, currentValue)
 			}
@@ -774,11 +736,11 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
 				flowMgr[tt.args.intfID].deleteGemPortFromLocalCache(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
-			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts)
+			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfoMap[1].GemPorts)
 			if lenofGemPorts != tt.args.finalLength {
 				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
 			}
-			gemPorts := flowMgr[tt.args.intfID].onuGemInfo[0].GemPorts
+			gemPorts := flowMgr[tt.args.intfID].onuGemInfoMap[1].GemPorts
 			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
 				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
@@ -798,11 +760,11 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 255, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1, false},
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "nni", IntfId: 0, GemportId: 1, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1048576, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 255, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "nni", IntfId: 0, GemportId: 1, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1048576, false},
 		// Negative Test cases.
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 1, GemportId: 1, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 0, true},
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 257, FlowId: 100, PortNo: 0, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 16, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 1, GemportId: 1, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 257, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 0, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 16, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -1067,51 +1029,55 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		// So just return in case of error
 		return
 	}
-
-	TpInst := &tp.TechProfile{
+	/*
+		usGemList := make([]*tp_pb.GemPortAttributes, 4)
+		usGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		usGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		usGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		usGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		dsGemList := make([]*tp_pb.GemPortAttributes, 4)
+		dsGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		dsGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		dsGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+		dsGemList = append(usGemList, &tp_pb.GemPortAttributes{})
+	*/
+	TpInst := &tp_pb.TechProfileInstance{
 		Name:                 "Test-Tech-Profile",
 		SubscriberIdentifier: "257",
 		ProfileType:          "Mock",
 		Version:              1,
 		NumGemPorts:          4,
-		InstanceCtrl: tp.InstanceControl{
+		InstanceControl: &tp_pb.InstanceControl{
 			Onu: "1",
 			Uni: "16",
 		},
+		UsScheduler: &openoltpb2.SchedulerAttributes{},
+		DsScheduler: &openoltpb2.SchedulerAttributes{},
 	}
 	TpInst.UsScheduler.Priority = 1
-	TpInst.UsScheduler.Direction = "upstream"
-	TpInst.UsScheduler.AllocID = 1
-	TpInst.UsScheduler.AdditionalBw = "None"
-	TpInst.UsScheduler.QSchedPolicy = "PQ"
+	TpInst.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
+	TpInst.UsScheduler.AllocId = 1
+	TpInst.UsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	TpInst.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 	TpInst.UsScheduler.Weight = 4
 
 	TpInst.DsScheduler.Priority = 1
-	TpInst.DsScheduler.Direction = "upstream"
-	TpInst.DsScheduler.AllocID = 1
-	TpInst.DsScheduler.AdditionalBw = "None"
-	TpInst.DsScheduler.QSchedPolicy = "PQ"
+	TpInst.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
+	TpInst.DsScheduler.AllocId = 1
+	TpInst.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	TpInst.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 	TpInst.DsScheduler.Weight = 4
+	TpInst.UpstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	TpInst.UpstreamGemPortAttributeList = append(TpInst.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b00000011"})
+	TpInst.UpstreamGemPortAttributeList = append(TpInst.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 2, PbitMap: "0b00001100"})
+	TpInst.UpstreamGemPortAttributeList = append(TpInst.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 3, PbitMap: "0b00110000"})
+	TpInst.UpstreamGemPortAttributeList = append(TpInst.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 4, PbitMap: "0b11000000"})
 
-	TpInst.UpstreamGemPortAttributeList = make([]tp.IGemPortAttribute, 4)
-	TpInst.UpstreamGemPortAttributeList[0].GemportID = 1
-	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00000011"
-	TpInst.UpstreamGemPortAttributeList[0].GemportID = 2
-	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00001100"
-	TpInst.UpstreamGemPortAttributeList[0].GemportID = 3
-	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b00110000"
-	TpInst.UpstreamGemPortAttributeList[0].GemportID = 4
-	TpInst.UpstreamGemPortAttributeList[0].PbitMap = "0b11000000"
-
-	TpInst.DownstreamGemPortAttributeList = make([]tp.IGemPortAttribute, 4)
-	TpInst.DownstreamGemPortAttributeList[0].GemportID = 1
-	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00000011"
-	TpInst.DownstreamGemPortAttributeList[0].GemportID = 2
-	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00001100"
-	TpInst.DownstreamGemPortAttributeList[0].GemportID = 3
-	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b00110000"
-	TpInst.DownstreamGemPortAttributeList[0].GemportID = 4
-	TpInst.DownstreamGemPortAttributeList[0].PbitMap = "0b11000000"
+	TpInst.DownstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	TpInst.DownstreamGemPortAttributeList = append(TpInst.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b00000011"})
+	TpInst.DownstreamGemPortAttributeList = append(TpInst.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 2, PbitMap: "0b00001100"})
+	TpInst.DownstreamGemPortAttributeList = append(TpInst.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 3, PbitMap: "0b00110000"})
+	TpInst.DownstreamGemPortAttributeList = append(TpInst.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 4, PbitMap: "0b11000000"})
 
 	type args struct {
 		args           map[string]uint32
@@ -1123,7 +1089,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		onuID          uint32
 		uniID          uint32
 		portNo         uint32
-		TpInst         *tp.TechProfile
+		TpInst         *tp_pb.TechProfileInstance
 		allocID        []uint32
 		gemPorts       []uint32
 		TpID           uint32
