@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package techprofile
+package techprofile_v2
 
 import (
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
 	"time"
 )
 
@@ -39,12 +39,12 @@ const (
 	// Tech profile path prefix in kv store (for TP instances)
 	defaultKVPathPrefix = "%s/technology_profiles"
 
+	// Resource instance path prefix in KV store (for Resource Instances)
+	defaultResourceInstancePathPrefix = "%s/resource_instances"
+
 	// Tech profile path in kv store
 	defaultTechProfileKVPath = "%s/%d" // <technology>/<tech_profile_tableID>
 
-	// Tech profile instance path in kv store
-	// Format: <technology>/<tech_profile_tableID>/<uni_port_name>
-	defaultTPInstanceKVPath = "%s/%d/%s"
 )
 
 //Tech-Profile JSON String Keys
@@ -103,12 +103,13 @@ type TechProfileFlags struct {
 	KVStoreTimeout        time.Duration
 	KVBackend             *db.Backend // this is the backend used to store TP instances
 	DefaultTpKVBackend    *db.Backend // this is the backend used to read the TP profile
+	ResourceInstanceKVBacked *db.Backend // this is the backed used to read/write Resource Instances
 	TPKVPathPrefix        string
 	defaultTpKvPathPrefix string
 	TPFileKVPath          string
-	TPInstanceKVPath      string
+	ResourceInstanceKVPathPrefix      string
 	DefaultTPName         string
-	TPVersion             int
+	TPVersion             uint32
 	NumGemPorts           uint32
 	DefaultPbits          []string
 	LogLevel              int
@@ -128,7 +129,7 @@ func NewTechProfileFlags(KVStoreType string, KVStoreAddress string, basePathKvSt
 		defaultTpKvPathPrefix: defaultTpKvPathPrefix,
 		TPVersion:             defaultVersion,
 		TPFileKVPath:          defaultTechProfileKVPath,
-		TPInstanceKVPath:      defaultTPInstanceKVPath,
+		ResourceInstanceKVPathPrefix:      fmt.Sprintf(defaultResourceInstancePathPrefix, basePathKvStore),
 		DefaultTechProfileID:  DEFAULT_TECH_PROFILE_TABLE_ID,
 		DefaultNumGemPorts:    defaultGemportsCount,
 		DefaultPbits:          []string{defaultPbits},

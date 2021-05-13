@@ -21,7 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"strings"
 )
 
@@ -364,4 +364,12 @@ var (
 	// ErrResourceManagerInstantiating error returned when an unexpected
 	// condition occcurs while instantiating the resource manager
 	ErrResourceManagerInstantiating = NewErrAdapter("resoure-manager-instantiating", nil, nil)
+
+	// ErrFlowManagerInstantiating error returned when an unexpected
+	// condition occcurs while instantiating the flow manager
+	ErrFlowManagerInstantiating = NewErrAdapter("flow-manager-instantiating", nil, nil)
+
+	// ErrGroupManagerInstantiating error returned when an unexpected
+	// condition occcurs while instantiating the group manager
+	ErrGroupManagerInstantiating = NewErrAdapter("group-manager-instantiating", nil, nil)
 )

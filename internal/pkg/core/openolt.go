@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
-	"github.com/opencord/voltha-lib-go/v4/pkg/events/eventif"
-	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/adapters/adapterif"
+	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
+	"github.com/opencord/voltha-lib-go/v5/pkg/events/eventif"
+	"github.com/opencord/voltha-lib-go/v5/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v4/go/extension"
@@ -157,6 +157,20 @@ func (oo *OpenOLT) Process_inter_adapter_message(ctx context.Context, msg *ic.In
 		return handler.ProcessInterAdapterMessage(ctx, msg)
 	}
 	return olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": targetDevice}, nil)
+}
+
+//Process_tech_profile_instance_request processes tech profile request message from onu adapter
+func (oo *OpenOLT) Process_tech_profile_instance_request(ctx context.Context, msg *ic.InterAdapterTechProfileInstanceRequestMessage) *ic.InterAdapterTechProfileDownloadMessage {
+	logger.Debugw(ctx, "Process_tech_profile_instance_request", log.Fields{"tpPath": msg.TpInstancePath})
+	targetDeviceID := msg.ParentDeviceId // Request?
+	if targetDeviceID == "" {
+		logger.Error(ctx, "device-id-nil")
+		return nil
+	}
+	if handler := oo.getDeviceHandler(targetDeviceID); handler != nil {
+		return handler.GetInterAdapterTechProfileDownloadMessage(ctx, msg.TpInstancePath, msg.ParentPonPort, msg.OnuId, msg.UniId)
+	}
+	return nil
 }
 
 //Adapter_descriptor not implemented
