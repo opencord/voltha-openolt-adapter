@@ -19,8 +19,7 @@ package core
 
 import (
 	"context"
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
+	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
 	"net"
 	"reflect"
 	"sync"
@@ -29,11 +28,11 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -169,16 +168,17 @@ func newMockDeviceHandler() *DeviceHandler {
 	}}
 
 	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: NumPonPorts}
-	rsrMgr := resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
-		KVStore: &db.Backend{
-			Client: &mocks.MockKVClient{},
-		}}
-	rsrMgr.AllocIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
-	rsrMgr.GemPortIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
-	rsrMgr.OnuIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
+	dh.deviceInfo = deviceInf
+	dh.resourceMgr = make([]*resourcemanager.OpenOltResourceMgr, deviceInf.PonPorts)
+	var i uint32
+	for i = 0; i < deviceInf.PonPorts; i++ {
+		dh.resourceMgr[i] = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
+			KVStore: &db.Backend{
+				Client: &mocks.MockKVClient{},
+			}}
+		dh.resourceMgr[i].InitLocalCache()
+	}
 
-	dh.resourceMgr = &rsrMgr
-	dh.resourceMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
 	ranges := make(map[string]interface{})
 	sharedIdxByType := make(map[string]string)
 	sharedIdxByType["ALLOC_ID"] = "ALLOC_ID"
@@ -195,13 +195,6 @@ func newMockDeviceHandler() *DeviceHandler {
 	ranges["flow_id_shared"] = uint32(0)
 
 	ponmgr := &ponrmgr.PONResourceManager{}
-
-	ctx := context.TODO()
-	tpMgr, err := tp.NewTechProfile(ctx, ponmgr, "etcd", "127.0.0.1", "/")
-	if err != nil {
-		logger.Fatal(ctx, err.Error())
-	}
-
 	ponmgr.DeviceID = "onu-1"
 	ponmgr.IntfIDs = []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	ponmgr.KVStore = &db.Backend{
@@ -209,19 +202,28 @@ func newMockDeviceHandler() *DeviceHandler {
 	}
 	ponmgr.PonResourceRanges = ranges
 	ponmgr.SharedIdxByType = sharedIdxByType
+	ponmgr.Technology = "XGS-PON"
+	for i = 0; i < deviceInf.PonPorts; i++ {
+		dh.resourceMgr[i].PonRsrMgr = ponmgr
+	}
+
+	/*
+		tpMgr, err := tp.NewTechProfile(ctx, ponmgr, "etcd", "127.0.0.1", "/")
+		if err != nil {
+			logger.Fatal(ctx, err.Error())
+		}
+	*/
+	tpMgr := &mocks.MockTechProfile{TpID: 64}
 	ponmgr.TechProfileMgr = tpMgr
 
-	for i := 0; i < NumPonPorts; i++ {
-		dh.resourceMgr.ResourceMgrs[uint32(i)] = ponmgr
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr)
+	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr[0])
 	dh.totalPonPorts = NumPonPorts
 	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
-	for i := 0; i < int(dh.totalPonPorts); i++ {
+	for i = 0; i < dh.totalPonPorts; i++ {
 		// Instantiate flow manager
-		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr, dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
+		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
 			return nil
 		}
 	}
@@ -443,18 +445,18 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	var err error
 
 	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 
 	var marshalledData1 *any.Any
 
 	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 	var marshalledData2 *any.Any
 
 	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 	type args struct {
 		msg *ic.InterAdapterMessage

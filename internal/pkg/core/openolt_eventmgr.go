@@ -23,8 +23,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/events/eventif"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/events/eventif"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v4/go/common"
 	oop "github.com/opencord/voltha-protos/v4/go/openolt"
@@ -660,7 +660,7 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(ctx context.Context, onuLOKI 
 func (em *OpenOltEventMgr) oltIntfOperIndication(ctx context.Context, ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) {
 	portNo := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
 	if port, err := em.handler.coreProxy.GetDevicePort(ctx, deviceID, portNo); err != nil {
-		logger.Warnw(ctx, "Error while fetching port object", log.Fields{"device-id": deviceID, "error": err})
+		logger.Warnw(ctx, "Error while fetching port object", log.Fields{"device-id": deviceID, "err": err})
 	} else if port.AdminState != common.AdminState_ENABLED {
 		logger.Debugw(ctx, "port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"device-id": deviceID, "port": port})
 		return

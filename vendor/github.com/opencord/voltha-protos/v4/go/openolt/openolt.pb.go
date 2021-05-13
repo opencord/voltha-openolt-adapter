@@ -61,6 +61,36 @@ type TrafficQueue = tech_profile.TrafficQueue
 // TrafficQueues from public import voltha_protos/tech_profile.proto
 type TrafficQueues = tech_profile.TrafficQueues
 
+// InstanceControl from public import voltha_protos/tech_profile.proto
+type InstanceControl = tech_profile.InstanceControl
+
+// QThresholds from public import voltha_protos/tech_profile.proto
+type QThresholds = tech_profile.QThresholds
+
+// GemPortAttributes from public import voltha_protos/tech_profile.proto
+type GemPortAttributes = tech_profile.GemPortAttributes
+
+// SchedulerAttributes from public import voltha_protos/tech_profile.proto
+type SchedulerAttributes = tech_profile.SchedulerAttributes
+
+// EPONQueueAttributes from public import voltha_protos/tech_profile.proto
+type EPONQueueAttributes = tech_profile.EPONQueueAttributes
+
+// TechProfile from public import voltha_protos/tech_profile.proto
+type TechProfile = tech_profile.TechProfile
+
+// EponTechProfile from public import voltha_protos/tech_profile.proto
+type EponTechProfile = tech_profile.EponTechProfile
+
+// TechProfileInstance from public import voltha_protos/tech_profile.proto
+type TechProfileInstance = tech_profile.TechProfileInstance
+
+// EponTechProfileInstance from public import voltha_protos/tech_profile.proto
+type EponTechProfileInstance = tech_profile.EponTechProfileInstance
+
+// ResourceInstance from public import voltha_protos/tech_profile.proto
+type ResourceInstance = tech_profile.ResourceInstance
+
 // Direction from public import voltha_protos/tech_profile.proto
 type Direction = tech_profile.Direction
 
@@ -173,6 +203,7 @@ const OperStatus_TESTING = OperStatus_Types(common.OperStatus_TESTING)
 const OperStatus_ACTIVE = OperStatus_Types(common.OperStatus_ACTIVE)
 const OperStatus_FAILED = OperStatus_Types(common.OperStatus_FAILED)
 const OperStatus_RECONCILING = OperStatus_Types(common.OperStatus_RECONCILING)
+const OperStatus_RECONCILING_FAILED = OperStatus_Types(common.OperStatus_RECONCILING_FAILED)
 
 // ConnectStatus_Types from public import voltha_protos/common.proto
 type ConnectStatus_Types = common.ConnectStatus_Types

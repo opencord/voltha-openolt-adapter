@@ -90,4 +90,5 @@ issues:
     - "don't use underscores in Go names; method Start_omci_test"
     - "don't use underscores in Go names; method Get_ext_value"
     - "don't use underscores in Go names; method Single_get_value_request"
+    - "don't use underscores in Go names; method Process_tech_profile_instance_request"
   exclude-use-default: false

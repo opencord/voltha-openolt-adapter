@@ -25,12 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
-
-	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	openolt "github.com/opencord/voltha-protos/v4/go/openolt"
 )
 
 const (
@@ -60,6 +57,21 @@ const (
 
 // MockKVClient mocks the AdapterProxy interface.
 type MockKVClient struct {
+}
+
+// OnuGemInfo holds onu information along with gem port list and uni port list
+type OnuGemInfo struct {
+	OnuID        uint32
+	SerialNumber string
+	IntfID       uint32
+	GemPorts     []uint32
+	UniPorts     []uint32
+}
+
+// GroupInfo holds group information
+type GroupInfo struct {
+	GroupID  uint32
+	OutPorts []uint32
 }
 
 // List mock function implementation for KVClient
@@ -136,24 +148,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
-		if strings.Contains(key, "/{olt}/{0,-1,-1}/flow_id_info/") {
-			//multicast flow
-			data := resourcemanager.FlowInfo{
-				Flow: &openolt.Flow{FlowId: 1, OnuId: 0, UniId: 0, GemportId: 4000},
-			}
-			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
-			str, _ := json.Marshal(data)
-			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
-		}
 
-		if strings.Contains(key, FlowIDInfo) {
-			data := resourcemanager.FlowInfo{
-				Flow: &openolt.Flow{FlowId: 1, OnuId: 1, UniId: 1, GemportId: 1},
-			}
-			logger.Debug(ctx, "Error Error Error Key:", FlowIDs)
-			str, _ := json.Marshal(data)
-			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
-		}
 		if strings.Contains(key, GemportIDs) {
 			logger.Debug(ctx, "Error Error Error Key:", GemportIDs)
 			data := []uint32{1}
@@ -168,7 +163,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		}
 		if strings.Contains(key, FlowGroup) || strings.Contains(key, FlowGroupCached) {
 			logger.Debug(ctx, "Error Error Error Key:", FlowGroup)
-			groupInfo := resourcemanager.GroupInfo{
+			groupInfo := GroupInfo{
 				GroupID:  2,
 				OutPorts: []uint32{1},
 			}
@@ -178,11 +173,13 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 		if strings.Contains(key, OnuPacketIn) {
 			return getPacketInGemPort(key)
 		}
+
 		if strings.Contains(key, OnuGemInfoPath) {
-			var data []resourcemanager.OnuGemInfo
+			var data []OnuGemInfo
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
+
 		//Interface, GEM port path
 		if strings.Contains(key, "0,255") {
 			//return onuID, uniID associated with the given interface and GEM port

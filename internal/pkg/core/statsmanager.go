@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v4/go/extension"
 	"github.com/opencord/voltha-protos/v4/go/openolt"
@@ -285,7 +285,7 @@ func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatist
 	var Ports interface{}
 	Ports, _ = InitPorts(ctx, "nni", Dev.device.Id, 1)
 	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]*NniPort)
-	NumPonPorts := Dev.resourceMgr.DevInfo.GetPonPorts()
+	NumPonPorts := Dev.resourceMgr[0].DevInfo.GetPonPorts()
 	Ports, _ = InitPorts(ctx, "pon", Dev.device.Id, NumPonPorts)
 	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]*PonPort)
 	if StatMgr.Device.openOLT.enableONUStats {
