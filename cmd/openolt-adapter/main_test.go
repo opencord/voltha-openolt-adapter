@@ -21,12 +21,12 @@ import (
 	"testing"
 	"time"
 
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
+	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v5/pkg/kafka"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	ca "github.com/opencord/voltha-protos/v4/go/inter_container"
