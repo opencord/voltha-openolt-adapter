@@ -20,8 +20,8 @@ package core
 import (
 	"context"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
@@ -112,6 +112,10 @@ const (
 	minNniIntPortNum = (1 << bitsforNNIID)
 	// maxNniPortNum is used to store the maximum range of nni port number ((1 << 21)-1) 2097151
 	maxNniPortNum = ((1 << (bitsforNNIID + 1)) - 1)
+	// minPonIntfPortNum stores the minimum pon port number
+	minPonIntfPortNum = ponIntfMarkerValue << ponIntfMarkerPos
+	// maxPonIntfPortNum stores the maximum pon port number
+	maxPonIntfPortNum = (ponIntfMarkerValue << ponIntfMarkerPos) | (2^bitsForPONID - 1)
 )
 
 //MinUpstreamPortID value
@@ -175,6 +179,15 @@ func IntfIDFromNniPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 		return uint32(0), olterrors.ErrInvalidPortRange
 	}
 	return (portNum & 0xFFFF), nil
+}
+
+//IntfIDFromPonPortNum returns Intf ID derived from portNum
+func IntfIDFromPonPortNum(ctx context.Context, portNum uint32) (uint32, error) {
+	if portNum < minPonIntfPortNum || portNum > maxPonIntfPortNum {
+		logger.Errorw(ctx, "ponportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
+		return uint32(0), olterrors.ErrInvalidPortRange
+	}
+	return (portNum & 0x7FFF), nil
 }
 
 //IntfIDToPortTypeName returns port type derived from the intfId

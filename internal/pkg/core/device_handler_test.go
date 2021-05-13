@@ -19,8 +19,8 @@ package core
 
 import (
 	"context"
-	conf "github.com/opencord/voltha-lib-go/v4/pkg/config"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
+	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
+	tp "github.com/opencord/voltha-lib-go/v5/pkg/techprofile"
 	"net"
 	"reflect"
 	"sync"
@@ -29,11 +29,11 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v4/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	"github.com/opencord/voltha-lib-go/v4/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -173,9 +173,6 @@ func newMockDeviceHandler() *DeviceHandler {
 		KVStore: &db.Backend{
 			Client: &mocks.MockKVClient{},
 		}}
-	rsrMgr.AllocIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
-	rsrMgr.GemPortIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
-	rsrMgr.OnuIDMgmtLock = make([]sync.RWMutex, deviceInf.PonPorts)
 
 	dh.resourceMgr = &rsrMgr
 	dh.resourceMgr.ResourceMgrs = make(map[uint32]*ponrmgr.PONResourceManager)
@@ -443,18 +440,18 @@ func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
 	var err error
 
 	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 
 	var marshalledData1 *any.Any
 
 	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 	var marshalledData2 *any.Any
 
 	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"error": err})
+		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 	}
 	type args struct {
 		msg *ic.InterAdapterMessage

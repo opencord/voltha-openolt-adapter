@@ -21,10 +21,10 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/opencord/voltha-lib-go/v4/pkg/adapters"
-	"github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif"
-	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/adapters"
+	"github.com/opencord/voltha-lib-go/v5/pkg/adapters/adapterif"
+	"github.com/opencord/voltha-lib-go/v5/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 	"github.com/opencord/voltha-protos/v4/go/extension"
 	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
 	"github.com/opencord/voltha-protos/v4/go/openflow_13"
@@ -557,6 +557,37 @@ func (rhp *RequestHandlerProxy) Process_inter_adapter_message(ctx context.Contex
 	}
 
 	return new(empty.Empty), nil
+}
+
+func (rhp *RequestHandlerProxy) Process_tech_profile_instance_request(ctx context.Context, args []*ic.Argument) (*ic.InterAdapterTechProfileDownloadMessage, error) {
+	if len(args) < 2 {
+		logger.Warn(ctx, "invalid-number-of-args", log.Fields{"args": args})
+		err := errors.New("invalid-number-of-args")
+		return nil, err
+	}
+	iaTpReqMsg := &ic.InterAdapterTechProfileInstanceRequestMessage{}
+	transactionID := &ic.StrType{}
+	for _, arg := range args {
+		switch arg.Key {
+		case "msg":
+			if err := ptypes.UnmarshalAny(arg.Value, iaTpReqMsg); err != nil {
+				logger.Warnw(ctx, "cannot-unmarshal-device", log.Fields{"error": err})
+				return nil, err
+			}
+		case kafka.TransactionKey:
+			if err := ptypes.UnmarshalAny(arg.Value, transactionID); err != nil {
+				logger.Warnw(ctx, "cannot-unmarshal-transaction-ID", log.Fields{"error": err})
+				return nil, err
+			}
+		}
+	}
+
+	logger.Debugw(ctx, "Process_tech_profile_instance_request", log.Fields{"tpPath": iaTpReqMsg.TpPath})
+
+	//Invoke the tech profile instance request
+	tpInst := rhp.adapter.Process_tech_profile_instance_request(ctx, iaTpReqMsg)
+
+	return tpInst, nil
 }
 
 func (rhp *RequestHandlerProxy) Download_image(ctx context.Context, args []*ic.Argument) (*voltha.ImageDownload, error) {
