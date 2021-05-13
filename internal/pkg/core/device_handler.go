@@ -528,9 +528,6 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-nni", "device-id": dh.device.Id}, err).Log()
 				}
 			}()
-			if err := dh.resourceMgr.AddNNIToKVStore(ctx, intfOperInd.GetIntfId()); err != nil {
-				logger.Warn(ctx, err)
-			}
 		} else if intfOperInd.GetType() == "pon" {
 			// TODO: Check what needs to be handled here for When PON PORT down, ONU will be down
 			// Handle pon port update
@@ -1126,10 +1123,6 @@ func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *volt
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id, "OmccEncryption": dh.openOLT.config.OmccEncryption})
-	if err := dh.flowMgr[intfID].UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
-		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
-	}
-	// TODO: need resource manager
 	var pir uint32 = 1000000
 	Onu := oop.Onu{IntfId: intfID, OnuId: uint32(onuID), SerialNumber: serialNum, Pir: pir, OmccEncryption: dh.openOLT.config.OmccEncryption}
 	if _, err := dh.Client.ActivateOnu(ctx, &Onu); err != nil {
@@ -1698,35 +1691,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		if err = dh.resourceMgr.DeletePacketInGemPortForOnu(ctx, onu.IntfID, onu.OnuID, port); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
 		}
-		if err = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, onu.IntfID, int32(onu.OnuID), int32(uniID)); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-flow-for", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
-		}
 	}
-	return nil
-}
-
-func (dh *DeviceHandler) clearNNIData(ctx context.Context) error {
-	nniUniID := -1
-	nniOnuID := -1
-
-	if dh.resourceMgr == nil {
-		return olterrors.NewErrNotFound("resource-manager", log.Fields{"device-id": dh.device.Id}, nil)
-	}
-	//Free the flow-ids for the NNI port
-	nni, err := dh.resourceMgr.GetNNIFromKVStore(ctx)
-	if err != nil {
-		return olterrors.NewErrPersistence("get", "nni", 0, nil, err)
-	}
-	logger.Debugw(ctx, "nni-", log.Fields{"nni": nni})
-	for _, nniIntfID := range nni {
-		dh.resourceMgr.RemoveResourceMap(ctx, nniIntfID, int32(nniOnuID), int32(nniUniID))
-		_ = dh.resourceMgr.RemoveAllFlowsForIntfOnuUniKey(ctx, nniIntfID, -1, -1)
-
-	}
-	if err = dh.resourceMgr.DelNNiFromKVStore(ctx); err != nil {
-		return olterrors.NewErrPersistence("clear", "nni", 0, nil, err)
-	}
-
 	return nil
 }
 
@@ -1793,12 +1758,6 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 			if err != nil {
 				logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
 			}
-		}
-		/* Clear the flows from KV store associated with NNI port.
-		   There are mostly trap rules from NNI port (like LLDP)
-		*/
-		if err := dh.clearNNIData(ctx); err != nil {
-			logger.Errorw(ctx, "failed-to-clear-data-for-NNI-port", log.Fields{"device-id": dh.device.Id})
 		}
 
 		/* Clear the resource pool for each PON port in the background */
