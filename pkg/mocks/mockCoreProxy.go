@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/kafka"
+	"github.com/opencord/voltha-lib-go/v5/pkg/kafka"
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
@@ -131,6 +131,11 @@ func (mcp *MockCoreProxy) ChildDeviceDetected(ctx context.Context, parentdeviceI
 	childDeviceType string, channelID int, vendorID string, serialNumber string, onuID int64) (*voltha.Device, error) {
 	if parentdeviceID == "" {
 		return nil, errors.New("no deviceID")
+	}
+	for k, v := range mcp.Devices {
+		if k == "olt" {
+			return v, nil
+		}
 	}
 	return nil, nil
 }

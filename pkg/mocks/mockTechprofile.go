@@ -20,8 +20,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	tp "github.com/opencord/voltha-lib-go/v4/pkg/techprofile"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
 	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
 )
 
@@ -35,103 +34,98 @@ func (m MockTechProfile) SetKVClient(ctx context.Context, pathPrefix string) *db
 	return &db.Backend{Client: &MockKVClient{}}
 }
 
-// GetTechProfileInstanceKVPath to mock techprofile GetTechProfileInstanceKVPath method
-func (m MockTechProfile) GetTechProfileInstanceKVPath(ctx context.Context, techProfiletblID uint32, uniPortName string) string {
-	return ""
-
-}
-
-// GetTPInstanceFromKVStore to mock techprofile GetTPInstanceFromKVStore method
-func (m MockTechProfile) GetTPInstanceFromKVStore(ctx context.Context, techProfiletblID uint32, path string) (interface{}, error) {
+// GetTPInstance to mock techprofile GetTPInstance method
+func (m MockTechProfile) GetTPInstance(ctx context.Context, path string) (interface{}, error) {
 	logger.Debug(ctx, "GetTPInstanceFromKVStore")
-	if techProfiletblID == 64 {
-		return &tp.TechProfile{
-			Name:                 "mock-tech-profile",
-			SubscriberIdentifier: "257",
-			ProfileType:          "mock",
-			Version:              0,
-			NumGemPorts:          1,
-			UsScheduler: tp.IScheduler{
-				AllocID:      1,
-				Direction:    "upstream",
-				AdditionalBw: "None",
-				Priority:     0,
-				Weight:       0,
-				QSchedPolicy: "",
-			},
-			DsScheduler: tp.IScheduler{
-				AllocID:      1,
-				Direction:    "downstream",
-				AdditionalBw: "None",
-				Priority:     0,
-				Weight:       0,
-				QSchedPolicy: "",
-			},
-			UpstreamGemPortAttributeList: []tp.IGemPortAttribute{{
-				GemportID: 1,
-				PbitMap:   "0b11111111",
-			},
-			},
-			DownstreamGemPortAttributeList: []tp.IGemPortAttribute{{
-				GemportID: 1,
-				PbitMap:   "0b11111111",
-			},
-			},
-		}, nil
-	} else if techProfiletblID == 65 {
-		return &tp.EponProfile{
-			Name:                         "mock-epon-profile",
-			SubscriberIdentifier:         "257",
-			ProfileType:                  "mock",
-			Version:                      0,
-			NumGemPorts:                  2,
-			UpstreamQueueAttributeList:   nil,
-			DownstreamQueueAttributeList: nil,
-		}, nil
-	} else {
-		return nil, nil
-	}
+	var usGemPortAttributeList []*tp_pb.GemPortAttributes
+	var dsGemPortAttributeList []*tp_pb.GemPortAttributes
+	usGemPortAttributeList = append(usGemPortAttributeList, &tp_pb.GemPortAttributes{
+		GemportId: 1,
+		PbitMap:   "0b11111111",
+	})
+	dsGemPortAttributeList = append(dsGemPortAttributeList, &tp_pb.GemPortAttributes{
+		GemportId: 1,
+		PbitMap:   "0b11111111",
+	})
+	return &tp_pb.TechProfileInstance{
+		Name:                 "mock-tech-profile",
+		SubscriberIdentifier: "257",
+		ProfileType:          "mock",
+		Version:              0,
+		NumGemPorts:          1,
+		InstanceControl: &tp_pb.InstanceControl{
+			Onu:               "multi-instance",
+			Uni:               "single-instance",
+			MaxGemPayloadSize: "",
+		},
+		UsScheduler: &tp_pb.SchedulerAttributes{
+			AllocId:      1,
+			Direction:    tp_pb.Direction_UPSTREAM,
+			AdditionalBw: tp_pb.AdditionalBW_AdditionalBW_None,
+			Priority:     0,
+			Weight:       0,
+			QSchedPolicy: tp_pb.SchedulingPolicy_WRR,
+		},
+		DsScheduler: &tp_pb.SchedulerAttributes{
+			AllocId:      1,
+			Direction:    tp_pb.Direction_DOWNSTREAM,
+			AdditionalBw: tp_pb.AdditionalBW_AdditionalBW_None,
+			Priority:     0,
+			Weight:       0,
+			QSchedPolicy: tp_pb.SchedulingPolicy_WRR,
+		},
+		UpstreamGemPortAttributeList:   usGemPortAttributeList,
+		DownstreamGemPortAttributeList: dsGemPortAttributeList,
+	}, nil
+
 }
 
-// CreateTechProfInstance to mock techprofile CreateTechProfInstance method
-func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (interface{}, error) {
+// CreateTechProfileInstance to mock techprofile CreateTechProfileInstance method
+func (m MockTechProfile) CreateTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (interface{}, error) {
 
+	var usGemPortAttributeList []*tp_pb.GemPortAttributes
+	var dsGemPortAttributeList []*tp_pb.GemPortAttributes
 	if techProfiletblID == 64 {
-		return &tp.TechProfile{
+		usGemPortAttributeList = append(usGemPortAttributeList, &tp_pb.GemPortAttributes{
+			GemportId: 1,
+			PbitMap:   "0b11111111",
+		})
+		dsGemPortAttributeList = append(dsGemPortAttributeList, &tp_pb.GemPortAttributes{
+			GemportId: 1,
+			PbitMap:   "0b11111111",
+		})
+		return &tp_pb.TechProfileInstance{
 			Name:                 "mock-tech-profile",
 			SubscriberIdentifier: "257",
 			ProfileType:          "mock",
 			Version:              0,
 			NumGemPorts:          1,
-			UsScheduler: tp.IScheduler{
-				AllocID:      1,
-				Direction:    "upstream",
-				AdditionalBw: "None",
+			InstanceControl: &tp_pb.InstanceControl{
+				Onu:               "multi-instance",
+				Uni:               "single-instance",
+				MaxGemPayloadSize: "",
+			},
+			UsScheduler: &tp_pb.SchedulerAttributes{
+				AllocId:      1,
+				Direction:    tp_pb.Direction_UPSTREAM,
+				AdditionalBw: tp_pb.AdditionalBW_AdditionalBW_None,
 				Priority:     0,
 				Weight:       0,
-				QSchedPolicy: "",
+				QSchedPolicy: tp_pb.SchedulingPolicy_WRR,
 			},
-			DsScheduler: tp.IScheduler{
-				AllocID:      1,
-				Direction:    "downstream",
-				AdditionalBw: "None",
+			DsScheduler: &tp_pb.SchedulerAttributes{
+				AllocId:      1,
+				Direction:    tp_pb.Direction_DOWNSTREAM,
+				AdditionalBw: tp_pb.AdditionalBW_AdditionalBW_None,
 				Priority:     0,
 				Weight:       0,
-				QSchedPolicy: "",
+				QSchedPolicy: tp_pb.SchedulingPolicy_WRR,
 			},
-			UpstreamGemPortAttributeList: []tp.IGemPortAttribute{{
-				GemportID: 1,
-				PbitMap:   "0b11111111",
-			},
-			},
-			DownstreamGemPortAttributeList: []tp.IGemPortAttribute{{
-				GemportID: 1,
-				PbitMap:   "0b11111111",
-			},
-			},
+			UpstreamGemPortAttributeList:   usGemPortAttributeList,
+			DownstreamGemPortAttributeList: dsGemPortAttributeList,
 		}, nil
 	} else if techProfiletblID == 65 {
-		return &tp.EponProfile{
+		return &tp_pb.EponTechProfileInstance{
 			Name:                         "mock-epon-profile",
 			SubscriberIdentifier:         "257",
 			ProfileType:                  "mock",
@@ -143,7 +137,6 @@ func (m MockTechProfile) CreateTechProfInstance(ctx context.Context, techProfile
 	} else {
 		return nil, nil
 	}
-
 }
 
 // DeleteTechProfileInstance to mock techprofile DeleteTechProfileInstance method
@@ -158,37 +151,37 @@ func (m MockTechProfile) GetprotoBufParamValue(ctx context.Context, paramType st
 }
 
 // GetUsScheduler to mock techprofile GetUsScheduler method
-func (m MockTechProfile) GetUsScheduler(ctx context.Context, tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
-	return &tp_pb.SchedulerConfig{}, nil
+func (m MockTechProfile) GetUsScheduler(tpInstance *tp_pb.TechProfileInstance) *tp_pb.SchedulerConfig {
+	return &tp_pb.SchedulerConfig{}
 
 }
 
 // GetDsScheduler to mock techprofile GetDsScheduler method
-func (m MockTechProfile) GetDsScheduler(ctx context.Context, tpInstance *tp.TechProfile) (*tp_pb.SchedulerConfig, error) {
-	return &tp_pb.SchedulerConfig{}, nil
+func (m MockTechProfile) GetDsScheduler(tpInstance *tp_pb.TechProfileInstance) *tp_pb.SchedulerConfig {
+	return &tp_pb.SchedulerConfig{}
 }
 
 // GetTrafficScheduler to mock techprofile GetTrafficScheduler method
-func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp.TechProfile, SchedCfg *tp_pb.SchedulerConfig,
+func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp_pb.TechProfileInstance, SchedCfg *tp_pb.SchedulerConfig,
 	ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler {
 	return &tp_pb.TrafficScheduler{}
 
 }
 
 // GetTrafficQueues to mock techprofile GetTrafficQueues method
-func (m MockTechProfile) GetTrafficQueues(ctx context.Context, tp *tp.TechProfile, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
+func (m MockTechProfile) GetTrafficQueues(ctx context.Context, tp *tp_pb.TechProfileInstance, Dir tp_pb.Direction) ([]*tp_pb.TrafficQueue, error) {
 	return []*tp_pb.TrafficQueue{{}}, nil
 }
 
 // GetMulticastTrafficQueues to mock techprofile GetMulticastTrafficQueues method
-func (m MockTechProfile) GetMulticastTrafficQueues(ctx context.Context, tp *tp.TechProfile) []*tp_pb.TrafficQueue {
+func (m MockTechProfile) GetMulticastTrafficQueues(ctx context.Context, tp *tp_pb.TechProfileInstance) []*tp_pb.TrafficQueue {
 	return []*tp_pb.TrafficQueue{{}}
 }
 
 // GetGemportForPbit to mock techprofile GetGemportForPbit method
 func (m MockTechProfile) GetGemportForPbit(ctx context.Context, tpInst interface{}, Dir tp_pb.Direction, pbit uint32) interface{} {
-	return tp.IGemPortAttribute{
-		GemportID:     1,
+	return &tp_pb.GemPortAttributes{
+		GemportId:     1,
 		PbitMap:       "0b11111111",
 		AesEncryption: "false",
 	}
@@ -196,7 +189,7 @@ func (m MockTechProfile) GetGemportForPbit(ctx context.Context, tpInst interface
 
 // FindAllTpInstances to mock techprofile FindAllTpInstances method
 func (m MockTechProfile) FindAllTpInstances(ctx context.Context, oltDeviceID string, tpID uint32, ponIntf uint32, onuID uint32) interface{} {
-	return []tp.TechProfile{}
+	return []tp_pb.TechProfileInstance{}
 }
 
 // GetResourceID to mock techprofile GetResourceID method
@@ -207,4 +200,9 @@ func (m MockTechProfile) GetResourceID(ctx context.Context, IntfID uint32, Resou
 // FreeResourceID to mock techprofile FreeResourceID method
 func (m MockTechProfile) FreeResourceID(ctx context.Context, IntfID uint32, ResourceType string, ReleaseContent []uint32) error {
 	return nil
+}
+
+// GetTechProfileInstanceKey to mock techprofile GetTechProfileInstanceKey method
+func (m MockTechProfile) GetTechProfileInstanceKey(ctx context.Context, tpID uint32, uniPortName string) string {
+	return ""
 }
