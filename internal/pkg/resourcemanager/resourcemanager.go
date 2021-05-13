@@ -29,10 +29,10 @@ import (
 
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v4/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	"github.com/opencord/voltha-protos/v4/go/openolt"
 )
@@ -46,16 +46,14 @@ const (
 	TpIDPathSuffix = "{%d,%d,%d}/tp_id"
 	//MeterIDPathSuffix - <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
 	MeterIDPathSuffix = "{%d,%d,%d}/{%d}/meter_id/{%s}"
-	//NnniIntfID - nniintfids
-	NnniIntfID = "nniintfids"
 	// OnuPacketINPathPrefix - path prefix where ONU packet-in vlanID/PCP is stored
 	//format: onu_packetin/{<intfid>,<onuid>,<logicalport>}
 	OnuPacketINPathPrefix = "onu_packetin/{%d,%d,%d}"
 	// OnuPacketINPath path on the kvstore to store packetin gemport,which will be used for packetin, packetout
 	//format: onu_packetin/{<intfid>,<onuid>,<logicalport>}/{<vlanId>,<priority>}
 	OnuPacketINPath = OnuPacketINPathPrefix + "/{%d,%d}"
-	//FlowIDsForGem flowids_per_gem/<intfid>
-	FlowIDsForGem = "flowids_per_gem/{%d}"
+	//FlowIDsForGem flowids_per_gem/<intfid>/<gemport-id>
+	FlowIDsForGem = "flowids_per_gem/{%d}/{%d}"
 	//McastQueuesForIntf multicast queues for pon interfaces
 	McastQueuesForIntf = "mcast_qs_for_int"
 	//FlowGroup flow_groups/<flow_group_id>
@@ -74,9 +72,6 @@ const (
 	//FlowIDPath - Path on the KV store for storing list of Flow IDs for a given subscriber
 	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_ids
 	FlowIDPath = "{%s}/flow_ids"
-	//FlowIDInfoPath - Used to store more metadata associated with the flow_id
-	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_id_info/<flow_id>
-	FlowIDInfoPath = "{%s}/flow_id_info/{%d}"
 )
 
 // FlowInfo holds the flow information
@@ -111,8 +106,8 @@ type GroupInfo struct {
 
 // MeterInfo store meter information at path <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
 type MeterInfo struct {
-	RefCnt      uint8 // number of flow references for this meter. When RefCnt is 0, the MeterInfo should be deleted.
-	MeterConfig ofp.OfpMeterConfig
+	RefCnt  uint8 // number of flow references for this meter. When RefCnt is 0, the MeterInfo should be deleted.
+	MeterID uint32
 }
 
 // OpenOltResourceMgr holds resource related information as provided below for each field
@@ -467,35 +462,6 @@ func (RsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, ponIntfID uint3
 	return 0, err // return OnuID 0 on error
 }
 
-// GetFlowIDInfo returns the slice of flow info of the given pon-port
-// Note: For flows which trap from the NNI and not really associated with any particular
-// ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) GetFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32, flowID uint64) *FlowInfo {
-	var flowInfo FlowInfo
-
-	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	Path := fmt.Sprintf(FlowIDInfoPath, subs, flowID)
-	value, err := RsrcMgr.KVStore.Get(ctx, Path)
-	if err == nil {
-		if value != nil {
-			Val, err := toByte(value.Value)
-			if err != nil {
-				logger.Errorw(ctx, "Failed to convert flowinfo into byte array", log.Fields{"error": err, "subs": subs})
-				return nil
-			}
-			if err = json.Unmarshal(Val, &flowInfo); err != nil {
-				logger.Errorw(ctx, "Failed to unmarshal", log.Fields{"error": err, "subs": subs})
-				return nil
-			}
-		}
-	}
-	if flowInfo.Flow == nil {
-		logger.Debugw(ctx, "No flowInfo found in KV store", log.Fields{"subs": subs})
-		return nil
-	}
-	return &flowInfo
-}
-
 // GetCurrentFlowIDsForOnu fetches flow ID from the resource manager
 // Note: For flows which trap from the NNI and not really associated with any particular
 // ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
@@ -516,124 +482,6 @@ func (RsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(ctx context.Context, 
 		}
 	}
 	return data, nil
-}
-
-// UpdateFlowIDInfo updates flow info for the given pon interface, onu id, and uni id
-// Note: For flows which trap from the NNI and not really associated with any particular
-// ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
-	flowID uint64, flowData FlowInfo) error {
-
-	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	path := fmt.Sprintf(FlowIDInfoPath, subs, flowID)
-
-	var value []byte
-	var err error
-	value, err = json.Marshal(flowData)
-	if err != nil {
-		logger.Errorf(ctx, "failed to Marshal, resource path %s", path)
-		return err
-	}
-
-	if err = RsrcMgr.KVStore.Put(ctx, path, value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", path)
-	}
-
-	// Update the flowID list for the ONU
-	if err = RsrcMgr.UpdateFlowIDForOnu(ctx, ponIntfID, onuID, uniID, flowID, true); err != nil {
-		// If the operation fails, try to remove FlowInfo from the KV store
-		_ = RsrcMgr.KVStore.Delete(ctx, path)
-		return err
-	}
-	return err
-}
-
-// UpdateFlowIDForOnu updates the flow_id list of the ONU (add or remove flow_id from the list)
-func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDForOnu(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32, flowID uint64, add bool) error {
-	/*
-	   Update the flow_id list of the ONU (add or remove flow_id from the list)
-	   :param pon_intf_onu_id: reference of PON interface id and onu id
-	   :param flow_id: flow ID
-	   :param add: Boolean flag to indicate whether the flow_id should be
-	               added or removed from the list. Defaults to adding the flow.
-	*/
-	var Value []byte
-	var err error
-	var retVal bool
-	var idx uint64
-	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	path := fmt.Sprintf(FlowIDPath, subs)
-	flowIDs, err := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, ponIntfID, onuID, uniID)
-	if err != nil {
-		// Error logged in the called function
-		return err
-	}
-
-	if add {
-		if retVal, _ = checkForFlowIDInList(flowIDs, flowID); retVal {
-			return nil
-		}
-		flowIDs = append(flowIDs, flowID)
-	} else {
-		if retVal, idx = checkForFlowIDInList(flowIDs, flowID); !retVal {
-			return nil
-		}
-		// delete the index and shift
-		flowIDs = append(flowIDs[:idx], flowIDs[idx+1:]...)
-	}
-	Value, err = json.Marshal(flowIDs)
-	if err != nil {
-		logger.Error(ctx, "Failed to Marshal")
-		return err
-	}
-
-	if err = RsrcMgr.KVStore.Put(ctx, path, Value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", path)
-		return err
-	}
-	return err
-}
-
-// RemoveFlowIDInfo remove flow info for the given pon interface, onu id, and uni id
-// Note: For flows which trap from the NNI and not really associated with any particular
-// ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (RsrcMgr *OpenOltResourceMgr) RemoveFlowIDInfo(ctx context.Context, ponIntfID uint32, onuID int32, uniID int32,
-	flowID uint64) error {
-
-	subs := fmt.Sprintf("%d,%d,%d", ponIntfID, onuID, uniID)
-	path := fmt.Sprintf(FlowIDInfoPath, subs, flowID)
-
-	var err error
-	if err = RsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorf(ctx, "Failed to delete resource %s", path)
-		return err
-	}
-
-	// Update the flowID list for the ONU
-	err = RsrcMgr.UpdateFlowIDForOnu(ctx, ponIntfID, onuID, uniID, flowID, false)
-
-	return err
-}
-
-// RemoveAllFlowsForIntfOnuUniKey removes flow info for the given interface, onu id, and uni id
-func (RsrcMgr *OpenOltResourceMgr) RemoveAllFlowsForIntfOnuUniKey(ctx context.Context, intf uint32, onuID int32, uniID int32) error {
-	flowIDs, err := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, intf, onuID, uniID)
-	if err != nil {
-		// error logged in the called function
-		return err
-	}
-	for _, flID := range flowIDs {
-		if err := RsrcMgr.RemoveFlowIDInfo(ctx, intf, onuID, uniID, flID); err != nil {
-			logger.Errorw(ctx, "failed-to-delete-flow-id-info", log.Fields{"intf": intf, "onuID": onuID, "uniID": uniID, "flowID": flID})
-		}
-	}
-	subs := fmt.Sprintf("%d,%d,%d", intf, onuID, uniID)
-	path := fmt.Sprintf(FlowIDPath, subs)
-	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorf(ctx, "Failed to delete resource %s", path)
-		return err
-	}
-	return nil
 }
 
 // GetAllocID return the first Alloc ID for a given pon interface id and onu id and then update the resource map on
@@ -734,64 +582,6 @@ func (RsrcMgr *OpenOltResourceMgr) RemoveGemPortIDForOnu(ctx context.Context, in
 	}
 }
 
-//GetUniPortByPonPortGemPortFromKVStore retrieves onu and uni ID associated with the pon and gem ports.
-func (RsrcMgr *OpenOltResourceMgr) GetUniPortByPonPortGemPortFromKVStore(ctx context.Context, PonPort uint32, GemPort uint32) (uint32, uint32, error) {
-	IntfGEMPortPath := fmt.Sprintf("%d,%d", PonPort, GemPort)
-	logger.Debugf(ctx, "Getting ONU and UNI IDs from the path %s", IntfGEMPortPath)
-	var Data []uint32
-	Value, err := RsrcMgr.KVStore.Get(ctx, IntfGEMPortPath)
-	if err == nil {
-		if Value != nil {
-			Val, _ := ponrmgr.ToByte(Value.Value)
-			if err = json.Unmarshal(Val, &Data); err != nil {
-				logger.Errorw(ctx, "Failed to unmarshal", log.Fields{"error": err})
-				return 0, 0, errors.New("failed to unmarshal the data retrieved")
-			}
-		}
-	} else {
-		logger.Errorf(ctx, "Failed to get data from kvstore for %s", IntfGEMPortPath, err)
-		return 0, 0, errors.New("could not get data")
-	}
-	if len(Data) < 2 {
-		return 0, 0, errors.New("invalid data format")
-	}
-	return Data[0], Data[1], nil
-}
-
-// UpdateGEMportsPonportToOnuMapOnKVStore updates onu and uni id associated with the gem port to the kv store
-// This stored information is used when packet_indication is received and we need to derive the ONU Id for which
-// the packet arrived based on the pon_intf and gemport available in the packet_indication
-func (RsrcMgr *OpenOltResourceMgr) UpdateGEMportsPonportToOnuMapOnKVStore(ctx context.Context, gemPorts []uint32, PonPort uint32,
-	onuID uint32, uniID uint32) error {
-
-	/* Update onu and uni id associated with the gem port to the kv store. */
-	var IntfGEMPortPath string
-	Data := []uint32{onuID, uniID}
-	for _, GEM := range gemPorts {
-		IntfGEMPortPath = fmt.Sprintf("%d,%d", PonPort, GEM)
-		Val, err := json.Marshal(Data)
-		if err != nil {
-			logger.Error(ctx, "failed to Marshal")
-			return err
-		}
-
-		if err = RsrcMgr.KVStore.Put(ctx, IntfGEMPortPath, Val); err != nil {
-			logger.Errorf(ctx, "Failed to update resource %s", IntfGEMPortPath)
-			return err
-		}
-	}
-	return nil
-}
-
-// RemoveGEMportPonportToOnuMapOnKVStore removes the relationship between the gem port and pon port
-func (RsrcMgr *OpenOltResourceMgr) RemoveGEMportPonportToOnuMapOnKVStore(ctx context.Context, GemPort uint32, PonPort uint32) {
-	IntfGEMPortPath := fmt.Sprintf("%d,%d", PonPort, GemPort)
-	err := RsrcMgr.KVStore.Delete(ctx, IntfGEMPortPath)
-	if err != nil {
-		logger.Errorf(ctx, "Failed to Remove Gem port-Pon port to onu map on kv store. Gem %d PonPort %d", GemPort, PonPort)
-	}
-}
-
 // GetGEMPortID gets gem port id for a particular pon port, onu id and uni id and then update the resource map on
 // the KV store with the list of gemport_id allocated for the pon_intf_onu_id tuple
 func (RsrcMgr *OpenOltResourceMgr) GetGEMPortID(ctx context.Context, ponPort uint32, onuID uint32,
@@ -827,8 +617,6 @@ func (RsrcMgr *OpenOltResourceMgr) GetGEMPortID(ctx context.Context, ponPort uin
 		logger.Errorf(ctx, "Failed to update GEM ports to kv store for %s", IntfOnuIDUniID)
 		return nil, err
 	}
-	_ = RsrcMgr.UpdateGEMportsPonportToOnuMapOnKVStore(ctx, GEMPortList, ponPort,
-		onuID, uniID)
 	return GEMPortList, err
 }
 
@@ -1331,82 +1119,41 @@ func (RsrcMgr *OpenOltResourceMgr) DelOnuGemInfoForIntf(ctx context.Context, int
 	return nil
 }
 
-//GetNNIFromKVStore gets NNi intfids from kvstore. path being per device
-func (RsrcMgr *OpenOltResourceMgr) GetNNIFromKVStore(ctx context.Context) ([]uint32, error) {
+//GetFlowIDsForGem gets the list of FlowIDs for the given gemport
+func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) ([]uint64, error) {
+	var flowIDs []uint64
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
 
-	var nni []uint32
-	var Val []byte
-
-	path := NnniIntfID
 	value, err := RsrcMgr.KVStore.Get(ctx, path)
 	if err != nil {
-		logger.Error(ctx, "failed to get data from kv store")
+		logger.Errorw(ctx, "Failed to get from kv store", log.Fields{"path": path})
+		return nil, err
+	} else if value == nil {
+		logger.Debug(ctx, "no flow-ids found", log.Fields{"path": path})
+		return nil, nil
+	}
+	Val, err := kvstore.ToByte(value.Value)
+	if err != nil {
+		logger.Error(ctx, "Failed to convert to byte array")
 		return nil, err
 	}
-	if value != nil {
-		if Val, err = kvstore.ToByte(value.Value); err != nil {
-			logger.Error(ctx, "Failed to convert to byte array")
-			return nil, err
-		}
-		if err = json.Unmarshal(Val, &nni); err != nil {
-			logger.Error(ctx, "Failed to unmarshall")
-			return nil, err
-		}
-	}
-	return nni, err
-}
 
-// AddNNIToKVStore adds Nni interfaces to kvstore, path being per device.
-func (RsrcMgr *OpenOltResourceMgr) AddNNIToKVStore(ctx context.Context, nniIntf uint32) error {
-	var Value []byte
-
-	nni, err := RsrcMgr.GetNNIFromKVStore(ctx)
-	if err != nil {
-		logger.Error(ctx, "failed to fetch nni interfaces from kv store")
-		return err
+	if err = json.Unmarshal(Val, &flowIDs); err != nil {
+		logger.Error(ctx, "Failed to unmarshall")
+		return nil, err
 	}
 
-	path := NnniIntfID
-	nni = append(nni, nniIntf)
-	Value, err = json.Marshal(nni)
-	if err != nil {
-		logger.Error(ctx, "Failed to marshal data")
-	}
-	if err = RsrcMgr.KVStore.Put(ctx, path, Value); err != nil {
-		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"path": path, "value": Value})
-		return err
-	}
-	logger.Debugw(ctx, "added nni to kv successfully", log.Fields{"path": path, "nni": nniIntf})
-	return nil
-}
-
-// DelNNiFromKVStore deletes nni interface list from kv store.
-func (RsrcMgr *OpenOltResourceMgr) DelNNiFromKVStore(ctx context.Context) error {
-
-	path := NnniIntfID
-
-	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorw(ctx, "Failed to delete nni interfaces from kv store", log.Fields{"path": path})
-		return err
-	}
-	return nil
+	return flowIDs, nil
 }
 
 //UpdateFlowIDsForGem updates flow id per gemport
 func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf uint32, gem uint32, flowIDs []uint64) error {
 	var val []byte
-	path := fmt.Sprintf(FlowIDsForGem, intf)
-
-	flowsForGem, err := RsrcMgr.GetFlowIDsGemMapForInterface(ctx, intf)
-	if err != nil {
-		logger.Error(ctx, "Failed to ger flowids for interface", log.Fields{"error": err, "intf": intf})
-		return err
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
+	if flowIDs == nil {
+		return nil
 	}
-	if flowsForGem == nil {
-		flowsForGem = make(map[uint32][]uint64)
-	}
-	flowsForGem[gem] = flowIDs
-	val, err = json.Marshal(flowsForGem)
+	val, err := json.Marshal(flowIDs)
 	if err != nil {
 		logger.Error(ctx, "Failed to marshal data", log.Fields{"error": err})
 		return err
@@ -1416,67 +1163,16 @@ func (RsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
 		return err
 	}
-	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowsForGem[gem]})
+	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowIDs})
 	return nil
 }
 
 //DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
 func (RsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) {
-	path := fmt.Sprintf(FlowIDsForGem, intf)
-	var val []byte
-
-	flowsForGem, err := RsrcMgr.GetFlowIDsGemMapForInterface(ctx, intf)
-	if err != nil {
-		logger.Error(ctx, "Failed to ger flowids for interface", log.Fields{"error": err, "intf": intf})
-		return
-	}
-	if flowsForGem == nil {
-		logger.Error(ctx, "No flowids found ", log.Fields{"intf": intf, "gemport": gem})
-		return
-	}
-	// once we get the flows per gem map from kv , just delete the gem entry from the map
-	delete(flowsForGem, gem)
-	// once gem entry is deleted update the kv store.
-	val, err = json.Marshal(flowsForGem)
-	if err != nil {
-		logger.Error(ctx, "Failed to marshal data", log.Fields{"error": err})
-		return
-	}
-
-	if err = RsrcMgr.KVStore.Put(ctx, path, val); err != nil {
-		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"error": err, "path": path, "value": val})
-	}
-}
-
-//GetFlowIDsGemMapForInterface gets flowids per gemport and interface
-func (RsrcMgr *OpenOltResourceMgr) GetFlowIDsGemMapForInterface(ctx context.Context, intf uint32) (map[uint32][]uint64, error) {
-	path := fmt.Sprintf(FlowIDsForGem, intf)
-	var flowsForGem map[uint32][]uint64
-	var val []byte
-	value, err := RsrcMgr.KVStore.Get(ctx, path)
-	if err != nil {
-		logger.Error(ctx, "failed to get data from kv store")
-		return nil, err
-	}
-	if value != nil && value.Value != nil {
-		if val, err = kvstore.ToByte(value.Value); err != nil {
-			logger.Error(ctx, "Failed to convert to byte array ", log.Fields{"error": err})
-			return nil, err
-		}
-		if err = json.Unmarshal(val, &flowsForGem); err != nil {
-			logger.Error(ctx, "Failed to unmarshall", log.Fields{"error": err})
-			return nil, err
-		}
-	}
-	return flowsForGem, nil
-}
-
-//DeleteIntfIDGempMapPath deletes the intf id path used to store flow ids per gem to kvstore.
-func (RsrcMgr *OpenOltResourceMgr) DeleteIntfIDGempMapPath(ctx context.Context, intf uint32) {
-	path := fmt.Sprintf(FlowIDsForGem, intf)
+	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
 
 	if err := RsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorw(ctx, "Failed to delete nni interfaces from kv store", log.Fields{"path": path})
+		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"error": err, "path": path})
 	}
 }
 
