@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v4/pkg/db"
-	"github.com/opencord/voltha-lib-go/v4/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v4/pkg/log"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db"
+	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v5/pkg/log"
 )
 
 const (
