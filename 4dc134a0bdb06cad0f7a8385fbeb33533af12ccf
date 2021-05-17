@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "db0d0024_fcc445d6",
+        "filename": "VERSION",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2021-05-17T17:17:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64c2b44d_057587da",
+      "revId": "4dc134a0bdb06cad0f7a8385fbeb33533af12ccf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a2adfc4_a75d6c74",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "4dc134a0bdb06cad0f7a8385fbeb33533af12ccf",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0c04f76_1b86f1c2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2021-05-17T17:17:09Z",
+      "side": 1,
+      "message": "Made it configurable and defaulted to 1 minute, also added to the helm-chart as a parameter: https://gerrit.opencord.org/c/voltha-helm-charts/+/24809",
+      "parentUuid": "3a2adfc4_a75d6c74",
+      "revId": "4dc134a0bdb06cad0f7a8385fbeb33533af12ccf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
