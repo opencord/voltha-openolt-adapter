@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64c2b44d_057587da",
+        "filename": "VERSION",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-05-17T06:50:31Z",
+      "side": 1,
+      "message": "remove.\nI aslo think it\u0027s worth releasing and updating helm charts with this.",
+      "revId": "4dc134a0bdb06cad0f7a8385fbeb33533af12ccf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a2adfc4_a75d6c74",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-05-17T06:50:31Z",
+      "side": 1,
+      "message": "I would actually lower this to 1 minute, if not 30 secs to ensure a very fast device does not actually reboot in this period. possibly make it configurable",
+      "revId": "4dc134a0bdb06cad0f7a8385fbeb33533af12ccf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
