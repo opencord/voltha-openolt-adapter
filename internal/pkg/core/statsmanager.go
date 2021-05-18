@@ -88,6 +88,8 @@ const (
 	LcdgErrors = "LcdgErrors"
 	//RdiErrors constant
 	RdiErrors = "RdiErrors"
+	//Timestamp constant
+	Timestamp = "Timestamp"
 )
 
 var mutex = &sync.Mutex{}
@@ -492,6 +494,7 @@ func (StatMgr *OpenOltStatisticsMgr) convertONUStats(onuStats *openolt.OnuStatis
 	onuStatsVal[BerReported] = float32(onuStats.BerReported)
 	onuStatsVal[LcdgErrors] = float32(onuStats.LcdgErrors)
 	onuStatsVal[RdiErrors] = float32(onuStats.RdiErrors)
+	onuStatsVal[Timestamp] = float32(onuStats.Timestamp)
 	return onuStatsVal
 }
 
@@ -504,6 +507,20 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnuStats(ctx context.Context, onuGem
 	} else {
 		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "err": err})
 	}
+}
+
+// collectOnDemandOnuStats will collect the onui-pon metrics
+func (StatMgr *OpenOltStatisticsMgr) collectOnDemandOnuStats(ctx context.Context, intfID uint32, onuID uint32) map[string]float32 {
+	onu := &openolt.Onu{IntfId: intfID, OnuId: onuID}
+	logger.Debugw(ctx, "pulling-onu-stats-on-demand", log.Fields{"IntfID": intfID, "OnuID": onuID})
+	if stats, err := StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
+		statValue := StatMgr.convertONUStats(stats)
+		return statValue
+
+	} else {
+		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": intfID, "OnuID": onuID, "err": err})
+	}
+	return nil
 }
 
 // collectOnuAndGemStats will collect both onu and gem metrics
@@ -777,4 +794,38 @@ func (StatMgr *OpenOltStatisticsMgr) processStatIndication(ctx context.Context, 
 		StatMgr.statIndListners[t].Remove(e)
 	}
 
+}
+
+func (StatMgr *OpenOltStatisticsMgr) updateGetOnuiPonCountersResponse(ctx context.Context, singleValResp *extension.SingleGetValueResponse, stats map[string]float32) {
+
+	metrics := singleValResp.GetResponse().GetOnuiPonCounters()
+	metrics.IntfId = uint32(stats[IntfID])
+	metrics.OnuId =  uint32(stats[OnuID])
+	metrics.PositiveDrift = uint64(stats[PositiveDrift])
+	metrics.NegativeDrift = uint64(stats[NegativeDrift])
+	metrics.DelimiterMissDetection = uint64(stats[DelimiterMissDetection])
+	metrics.BipErrors = uint64(stats[BipErrors])
+	metrics.BipUnits = uint64(stats[BipUnits])
+	metrics.FecCorrectedSymbols = uint64(stats[FecCorrectedSymbols])
+	metrics.FecCodewordsCorrected = uint64(stats[FecCodewordsCorrected])
+	metrics.FecCodewordsUncorrectable = uint64(stats[fecCodewordsUncorrectable])
+	metrics.FecCodewords = uint64(stats[FecCodewords])
+	metrics.FecCorrectedUnits = uint64(stats[FecCorrectedUnits])
+	metrics.XgemKeyErrors = uint64(stats[XGEMKeyErrors])
+	metrics.XgemLoss = uint64(stats[XGEMLoss])
+	metrics.RxPloamsError = uint64(stats[RxPloamsError])
+	metrics.RxPloamsNonIdle = uint64(stats[RxPloamsNonIdle])
+	metrics.RxOmci = uint64(stats[RxOmci])
+	metrics.RxOmciPacketsCrcError = uint64(stats[RxOmciPacketsCrcError])
+	metrics.RxBytes = uint64(stats[RxBytes])
+	metrics.RxPackets = uint64(stats[RxPackets])
+	metrics.TxBytes = uint64(stats[TxBytes])
+	metrics.TxPackets = uint64(stats[TxPackets])
+	metrics.BerReported = uint64(stats[BerReported])
+	metrics.LcdgErrors = uint64(stats[LcdgErrors])
+	metrics.RdiErrors = uint64(stats[RdiErrors])
+	metrics.Timestamp = uint32(stats[Timestamp])
+
+	singleValResp.Response.Status = extension.GetValueResponse_OK
+	logger.Debugw(ctx, "updateGetOnuiPonCountersResponse", log.Fields{"resp": singleValResp})
 }
