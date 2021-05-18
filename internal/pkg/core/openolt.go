@@ -54,7 +54,6 @@ type OpenOLT struct {
 	lockDeviceHandlersMap       sync.RWMutex
 	enableONUStats              bool
 	enableGemStats              bool
-	ReconnectTimeout            time.Duration
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
@@ -79,7 +78,6 @@ func NewOpenOLT(ctx context.Context, kafkaICProxy kafka.InterContainerProxy,
 	openOLT.configManager = cm
 	openOLT.enableONUStats = cfg.EnableONUStats
 	openOLT.enableGemStats = cfg.EnableGEMStats
-	openOLT.ReconnectTimeout = cfg.ReconnectTimeout
 	return &openOLT
 }
 

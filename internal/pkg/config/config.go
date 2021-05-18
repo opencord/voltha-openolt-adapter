@@ -57,7 +57,6 @@ const (
 	defaultOmccEncryption        = false
 	defaultEnableONUStats        = false
 	defaultEnableGEMStats        = false
-	defaultReconnectTimeout      = 1 * time.Minute
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -91,7 +90,6 @@ type AdapterFlags struct {
 	OmccEncryption              bool
 	EnableONUStats              bool
 	EnableGEMStats              bool
-	ReconnectTimeout            time.Duration
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -122,7 +120,6 @@ func NewAdapterFlags() *AdapterFlags {
 		OmccEncryption:              defaultOmccEncryption,
 		EnableONUStats:              defaultEnableONUStats,
 		EnableGEMStats:              defaultEnableGEMStats,
-		ReconnectTimeout:            defaultReconnectTimeout,
 	}
 	return &adapterFlags
 }
@@ -207,9 +204,6 @@ func (so *AdapterFlags) ParseCommandArguments() {
 
 	help = fmt.Sprintf("Enable GEM Statistics")
 	flag.BoolVar(&(so.EnableGEMStats), "enable_gem_stats", defaultEnableGEMStats, help)
-
-	help = fmt.Sprintf("Number of seconds for reconnection retries to a device")
-	flag.DurationVar(&(so.ReconnectTimeout), "reconnection_timeout", defaultReconnectTimeout, help)
 
 	flag.Parse()
 	containerName := getContainerInfo()
