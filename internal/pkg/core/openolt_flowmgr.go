@@ -2543,7 +2543,7 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 			// Called method is returning error with all data populated; just return the same
 			return logicalPortNum, err
 		}
-		logger.Debugf(ctx, "retrieved ONU and UNI IDs [%d, %d] by interface:%d, gem:%d")
+		logger.Debugf(ctx, "retrieved ONU and UNI IDs [%d, %d] by interface:%d, gem:%d", onuID, uniID, packetIn.IntfId, packetIn.GemportId)
 
 		if packetIn.PortNo != 0 {
 			logicalPortNum = packetIn.PortNo

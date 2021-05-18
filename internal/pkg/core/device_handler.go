@@ -365,12 +365,11 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 		return err
 	}
 
-	// Create an exponential backoff around re-enabling indications. The
-	// maximum elapsed time for the back off is set to 0 so that we will
-	// continue to retry. The max interval defaults to 1m, but is set
-	// here for code clarity
+	// Create an exponential backoff around re-enabling indications.
+	// The maximum elapsed time for the back off is set via adapter config.
+	// The max interval defaults to 1m, but is set here for code clarity
 	indicationBackoff := backoff.NewExponentialBackOff()
-	indicationBackoff.MaxElapsedTime = 0
+	indicationBackoff.MaxElapsedTime = dh.openOLT.ReconnectTimeout
 	indicationBackoff.MaxInterval = 1 * time.Minute
 
 	dh.lockDevice.Lock()
@@ -413,12 +412,14 @@ Loop:
 				case <-backoffTimer.C:
 					// backoffTimer expired continue
 				}
+				logger.Debugw(ctx, "attempting-reconnection-to-device-because-of-io.EOF",
+					log.Fields{"err": err,
+						"device-id": dh.device.Id})
 				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
 					return err
 				}
 				continue
-			}
-			if err != nil {
+			} else if err != nil {
 				logger.Errorw(ctx, "read-indication-error",
 					log.Fields{"err": err,
 						"device-id": dh.device.Id})
@@ -430,23 +431,34 @@ Loop:
 						log.Fields{"err": err,
 							"device-id": dh.device.Id})
 				}
-				// if the connection drops we should retry to establish a new one for a little bit
-				// for now set to 2 Minutes
-				reconnectBackoff := backoff.NewExponentialBackOff()
-				reconnectBackoff.MaxElapsedTime = dh.openOLT.ReconnectTimeout
-				reconnectOperation := func() error {
-					logger.Debugw(ctx, "attempting-reconnection-to-device",
-						log.Fields{"err": err,
+				// Use an exponential back off to prevent getting into a tight loop
+				duration := indicationBackoff.NextBackOff()
+				if duration == backoff.Stop {
+					// If we reach a maximum then warn and reset the backoff
+					// timer and keep attempting.
+					logger.Warnw(ctx, "maximum-indication-backoff-reached--resetting-backoff-timer",
+						log.Fields{"max-indication-backoff": indicationBackoff.MaxElapsedTime,
 							"device-id": dh.device.Id})
-					if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
-						return err
-					}
-					return nil
+					indicationBackoff.Reset()
 				}
-				if err = backoff.Retry(reconnectOperation, reconnectBackoff); err != nil {
-					logger.Errorw(ctx, "cannot-reconnect-to-device-backoff-expired",
-						log.Fields{"err": err,
-							"device-id": dh.device.Id})
+
+				// On failure process a backoff timer while watching for stopIndications
+				// events
+				backoffTimer := time.NewTimer(indicationBackoff.NextBackOff())
+				select {
+				case <-dh.stopIndications:
+					logger.Debugw(ctx, "stopping-collecting-indications-for-olt", log.Fields{"device-id": dh.device.Id})
+					if !backoffTimer.Stop() {
+						<-backoffTimer.C
+					}
+					break Loop
+				case <-backoffTimer.C:
+					// backoffTimer expired continue
+				}
+				logger.Debugw(ctx, "attempting-reconnection-to-device",
+					log.Fields{"err": err,
+						"device-id": dh.device.Id})
+				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
 					return err
 				}
 
