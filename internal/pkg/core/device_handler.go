@@ -2575,3 +2575,40 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 	}
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
 }
+
+func (dh *DeviceHandler) getOnuiPonCounters(ctx context.Context, onuIPonInfo *extension.GetOnuiPonCountersRequest) *extension.SingleGetValueResponse {
+
+	singleValResp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Response: &extension.GetValueResponse_OnuiPonCounters{
+				OnuiPonCounters: &extension.GetOnuiPonCountersResponse{},
+			},
+		},
+	}
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+	intfID := onuIPonInfo.IntfId
+	onuID := onuIPonInfo.OnuId
+	onuKey := dh.formOnuKey(intfID, onuID)
+
+	if _, ok := dh.onus.Load(onuKey); !ok {
+		logger.Errorw(ctx, "get-onui-pon-counters-request-invalid-request-received", log.Fields{"intfID": intfID, "onuID": onuID})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+	}
+	logger.Debugw(ctx, "get-onui-pon-counters-request-received", log.Fields{"intfID": intfID, "onuID": onuID})
+	cmnni := dh.portStats.collectOnDemandOnuStats(ctx, intfID, onuID)
+	if cmnni == nil {
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
+	}
+	dh.portStats.updateGetOnuiPonCountersResponse(ctx, &singleValResp, cmnni)
+	return &singleValResp
+
+}

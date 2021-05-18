@@ -426,6 +426,8 @@ func (oo *OpenOLT) Single_get_value_request(ctx context.Context, request extensi
 		switch reqType := request.GetRequest().GetRequest().(type) {
 		case *extension.GetValueRequest_OltPortInfo:
 			return handler.getOltPortCounters(ctx, reqType.OltPortInfo), nil
+		case *extension.GetValueRequest_OnuiPonInfo:
+			return handler.getOnuiPonCounters(ctx, reqType.OnuiPonInfo), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}
