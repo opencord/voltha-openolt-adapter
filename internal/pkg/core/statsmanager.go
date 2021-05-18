@@ -88,6 +88,8 @@ const (
 	LcdgErrors = "LcdgErrors"
 	//RdiErrors constant
 	RdiErrors = "RdiErrors"
+	//Timestamp constant
+	Timestamp = "Timestamp"
 )
 
 var mutex = &sync.Mutex{}
@@ -492,6 +494,7 @@ func (StatMgr *OpenOltStatisticsMgr) convertONUStats(onuStats *openolt.OnuStatis
 	onuStatsVal[BerReported] = float32(onuStats.BerReported)
 	onuStatsVal[LcdgErrors] = float32(onuStats.LcdgErrors)
 	onuStatsVal[RdiErrors] = float32(onuStats.RdiErrors)
+	onuStatsVal[Timestamp] = float32(onuStats.Timestamp)
 	return onuStatsVal
 }
 
@@ -504,6 +507,21 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnuStats(ctx context.Context, onuGem
 	} else {
 		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "err": err})
 	}
+}
+
+// collectOnDemandOnuStats will collect the onui-pon metrics
+func (StatMgr *OpenOltStatisticsMgr) collectOnDemandOnuStats(ctx context.Context, intfID uint32, onuID uint32) map[string]float32 {
+	onu := &openolt.Onu{IntfId: intfID, OnuId: onuID}
+	var stats *openolt.OnuStatistics
+	var err error
+	logger.Debugw(ctx, "pulling-onu-stats-on-demand", log.Fields{"IntfID": intfID, "OnuID": onuID})
+	if stats, err = StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
+		statValue := StatMgr.convertONUStats(stats)
+		return statValue
+
+	}
+	logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": intfID, "OnuID": onuID, "err": err})
+	return nil
 }
 
 // collectOnuAndGemStats will collect both onu and gem metrics
@@ -777,4 +795,90 @@ func (StatMgr *OpenOltStatisticsMgr) processStatIndication(ctx context.Context, 
 		StatMgr.statIndListners[t].Remove(e)
 	}
 
+}
+
+func (StatMgr *OpenOltStatisticsMgr) updateGetOnuPonCountersResponse(ctx context.Context, singleValResp *extension.SingleGetValueResponse, stats map[string]float32) {
+
+	metrics := singleValResp.GetResponse().GetOnuPonCounters()
+	metrics.IsIntfId = &extension.GetOnuCountersResponse_IntfId{
+		IntfId: uint32(stats[IntfID]),
+	}
+	metrics.IsOnuId = &extension.GetOnuCountersResponse_OnuId{
+		OnuId: uint32(stats[OnuID]),
+	}
+	metrics.IsPositiveDrift = &extension.GetOnuCountersResponse_PositiveDrift{
+		PositiveDrift: uint64(stats[PositiveDrift]),
+	}
+	metrics.IsNegativeDrift = &extension.GetOnuCountersResponse_NegativeDrift{
+		NegativeDrift: uint64(stats[NegativeDrift]),
+	}
+	metrics.IsDelimiterMissDetection = &extension.GetOnuCountersResponse_DelimiterMissDetection{
+		DelimiterMissDetection: uint64(stats[DelimiterMissDetection]),
+	}
+	metrics.IsBipErrors = &extension.GetOnuCountersResponse_BipErrors{
+		BipErrors: uint64(stats[BipErrors]),
+	}
+	metrics.IsBipUnits = &extension.GetOnuCountersResponse_BipUnits{
+		BipUnits: uint64(stats[BipUnits]),
+	}
+	metrics.IsFecCorrectedSymbols = &extension.GetOnuCountersResponse_FecCorrectedSymbols{
+		FecCorrectedSymbols: uint64(stats[FecCorrectedSymbols]),
+	}
+	metrics.IsFecCodewordsCorrected = &extension.GetOnuCountersResponse_FecCodewordsCorrected{
+		FecCodewordsCorrected: uint64(stats[FecCodewordsCorrected]),
+	}
+	metrics.IsFecCodewordsUncorrectable = &extension.GetOnuCountersResponse_FecCodewordsUncorrectable{
+		FecCodewordsUncorrectable: uint64(stats[fecCodewordsUncorrectable]),
+	}
+	metrics.IsFecCodewords = &extension.GetOnuCountersResponse_FecCodewords{
+		FecCodewords: uint64(stats[FecCodewords]),
+	}
+	metrics.IsFecCorrectedUnits = &extension.GetOnuCountersResponse_FecCorrectedUnits{
+		FecCorrectedUnits: uint64(stats[FecCorrectedUnits]),
+	}
+	metrics.IsXgemKeyErrors = &extension.GetOnuCountersResponse_XgemKeyErrors{
+		XgemKeyErrors: uint64(stats[XGEMKeyErrors]),
+	}
+	metrics.IsXgemLoss = &extension.GetOnuCountersResponse_XgemLoss{
+		XgemLoss: uint64(stats[XGEMLoss]),
+	}
+	metrics.IsRxPloamsError = &extension.GetOnuCountersResponse_RxPloamsError{
+		RxPloamsError: uint64(stats[RxPloamsError]),
+	}
+	metrics.IsRxPloamsNonIdle = &extension.GetOnuCountersResponse_RxPloamsNonIdle{
+		RxPloamsNonIdle: uint64(stats[RxPloamsNonIdle]),
+	}
+	metrics.IsRxOmci = &extension.GetOnuCountersResponse_RxOmci{
+		RxOmci: uint64(stats[RxOmci]),
+	}
+	metrics.IsRxOmciPacketsCrcError = &extension.GetOnuCountersResponse_RxOmciPacketsCrcError{
+		RxOmciPacketsCrcError: uint64(stats[RxOmciPacketsCrcError]),
+	}
+	metrics.IsRxBytes = &extension.GetOnuCountersResponse_RxBytes{
+		RxBytes: uint64(stats[RxBytes]),
+	}
+	metrics.IsRxPackets = &extension.GetOnuCountersResponse_RxPackets{
+		RxPackets: uint64(stats[RxPackets]),
+	}
+	metrics.IsTxBytes = &extension.GetOnuCountersResponse_TxBytes{
+		TxBytes: uint64(stats[TxBytes]),
+	}
+	metrics.IsTxPackets = &extension.GetOnuCountersResponse_TxPackets{
+		TxPackets: uint64(stats[TxPackets]),
+	}
+	metrics.IsBerReported = &extension.GetOnuCountersResponse_BerReported{
+		BerReported: uint64(stats[BerReported]),
+	}
+	metrics.IsLcdgErrors = &extension.GetOnuCountersResponse_LcdgErrors{
+		LcdgErrors: uint64(stats[LcdgErrors]),
+	}
+	metrics.IsRdiErrors = &extension.GetOnuCountersResponse_RdiErrors{
+		RdiErrors: uint64(stats[RdiErrors]),
+	}
+	metrics.IsTimestamp = &extension.GetOnuCountersResponse_Timestamp{
+		Timestamp: uint32(stats[Timestamp]),
+	}
+
+	singleValResp.Response.Status = extension.GetValueResponse_OK
+	logger.Debugw(ctx, "updateGetOnuPonCountersResponse", log.Fields{"resp": singleValResp})
 }
