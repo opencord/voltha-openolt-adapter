@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b4fca16_4b31f01f",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-05-24T08:08:38Z",
+      "side": 1,
+      "message": "when is this state set back to normal ?",
+      "revId": "e49938d898c0d0d78fdf62c4dc811264c9416af4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
