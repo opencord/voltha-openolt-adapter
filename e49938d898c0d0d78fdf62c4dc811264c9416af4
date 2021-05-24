@@ -16,6 +16,24 @@
       "revId": "e49938d898c0d0d78fdf62c4dc811264c9416af4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eafa3b35_a9e07f5d",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1000729
+      },
+      "writtenOn": "2021-05-24T08:27:30Z",
+      "side": 1,
+      "message": "This state will be set back to normal by adapter only as per the processing of indications.",
+      "parentUuid": "8b4fca16_4b31f01f",
+      "revId": "e49938d898c0d0d78fdf62c4dc811264c9416af4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
