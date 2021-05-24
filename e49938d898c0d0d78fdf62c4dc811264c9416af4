@@ -34,6 +34,24 @@
       "revId": "e49938d898c0d0d78fdf62c4dc811264c9416af4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fa57f63_8b814efd",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-05-24T08:28:37Z",
+      "side": 1,
+      "message": "I see, thanks",
+      "parentUuid": "eafa3b35_a9e07f5d",
+      "revId": "e49938d898c0d0d78fdf62c4dc811264c9416af4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
