@@ -2575,3 +2575,56 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 	}
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
 }
+
+func (dh *DeviceHandler) getRxPower(ctx context.Context, rxPowerRequest *extension.GetRxPowerRequest) *extension.SingleGetValueResponse {
+
+	Onu := oop.Onu{IntfId: rxPowerRequest.IntfId, OnuId: rxPowerRequest.OnuId}
+	rxPower, err := dh.Client.GetPonRxPower(ctx, &Onu)
+	if err != nil {
+		logger.Errorw(ctx, "error-while-getting-rx-power", log.Fields{"Onu": Onu, "err": err})
+		return generateSingleGetValueErrorResponse(err)
+	}
+	return &extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_RxPower{
+				RxPower: &extension.GetRxPowerResponse{
+					IntfId:     rxPowerRequest.IntfId,
+					OnuId:      rxPowerRequest.OnuId,
+					Status:     rxPower.Status,
+					FailReason: rxPower.FailReason.String(),
+					RxPower:    rxPower.RxPowerMeanDbm,
+				},
+			},
+		},
+	}
+}
+
+func generateSingleGetValueErrorResponse(err error) *extension.SingleGetValueResponse {
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.Internal:
+				return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
+			case codes.DeadlineExceeded:
+				return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_TIMEOUT)
+			case codes.Unimplemented:
+				return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED)
+			case codes.NotFound:
+				return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+			}
+		}
+	}
+
+	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_REASON_UNDEFINED)
+}

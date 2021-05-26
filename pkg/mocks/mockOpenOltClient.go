@@ -265,3 +265,7 @@ func (ooc *MockOpenoltClient) GetOnuStatistics(ctx context.Context, in *openolt.
 func (ooc *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.GemPortStatistics, error) {
 	return &openolt.GemPortStatistics{}, nil
 }
+
+func (ooc *MockOpenoltClient) GetPonRxPower(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.PonRxPowerData, error) {
+	return &openolt.PonRxPowerData{}, nil
+}
