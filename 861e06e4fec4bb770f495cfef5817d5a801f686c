@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6c46e75_f294eb4d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2061,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-05-26T22:47:21Z",
+      "side": 1,
+      "message": "If we delete the device following a reboot there could be problems as the DeleteDevice routine also will block on sending a stop signal to these channels.\nWe might want to check the routines are active or another way is to send a non-blocking stop signal on the channels.",
+      "range": {
+        "startLine": 2058,
+        "startChar": 0,
+        "endLine": 2061,
+        "endChar": 31
+      },
+      "revId": "861e06e4fec4bb770f495cfef5817d5a801f686c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
