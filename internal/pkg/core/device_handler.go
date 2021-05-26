@@ -903,7 +903,7 @@ func (dh *DeviceHandler) populateDeviceInfo(ctx context.Context) (*oop.DeviceInf
 }
 
 func startCollector(ctx context.Context, dh *DeviceHandler) {
-	logger.Debugf(ctx, "starting-collector")
+	logger.Debugw(ctx, "starting-collector", log.Fields{"device-id": dh.device.Id})
 	for {
 		select {
 		case <-dh.stopCollector:
@@ -2001,7 +2001,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 		case <-heartbeatTimer.C:
 			ctxWithTimeout, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.GrpcTimeoutInterval)
 			if heartBeat, err := dh.Client.HeartbeatCheck(ctxWithTimeout, new(oop.Empty)); err != nil {
-				logger.Warnw(ctx, "hearbeat-failed", log.Fields{"device-id": dh.device.Id})
+				logger.Warnw(ctx, "heartbeat-failed", log.Fields{"device-id": dh.device.Id})
 				if timerCheck == nil {
 					// start a after func, when expired will update the state to the core
 					timerCheck = time.AfterFunc(dh.openOLT.HeartbeatFailReportInterval, func() { dh.updateStateUnreachable(ctx) })
@@ -2009,17 +2009,17 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 			} else {
 				if timerCheck != nil {
 					if timerCheck.Stop() {
-						logger.Debugw(ctx, "got-hearbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
+						logger.Debugw(ctx, "got-heartbeat-within-timeout", log.Fields{"device-id": dh.device.Id})
 					}
 					timerCheck = nil
 				}
-				logger.Debugw(ctx, "hearbeat",
+				logger.Debugw(ctx, "heartbeat",
 					log.Fields{"signature": heartBeat,
 						"device-id": dh.device.Id})
 			}
 			cancel()
 		case <-dh.stopHeartbeatCheck:
-			logger.Debugw(ctx, "stopping-heart-beat-check", log.Fields{"device-id": dh.device.Id})
+			logger.Debugw(ctx, "stopping-heartbeat-check", log.Fields{"device-id": dh.device.Id})
 			return
 		}
 	}
@@ -2038,6 +2038,8 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		return
 	}
 
+	logger.Debugw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
+		"admin-state": device.AdminState, "oper-status": device.OperStatus})
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
 		if err = dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_UNREACHABLE, voltha.OperStatus_UNKNOWN); err != nil {
 			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
@@ -2053,6 +2055,10 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		go dh.eventMgr.oltCommunicationEvent(ctx, device, raisedTs)
 
 		go dh.cleanupDeviceResources(ctx)
+		// Stop the Stats collector
+		dh.stopCollector <- true
+		// stop the heartbeat check routine
+		dh.stopHeartbeatCheck <- true
 
 		dh.lockDevice.RLock()
 		// Stop the read indication only if it the routine is active
