@@ -22,6 +22,30 @@
       "revId": "861e06e4fec4bb770f495cfef5817d5a801f686c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cae1624_8d569b6f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2061,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2021-05-27T00:40:03Z",
+      "side": 1,
+      "message": "both \"stopHeartbeatCheck\" and \"stopCollector\" have a buffer of 2, thus both go-routine can publish on the channel without blocking.\n\nThe scenario \"delete -\u003e reboot\" is not allowed by VOLTHA:\n  \n  ERROR: Error while rebooting \u00277f7ce973-7cb6-4083-a67f-8afab0760353\u0027: rpc error: code \u003d FailedPrecondition desc \u003d \n  deviceId:7f7ce973-7cb6-4083-a67f-8afab0760353, Device deletion is in progress.\n\n\nThe scenario in which the operator calls in quick succession \"reboot -\u003e delete\" and that has been verified to work.",
+      "parentUuid": "e6c46e75_f294eb4d",
+      "range": {
+        "startLine": 2058,
+        "startChar": 0,
+        "endLine": 2061,
+        "endChar": 31
+      },
+      "revId": "861e06e4fec4bb770f495cfef5817d5a801f686c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
