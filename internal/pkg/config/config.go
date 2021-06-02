@@ -19,7 +19,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"time"
 )
@@ -127,58 +126,58 @@ func NewAdapterFlags() *AdapterFlags {
 // ParseCommandArguments parses the arguments when running read-write adaptercore service
 func (so *AdapterFlags) ParseCommandArguments() {
 
-	help := fmt.Sprintf("Kafka - Adapter messaging address")
+	help := "Kafka - Adapter messaging address"
 	flag.StringVar(&(so.KafkaAdapterAddress), "kafka_adapter_address", defaultKafkaadapteraddress, help)
 
-	help = fmt.Sprintf("Kafka - Cluster messaging address")
+	help = "Kafka - Cluster messaging address"
 	flag.StringVar(&(so.KafkaClusterAddress), "kafka_cluster_address", defaultKafkaclusteraddress, help)
 
-	help = fmt.Sprintf("Open OLT topic")
+	help = "Open OLT topic"
 	flag.StringVar(&(so.Topic), "adapter_topic", defaultTopic, help)
 
-	help = fmt.Sprintf("Core topic")
+	help = "Core topic"
 	flag.StringVar(&(so.CoreTopic), "core_topic", defaultCoretopic, help)
 
-	help = fmt.Sprintf("Event topic")
+	help = "Event topic"
 	flag.StringVar(&(so.EventTopic), "event_topic", defaultEventtopic, help)
 
-	help = fmt.Sprintf("KV store type")
+	help = "KV store type"
 	flag.StringVar(&(so.KVStoreType), "kv_store_type", defaultKvstoretype, help)
 
-	help = fmt.Sprintf("The default timeout when making a kv store request")
+	help = "The default timeout when making a kv store request"
 	flag.DurationVar(&(so.KVStoreTimeout), "kv_store_request_timeout", defaultKvstoretimeout, help)
 
-	help = fmt.Sprintf("KV store address")
+	help = "KV store address"
 	flag.StringVar(&(so.KVStoreAddress), "kv_store_address", defaultKvstoreaddress, help)
 
-	help = fmt.Sprintf("Log level")
+	help = "Log level"
 	flag.StringVar(&(so.LogLevel), "log_level", defaultLoglevel, help)
 
-	help = fmt.Sprintf("Number of ONUs")
+	help = "Number of ONUs"
 	flag.IntVar(&(so.OnuNumber), "onu_number", defaultOnunumber, help)
 
-	help = fmt.Sprintf("Show startup banner log lines")
+	help = "Show startup banner log lines"
 	flag.BoolVar(&(so.Banner), "banner", defaultBanner, help)
 
-	help = fmt.Sprintf("Show version information and exit")
+	help = "Show version information and exit"
 	flag.BoolVar(&(so.DisplayVersionOnly), "version", defaultDisplayVersionOnly, help)
 
-	help = fmt.Sprintf("The address on which to listen to answer liveness and readiness probe queries over HTTP.")
+	help = "The address on which to listen to answer liveness and readiness probe queries over HTTP."
 	flag.StringVar(&(so.ProbeAddress), "probe_address", defaultProbeAddress, help)
 
-	help = fmt.Sprintf("Number of seconds for the default liveliness check")
+	help = "Number of seconds for the default liveliness check"
 	flag.DurationVar(&(so.LiveProbeInterval), "live_probe_interval", defaultLiveProbeInterval, help)
 
-	help = fmt.Sprintf("Number of seconds for liveliness check if probe is not running")
+	help = "Number of seconds for liveliness check if probe is not running"
 	flag.DurationVar(&(so.NotLiveProbeInterval), "not_live_probe_interval", defaultNotLiveProbeInterval, help)
 
-	help = fmt.Sprintf("Number of seconds for heartbeat check interval.")
+	help = "Number of seconds for heartbeat check interval."
 	flag.DurationVar(&(so.HeartbeatCheckInterval), "heartbeat_check_interval", defaultHeartbeatCheckInterval, help)
 
-	help = fmt.Sprintf("Number of seconds adapter has to wait before reporting core on the hearbeat check failure.")
+	help = "Number of seconds adapter has to wait before reporting core on the hearbeat check failure."
 	flag.DurationVar(&(so.HeartbeatFailReportInterval), "heartbeat_fail_interval", defaultHeartbeatFailReportInterval, help)
 
-	help = fmt.Sprintf("Number of seconds for GRPC timeout.")
+	help = "Number of seconds for GRPC timeout."
 	flag.DurationVar(&(so.GrpcTimeoutInterval), "grpc_timeout_interval", defaultGrpcTimeoutInterval, help)
 
 	help = "Replica number of this particular instance (default: %s)"
@@ -187,22 +186,22 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	help = "Total number of instances for this adapter"
 	flag.IntVar(&(so.TotalReplicas), "total_replica", defaultTotalReplicas, help)
 
-	help = fmt.Sprintf("Whether to send logs to tracing agent?")
+	help = "Whether to send logs to tracing agent?"
 	flag.BoolVar(&(so.TraceEnabled), "trace_enabled", defaultTraceEnabled, help)
 
-	help = fmt.Sprintf("The address of tracing agent to which span info should be sent.")
+	help = "The address of tracing agent to which span info should be sent."
 	flag.StringVar(&(so.TraceAgentAddress), "trace_agent_address", defaultTraceAgentAddress, help)
 
-	help = fmt.Sprintf("Whether to enrich log statements with fields denoting operation being executed for achieving correlation?")
+	help = "Whether to enrich log statements with fields denoting operation being executed for achieving correlation?"
 	flag.BoolVar(&(so.LogCorrelationEnabled), "log_correlation_enabled", defaultLogCorrelationEnabled, help)
 
-	help = fmt.Sprintf("OMCI Channel encryption status")
+	help = "OMCI Channel encryption status"
 	flag.BoolVar(&(so.OmccEncryption), "omcc_encryption", defaultOmccEncryption, help)
 
-	help = fmt.Sprintf("Enable ONU Statistics")
+	help = "Enable ONU Statistics"
 	flag.BoolVar(&(so.EnableONUStats), "enable_onu_stats", defaultEnableONUStats, help)
 
-	help = fmt.Sprintf("Enable GEM Statistics")
+	help = "Enable GEM Statistics"
 	flag.BoolVar(&(so.EnableGEMStats), "enable_gem_stats", defaultEnableGEMStats, help)
 
 	flag.Parse()
