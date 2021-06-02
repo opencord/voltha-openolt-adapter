@@ -313,7 +313,7 @@ func TestFlowExtractInfo(t *testing.T) {
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(2),
 			fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2)),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 0),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 			fu.EthType(2048),
 		},
 
