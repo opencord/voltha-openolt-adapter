@@ -1774,10 +1774,10 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 					"device-id": dh.device.Id,
 					"pon-port":  ponPort}, err).Log()
 			}
-			for _, onu := range onuGemData {
+			for i, onu := range onuGemData {
 				onuID := make([]uint32, 1)
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
-				if err = dh.clearUNIData(ctx, &onu); err != nil {
+				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
 				}
 				// Clear flowids for gem cache.
@@ -2211,7 +2211,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			for i, onu := range onuGemData {
 				if onu.OnuID == onuID && onu.SerialNumber == onuSn {
 					logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
-					if err := dh.clearUNIData(ctx, &onu); err != nil {
+					if err := dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
 						logger.Warnw(ctx, "failed-to-clear-uni-data-for-onu", log.Fields{
 							"device-id":  dh.device.Id,
 							"onu-device": onu,
