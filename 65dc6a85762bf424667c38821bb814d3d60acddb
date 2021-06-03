@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c37a4db9_47b8fb4f",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2021-06-03T14:34:53Z",
+      "side": 1,
+      "message": "as long as we are fixing this, why not just put the help string in line? what is the value of assigning to a local variable and only using it once? This is true for all flag entries.",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 44
+      },
+      "revId": "65dc6a85762bf424667c38821bb814d3d60acddb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
