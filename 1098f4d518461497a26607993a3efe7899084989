@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da988547_0dac4b89",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000003
+      },
+      "writtenOn": "2021-06-07T14:47:42Z",
+      "side": 1,
+      "message": "don\u0027t need this. the flag package will print the values on its own.",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 166,
+        "endChar": 103
+      },
+      "revId": "1098f4d518461497a26607993a3efe7899084989",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
