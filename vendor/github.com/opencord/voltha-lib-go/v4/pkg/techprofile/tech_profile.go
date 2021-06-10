@@ -1351,11 +1351,11 @@ func (t *TechProfileMgr) GetGemportForPbit(ctx context.Context, tp interface{}, 
 }
 
 // FindAllTpInstances returns all TechProfile instances for a given TechProfile table-id, pon interface ID and onu ID.
-func (t *TechProfileMgr) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{} {
+func (t *TechProfileMgr) FindAllTpInstances(ctx context.Context, oltDeviceID string, tpID uint32, ponIntf uint32, onuID uint32) interface{} {
 	var tpTech TechProfile
 	var tpEpon EponProfile
 
-	onuTpInstancePath := fmt.Sprintf("%s/%d/pon-{%d}/onu-{%d}", t.resourceMgr.GetTechnology(), techProfiletblID, ponIntf, onuID)
+	onuTpInstancePath := fmt.Sprintf("%s/%d/olt-{%s}/pon-{%d}/onu-{%d}", t.resourceMgr.GetTechnology(), tpID, oltDeviceID, ponIntf, onuID)
 
 	if kvPairs, _ := t.config.KVBackend.List(ctx, onuTpInstancePath); kvPairs != nil {
 		tech := t.resourceMgr.GetTechnology()
