@@ -195,7 +195,7 @@ func (m MockTechProfile) GetGemportForPbit(ctx context.Context, tpInst interface
 }
 
 // FindAllTpInstances to mock techprofile FindAllTpInstances method
-func (m MockTechProfile) FindAllTpInstances(ctx context.Context, techProfiletblID uint32, ponIntf uint32, onuID uint32) interface{} {
+func (m MockTechProfile) FindAllTpInstances(ctx context.Context, oltDeviceID string, tpID uint32, ponIntf uint32, onuID uint32) interface{} {
 	return []tp.TechProfile{}
 }
 
