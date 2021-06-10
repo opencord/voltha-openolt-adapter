@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dcbc559d_a96d21c4",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3007,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-06-10T18:24:34Z",
+      "side": 0,
+      "message": "You removed this because gemports cannot be shared across UNIs? I think that is probably the case but I want to be sure your understanding is the same here. In that case I do not find the relevance of tp-id in this function and could be removed.",
+      "range": {
+        "startLine": 2994,
+        "startChar": 0,
+        "endLine": 3007,
+        "endChar": 104
+      },
+      "revId": "32b3656ccf42a5907d54373358fd1e779c4fb60d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
