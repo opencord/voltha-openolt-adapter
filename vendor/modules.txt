@@ -56,7 +56,7 @@ github.com/hashicorp/go-uuid
 # github.com/jcmturner/gofork v1.0.0
 github.com/jcmturner/gofork/encoding/asn1
 github.com/jcmturner/gofork/x/crypto/pbkdf2
-# github.com/opencord/voltha-lib-go/v4 v4.3.1
+# github.com/opencord/voltha-lib-go/v4 v4.3.5
 ## explicit
 github.com/opencord/voltha-lib-go/v4/pkg/adapters
 github.com/opencord/voltha-lib-go/v4/pkg/adapters/adapterif
