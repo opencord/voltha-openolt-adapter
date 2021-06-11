@@ -22,6 +22,30 @@
       "revId": "32b3656ccf42a5907d54373358fd1e779c4fb60d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c05a6d8_0c9ca2c2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3007,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-06-11T06:36:34Z",
+      "side": 0,
+      "message": "Yes. Gemports cannot be shared across UNIs. So, I removed this part and added a new method \"isAllocUsedByAnotherUNI\" to check if an allocID is in use. (AllocIDs are shared across UNIs for the same services). Also, I removed the tp-id from the signature.",
+      "parentUuid": "dcbc559d_a96d21c4",
+      "range": {
+        "startLine": 2994,
+        "startChar": 0,
+        "endLine": 3007,
+        "endChar": 104
+      },
+      "revId": "32b3656ccf42a5907d54373358fd1e779c4fb60d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
