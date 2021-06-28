@@ -474,13 +474,18 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateGEMPortIDsForOnu(ctx context.Context, p
 
 // FreeonuID releases(make free) onu id for a particular pon-port
 func (rsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32, onuID []uint32) {
-
+	if len(onuID) == 0 {
+		logger.Info(ctx, "onu id slice is nil, nothing to free")
+		return
+	}
 	if err := rsrcMgr.PonRsrMgr.TechProfileMgr.FreeResourceID(ctx, intfID, ponrmgr.ONU_ID, onuID); err != nil {
 		logger.Errorw(ctx, "error-while-freeing-onu-id", log.Fields{
 			"intf-id": intfID,
 			"onu-id":  onuID,
 			"err":     err.Error(),
 		})
+	} else {
+		logger.Infow(ctx, "freed onu id", log.Fields{"intfID": intfID, "onuID": onuID})
 	}
 
 	/* Free onu id for a particular interface.*/
