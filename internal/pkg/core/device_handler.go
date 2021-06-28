@@ -1719,13 +1719,13 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 
 // DeleteDevice deletes the device instance from openolt handler array.  Also clears allocated resource manager resources.  Also reboots the OLT hardware!
 func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device) error {
-	logger.Debug(ctx, "function-entry-delete-device")
+	logger.Debugw(ctx, "function-entry-delete-device", log.Fields{"device-id": dh.device.Id})
 	/* Clear the KV store data associated with the all the UNI ports
 	   This clears up flow data and also resource map data for various
 	   other pon resources like alloc_id and gemport_id
 	*/
-	go dh.cleanupDeviceResources(ctx)
-	logger.Debug(ctx, "removed-device-from-Resource-manager-KV-store")
+	dh.cleanupDeviceResources(ctx)
+	logger.Debugw(ctx, "removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 	// Stop the Stats collector
 	dh.stopCollector <- true
 	// stop the heartbeat check routine
@@ -1736,17 +1736,18 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 		dh.stopIndications <- true
 	}
 	dh.lockDevice.RUnlock()
+	dh.removeOnuIndicationChannels(ctx)
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
 			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}
-	dh.removeOnuIndicationChannels(ctx)
 	// There is no need to update the core about operation status and connection status of the OLT.
 	// The OLT is getting deleted anyway and the core might have already cleared the OLT device from its DB.
 	// So any attempt to update the operation status and connection status of the OLT will result in core throwing an error back,
 	// because the device does not exist in DB.
+
 	return nil
 }
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
@@ -1773,12 +1774,9 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 					logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
 				}
 			}
-			/* Clear the resource pool for each PON port in the background */
-			go func(ponPort uint32) {
-				if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
-					logger.Debug(ctx, err)
-				}
-			}(ponPort)
+			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
+				logger.Debug(ctx, err)
+			}
 		}
 	}
 
@@ -2027,7 +2025,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		device.OperStatus = voltha.OperStatus_UNKNOWN
 		go dh.eventMgr.oltCommunicationEvent(ctx, device, raisedTs)
 
-		go dh.cleanupDeviceResources(ctx)
+		dh.cleanupDeviceResources(ctx)
 		// Stop the Stats collector
 		dh.stopCollector <- true
 		// stop the heartbeat check routine
