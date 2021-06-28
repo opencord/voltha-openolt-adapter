@@ -1736,13 +1736,13 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 		dh.stopIndications <- true
 	}
 	dh.lockDevice.RUnlock()
+	dh.removeOnuIndicationChannels(ctx)
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
 			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
 	}
-	dh.removeOnuIndicationChannels(ctx)
 	// There is no need to update the core about operation status and connection status of the OLT.
 	// The OLT is getting deleted anyway and the core might have already cleared the OLT device from its DB.
 	// So any attempt to update the operation status and connection status of the OLT will result in core throwing an error back,
