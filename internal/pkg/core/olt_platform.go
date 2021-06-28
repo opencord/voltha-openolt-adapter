@@ -115,8 +115,7 @@ const (
 	// minPonIntfPortNum stores the minimum pon port number
 	minPonIntfPortNum = ponIntfMarkerValue << ponIntfMarkerPos
 	// maxPonIntfPortNum stores the maximum pon port number
-	maxPonIntfPortNum = (ponIntfMarkerValue << ponIntfMarkerPos) | (2 ^ bitsForPONID - 1)
-)
+	maxPonIntfPortNum = (ponIntfMarkerValue << ponIntfMarkerPos) | (1 << bitsForPONID))
 
 //MinUpstreamPortID value
 var MinUpstreamPortID = 0xfffd
