@@ -2149,6 +2149,24 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 	}
 
 	f.resourceMgr.AddUniPortToOnuInfo(ctx, intfID, onuID, portNo)
+	// also update flowmgr cache
+	f.onuGemInfoLock.Lock()
+	onugem, ok := f.onuGemInfoMap[onuID]
+	if ok {
+		found := false
+		for _, uni := range onugem.UniPorts {
+			if uni == portNo {
+				found = true
+				break
+			}
+		}
+		if !found {
+			onugem.UniPorts = append(onugem.UniPorts, portNo)
+			f.onuGemInfoMap[onuID] = onugem
+			logger.Infow(ctx, "added uni port to onugem cache", log.Fields{"uni": portNo})
+		}
+	}
+	f.onuGemInfoLock.Unlock()
 
 	TpID, err := getTpIDFromFlow(ctx, flow)
 	if err != nil {
@@ -2352,6 +2370,7 @@ func (f *OpenOltFlowMgr) addGemPortToOnuInfoMap(ctx context.Context, intfID uint
 		f.onuGemInfoLock.Lock()
 		f.onuGemInfoMap[onuID] = onugem
 		f.onuGemInfoLock.Unlock()
+		logger.Debugw(ctx, "updated onu gem info from cache", log.Fields{"onugem": onugem})
 	} else {
 		logger.Warnw(ctx, "mismatched onu id", log.Fields{
 			"gem-port-id": gemPort,
@@ -3197,7 +3216,7 @@ func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPa
 	return nil
 }
 
-func (f *OpenOltFlowMgr) getOnuGemInfoList() []rsrcMgr.OnuGemInfo {
+func (f *OpenOltFlowMgr) getOnuGemInfoList(ctx context.Context) []rsrcMgr.OnuGemInfo {
 	var onuGemInfoLst []rsrcMgr.OnuGemInfo
 	f.onuGemInfoLock.RLock()
 	defer f.onuGemInfoLock.RUnlock()

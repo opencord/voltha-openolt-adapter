@@ -940,7 +940,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 					}
 					logger.Debugw(ctx, "publish-pon-metrics", log.Fields{"pon-port": port.Label})
 
-					onuGemInfoLst := dh.flowMgr[intfID].getOnuGemInfoList()
+					onuGemInfoLst := dh.flowMgr[intfID].getOnuGemInfoList(ctx)
 					if len(onuGemInfoLst) > 0 {
 						go dh.portStats.collectOnuAndGemStats(ctx, onuGemInfoLst)
 					}
@@ -1756,7 +1756,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			var err error
-			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList()
+			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
 				onuID := make([]uint32, 1)
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})

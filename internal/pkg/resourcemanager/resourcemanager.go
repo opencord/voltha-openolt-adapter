@@ -960,7 +960,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, intfID uin
 		logger.Errorf(ctx, "Failed to update resource %s", Path)
 		return err
 	}
-	logger.Debugw(ctx, "added onu gem info", log.Fields{"onuGemInfo": onuGem})
+	logger.Debugw(ctx, "added onu gem info to store", log.Fields{"onuGemInfo": onuGem})
 	return err
 }
 
