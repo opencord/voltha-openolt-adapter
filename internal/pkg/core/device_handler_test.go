@@ -249,8 +249,8 @@ func newMockDeviceHandler() *DeviceHandler {
 
 func negativeDeviceHandler() *DeviceHandler {
 	dh := newMockDeviceHandler()
-	device := dh.device
-	device.Id = ""
+	dh.deviceID = ""
+	dh.device.Id = ""
 	return dh
 }
 func Test_generateMacFromHost(t *testing.T) {
@@ -646,7 +646,7 @@ func TestDeviceHandler_DisableDevice(t *testing.T) {
 		wantErr       bool
 	}{
 		{"DisableDevice-1", dh1, args{device: dh1.device}, false},
-		{"DisableDevice-2", dh1, args{device: dh2.device}, true},
+		{"DisableDevice-2", dh2, args{device: dh2.device}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -670,8 +670,8 @@ func TestDeviceHandler_ReenableDevice(t *testing.T) {
 		wantErr       bool
 	}{
 		{"ReenableDevice-1", dh1, args{device: dh1.device}, false},
-		{"ReenableDevice-2", dh1, args{device: &voltha.Device{}}, true},
-		{"ReenableDevice-3", dh2, args{device: dh1.device}, false},
+		{"ReenableDevice-2", dh2, args{device: &voltha.Device{}}, true},
+		{"ReenableDevice-3", dh2, args{device: dh2.device}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
