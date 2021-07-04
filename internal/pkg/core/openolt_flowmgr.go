@@ -22,11 +22,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v5/pkg/meters"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/opencord/voltha-lib-go/v5/pkg/meters"
 
 	"github.com/opencord/voltha-lib-go/v5/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v5/pkg/log"
@@ -1813,17 +1814,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 
 	f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), uint32(gemPortID))
 
-	// Delete the gem port on the ONU.
-	if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), uint32(gemPortID), tpPath); err != nil {
-		logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
-			log.Fields{
-				"err":        err,
-				"intfID":     intfID,
-				"onu-id":     onuID,
-				"uni-id":     uniID,
-				"device-id":  f.deviceHandler.device.Id,
-				"gemport-id": gemPortID})
-	}
+	//First remove TCONT from child if needed. Then remove the GEM
 	techprofileInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
 	if err != nil || techprofileInst == nil { // This should not happen, something wrong in KV backend transaction
 		return olterrors.NewErrNotFound("tech-profile-in-kv-store",
@@ -1872,6 +1863,17 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 				"techprofileInst": techprofileInst})
 	}
 
+	// Delete the gem port on the ONU. Send Gem Removal After TCONT removal.
+	if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), uint32(gemPortID), tpPath); err != nil {
+		logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
+			log.Fields{
+				"err":        err,
+				"intfID":     intfID,
+				"onu-id":     onuID,
+				"uni-id":     uniID,
+				"device-id":  f.deviceHandler.device.Id,
+				"gemport-id": gemPortID})
+	}
 	return nil
 }
 
