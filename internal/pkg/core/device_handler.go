@@ -1034,7 +1034,7 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 
 	omciMsg := &ic.InterAdapterOmciMessage{Message: omciInd.Pkt}
 	if err := dh.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx), omciMsg,
-		ic.InterAdapterMessageType_OMCI_REQUEST, dh.openOLT.config.Topic, deviceType,
+		ic.InterAdapterMessageType_OMCI_RESPONSE, dh.openOLT.config.Topic, deviceType,
 		deviceID, proxyDeviceID, ""); err != nil {
 		return olterrors.NewErrCommunication("omci-request", log.Fields{
 			"source":          dh.openOLT.config.Topic,
@@ -1080,14 +1080,14 @@ func (dh *DeviceHandler) handleInterAdapterOmciMsg(ctx context.Context, msg *ic.
 				"onu-device-id": toDeviceID}, err)
 		}
 		logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-		if err := dh.sendProxiedMessage(ctx, onuDevice, omciMsg); err != nil {
+		if err := dh.sendProxiedOmciMessage(ctx, onuDevice, omciMsg); err != nil {
 			return olterrors.NewErrCommunication("send-failed", log.Fields{
 				"device-id":     dh.device.Id,
 				"onu-device-id": toDeviceID}, err)
 		}
 	} else {
 		logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"msgID": msgID, "fromTopic": fromTopic, "toTopic": toTopic, "toDeviceID": toDeviceID, "proxyDeviceID": proxyDeviceID})
-		if err := dh.sendProxiedMessage(ctx, nil, omciMsg); err != nil {
+		if err := dh.sendProxiedOmciMessage(ctx, nil, omciMsg); err != nil {
 			return olterrors.NewErrCommunication("send-failed", log.Fields{
 				"device-id":     dh.device.Id,
 				"onu-device-id": toDeviceID}, err)
@@ -1096,7 +1096,7 @@ func (dh *DeviceHandler) handleInterAdapterOmciMsg(ctx context.Context, msg *ic.
 	return nil
 }
 
-func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *voltha.Device, omciMsg *ic.InterAdapterOmciMessage) error {
+func (dh *DeviceHandler) sendProxiedOmciMessage(ctx context.Context, onuDevice *voltha.Device, omciMsg *ic.InterAdapterOmciMessage) error {
 	var intfID uint32
 	var onuID uint32
 	var connectStatus common.ConnectStatus_Types

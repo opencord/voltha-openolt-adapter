@@ -602,7 +602,7 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.devicehandler.sendProxiedMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
+			_ = tt.devicehandler.sendProxiedOmciMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
 			//TODO: actually verify test cases
 		})
 	}
