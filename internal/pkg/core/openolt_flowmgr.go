@@ -22,15 +22,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v5/pkg/meters"
+	"github.com/opencord/voltha-lib-go/v6/pkg/meters"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v5/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v5/pkg/techprofile"
+	"github.com/opencord/voltha-lib-go/v6/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	tp "github.com/opencord/voltha-lib-go/v6/pkg/techprofile"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v4/go/common"
 	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
@@ -851,7 +851,13 @@ func (f *OpenOltFlowMgr) populateTechProfilePerPonPort(ctx context.Context) erro
 	var tpCount int
 	for _, techRange := range f.resourceMgr.DevInfo.Ranges {
 		for _, intfID := range techRange.IntfIds {
-			f.techprofile = f.resourceMgr.PonRsrMgr.TechProfileMgr
+			var err error
+			f.techprofile, err = tp.NewTechProfile(ctx, f.resourceMgr.PonRsrMgr, f.resourceMgr.PonRsrMgr.Backend,
+				f.resourceMgr.PonRsrMgr.Address, f.deviceHandler.cm.Backend.PathPrefix)
+			if err != nil || f.techprofile == nil {
+				logger.Errorw(ctx, "failed-to-allocate-to-techprofile-for-pon-port", log.Fields{"intfID": intfID, "err": err})
+				return fmt.Errorf("failed-to-allocate-tech-profile-for-pon-port--pon-%v-err-%v", intfID, err)
+			}
 			tpCount++
 			logger.Debugw(ctx, "init-tech-profile-done",
 				log.Fields{
