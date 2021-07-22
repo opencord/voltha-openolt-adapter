@@ -851,7 +851,13 @@ func (f *OpenOltFlowMgr) populateTechProfilePerPonPort(ctx context.Context) erro
 	var tpCount int
 	for _, techRange := range f.resourceMgr.DevInfo.Ranges {
 		for _, intfID := range techRange.IntfIds {
-			f.techprofile = f.resourceMgr.PonRsrMgr.TechProfileMgr
+			var err error
+			f.techprofile,  err = tp.NewTechProfile(ctx, f.resourceMgr.PonRsrMgr, f.resourceMgr.PonRsrMgr.Backend,
+				f.resourceMgr.PonRsrMgr.Address, f.deviceHandler.cm.Backend.PathPrefix)
+			if err != nil || f.techprofile == nil {
+				logger.Errorw(ctx, "failed-to-allocate-to-techprofile-for-pon-port", log.Fields{"intfID":intfID, "err": err})
+				return fmt.Errorf("failed-to-allocate-tech-profile-for-pon-port--pon-%v-err-%v", intfID, err)
+			}
 			tpCount++
 			logger.Debugw(ctx, "init-tech-profile-done",
 				log.Fields{

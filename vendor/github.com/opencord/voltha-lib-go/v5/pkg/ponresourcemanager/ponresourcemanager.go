@@ -28,7 +28,6 @@ import (
 	"github.com/opencord/voltha-lib-go/v5/pkg/db"
 	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v5/pkg/log"
-	tp "github.com/opencord/voltha-lib-go/v5/pkg/techprofile"
 )
 
 const (
@@ -144,7 +143,6 @@ type PONResourceManager struct {
 	OLTModel         string
 	KVStore          *db.Backend
 	KVStoreForConfig *db.Backend
-	TechProfileMgr   tp.TechProfileIf // create object of *tp.TechProfileMgr
 
 	// Below attribute, pon_resource_ranges, should be initialized
 	// by reading from KV store.
@@ -209,11 +207,7 @@ func NewPONResourceManager(ctx context.Context, Technology string, DeviceType st
 		logger.Error(ctx, "KV Config Client initilization failed")
 		return nil, errors.New("Failed to init KV Config client")
 	}
-	// Initialize techprofile for this technology
-	if PONMgr.TechProfileMgr, _ = tp.NewTechProfile(ctx, &PONMgr, Backend, Address, basePathKvStore); PONMgr.TechProfileMgr == nil {
-		logger.Error(ctx, "Techprofile initialization failed")
-		return nil, errors.New("Failed to init tech profile")
-	}
+
 	PONMgr.PonResourceRanges = make(map[string]interface{})
 	PONMgr.SharedResourceMgrs = make(map[string]*PONResourceManager)
 	PONMgr.SharedIdxByType = make(map[string]string)

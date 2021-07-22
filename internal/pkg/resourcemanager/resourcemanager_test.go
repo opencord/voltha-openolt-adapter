@@ -27,7 +27,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	"reflect"
 	"strconv"
 	"strings"
@@ -120,7 +119,6 @@ func getResMgr() *fields {
 			logger.Fatal(ctx, err.Error())
 		}
 	*/
-	resMgr.PonRsrMgr.TechProfileMgr = &mocks.MockTechProfile{TpID: 64}
 
 	return &resMgr
 }
