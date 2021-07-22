@@ -71,8 +71,8 @@ endif
 
 local-lib-go: ## Copies a local version of the voltha-lib-go dependency into the vendor directory
 ifdef LOCAL_LIB_GO
-	mkdir -p vendor/github.com/opencord/voltha-lib-go/v5/pkg
-	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/v5/pkg/
+	mkdir -p vendor/github.com/opencord/voltha-lib-go/v6/pkg
+	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/v6/pkg/
 endif
 
 ## Docker targets
