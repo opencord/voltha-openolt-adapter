@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	"reflect"
 	"strconv"
 	"sync"
@@ -29,8 +30,8 @@ import (
 
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 
-	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
@@ -55,7 +56,8 @@ func newMockFlowmgr() []*OpenOltFlowMgr {
 		packetInGemPort[rsrcMgr.PacketInInfoKey{IntfID: i, OnuID: i + 1, LogicalPort: i + 1, VlanID: uint16(i), Priority: uint8(i)}] = i + 1
 
 		dh.flowMgr[i].packetInGemPort = packetInGemPort
-		dh.flowMgr[i].techprofile = dh.resourceMgr[i].PonRsrMgr.TechProfileMgr
+		dh.flowMgr[i].techprofile = mocks.MockTechProfile{}
+
 		interface2mcastQeueuMap := make(map[uint32]*QueueInfoBrief)
 		interface2mcastQeueuMap[0] = &QueueInfoBrief{
 			gemPortID:       4000,

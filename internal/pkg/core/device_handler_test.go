@@ -19,7 +19,7 @@ package core
 
 import (
 	"context"
-	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
+	conf "github.com/opencord/voltha-lib-go/v6/pkg/config"
 	"net"
 	"reflect"
 	"sync"
@@ -28,11 +28,11 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v5/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
-	"github.com/opencord/voltha-lib-go/v5/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v6/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	"github.com/opencord/voltha-lib-go/v6/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v6/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -158,6 +158,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	ap := &mocks.MockAdapterProxy{}
 	ep := &mocks.MockEventProxy{}
 	cm := &conf.ConfigManager{}
+	cm.Backend = &db.Backend{StoreType: "etcd", Client: &mocks.MockKVClient{}}
 	cfg := &config.AdapterFlags{OmccEncryption: true}
 	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config: cfg}
 	dh := NewDeviceHandler(cp, ap, ep, device, openOLT, cm)
@@ -174,7 +175,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	for i = 0; i < deviceInf.PonPorts; i++ {
 		dh.resourceMgr[i] = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
 			KVStore: &db.Backend{
-				Client: &mocks.MockKVClient{},
+				StoreType: "etcd",
+				Client:    &mocks.MockKVClient{},
 			}}
 		dh.resourceMgr[i].InitLocalCache()
 	}
@@ -200,6 +202,10 @@ func newMockDeviceHandler() *DeviceHandler {
 	ponmgr.KVStore = &db.Backend{
 		Client: &mocks.MockKVClient{},
 	}
+	ponmgr.KVStoreForConfig = &db.Backend{
+		Client: &mocks.MockKVClient{},
+	}
+	ponmgr.Backend = "etcd"
 	ponmgr.PonResourceRanges = ranges
 	ponmgr.SharedIdxByType = sharedIdxByType
 	ponmgr.Technology = "XGS-PON"
@@ -213,8 +219,6 @@ func newMockDeviceHandler() *DeviceHandler {
 			logger.Fatal(ctx, err.Error())
 		}
 	*/
-	tpMgr := &mocks.MockTechProfile{TpID: 64}
-	ponmgr.TechProfileMgr = tpMgr
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -222,10 +226,40 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.totalPonPorts = NumPonPorts
 	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
 	for i = 0; i < dh.totalPonPorts; i++ {
-		// Instantiate flow manager
-		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
-			return nil
+		/*
+			// Instantiate flow manager
+			if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
+				return nil
+			}
+
+		*/
+		dh.flowMgr[i] = &OpenOltFlowMgr{}
+		dh.flowMgr[i].deviceHandler = dh
+		dh.flowMgr[i].ponPortIdx = i
+		dh.flowMgr[i].grpMgr = dh.groupMgr
+		dh.flowMgr[i].resourceMgr = dh.resourceMgr[i]
+		/*
+			if err = flowMgr.populateTechProfilePerPonPort(ctx); err != nil {
+				logger.Errorw(ctx, "error-while-populating-tech-profile-mgr", log.Fields{"err": err})
+				return nil
+			}
+		*/
+		dh.flowMgr[i].techprofile = mocks.MockTechProfile{}
+		dh.flowMgr[i].gemToFlowIDs = make(map[uint32][]uint64)
+		dh.flowMgr[i].packetInGemPort = make(map[resourcemanager.PacketInInfoKey]uint32)
+		dh.flowMgr[i].flowIDToGems = make(map[uint64][]uint32)
+
+		// Create a slice of buffered channels for handling concurrent flows per ONU.
+		// The additional entry (+1) is to handle the NNI trap flows on a separate channel from individual ONUs channel
+		dh.flowMgr[i].incomingFlows = make([]chan flowControlBlock, MaxOnusPerPon+1)
+		for j := range dh.flowMgr[i].incomingFlows {
+			dh.flowMgr[i].incomingFlows[j] = make(chan flowControlBlock, maxConcurrentFlowsPerOnu)
+			// Spin up a go routine to handling incoming flows (add/remove).
+			// There will be on go routine per ONU.
+			// This routine will be blocked on the flowMgr.incomingFlows[onu-id] channel for incoming flows.
+			go dh.flowMgr[i].perOnuFlowHandlerRoutine(dh.flowMgr[i].incomingFlows[j])
 		}
+		dh.flowMgr[i].onuGemInfoMap = make(map[uint32]*resourcemanager.OnuGemInfo)
 	}
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}, handler: dh}
