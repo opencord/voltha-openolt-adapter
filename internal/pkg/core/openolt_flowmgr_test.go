@@ -29,8 +29,8 @@ import (
 
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 
-	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"

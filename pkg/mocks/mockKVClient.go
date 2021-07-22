@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v5/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
+	"github.com/opencord/voltha-lib-go/v6/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
 )
 

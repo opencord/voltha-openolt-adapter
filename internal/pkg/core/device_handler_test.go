@@ -19,7 +19,7 @@ package core
 
 import (
 	"context"
-	conf "github.com/opencord/voltha-lib-go/v5/pkg/config"
+	conf "github.com/opencord/voltha-lib-go/v6/pkg/config"
 	"net"
 	"reflect"
 	"sync"
@@ -28,11 +28,11 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v5/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v5/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v5/pkg/log"
-	"github.com/opencord/voltha-lib-go/v5/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v5/pkg/ponresourcemanager"
+	"github.com/opencord/voltha-lib-go/v6/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	"github.com/opencord/voltha-lib-go/v6/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v6/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
