@@ -22,6 +22,30 @@
       "revId": "f19bdb8ded01e22d39c2644c22bb5222793478d2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08710501_27e85f8f",
+        "filename": "go.mod",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-07-27T22:50:06Z",
+      "side": 1,
+      "message": "I think you are commenting on an older patchset? The version is 6.0.1 in the latest version of the patcheset.",
+      "parentUuid": "2e296e7f_2c3686df",
+      "range": {
+        "startLine": 10,
+        "startChar": 38,
+        "endLine": 10,
+        "endChar": 44
+      },
+      "revId": "f19bdb8ded01e22d39c2644c22bb5222793478d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
