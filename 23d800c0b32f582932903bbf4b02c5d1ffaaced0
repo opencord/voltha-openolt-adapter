@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7914d44_149663af",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1816,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-07-27T21:59:10Z",
+      "side": 1,
+      "message": "What is the reason for this re-arrangement? it is not clear to me. I think it is good to also explain in comments for future reference.",
+      "revId": "23d800c0b32f582932903bbf4b02c5d1ffaaced0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
