@@ -27,6 +27,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/opencord/voltha-lib-go/v6/pkg/techprofile"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	"reflect"
 	"strconv"
 	"strings"
@@ -69,14 +71,15 @@ const (
 
 // fields mocks  OpenOltResourceMgr struct.
 type fields struct {
-	DeviceID      string
-	Address       string
-	Args          string
-	KVStore       *db.Backend
-	DeviceType    string
-	DevInfo       *openolt.DeviceInfo
-	PonRsrMgr     *ponrmgr.PONResourceManager
-	NumOfPonPorts uint32
+	DeviceID       string
+	Address        string
+	Args           string
+	KVStore        *db.Backend
+	DeviceType     string
+	DevInfo        *openolt.DeviceInfo
+	PonRsrMgr      *ponrmgr.PONResourceManager
+	NumOfPonPorts  uint32
+	TechProfileRef techprofile.TechProfileIf
 }
 
 // MockKVClient mocks the AdapterProxy interface.
@@ -113,6 +116,8 @@ func getResMgr() *fields {
 	resMgr.PonRsrMgr.Technology = "XGS-PON"
 	resMgr.PonRsrMgr.PonResourceRanges = ranges
 	resMgr.PonRsrMgr.SharedIdxByType = sharedIdxByType
+	resMgr.TechProfileRef = mocks.MockTechProfile{}
+
 	/*
 		tpMgr, err := tp.NewTechProfile(ctx, resMgr.PonRsrMgr, "etcd", "127.0.0.1", "/")
 		if err != nil {
@@ -258,13 +263,14 @@ func (kvclient *MockResKVClient) Close(ctx context.Context) {
 // testResMgrObject maps fields type to OpenOltResourceMgr type.
 func testResMgrObject(testResMgr *fields) *OpenOltResourceMgr {
 	var rsrMgr = OpenOltResourceMgr{
-		DeviceID:   testResMgr.DeviceID,
-		Args:       testResMgr.Args,
-		KVStore:    testResMgr.KVStore,
-		DeviceType: testResMgr.DeviceType,
-		Address:    testResMgr.Address,
-		DevInfo:    testResMgr.DevInfo,
-		PonRsrMgr:  testResMgr.PonRsrMgr,
+		DeviceID:       testResMgr.DeviceID,
+		Args:           testResMgr.Args,
+		KVStore:        testResMgr.KVStore,
+		DeviceType:     testResMgr.DeviceType,
+		Address:        testResMgr.Address,
+		DevInfo:        testResMgr.DevInfo,
+		PonRsrMgr:      testResMgr.PonRsrMgr,
+		TechprofileRef: testResMgr.TechProfileRef,
 	}
 	rsrMgr.InitLocalCache()
 
