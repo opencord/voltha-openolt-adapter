@@ -213,41 +213,23 @@ func newMockDeviceHandler() *DeviceHandler {
 		dh.resourceMgr[i].PonRsrMgr = ponmgr
 	}
 
-	/*
-		tpMgr, err := tp.NewTechProfile(ctx, ponmgr, "etcd", "127.0.0.1", "/")
-		if err != nil {
-			logger.Fatal(ctx, err.Error())
-		}
-	*/
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr[0])
 	dh.totalPonPorts = NumPonPorts
 	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
 	for i = 0; i < dh.totalPonPorts; i++ {
-		/*
-			// Instantiate flow manager
-			if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, uint32(i)); dh.flowMgr[i] == nil {
-				return nil
-			}
-
-		*/
 		dh.flowMgr[i] = &OpenOltFlowMgr{}
 		dh.flowMgr[i].deviceHandler = dh
 		dh.flowMgr[i].ponPortIdx = i
 		dh.flowMgr[i].grpMgr = dh.groupMgr
 		dh.flowMgr[i].resourceMgr = dh.resourceMgr[i]
-		/*
-			if err = flowMgr.populateTechProfilePerPonPort(ctx); err != nil {
-				logger.Errorw(ctx, "error-while-populating-tech-profile-mgr", log.Fields{"err": err})
-				return nil
-			}
-		*/
 		dh.flowMgr[i].techprofile = mocks.MockTechProfile{}
 		dh.flowMgr[i].gemToFlowIDs = make(map[uint32][]uint64)
 		dh.flowMgr[i].packetInGemPort = make(map[resourcemanager.PacketInInfoKey]uint32)
 		dh.flowMgr[i].flowIDToGems = make(map[uint64][]uint32)
+
+		dh.resourceMgr[i].TechprofileRef = dh.flowMgr[i].techprofile
 
 		// Create a slice of buffered channels for handling concurrent flows per ONU.
 		// The additional entry (+1) is to handle the NNI trap flows on a separate channel from individual ONUs channel

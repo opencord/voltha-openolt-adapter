@@ -853,6 +853,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, i); dh.flowMgr[i] == nil {
 			return olterrors.ErrFlowManagerInstantiating
 		}
+		dh.resourceMgr[i].TechprofileRef = dh.flowMgr[i].techprofile
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
