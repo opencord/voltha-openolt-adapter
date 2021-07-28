@@ -16,6 +16,24 @@
       "revId": "23d800c0b32f582932903bbf4b02c5d1ffaaced0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dbe123c_577b5820",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1816,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-07-28T07:23:56Z",
+      "side": 1,
+      "message": "I added some extra comment and the task reference. The detailed explanations can be reached on the task.",
+      "parentUuid": "c7914d44_149663af",
+      "revId": "23d800c0b32f582932903bbf4b02c5d1ffaaced0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
