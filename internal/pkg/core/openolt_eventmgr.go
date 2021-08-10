@@ -369,15 +369,12 @@ func (em *OpenOltEventMgr) wasLosRaised(ctx context.Context, onuAlarm *oop.OnuAl
 	onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
 	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
 		logger.Debugw(ctx, "onu-device-found-in-cache.", log.Fields{"intfID": onuAlarm.IntfId, "onuID": onuAlarm.OnuId})
-
-		if onuAlarm.LosStatus == statusCheckOn {
-			if onuInCache.(*OnuDevice).losRaised {
-				logger.Warnw(ctx, "onu-los-raised-already", log.Fields{"onu_id": onuAlarm.OnuId,
-					"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
-				return true
-			}
-			return false
+		if onuInCache.(*OnuDevice).losRaised {
+			logger.Warnw(ctx, "onu-los-raised-already", log.Fields{"onu_id": onuAlarm.OnuId,
+				"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
+			return true
 		}
+		return false
 	}
 	return true
 }
@@ -388,51 +385,36 @@ func (em *OpenOltEventMgr) wasLosCleared(ctx context.Context, onuAlarm *oop.OnuA
 	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
 		logger.Debugw(ctx, "onu-device-found-in-cache.", log.Fields{"intfID": onuAlarm.IntfId, "onuID": onuAlarm.OnuId})
 
-		if onuAlarm.LosStatus == statusCheckOff {
-			if !onuInCache.(*OnuDevice).losRaised {
-				logger.Warnw(ctx, "onu-los-cleared-already", log.Fields{"onu_id": onuAlarm.OnuId,
-					"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
-				return true
-			}
-			return false
+		if !onuInCache.(*OnuDevice).losRaised {
+			logger.Warnw(ctx, "onu-los-cleared-already", log.Fields{"onu_id": onuAlarm.OnuId,
+				"intf_id": onuAlarm.IntfId, "LosStatus": onuAlarm.LosStatus})
+			return true
 		}
+		return false
 	}
 	return true
 }
 
-func (em *OpenOltEventMgr) getDeviceEventName(onuAlarm *oop.OnuAlarmIndication) string {
+func (em *OpenOltEventMgr) getDeviceEventDetail(onuAlarm *oop.OnuAlarmIndication) (string, bool) {
 	var deviceEventName string
-	if onuAlarm.LosStatus == statusCheckOn {
+	var raised bool
+	if onuAlarm.LosStatus == statusCheckOn || onuAlarm.LobStatus == statusCheckOn ||
+		onuAlarm.LopcMissStatus == statusCheckOn || onuAlarm.LopcMicErrorStatus == statusCheckOn ||
+		onuAlarm.LofiStatus == statusCheckOn || onuAlarm.LoamiStatus == statusCheckOn {
 		deviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "RAISE_EVENT")
-	} else if onuAlarm.LosStatus == statusCheckOff {
+		raised = true
+	} else if onuAlarm.LosStatus == statusCheckOff && onuAlarm.LobStatus == statusCheckOff &&
+		onuAlarm.LopcMissStatus == statusCheckOff && onuAlarm.LopcMicErrorStatus == statusCheckOff &&
+		onuAlarm.LofiStatus == statusCheckOff && onuAlarm.LoamiStatus == statusCheckOff {
 		deviceEventName = fmt.Sprintf("%s_%s", onuLosEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LobStatus == statusCheckOn {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLobEvent, "RAISE_EVENT")
-	} else if onuAlarm.LobStatus == statusCheckOff {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLobEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LopcMissStatus == statusCheckOn {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLopcMissEvent, "RAISE_EVENT")
-	} else if onuAlarm.LopcMissStatus == statusCheckOff {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLopcMissEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LopcMicErrorStatus == statusCheckOn {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLopcMicErrorEvent, "RAISE_EVENT")
-	} else if onuAlarm.LopcMicErrorStatus == statusCheckOff {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLopcMicErrorEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LofiStatus == statusCheckOn {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "RAISE_EVENT")
-	} else if onuAlarm.LofiStatus == statusCheckOff {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLossOfFrameEvent, "CLEAR_EVENT")
-	} else if onuAlarm.LoamiStatus == statusCheckOn {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLossOfPloamEvent, "RAISE_EVENT")
-	} else if onuAlarm.LoamiStatus == statusCheckOff {
-		deviceEventName = fmt.Sprintf("%s_%s", onuLossOfPloamEvent, "CLEAR_EVENT")
+		raised = false
 	}
-	return deviceEventName
+	return deviceEventName, raised
 }
 
 func (em *OpenOltEventMgr) onuAlarmIndication(ctx context.Context, onuAlarm *oop.OnuAlarmIndication, deviceID string, raisedTs int64) error {
 	var de voltha.DeviceEvent
-
+	var raised bool
 	context := make(map[string]string)
 	/* Populating event context */
 	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(onuAlarm.IntfId), base10)
@@ -442,35 +424,33 @@ func (em *OpenOltEventMgr) onuAlarmIndication(ctx context.Context, onuAlarm *oop
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	de.DeviceEventName = em.getDeviceEventName(onuAlarm)
+	de.DeviceEventName, raised = em.getDeviceEventDetail(onuAlarm)
 
-	switch onuAlarm.LosStatus {
-	case statusCheckOn:
+	if de.DeviceEventName == "" {
+		// return if none of the event is generated, should never be the case
+		logger.Debug(ctx, "no-alarm-event-generated")
+		return nil
+	}
+	if raised {
 		if em.wasLosRaised(ctx, onuAlarm) {
 			/* No need to raise Onu Los Event as it might have already raised
 			   or Onu might have deleted */
 			return nil
 		}
-		onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
-		if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
-			/* Update onu device with LoS raised state as true */
-			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
-				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
-				onuInCache.(*OnuDevice).proxyDeviceID, true))
-		}
-	case statusCheckOff:
+	} else {
 		if em.wasLosCleared(ctx, onuAlarm) {
 			/* No need to clear Onu Los Event as it might have already cleared
 			   or Onu might have deleted */
 			return nil
 		}
-		onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
-		if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
-			/* Update onu device with LoS raised state as false */
-			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
-				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
-				onuInCache.(*OnuDevice).proxyDeviceID, false))
-		}
+	}
+
+	onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
+	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
+		/* Update onu device with LoS raised state as true */
+		em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
+			onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
+			onuInCache.(*OnuDevice).proxyDeviceID, raised))
 	}
 
 	/* Send event to KAFKA */
