@@ -20,6 +20,7 @@ package mocks
 import (
 	"context"
 	"errors"
+
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
@@ -62,4 +63,14 @@ func (me *MockEventProxy) EnableLivenessChannel(ctx context.Context, enable bool
 // SendLiveness mocks the SendLiveness function
 func (me *MockEventProxy) SendLiveness(ctx context.Context) error {
 	return nil
+}
+
+// Start starts the proxy
+func (me *MockEventProxy) Start() {
+	return
+}
+
+// Stop stops the proxy
+func (me *MockEventProxy) Stop() {
+	return
 }
