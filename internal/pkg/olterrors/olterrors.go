@@ -21,8 +21,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	"strings"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 )
 
 const (
