@@ -19,7 +19,7 @@ import (
 	"context"
 	"time"
 
-	ca "github.com/opencord/voltha-protos/v4/go/inter_container"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -55,6 +55,7 @@ const (
 	DefaultNumberReplicas           = 1
 	DefaultAutoCreateTopic          = false
 	DefaultMetadataMaxRetry         = 3
+	DefaultMaxRetries               = 3
 	DefaultLivenessChannelInterval  = time.Second * 30
 )
 
@@ -64,8 +65,8 @@ type Client interface {
 	Stop(ctx context.Context)
 	CreateTopic(ctx context.Context, topic *Topic, numPartition int, repFactor int) error
 	DeleteTopic(ctx context.Context, topic *Topic) error
-	Subscribe(ctx context.Context, topic *Topic, kvArgs ...*KVArg) (<-chan *ca.InterContainerMessage, error)
-	UnSubscribe(ctx context.Context, topic *Topic, ch <-chan *ca.InterContainerMessage) error
+	Subscribe(ctx context.Context, topic *Topic, kvArgs ...*KVArg) (<-chan proto.Message, error)
+	UnSubscribe(ctx context.Context, topic *Topic, ch <-chan proto.Message) error
 	SubscribeForMetadata(context.Context, func(fromTopic string, timestamp time.Time))
 	Send(ctx context.Context, msg interface{}, topic *Topic, keys ...string) error
 	SendLiveness(ctx context.Context) error
