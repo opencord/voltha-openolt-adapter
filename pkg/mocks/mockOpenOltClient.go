@@ -22,9 +22,9 @@ import (
 	"errors"
 	"io"
 
-	config "github.com/opencord/voltha-protos/v4/go/ext/config"
-	openolt "github.com/opencord/voltha-protos/v4/go/openolt"
-	tech_profile "github.com/opencord/voltha-protos/v4/go/tech_profile"
+	config "github.com/opencord/voltha-protos/v5/go/ext/config"
+	openolt "github.com/opencord/voltha-protos/v5/go/openolt"
+	tech_profile "github.com/opencord/voltha-protos/v5/go/tech_profile"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

@@ -21,21 +21,22 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	"reflect"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-protos/v4/go/voltha"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 
-	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	"github.com/opencord/voltha-protos/v5/go/voltha"
+
+	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
-	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
-	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
+	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	openoltpb2 "github.com/opencord/voltha-protos/v5/go/openolt"
+	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
 )
 
 var flowMgr []*OpenOltFlowMgr
