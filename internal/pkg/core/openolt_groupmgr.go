@@ -16,15 +16,16 @@ package core
 
 import (
 	"context"
-	"github.com/opencord/voltha-lib-go/v6/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	"sync"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
-	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
+	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	openoltpb2 "github.com/opencord/voltha-protos/v5/go/openolt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
 )
 
 //QueueInfoBrief has information about gemPortID and service priority associated with Mcast group
