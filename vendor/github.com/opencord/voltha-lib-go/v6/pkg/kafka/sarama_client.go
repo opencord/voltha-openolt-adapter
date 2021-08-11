@@ -27,10 +27,8 @@ import (
 	scc "github.com/bsm/sarama-cluster"
 	"github.com/eapache/go-resiliency/breaker"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"github.com/opencord/voltha-lib-go/v6/pkg/log"
-	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
 )
 
 // consumerChannels represents one or more consumers listening on a kafka topic.  Once a message is received on that
@@ -38,7 +36,7 @@ import (
 //consumer or a group consumer
 type consumerChannels struct {
 	consumers []interface{}
-	channels  []chan *ic.InterContainerMessage
+	channels  []chan proto.Message
 }
 
 // static check to ensure SaramaClient implements Client
@@ -378,7 +376,7 @@ func (sc *SaramaClient) DeleteTopic(ctx context.Context, topic *Topic) error {
 
 // Subscribe registers a caller to a topic. It returns a channel that the caller can use to receive
 // messages from that topic
-func (sc *SaramaClient) Subscribe(ctx context.Context, topic *Topic, kvArgs ...*KVArg) (<-chan *ic.InterContainerMessage, error) {
+func (sc *SaramaClient) Subscribe(ctx context.Context, topic *Topic, kvArgs ...*KVArg) (<-chan proto.Message, error) {
 	sc.lockTopic(topic)
 	defer sc.unLockTopic(topic)
 
@@ -388,13 +386,13 @@ func (sc *SaramaClient) Subscribe(ctx context.Context, topic *Topic, kvArgs ...*
 	if consumerCh := sc.getConsumerChannel(topic); consumerCh != nil {
 		logger.Debugw(ctx, "topic-already-subscribed", log.Fields{"topic": topic.Name})
 		// Create a channel specific for that consumers and add it to the consumers channel map
-		ch := make(chan *ic.InterContainerMessage)
+		ch := make(chan proto.Message)
 		sc.addChannelToConsumerChannelMap(ctx, topic, ch)
 		return ch, nil
 	}
 
 	// Register for the topic and set it up
-	var consumerListeningChannel chan *ic.InterContainerMessage
+	var consumerListeningChannel chan proto.Message
 	var err error
 
 	// Use the consumerType option to figure out the type of consumer to launch
@@ -441,7 +439,7 @@ func (sc *SaramaClient) Subscribe(ctx context.Context, topic *Topic, kvArgs ...*
 }
 
 //UnSubscribe unsubscribe a consumer from a given topic
-func (sc *SaramaClient) UnSubscribe(ctx context.Context, topic *Topic, ch <-chan *ic.InterContainerMessage) error {
+func (sc *SaramaClient) UnSubscribe(ctx context.Context, topic *Topic, ch <-chan proto.Message) error {
 	sc.lockTopic(topic)
 	defer sc.unLockTopic(topic)
 
@@ -749,7 +747,7 @@ func (sc *SaramaClient) getConsumerChannel(topic *Topic) *consumerChannels {
 	return nil
 }
 
-func (sc *SaramaClient) addChannelToConsumerChannelMap(ctx context.Context, topic *Topic, ch chan *ic.InterContainerMessage) {
+func (sc *SaramaClient) addChannelToConsumerChannelMap(ctx context.Context, topic *Topic, ch chan proto.Message) {
 	sc.lockTopicToConsumerChannelMap.Lock()
 	defer sc.lockTopicToConsumerChannelMap.Unlock()
 	if consumerCh, exist := sc.topicToConsumerChannelMap[topic.Name]; exist {
@@ -788,7 +786,7 @@ func closeConsumers(ctx context.Context, consumers []interface{}) error {
 	return err
 }
 
-func (sc *SaramaClient) removeChannelFromConsumerChannelMap(ctx context.Context, topic Topic, ch <-chan *ic.InterContainerMessage) error {
+func (sc *SaramaClient) removeChannelFromConsumerChannelMap(ctx context.Context, topic Topic, ch <-chan proto.Message) error {
 	sc.lockTopicToConsumerChannelMap.Lock()
 	defer sc.lockTopicToConsumerChannelMap.Unlock()
 	if consumerCh, exist := sc.topicToConsumerChannelMap[topic.Name]; exist {
@@ -908,19 +906,18 @@ func (sc *SaramaClient) createGroupConsumer(ctx context.Context, topic *Topic, g
 
 // dispatchToConsumers sends the intercontainermessage received on a given topic to all subscribers for that
 // topic via the unique channel each subscriber received during subscription
-func (sc *SaramaClient) dispatchToConsumers(consumerCh *consumerChannels, protoMessage *ic.InterContainerMessage) {
+func (sc *SaramaClient) dispatchToConsumers(consumerCh *consumerChannels, protoMessage proto.Message, fromTopic string, ts time.Time) {
 	// Need to go over all channels and publish messages to them - do we need to copy msg?
 	sc.lockTopicToConsumerChannelMap.RLock()
 	for _, ch := range consumerCh.channels {
-		go func(c chan *ic.InterContainerMessage) {
+		go func(c chan proto.Message) {
 			c <- protoMessage
 		}(ch)
 	}
 	sc.lockTopicToConsumerChannelMap.RUnlock()
 
 	if callback := sc.metadataCallback; callback != nil {
-		ts, _ := ptypes.Timestamp(protoMessage.Header.Timestamp)
-		callback(protoMessage.Header.FromTopic, ts)
+		callback(fromTopic, ts)
 	}
 }
 
@@ -948,12 +945,12 @@ startloop:
 			msgBody := msg.Value
 			sc.updateLiveness(ctx, true)
 			logger.Debugw(ctx, "message-received", log.Fields{"timestamp": msg.Timestamp, "receivedTopic": msg.Topic})
-			icm := &ic.InterContainerMessage{}
-			if err := proto.Unmarshal(msgBody, icm); err != nil {
+			var protoMsg proto.Message
+			if err := proto.Unmarshal(msgBody, protoMsg); err != nil {
 				logger.Warnw(ctx, "partition-invalid-message", log.Fields{"error": err})
 				continue
 			}
-			go sc.dispatchToConsumers(consumerChnls, icm)
+			go sc.dispatchToConsumers(consumerChnls, protoMsg, msg.Topic, msg.Timestamp)
 		case <-sc.doneCh:
 			logger.Infow(ctx, "partition-received-exit-signal", log.Fields{"topic": topic.Name})
 			break startloop
@@ -989,12 +986,12 @@ startloop:
 			sc.updateLiveness(ctx, true)
 			logger.Debugw(ctx, "message-received", log.Fields{"timestamp": msg.Timestamp, "receivedTopic": msg.Topic})
 			msgBody := msg.Value
-			icm := &ic.InterContainerMessage{}
-			if err := proto.Unmarshal(msgBody, icm); err != nil {
+			var protoMsg proto.Message
+			if err := proto.Unmarshal(msgBody, protoMsg); err != nil {
 				logger.Warnw(ctx, "invalid-message", log.Fields{"error": err})
 				continue
 			}
-			go sc.dispatchToConsumers(consumerChnls, icm)
+			go sc.dispatchToConsumers(consumerChnls, protoMsg, msg.Topic, msg.Timestamp)
 			consumer.MarkOffset(msg, "")
 		case ntf := <-consumer.Notifications():
 			logger.Debugw(ctx, "group-received-notification", log.Fields{"notification": ntf})
@@ -1030,7 +1027,7 @@ func (sc *SaramaClient) startConsumers(ctx context.Context, topic *Topic) error 
 
 //// setupConsumerChannel creates a consumerChannels object for that topic and add it to the consumerChannels map
 //// for that topic.  It also starts the routine that listens for messages on that topic.
-func (sc *SaramaClient) setupPartitionConsumerChannel(ctx context.Context, topic *Topic, initialOffset int64) (chan *ic.InterContainerMessage, error) {
+func (sc *SaramaClient) setupPartitionConsumerChannel(ctx context.Context, topic *Topic, initialOffset int64) (chan proto.Message, error) {
 	var pConsumers []sarama.PartitionConsumer
 	var err error
 
@@ -1046,10 +1043,10 @@ func (sc *SaramaClient) setupPartitionConsumerChannel(ctx context.Context, topic
 
 	// Create the consumers/channel structure and set the consumers and create a channel on that topic - for now
 	// unbuffered to verify race conditions.
-	consumerListeningChannel := make(chan *ic.InterContainerMessage)
+	consumerListeningChannel := make(chan proto.Message)
 	cc := &consumerChannels{
 		consumers: consumersIf,
-		channels:  []chan *ic.InterContainerMessage{consumerListeningChannel},
+		channels:  []chan proto.Message{consumerListeningChannel},
 	}
 
 	// Add the consumers channel to the map
@@ -1069,7 +1066,7 @@ func (sc *SaramaClient) setupPartitionConsumerChannel(ctx context.Context, topic
 
 // setupConsumerChannel creates a consumerChannels object for that topic and add it to the consumerChannels map
 // for that topic.  It also starts the routine that listens for messages on that topic.
-func (sc *SaramaClient) setupGroupConsumerChannel(ctx context.Context, topic *Topic, groupId string, initialOffset int64) (chan *ic.InterContainerMessage, error) {
+func (sc *SaramaClient) setupGroupConsumerChannel(ctx context.Context, topic *Topic, groupId string, initialOffset int64) (chan proto.Message, error) {
 	// TODO:  Replace this development partition consumers with a group consumers
 	var pConsumer *scc.Consumer
 	var err error
@@ -1079,10 +1076,10 @@ func (sc *SaramaClient) setupGroupConsumerChannel(ctx context.Context, topic *To
 	}
 	// Create the consumers/channel structure and set the consumers and create a channel on that topic - for now
 	// unbuffered to verify race conditions.
-	consumerListeningChannel := make(chan *ic.InterContainerMessage)
+	consumerListeningChannel := make(chan proto.Message)
 	cc := &consumerChannels{
 		consumers: []interface{}{pConsumer},
-		channels:  []chan *ic.InterContainerMessage{consumerListeningChannel},
+		channels:  []chan proto.Message{consumerListeningChannel},
 	}
 
 	// Add the consumers channel to the map
@@ -1120,9 +1117,9 @@ func (sc *SaramaClient) createPartitionConsumers(ctx context.Context, topic *Top
 	return pConsumers, nil
 }
 
-func removeChannel(ctx context.Context, channels []chan *ic.InterContainerMessage, ch <-chan *ic.InterContainerMessage) []chan *ic.InterContainerMessage {
+func removeChannel(ctx context.Context, channels []chan proto.Message, ch <-chan proto.Message) []chan proto.Message {
 	var i int
-	var channel chan *ic.InterContainerMessage
+	var channel chan proto.Message
 	for i, channel = range channels {
 		if channel == ch {
 			channels[len(channels)-1], channels[i] = channels[i], channels[len(channels)-1]
