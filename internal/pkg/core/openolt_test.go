@@ -29,11 +29,10 @@ import (
 	"testing"
 
 	conf "github.com/opencord/voltha-lib-go/v6/pkg/config"
+	vgrpc "github.com/opencord/voltha-lib-go/v6/pkg/grpc"
 
-	com "github.com/opencord/voltha-lib-go/v6/pkg/adapters/common"
 	"github.com/opencord/voltha-lib-go/v6/pkg/events"
 	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v6/pkg/kafka"
 	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -46,10 +45,8 @@ import (
 // mocks the OpenOLT struct.
 type fields struct {
 	deviceHandlers map[string]*DeviceHandler
-	coreProxy      *com.CoreProxy
-	adapterProxy   *com.AdapterProxy
+	coreClient     *vgrpc.Client
 	eventProxy     *events.EventProxy
-	kafkaICProxy   kafka.InterContainerProxy
 	numOnus        int
 	KVStoreAddress string
 	KVStoreType    string
@@ -70,10 +67,7 @@ func mockOlt() *fields {
 func testOltObject(testOlt *fields) *OpenOLT {
 	return &OpenOLT{
 		deviceHandlers: testOlt.deviceHandlers,
-		coreProxy:      testOlt.coreProxy,
-		adapterProxy:   testOlt.adapterProxy,
 		eventProxy:     testOlt.eventProxy,
-		kafkaICProxy:   testOlt.kafkaICProxy,
 		numOnus:        testOlt.numOnus,
 		KVStoreAddress: testOlt.KVStoreAddress,
 		KVStoreType:    testOlt.KVStoreType,
@@ -112,7 +106,7 @@ func TestNewOpenOLT(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewOpenOLT(tt.fields.ctx, tt.fields.kafkaICProxy, tt.fields.coreProxy, tt.fields.adapterProxy,
+			if got := NewOpenOLT(tt.fields.ctx, tt.fields.coreClient,
 				tt.fields.eventProxy, tt.configFlags, tt.cm); reflect.TypeOf(got) != reflect.TypeOf(tt.want) && got != nil {
 				t.Errorf("NewOpenOLT() error = %v, wantErr %v", got, tt.want)
 			}
@@ -120,34 +114,9 @@ func TestNewOpenOLT(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Abandon_device(t *testing.T) {
+func TestOpenOLT_ActivateImageUpdate(t *testing.T) {
 	type args struct {
-		device *voltha.Device
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		wantErr error
-	}{
-		{"abandon_device-1", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"abandon_device-2", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"abandon_device-3", &fields{}, args{}, olterrors.ErrNotImplemented},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			if err := oo.Abandon_device(context.Background(), tt.args.device); err != tt.wantErr {
-				t.Errorf("Abandon_device() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOpenOLT_Activate_image_update(t *testing.T) {
-	type args struct {
-		device  *voltha.Device
-		request *voltha.ImageDownload
+		request *ic.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -166,7 +135,7 @@ func TestOpenOLT_Activate_image_update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Activate_image_update(context.Background(), tt.args.device, tt.args.request)
+			got, err := oo.ActivateImageUpdate(context.Background(), tt.args.request)
 			if err != tt.wantErr && got == nil {
 				t.Errorf("Activate_image_update() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -174,27 +143,7 @@ func TestOpenOLT_Activate_image_update(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Adapter_descriptor(t *testing.T) {
-	tests := []struct {
-		name    string
-		fields  *fields
-		wantErr error
-	}{
-		{"adapter_descriptor-1", &fields{}, olterrors.ErrNotImplemented},
-		{"adapter_descriptor-2", &fields{}, olterrors.ErrNotImplemented},
-		{"adapter_descriptor-3", &fields{}, olterrors.ErrNotImplemented},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			if err := oo.Adapter_descriptor(context.Background()); err != tt.wantErr {
-				t.Errorf("Adapter_descriptor() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOpenOLT_Adopt_device(t *testing.T) {
+func TestOpenOLT_AdoptDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -214,7 +163,7 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			err := oo.Adopt_device(context.Background(), tt.args.device)
+			_, err := oo.AdoptDevice(context.Background(), tt.args.device)
 			if (err != nil) && (reflect.TypeOf(err) !=
 				reflect.TypeOf(tt.wantErr)) && (tt.args.device == nil) {
 				t.Errorf("Adopt_device() error = %v, wantErr %v", err, tt.wantErr)
@@ -226,10 +175,9 @@ func TestOpenOLT_Adopt_device(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Cancel_image_download(t *testing.T) {
+func TestOpenOLT_CancelImageDownload(t *testing.T) {
 	type args struct {
-		device  *voltha.Device
-		request *voltha.ImageDownload
+		request *ic.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -248,7 +196,7 @@ func TestOpenOLT_Cancel_image_download(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Cancel_image_download(context.Background(), tt.args.device, tt.args.request)
+			got, err := oo.CancelImageDownload(context.Background(), tt.args.request)
 			if err != tt.wantErr && got == nil {
 				t.Errorf("Cancel_image_download() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -256,7 +204,7 @@ func TestOpenOLT_Cancel_image_download(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Delete_device(t *testing.T) {
+func TestOpenOLT_DeleteDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -272,39 +220,14 @@ func TestOpenOLT_Delete_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Delete_device(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.DeleteDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Delete_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Device_types(t *testing.T) {
-	tests := []struct {
-		name    string
-		fields  *fields
-		want    *voltha.DeviceTypes
-		wantErr error
-	}{
-		{"device_types-1", &fields{}, &voltha.DeviceTypes{},
-			olterrors.ErrNotImplemented},
-		{"device_types-2", &fields{}, &voltha.DeviceTypes{},
-			olterrors.ErrNotImplemented},
-		{"device_types-3", &fields{}, &voltha.DeviceTypes{},
-			olterrors.ErrNotImplemented},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			got, err := oo.Device_types(context.Background())
-			if err != tt.wantErr && got == nil {
-				t.Errorf("Device_types() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOpenOLT_Disable_device(t *testing.T) {
+func TestOpenOLT_DisableDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -321,17 +244,16 @@ func TestOpenOLT_Disable_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Disable_device(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.DisableDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Disable_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Download_image(t *testing.T) {
+func TestOpenOLT_DownloadImage(t *testing.T) {
 	type args struct {
-		device  *voltha.Device
-		request *voltha.ImageDownload
+		request *ic.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -350,7 +272,7 @@ func TestOpenOLT_Download_image(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Download_image(context.Background(), tt.args.device, tt.args.request)
+			got, err := oo.DownloadImage(context.Background(), tt.args.request)
 			if err != tt.wantErr && got == nil {
 				t.Errorf("Download_image() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -358,34 +280,9 @@ func TestOpenOLT_Download_image(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Get_device_details(t *testing.T) {
+func TestOpenOLT_GetImageDownloadStatus(t *testing.T) {
 	type args struct {
-		device *voltha.Device
-	}
-	tests := []struct {
-		name    string
-		fields  *fields
-		args    args
-		wantErr error
-	}{
-		{"get_device_details-1", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"get_device_details-2", &fields{}, args{}, olterrors.ErrNotImplemented},
-		{"get_device_details-3", &fields{}, args{}, olterrors.ErrNotImplemented},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			if err := oo.Get_device_details(context.Background(), tt.args.device); err != tt.wantErr {
-				t.Errorf("Get_device_details() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestOpenOLT_Get_image_download_status(t *testing.T) {
-	type args struct {
-		device  *voltha.Device
-		request *voltha.ImageDownload
+		request *ic.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -404,7 +301,7 @@ func TestOpenOLT_Get_image_download_status(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Get_image_download_status(context.Background(), tt.args.device, tt.args.request)
+			got, err := oo.GetImageDownloadStatus(context.Background(), tt.args.request)
 			if err != tt.wantErr && got == nil {
 				t.Errorf("Get_image_download_status() got = %v want = %v error = %v, wantErr %v",
 					got, tt.want, err, tt.wantErr)
@@ -413,7 +310,7 @@ func TestOpenOLT_Get_image_download_status(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
+func TestOpenOLT_GetOfpDeviceInfo(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -442,7 +339,7 @@ func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Get_ofp_device_info(context.Background(), tt.args.device)
+			got, err := oo.GetOfpDeviceInfo(context.Background(), tt.args.device)
 			if !reflect.DeepEqual(err, tt.wantErr) || !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Get_ofp_device_info() got = %v want = %v error = %v, wantErr = %v",
 					got, tt.want, err, tt.wantErr)
@@ -451,86 +348,64 @@ func TestOpenOLT_Get_ofp_device_info(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Health(t *testing.T) {
-	tests := []struct {
-		name    string
-		fields  *fields
-		want    *voltha.HealthStatus
-		wantErr error
-	}{
-		{"health-1", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
-		{"health-2", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
-		{"health-3", &fields{}, &voltha.HealthStatus{}, olterrors.ErrNotImplemented},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			got, err := oo.Health(context.Background())
-			if err != tt.wantErr && got == nil {
-				t.Errorf("Get_ofp_port_info() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+// func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
+// 	type args struct {
+// 		msg *ic.InterAdapterMessage
+// 	}
+// 	var message1 = args{
+// 		msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:            "olt",
+// 				ProxyDeviceId: "",
+// 				ToDeviceId:    "onu1",
+// 			},
+// 		},
+// 	}
+// 	var message2 = args{
+// 		msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:            "olt",
+// 				ProxyDeviceId: "olt",
+// 				ToDeviceId:    "olt",
+// 				Type:          ic.InterAdapterMessageType_OMCI_REQUEST,
+// 			},
+// 		},
+// 	}
+// 	var message3 = args{
+// 		msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:            "olt",
+// 				ProxyDeviceId: "olt",
+// 				ToDeviceId:    "olt",
+// 				Type:          ic.InterAdapterMessageType_FLOW_REQUEST,
+// 			},
+// 		},
+// 	}
+// 	tests := []struct {
+// 		name        string
+// 		fields      *fields
+// 		args        args
+// 		wantErrType reflect.Type
+// 	}{
+// 		{"process_inter_adaptor_messgae-1", mockOlt(), message1,
+// 			reflect.TypeOf(&olterrors.ErrNotFound{})},
+// 		{"process_inter_adaptor_messgae-2", mockOlt(), message2,
+// 			reflect.TypeOf(&olterrors.ErrAdapter{})},
+// 		{"process_inter_adaptor_messgae-3", mockOlt(), message3,
+// 			reflect.TypeOf(&olterrors.ErrInvalidValue{})},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			oo := testOltObject(tt.fields)
+// 			if err := oo.Process_inter_adapter_message(context.Background(), tt.args.msg); reflect.TypeOf(err) != tt.wantErrType {
+// 				t.Errorf("Process_inter_adapter_message() error = %v, wantErr %v",
+// 					reflect.TypeOf(err), tt.wantErrType)
+// 			}
+// 		})
+// 	}
+// }
 
-func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
-	type args struct {
-		msg *ic.InterAdapterMessage
-	}
-	var message1 = args{
-		msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:            "olt",
-				ProxyDeviceId: "",
-				ToDeviceId:    "onu1",
-			},
-		},
-	}
-	var message2 = args{
-		msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:            "olt",
-				ProxyDeviceId: "olt",
-				ToDeviceId:    "olt",
-				Type:          ic.InterAdapterMessageType_OMCI_REQUEST,
-			},
-		},
-	}
-	var message3 = args{
-		msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:            "olt",
-				ProxyDeviceId: "olt",
-				ToDeviceId:    "olt",
-				Type:          ic.InterAdapterMessageType_FLOW_REQUEST,
-			},
-		},
-	}
-	tests := []struct {
-		name        string
-		fields      *fields
-		args        args
-		wantErrType reflect.Type
-	}{
-		{"process_inter_adaptor_messgae-1", mockOlt(), message1,
-			reflect.TypeOf(&olterrors.ErrNotFound{})},
-		{"process_inter_adaptor_messgae-2", mockOlt(), message2,
-			reflect.TypeOf(&olterrors.ErrAdapter{})},
-		{"process_inter_adaptor_messgae-3", mockOlt(), message3,
-			reflect.TypeOf(&olterrors.ErrInvalidValue{})},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			if err := oo.Process_inter_adapter_message(context.Background(), tt.args.msg); reflect.TypeOf(err) != tt.wantErrType {
-				t.Errorf("Process_inter_adapter_message() error = %v, wantErr %v",
-					reflect.TypeOf(err), tt.wantErrType)
-			}
-		})
-	}
-}
-
-func TestOpenOLT_Reboot_device(t *testing.T) {
+func TestOpenOLT_RebootDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -547,14 +422,14 @@ func TestOpenOLT_Reboot_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Reboot_device(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.RebootDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Reboot_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Receive_packet_out(t *testing.T) {
+func TestOpenOLT_SendPacketOut(t *testing.T) {
 	acts := []*ofp.OfpAction{
 		fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
 		fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
@@ -581,14 +456,17 @@ func TestOpenOLT_Receive_packet_out(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Receive_packet_out(context.Background(), tt.args.deviceID, tt.args.egressPortNo, tt.args.packet); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.SendPacketOut(context.Background(), &ic.PacketOut{
+				DeviceId:     tt.args.deviceID,
+				EgressPortNo: uint32(tt.args.egressPortNo),
+				Packet:       tt.args.packet}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Receive_packet_out() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Reconcile_device(t *testing.T) {
+func TestOpenOLT_ReconcileDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -606,14 +484,14 @@ func TestOpenOLT_Reconcile_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Reconcile_device(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.ReconcileDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Reconcile_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Reenable_device(t *testing.T) {
+func TestOpenOLT_ReEnableDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -630,17 +508,16 @@ func TestOpenOLT_Reenable_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Reenable_device(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.ReEnableDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Reenable_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Revert_image_update(t *testing.T) {
+func TestOpenOLT_RevertImageUpdate(t *testing.T) {
 	type args struct {
-		device  *voltha.Device
-		request *voltha.ImageDownload
+		request *ic.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -659,7 +536,7 @@ func TestOpenOLT_Revert_image_update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			got, err := oo.Revert_image_update(context.Background(), tt.args.device, tt.args.request)
+			got, err := oo.RevertImageUpdate(context.Background(), tt.args.request)
 			if err != tt.wantErr && got == nil {
 				t.Log("error :", err)
 			}
@@ -667,7 +544,7 @@ func TestOpenOLT_Revert_image_update(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Self_test_device(t *testing.T) {
+func TestOpenOLT_SelfTestDevice(t *testing.T) {
 	type args struct {
 		device *voltha.Device
 	}
@@ -684,7 +561,7 @@ func TestOpenOLT_Self_test_device(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Self_test_device(context.Background(), tt.args.device); err != tt.wantErr {
+			if _, err := oo.SelfTestDevice(context.Background(), tt.args.device); err != tt.wantErr {
 				t.Errorf("Self_test_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -738,7 +615,7 @@ func TestOpenOLT_Stop(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Suppress_event(t *testing.T) {
+func TestOpenOLT_SuppressEvent(t *testing.T) {
 	type args struct {
 		filter *voltha.EventFilter
 	}
@@ -755,14 +632,14 @@ func TestOpenOLT_Suppress_event(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Suppress_event(context.Background(), tt.args.filter); err != tt.wantErr {
+			if _, err := oo.SuppressEvent(context.Background(), tt.args.filter); err != tt.wantErr {
 				t.Errorf("Suppress_event() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Unsuppress_event(t *testing.T) {
+func TestOpenOLT_UnSuppressEvent(t *testing.T) {
 	type args struct {
 		filter *voltha.EventFilter
 	}
@@ -779,14 +656,14 @@ func TestOpenOLT_Unsuppress_event(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Unsuppress_event(context.Background(), tt.args.filter); err != tt.wantErr {
+			if _, err := oo.UnSuppressEvent(context.Background(), tt.args.filter); err != tt.wantErr {
 				t.Errorf("Unsuppress_event() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Update_flows_bulk(t *testing.T) {
+func TestOpenOLT_UpdateFlowsBulk(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
 		flows        *voltha.Flows
@@ -806,14 +683,19 @@ func TestOpenOLT_Update_flows_bulk(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Update_flows_bulk(context.Background(), tt.args.device, tt.args.flows, tt.args.groups, tt.args.flowMetadata); err != tt.wantErr {
+			if _, err := oo.UpdateFlowsBulk(context.Background(), &ic.BulkFlows{
+				Device:       tt.args.device,
+				Flows:        tt.args.flows,
+				Groups:       tt.args.groups,
+				FlowMetadata: tt.args.flowMetadata,
+			}); err != tt.wantErr {
 				t.Errorf("Update_flows_bulk() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
+func TestOpenOLT_UpdateFlowsIncrementally(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
 		flows        *openflow_13.FlowChanges
@@ -834,14 +716,18 @@ func TestOpenOLT_Update_flows_incrementally(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Update_flows_incrementally(context.Background(), tt.args.device, tt.args.flows, tt.args.groups, tt.args.flowMetadata); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.UpdateFlowsIncrementally(context.Background(), &ic.IncrementalFlows{
+				Device:       tt.args.device,
+				Flows:        tt.args.flows,
+				Groups:       tt.args.groups,
+				FlowMetadata: tt.args.flowMetadata}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_flows_incrementally() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Update_pm_config(t *testing.T) {
+func TestOpenOLT_UpdatePmConfig(t *testing.T) {
 	type args struct {
 		device    *voltha.Device
 		pmConfigs *voltha.PmConfigs
@@ -858,8 +744,7 @@ func TestOpenOLT_Update_pm_config(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-
-			if err := oo.Update_pm_config(context.Background(), tt.args.device, tt.args.pmConfigs); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.UpdatePmConfig(context.Background(), &ic.PmConfigsInfo{DeviceId: tt.args.device.Id, PmConfigs: tt.args.pmConfigs}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_pm_config() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -889,10 +774,9 @@ func TestOpenOLT_deleteDeviceHandlerToMap(t *testing.T) {
 	}
 }
 
-func TestOpenOLT_Enable_port(t *testing.T) {
+func TestOpenOLT_EnablePort(t *testing.T) {
 	type args struct {
-		deviceID string
-		port     *voltha.Port
+		port *voltha.Port
 	}
 	tests := []struct {
 		name    string
@@ -901,23 +785,22 @@ func TestOpenOLT_Enable_port(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"Enable_port-1", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1}}, false},
-		{"Enable_port-2", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1}}, true},
+		{"Enable_port-1", mockOlt(), args{port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1, DeviceId: "olt"}}, false},
+		{"Enable_port-2", mockOlt(), args{port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1, DeviceId: "olt"}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Enable_port(context.Background(), tt.args.deviceID, tt.args.port); (err != nil) != tt.wantErr {
+			if _, err := oo.EnablePort(context.Background(), tt.args.port); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOLT.Enable_port() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestOpenOLT_Disable_port(t *testing.T) {
+func TestOpenOLT_DisablePort(t *testing.T) {
 	type args struct {
-		deviceID string
-		port     *voltha.Port
+		port *voltha.Port
 	}
 	tests := []struct {
 		name    string
@@ -926,13 +809,13 @@ func TestOpenOLT_Disable_port(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"Disable_port-1", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1}}, false},
-		{"Disable_port-2", mockOlt(), args{deviceID: "olt", port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1}}, true},
+		{"Disable_port-1", mockOlt(), args{port: &voltha.Port{Type: voltha.Port_PON_OLT, PortNo: 1, DeviceId: "olt"}}, false},
+		{"Disable_port-2", mockOlt(), args{port: &voltha.Port{Type: voltha.Port_ETHERNET_NNI, PortNo: 1, DeviceId: "olt"}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if err := oo.Disable_port(context.Background(), tt.args.deviceID, tt.args.port); (err != nil) != tt.wantErr {
+			if _, err := oo.DisablePort(context.Background(), tt.args.port); (err != nil) != tt.wantErr {
 				t.Errorf("OpenOLT.Disable_port() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

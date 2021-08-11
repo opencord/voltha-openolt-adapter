@@ -21,13 +21,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gogo/protobuf/proto"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/opencord/voltha-protos/v4/go/openolt"
 	"regexp"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/opencord/voltha-protos/v4/go/openolt"
 
 	"github.com/opencord/voltha-lib-go/v6/pkg/db"
 
