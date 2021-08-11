@@ -16,6 +16,8 @@ package core
 
 import (
 	"context"
+	"sync"
+
 	"github.com/opencord/voltha-lib-go/v6/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v6/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
@@ -24,7 +26,6 @@ import (
 	openoltpb2 "github.com/opencord/voltha-protos/v4/go/openolt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
 )
 
 //QueueInfoBrief has information about gemPortID and service priority associated with Mcast group

@@ -17,9 +17,11 @@
 //Package config provides the Log, kvstore, Kafka configuration
 package config
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestAdapterFlags_ParseCommandArguments(t *testing.T) {
-	so := NewAdapterFlags()
-	so.ParseCommandArguments()
+	cf := &AdapterFlags{}
+	cf.ParseCommandArguments()
 }
