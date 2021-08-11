@@ -18,6 +18,7 @@ package eventif
 
 import (
 	"context"
+
 	"github.com/opencord/voltha-protos/v4/go/voltha"
 )
 
@@ -31,6 +32,8 @@ type EventProxy interface {
 		subCategory *EventSubCategory, raisedTs int64) error
 	EnableLivenessChannel(ctx context.Context, enable bool) chan bool
 	SendLiveness(ctx context.Context) error
+	Start()
+	Stop()
 }
 
 const (
