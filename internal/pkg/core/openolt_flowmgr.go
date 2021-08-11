@@ -1719,7 +1719,7 @@ func (f *OpenOltFlowMgr) getOnuDevice(ctx context.Context, intfID uint32, onuID 
 					"intf-id":   intfID,
 					"device-id": f.deviceHandler.device.Id}, err)
 		}
-		onuDev = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuDevice.ProxyAddress.OnuId, onuDevice.ProxyAddress.ChannelId, onuDevice.ProxyAddress.DeviceId, false)
+		onuDev = NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuDevice.ProxyAddress.OnuId, onuDevice.ProxyAddress.ChannelId, onuDevice.ProxyAddress.DeviceId, false, onuDevice.AdapterEndpoint)
 		//better to ad the device to cache here.
 		f.deviceHandler.StoreOnuDevice(onuDev.(*OnuDevice))
 	} else {
@@ -1770,32 +1770,31 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(ctx context.Context, intfID ui
 		return err
 	}
 
-	delGemPortMsg := &ic.InterAdapterDeleteGemPortMessage{UniId: uniID, TpInstancePath: tpPath, GemPortId: gemPortID}
-	logger.Infow(ctx, "sending-gem-port-delete-to-openonu-adapter",
-		log.Fields{
-			"msg":       *delGemPortMsg,
-			"device-id": f.deviceHandler.device.Id})
-	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
-		delGemPortMsg,
-		ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
-		f.deviceHandler.openOLT.config.Topic,
-		onuDev.deviceType,
-		onuDev.deviceID,
-		onuDev.proxyDeviceID, ""); sendErr != nil {
+	delGemPortMsg := &ic.DeleteGemPortMessage{
+		DeviceId:       onuDev.deviceID,
+		UniId:          uniID,
+		TpInstancePath: tpPath,
+		GemPortId:      gemPortID,
+	}
+	logger.Debugw(ctx, "sending-gem-port-delete-to-openonu-adapter", log.Fields{"msg": *delGemPortMsg, "child-device-id": onuDev.deviceID})
+
+	if err := f.deviceHandler.sendDeleteGemPortToChildAdapter(ctx, onuDev.adapterEndpoint, delGemPortMsg); err != nil {
 		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter",
 			log.Fields{
-				"from-adapter":  f.deviceHandler.openOLT.config.Topic,
-				"to-adapter":    onuDev.deviceType,
+				"from-adapter":  f.deviceHandler.openOLT.config.AdapterEndpoint,
+				"to-adapter":    onuDev.adapterEndpoint,
 				"onu-id":        onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID,
-				"device-id":     f.deviceHandler.device.Id}, sendErr)
+				"device-id":     f.deviceHandler.device.Id}, err)
 	}
+
 	logger.Infow(ctx, "success-sending-del-gem-port-to-onu-adapter",
 		log.Fields{
-			"msg":          delGemPortMsg,
-			"from-adapter": f.deviceHandler.device.Type,
-			"to-adapter":   onuDev.deviceType,
-			"device-id":    f.deviceHandler.device.Id})
+			"msg":             delGemPortMsg,
+			"from-adapter":    f.deviceHandler.device.Type,
+			"to-adapter":      onuDev.deviceType,
+			"device-id":       f.deviceHandler.device.Id,
+			"child-device-id": onuDev.deviceID})
 	return nil
 }
 
@@ -1811,29 +1810,33 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 		return err
 	}
 
-	delTcontMsg := &ic.InterAdapterDeleteTcontMessage{UniId: uniID, TpInstancePath: tpPath, AllocId: allocID}
+	delTcontMsg := &ic.DeleteTcontMessage{
+		DeviceId:       onuDev.deviceID,
+		UniId:          uniID,
+		TpInstancePath: tpPath,
+		AllocId:        allocID,
+	}
+
 	logger.Debugw(ctx, "sending-tcont-delete-to-openonu-adapter",
 		log.Fields{
 			"msg":       *delTcontMsg,
 			"device-id": f.deviceHandler.device.Id})
-	if sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
-		delTcontMsg,
-		ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
-		f.deviceHandler.openOLT.config.Topic,
-		onuDev.deviceType,
-		onuDev.deviceID,
-		onuDev.proxyDeviceID, ""); sendErr != nil {
+
+	if err := f.deviceHandler.sendDeleteTContToChildAdapter(ctx, onuDev.adapterEndpoint, delTcontMsg); err != nil {
 		return olterrors.NewErrCommunication("send-delete-tcont-to-onu-adapter",
 			log.Fields{
-				"from-adapter": f.deviceHandler.openOLT.config.Topic,
-				"to-adapter":   onuDev.deviceType, "onu-id": onuDev.deviceID,
+				"from-adapter":  f.deviceHandler.openOLT.config.AdapterEndpoint,
+				"to-adapter":    onuDev.adapterEndpoint,
+				"onu-id":        onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID,
-				"device-id":     f.deviceHandler.device.Id}, sendErr)
+				"device-id":     f.deviceHandler.device.Id}, err)
+
 	}
 	logger.Infow(ctx, "success-sending-del-tcont-to-onu-adapter",
 		log.Fields{
-			"msg":       delTcontMsg,
-			"device-id": f.deviceHandler.device.Id})
+			"msg":             delTcontMsg,
+			"device-id":       f.deviceHandler.device.Id,
+			"child-device-id": onuDev.deviceID})
 	return nil
 }
 
@@ -1977,7 +1980,8 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 					"onu-id":    onuID,
 					"uni-id":    uniID,
 					"device-id": f.deviceHandler.device.Id,
-					"alloc-id":  techprofileInst.AllocId})
+					"alloc-id":  techprofileInst.AllocId,
+					"error":     err})
 		}
 	default:
 		logger.Errorw(ctx, "error-unknown-tech",
@@ -2420,26 +2424,22 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	logger.Debugw(ctx, "got-child-device-from-olt-device-handler", log.Fields{"onu-id": onuDev.deviceID})
 
 	tpPath := f.getTPpath(ctx, intfID, uni, TpID)
-	tpDownloadMsg := &ic.InterAdapterTechProfileDownloadMessage{
+	tpDownloadMsg := &ic.TechProfileDownloadMessage{
+		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,
-		TechTpInstance: &ic.InterAdapterTechProfileDownloadMessage_TpInstance{TpInstance: &tpInst},
+		TechTpInstance: &ic.TechProfileDownloadMessage_TpInstance{TpInstance: &tpInst},
 	}
 	logger.Debugw(ctx, "sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": *tpDownloadMsg})
-	sendErr := f.deviceHandler.AdapterProxy.SendInterAdapterMessage(log.WithSpanFromContext(context.Background(), ctx),
-		tpDownloadMsg,
-		ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-		f.deviceHandler.openOLT.config.Topic,
-		onuDev.deviceType,
-		onuDev.deviceID,
-		onuDev.proxyDeviceID, "")
-	if sendErr != nil {
+
+	err = f.deviceHandler.sendDownloadTechProfileToChildAdapter(ctx, onuDev.adapterEndpoint, tpDownloadMsg)
+	if err != nil {
 		return olterrors.NewErrCommunication("send-techprofile-download-request",
 			log.Fields{
-				"from-adapter":  f.deviceHandler.openOLT.config.Topic,
+				"from-adapter":  f.deviceHandler.openOLT.config.AdapterEndpoint,
 				"to-adapter":    onuDev.deviceType,
 				"onu-id":        onuDev.deviceID,
-				"proxyDeviceID": onuDev.proxyDeviceID}, sendErr)
+				"proxyDeviceID": onuDev.proxyDeviceID}, err)
 	}
 	logger.Infow(ctx, "success-sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": *tpDownloadMsg})
 	return nil
@@ -3351,29 +3351,38 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 	return nil
 }
 
-func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, ponID uint32, onuID uint32, uniID uint32) *ic.InterAdapterTechProfileDownloadMessage {
+func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, uniID uint32, onuDeviceID string) (*ic.TechProfileDownloadMessage, error) {
 	tpInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
 	if err != nil {
 		logger.Errorw(ctx, "error-fetching-tp-instance", log.Fields{"tpPath": tpPath})
-		return nil
+		return nil, err
 	}
 
 	switch tpInst := tpInst.(type) {
 	case *tp_pb.TechProfileInstance:
-		logger.Debugw(ctx, "fetched-tp-instance-successfully--formulating-tp-download-msg", log.Fields{"tpPath": tpPath})
-		return &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID,
+		logger.Debugw(ctx, "fetched-tp-instance-successfully-formulating-tp-download-msg", log.Fields{"tpPath": tpPath})
+		return &ic.TechProfileDownloadMessage{
+			DeviceId:       onuDeviceID,
+			UniId:          uniID,
 			TpInstancePath: tpPath,
-			TechTpInstance: &ic.InterAdapterTechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
-		}
+			TechTpInstance: &ic.TechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
+		}, nil
 	case *openoltpb2.EponTechProfileInstance:
-		return &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID,
+		return &ic.TechProfileDownloadMessage{
+			DeviceId:       onuDeviceID,
+			UniId:          uniID,
 			TpInstancePath: tpPath,
-			TechTpInstance: &ic.InterAdapterTechProfileDownloadMessage_EponTpInstance{EponTpInstance: tpInst},
-		}
+			TechTpInstance: &ic.TechProfileDownloadMessage_EponTpInstance{EponTpInstance: tpInst},
+		}, nil
 	default:
 		logger.Errorw(ctx, "unknown-tech", log.Fields{"tpPath": tpPath})
 	}
-	return nil
+	return &ic.TechProfileDownloadMessage{
+		DeviceId:       onuDeviceID,
+		UniId:          uniID,
+		TpInstancePath: tpPath,
+		TechTpInstance: nil,
+	}, nil
 }
 
 func (f *OpenOltFlowMgr) getOnuGemInfoList(ctx context.Context) []rsrcMgr.OnuGemInfo {
