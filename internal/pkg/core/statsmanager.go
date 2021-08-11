@@ -21,15 +21,16 @@ import (
 	"container/list"
 	"context"
 	"fmt"
-	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	"github.com/opencord/voltha-protos/v4/go/extension"
-	"github.com/opencord/voltha-protos/v4/go/openolt"
-	"github.com/opencord/voltha-protos/v4/go/voltha"
+	"github.com/opencord/voltha-protos/v5/go/extension"
+	"github.com/opencord/voltha-protos/v5/go/openolt"
+	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
 const (

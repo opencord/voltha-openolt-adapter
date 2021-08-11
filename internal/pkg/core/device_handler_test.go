@@ -19,29 +19,28 @@ package core
 
 import (
 	"context"
-	conf "github.com/opencord/voltha-lib-go/v6/pkg/config"
 	"net"
 	"reflect"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/opencord/voltha-lib-go/v6/pkg/db"
-	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
-	"github.com/opencord/voltha-lib-go/v6/pkg/pmmetrics"
-	ponrmgr "github.com/opencord/voltha-lib-go/v6/pkg/ponresourcemanager"
+	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
+	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v7/pkg/pmmetrics"
+	ponrmgr "github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	ic "github.com/opencord/voltha-protos/v4/go/inter_container"
-	of "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	oop "github.com/opencord/voltha-protos/v4/go/openolt"
-	"github.com/opencord/voltha-protos/v4/go/voltha"
+	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	oop "github.com/opencord/voltha-protos/v5/go/openolt"
+	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
 const (
@@ -56,17 +55,22 @@ const (
 	FlowIDEnd    = 10
 )
 
-func newMockCoreProxy() *mocks.MockCoreProxy {
-	mcp := mocks.MockCoreProxy{
+func newMockOnuInterAdapterService() *mocks.MockOnuInterAdapterService {
+	return &mocks.MockOnuInterAdapterService{}
+}
+
+func newMockCoreService() *mocks.MockCoreService {
+	mcp := mocks.MockCoreService{
 		Devices:     make(map[string]*voltha.Device),
 		DevicePorts: make(map[string][]*voltha.Port),
 	}
 	var pm []*voltha.PmConfig
 	mcp.Devices["olt"] = &voltha.Device{
-		Id:           "olt",
-		Root:         true,
-		ParentId:     "logical_device",
-		ParentPortNo: 1,
+		Id:              "olt",
+		Root:            true,
+		ParentId:        "logical_device",
+		ParentPortNo:    1,
+		AdapterEndpoint: "mock-olt-endpoint",
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -88,12 +92,12 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 	}
 
 	mcp.Devices["onu1"] = &voltha.Device{
-		Id:           "1",
-		Root:         false,
-		ParentId:     "olt",
-		ParentPortNo: 1,
-
-		OperStatus: 4,
+		Id:              "1",
+		Root:            false,
+		ParentId:        "olt",
+		ParentPortNo:    1,
+		AdapterEndpoint: "mock-onu-endpoint",
+		OperStatus:      4,
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			OnuId:          1,
 			ChannelId:      1,
@@ -114,12 +118,12 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 	}
 
 	mcp.Devices["onu2"] = &voltha.Device{
-		Id:         "2",
-		Root:       false,
-		ParentId:   "olt",
-		OperStatus: 2,
-
-		ParentPortNo: 1,
+		Id:              "2",
+		Root:            false,
+		ParentId:        "olt",
+		OperStatus:      2,
+		AdapterEndpoint: "mock-onu-endpoint",
+		ParentPortNo:    1,
 
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			OnuId:          2,
@@ -143,9 +147,10 @@ func newMockCoreProxy() *mocks.MockCoreProxy {
 }
 func newMockDeviceHandler() *DeviceHandler {
 	device := &voltha.Device{
-		Id:       "olt",
-		Root:     true,
-		ParentId: "logical_device",
+		Id:              "olt",
+		Root:            true,
+		ParentId:        "logical_device",
+		AdapterEndpoint: "mock-olt-endpoint",
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "olt",
 			DeviceType:     "onu",
@@ -154,14 +159,14 @@ func newMockDeviceHandler() *DeviceHandler {
 		},
 		ConnectStatus: 1,
 	}
-	cp := newMockCoreProxy()
-	ap := &mocks.MockAdapterProxy{}
+	mcs := newMockCoreService()
+	cc := mocks.NewMockCoreClient(mcs)
 	ep := &mocks.MockEventProxy{}
 	cm := &conf.ConfigManager{}
 	cm.Backend = &db.Backend{StoreType: "etcd", Client: &mocks.MockKVClient{}}
 	cfg := &config.AdapterFlags{OmccEncryption: true}
-	openOLT := &OpenOLT{coreProxy: cp, adapterProxy: ap, eventProxy: ep, config: cfg}
-	dh := NewDeviceHandler(cp, ap, ep, device, openOLT, cm)
+	openOLT := &OpenOLT{eventProxy: ep, config: cfg}
+	dh := NewDeviceHandler(cc, ep, device, openOLT, cm, cfg)
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		Technology: "xgs-pon",
@@ -170,6 +175,7 @@ func newMockDeviceHandler() *DeviceHandler {
 
 	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: NumPonPorts}
 	dh.deviceInfo = deviceInf
+	dh.device = device
 	dh.resourceMgr = make([]*resourcemanager.OpenOltResourceMgr, deviceInf.PonPorts)
 	var i uint32
 	for i = 0; i < deviceInf.PonPorts; i++ {
@@ -264,6 +270,11 @@ func newMockDeviceHandler() *DeviceHandler {
 	}
 
 	dh.metrics = pmmetrics.NewPmMetrics(device.Id, pmmetrics.Frequency(2), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
+
+	// Set the children endpoints
+	dh.childAdapterClients = map[string]*vgrpc.Client{
+		"mock-onu-endpoint": mocks.NewMockChildAdapterClient(newMockOnuInterAdapterService()),
+	}
 	return dh
 }
 
@@ -448,126 +459,126 @@ func TestGetportLabel(t *testing.T) {
 	}
 }
 
-func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
-	ctx := context.Background()
-	dh := newMockDeviceHandler()
-	proxyAddr := dh.device.ProxyAddress
-	body := &ic.InterAdapterOmciMessage{
-		Message:      []byte("asdfasdfasdfasdfas"),
-		ProxyAddress: proxyAddr,
-	}
-	body2 := &ic.InterAdapterOmciMessage{
-		Message: []byte("asdfasdfasdfasdfas"),
-		//ProxyAddress: &voltha.Device_ProxyAddress{},
-	}
-	body3 := &ic.InterAdapterTechProfileDownloadMessage{}
-	var marshalledData *any.Any
-	var err error
+// func TestDeviceHandler_ProcessInterAdapterMessage(t *testing.T) {
+// 	ctx := context.Background()
+// 	dh := newMockDeviceHandler()
+// 	proxyAddr := dh.device.ProxyAddress
+// 	body := &ic.InterAdapterOmciMessage{
+// 		Message:      []byte("asdfasdfasdfasdfas"),
+// 		ProxyAddress: proxyAddr,
+// 	}
+// 	body2 := &ic.InterAdapterOmciMessage{
+// 		Message: []byte("asdfasdfasdfasdfas"),
+// 		//ProxyAddress: &voltha.Device_ProxyAddress{},
+// 	}
+// 	body3 := &ic.InterAdapterTechProfileDownloadMessage{}
+// 	var marshalledData *any.Any
+// 	var err error
 
-	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
-	}
+// 	if marshalledData, err = ptypes.MarshalAny(body); err != nil {
+// 		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
+// 	}
 
-	var marshalledData1 *any.Any
+// 	var marshalledData1 *any.Any
 
-	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
-	}
-	var marshalledData2 *any.Any
+// 	if marshalledData1, err = ptypes.MarshalAny(body2); err != nil {
+// 		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
+// 	}
+// 	var marshalledData2 *any.Any
 
-	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
-		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
-	}
-	type args struct {
-		msg *ic.InterAdapterMessage
-	}
-	invalid := reflect.TypeOf(&olterrors.ErrInvalidValue{})
-	tests := []struct {
-		name    string
-		args    args
-		wantErr reflect.Type
-	}{
-		{"ProcessInterAdapterMessage-1", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_FLOW_REQUEST,
-			},
-			Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-2", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_FLOW_RESPONSE,
-			},
-			Body: marshalledData1,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-3", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_OMCI_REQUEST,
-			},
-			Body: marshalledData,
-		}}, reflect.TypeOf(&olterrors.ErrCommunication{})},
-		{"ProcessInterAdapterMessage-4", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_OMCI_RESPONSE,
-			}, Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-5", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_METRICS_REQUEST,
-			}, Body: marshalledData1,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-6", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_METRICS_RESPONSE,
-			}, Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-7", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_ONU_IND_REQUEST,
-			}, Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-8", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_ONU_IND_RESPONSE,
-			}, Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-9", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
-			}, Body: marshalledData,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-10", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
-			}, Body: marshalledData2,
-		}}, invalid},
-		{"ProcessInterAdapterMessage-11", args{msg: &ic.InterAdapterMessage{
-			Header: &ic.InterAdapterHeader{
-				Id:   "012345",
-				Type: ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
-			}, Body: marshalledData2,
-		}}, invalid},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// 	if marshalledData2, err = ptypes.MarshalAny(body3); err != nil {
+// 		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
+// 	}
+// 	type args struct {
+// 		msg *ic.InterAdapterMessage
+// 	}
+// 	invalid := reflect.TypeOf(&olterrors.ErrInvalidValue{})
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		wantErr reflect.Type
+// 	}{
+// 		{"ProcessInterAdapterMessage-1", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_FLOW_REQUEST,
+// 			},
+// 			Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-2", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_FLOW_RESPONSE,
+// 			},
+// 			Body: marshalledData1,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-3", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_OMCI_REQUEST,
+// 			},
+// 			Body: marshalledData,
+// 		}}, reflect.TypeOf(&olterrors.ErrCommunication{})},
+// 		{"ProcessInterAdapterMessage-4", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_OMCI_RESPONSE,
+// 			}, Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-5", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_METRICS_REQUEST,
+// 			}, Body: marshalledData1,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-6", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_METRICS_RESPONSE,
+// 			}, Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-7", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_ONU_IND_REQUEST,
+// 			}, Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-8", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_ONU_IND_RESPONSE,
+// 			}, Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-9", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
+// 			}, Body: marshalledData,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-10", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
+// 			}, Body: marshalledData2,
+// 		}}, invalid},
+// 		{"ProcessInterAdapterMessage-11", args{msg: &ic.InterAdapterMessage{
+// 			Header: &ic.InterAdapterHeader{
+// 				Id:   "012345",
+// 				Type: ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
+// 			}, Body: marshalledData2,
+// 		}}, invalid},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := dh.ProcessInterAdapterMessage(ctx, tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
-				t.Errorf("DeviceHandler.ProcessInterAdapterMessage() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+// 			if err := dh.ProcessInterAdapterMessage(ctx, tt.args.msg); reflect.TypeOf(err) != tt.wantErr {
+// 				t.Errorf("DeviceHandler.ProcessInterAdapterMessage() error = %v, wantErr %v", err, tt.wantErr)
+// 			}
+// 		})
+// 	}
+// }
 
-func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
+func TestDeviceHandler_ProxyOmciMessage(t *testing.T) {
 	ctx := context.Background()
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
@@ -585,17 +596,16 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	device2 := device1
 	device2.ConnectStatus = 2
-	iaomciMsg1 := &ic.InterAdapterOmciMessage{
+	iaomciMsg1 := &ic.OmciMessage{
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "onu2",
 			DeviceType:     "onu",
 			ChannelId:      1,
 			ChannelGroupId: 1,
-			//OnuId:          2,
 		},
 		ConnectStatus: 1,
 	}
-	iaomciMsg2 := &ic.InterAdapterOmciMessage{
+	iaomciMsg2 := &ic.OmciMessage{
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "onu3",
 			DeviceType:     "onu",
@@ -606,23 +616,23 @@ func TestDeviceHandler_sendProxiedMessage(t *testing.T) {
 	}
 	type args struct {
 		onuDevice *voltha.Device
-		omciMsg   *ic.InterAdapterOmciMessage
+		omciMsg   *ic.OmciMessage
 	}
 	tests := []struct {
 		name          string
 		devicehandler *DeviceHandler
 		args          args
 	}{
-		{"sendProxiedMessage-1", dh1, args{onuDevice: device1, omciMsg: &ic.InterAdapterOmciMessage{}}},
-		{"sendProxiedMessage-2", dh1, args{onuDevice: device2, omciMsg: &ic.InterAdapterOmciMessage{}}},
+		{"sendProxiedMessage-1", dh1, args{onuDevice: device1, omciMsg: &ic.OmciMessage{}}},
+		{"sendProxiedMessage-2", dh1, args{onuDevice: device2, omciMsg: &ic.OmciMessage{}}},
 		{"sendProxiedMessage-3", dh1, args{onuDevice: nil, omciMsg: iaomciMsg1}},
 		{"sendProxiedMessage-4", dh1, args{onuDevice: nil, omciMsg: iaomciMsg2}},
 		{"sendProxiedMessage-5", dh2, args{onuDevice: nil, omciMsg: iaomciMsg2}},
-		{"sendProxiedMessage-6", dh2, args{onuDevice: device1, omciMsg: &ic.InterAdapterOmciMessage{}}},
+		{"sendProxiedMessage-6", dh2, args{onuDevice: device1, omciMsg: &ic.OmciMessage{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.devicehandler.sendProxiedOmciMessage(ctx, tt.args.onuDevice, tt.args.omciMsg)
+			_ = tt.devicehandler.ProxyOmciMessage(ctx, tt.args.omciMsg)
 			//TODO: actually verify test cases
 		})
 	}
@@ -735,8 +745,8 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	dh2 := negativeDeviceHandler()
 	dh3 := newMockDeviceHandler()
 	dh3.onus = sync.Map{}
-	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1", false))
-	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2", false))
+	dh3.onus.Store("onu1", NewOnuDevice("onu1", "onu1", "onu1", 1, 1, "onu1", false, "mock_endpoint"))
+	dh3.onus.Store("onu2", NewOnuDevice("onu2", "onu2", "onu2", 2, 2, "onu2", false, "mock_endpoint"))
 
 	type args struct {
 		indication *oop.Indication
@@ -794,6 +804,7 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dh := tt.deviceHandler
+			time.Sleep(5 * time.Millisecond)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			dh.handleIndication(ctx, tt.args.indication)
@@ -994,7 +1005,7 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 			dh := tt.devicehandler
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := dh.PacketOut(ctx, tt.args.egressPortNo, tt.args.packet); (err != nil) != tt.wantErr {
+			if err := dh.PacketOut(ctx, uint32(tt.args.egressPortNo), tt.args.packet); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.PacketOut() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -1093,8 +1104,8 @@ func TestDeviceHandler_onuDiscIndication(t *testing.T) {
 	dh1.discOnus.Store("onu3", true)
 	dh1.discOnus.Store("onu4", true)
 	dh1.onus = sync.Map{}
-	dh1.onus.Store("onu3", NewOnuDevice("onu3", "onu3", "onu3", 3, 3, "onu3", true))
-	dh1.onus.Store("onu4", NewOnuDevice("onu4", "onu4", "onu4", 4, 4, "onu4", true))
+	dh1.onus.Store("onu3", NewOnuDevice("onu3", "onu3", "onu3", 3, 3, "onu3", true, "mock_endpoint"))
+	dh1.onus.Store("onu4", NewOnuDevice("onu4", "onu4", "onu4", 4, 4, "onu4", true, "mock_endpoint"))
 	dh2 := negativeDeviceHandler()
 	type args struct {
 		onuDiscInd *oop.OnuDiscIndication
@@ -1190,11 +1201,13 @@ func Test_startCollector(t *testing.T) {
 		dh *DeviceHandler
 	}
 	dh := newMockDeviceHandler()
-	dh.coreProxy.(*mocks.MockCoreProxy).DevicePorts[dh.device.Id] = []*voltha.Port{
+	mcs := newMockCoreService()
+	mcs.DevicePorts[dh.device.Id] = []*voltha.Port{
 		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
 		{PortNo: 1048577, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 		{PortNo: 1048578, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 	}
+	dh.coreClient.SetService(mcs)
 	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
 	dh.portStats.NorthBoundPort[1] = &NniPort{Name: "OLT-1"}
 	dh.portStats.NorthBoundPort[2] = &NniPort{Name: "OLT-1"}
@@ -1204,7 +1217,9 @@ func Test_startCollector(t *testing.T) {
 		dh.portStats.SouthBoundPort[uint32(i)] = &PonPort{DeviceID: "OLT-1"}
 	}
 	dh1 := newMockDeviceHandler()
-	dh1.coreProxy.(*mocks.MockCoreProxy).DevicePorts[dh.device.Id] = []*voltha.Port{}
+	mcs = newMockCoreService()
+	mcs.DevicePorts[dh.device.Id] = []*voltha.Port{}
+	dh.coreClient.SetService(mcs)
 	tests := []struct {
 		name string
 		args args

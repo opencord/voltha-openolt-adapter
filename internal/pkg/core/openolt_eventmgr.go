@@ -23,12 +23,14 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/opencord/voltha-lib-go/v6/pkg/events/eventif"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
+	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	"github.com/opencord/voltha-protos/v4/go/common"
-	oop "github.com/opencord/voltha-protos/v4/go/openolt"
-	"github.com/opencord/voltha-protos/v4/go/voltha"
+	"github.com/opencord/voltha-protos/v5/go/common"
+	oop "github.com/opencord/voltha-protos/v5/go/openolt"
+	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
 const (
@@ -463,7 +465,7 @@ func (em *OpenOltEventMgr) onuAlarmIndication(ctx context.Context, onuAlarm *oop
 			/* Update onu device with LoS raised state as true */
 			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
 				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
-				onuInCache.(*OnuDevice).proxyDeviceID, true))
+				onuInCache.(*OnuDevice).proxyDeviceID, true, onuInCache.(*OnuDevice).adapterEndpoint))
 		}
 	case statusCheckOff:
 		if em.wasLosCleared(ctx, onuAlarm) {
@@ -476,7 +478,7 @@ func (em *OpenOltEventMgr) onuAlarmIndication(ctx context.Context, onuAlarm *oop
 			/* Update onu device with LoS raised state as false */
 			em.handler.onus.Store(onuKey, NewOnuDevice(onuInCache.(*OnuDevice).deviceID, onuInCache.(*OnuDevice).deviceType,
 				onuInCache.(*OnuDevice).serialNumber, onuInCache.(*OnuDevice).onuID, onuInCache.(*OnuDevice).intfID,
-				onuInCache.(*OnuDevice).proxyDeviceID, false))
+				onuInCache.(*OnuDevice).proxyDeviceID, false, onuInCache.(*OnuDevice).adapterEndpoint))
 		}
 	}
 
@@ -666,7 +668,10 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(ctx context.Context, onuLOKI 
 // oltIntfOperIndication handles Up and Down state of an OLT PON ports
 func (em *OpenOltEventMgr) oltIntfOperIndication(ctx context.Context, ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) {
 	portNo := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
-	if port, err := em.handler.coreProxy.GetDevicePort(ctx, deviceID, portNo); err != nil {
+	if port, err := em.handler.getPortFromCore(ctx, &ic.PortFilter{
+		DeviceId: deviceID,
+		Port:     portNo,
+	}); err != nil {
 		logger.Warnw(ctx, "Error while fetching port object", log.Fields{"device-id": deviceID, "err": err})
 	} else if port.AdminState != common.AdminState_ENABLED {
 		logger.Debugw(ctx, "port-disable/enable-event-not-generated--the-port-is-not-enabled-by-operator", log.Fields{"device-id": deviceID, "port": port})

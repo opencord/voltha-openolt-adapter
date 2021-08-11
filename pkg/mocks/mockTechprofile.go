@@ -20,8 +20,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/opencord/voltha-lib-go/v6/pkg/db"
-	tp_pb "github.com/opencord/voltha-protos/v4/go/tech_profile"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
 )
 
 // MockTechProfile mock struct for OpenoltClient.
