@@ -107,6 +107,7 @@ func (ep *EventProxy) getEventHeader(eventName string,
 	if err != nil {
 		return nil, err
 	}
+
 	header.ReportedTs = timestamp
 
 	return &header, nil
@@ -238,7 +239,9 @@ func (ep *EventProxy) Start() {
 }
 
 func (ep *EventProxy) Stop() {
-	ep.eventQueue.stop()
+	if ep.eventQueue != nil {
+		ep.eventQueue.stop()
+	}
 }
 
 type EventQueue struct {
