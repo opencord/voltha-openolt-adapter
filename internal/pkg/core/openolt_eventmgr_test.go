@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	oop "github.com/opencord/voltha-protos/v4/go/openolt"
+	oop "github.com/opencord/voltha-protos/v5/go/openolt"
 )
 
 func mockEventMgr() *OpenOltEventMgr {
@@ -35,8 +35,8 @@ func mockEventMgr() *OpenOltEventMgr {
 		deviceType:   "ONU",
 		serialNumber: "TEST_ONU_123",
 		onuID:        1, intfID: 1})
-	dh.onus.Store("1.3", NewOnuDevice("onu3", "onu3", "onu3", 1, 3, "onu3", false))
-	dh.onus.Store("1.4", NewOnuDevice("onu4", "onu4", "onu4", 1, 4, "onu4", false))
+	dh.onus.Store("1.3", NewOnuDevice("onu3", "onu3", "onu3", 1, 3, "onu3", false, "mock-endpoint"))
+	dh.onus.Store("1.4", NewOnuDevice("onu4", "onu4", "onu4", 1, 4, "onu4", false, "mock-endpoint"))
 	return NewEventMgr(ep, dh)
 }
 func TestOpenOltEventMgr_ProcessEvents(t *testing.T) {

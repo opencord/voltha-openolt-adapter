@@ -27,21 +27,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/opencord/voltha-lib-go/v6/pkg/techprofile"
-	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v6/pkg/db"
-	"github.com/opencord/voltha-lib-go/v6/pkg/db/kvstore"
-	fu "github.com/opencord/voltha-lib-go/v6/pkg/flows"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v6/pkg/ponresourcemanager"
-	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	"github.com/opencord/voltha-protos/v4/go/openolt"
+	"github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
+	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
+	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager"
+	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	"github.com/opencord/voltha-protos/v5/go/openolt"
 )
 
 func init() {
