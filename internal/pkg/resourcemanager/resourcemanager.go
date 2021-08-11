@@ -22,17 +22,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	tp "github.com/opencord/voltha-lib-go/v6/pkg/techprofile"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/opencord/voltha-lib-go/v6/pkg/db"
-	"github.com/opencord/voltha-lib-go/v6/pkg/db/kvstore"
-	"github.com/opencord/voltha-lib-go/v6/pkg/log"
-	ponrmgr "github.com/opencord/voltha-lib-go/v6/pkg/ponresourcemanager"
-	ofp "github.com/opencord/voltha-protos/v4/go/openflow_13"
-	"github.com/opencord/voltha-protos/v4/go/openolt"
+	tp "github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	ponrmgr "github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager"
+	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+	"github.com/opencord/voltha-protos/v5/go/openolt"
 )
 
 const (
