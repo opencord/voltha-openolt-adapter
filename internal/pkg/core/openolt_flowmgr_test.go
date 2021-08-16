@@ -627,7 +627,7 @@ func TestOpenOltFlowMgr_UpdateOnuInfo(t *testing.T) {
 			wg.Add(1)
 			go func(i uint32, j uint32) {
 				// TODO: actually verify success
-				_ = flowMgr[i].UpdateOnuInfo(ctx, i, i, fmt.Sprintf("onu-%d", i))
+				_ = flowMgr[i].AddOnuInfoToFlowMgrCacheAndKvStore(ctx, i, i, fmt.Sprintf("onu-%d", i))
 				wg.Done()
 			}(uint32(i), uint32(j))
 		}
@@ -653,7 +653,7 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 	for i := 0; i < intfNum; i++ {
 		for o := 1; o <= onuNum; o++ {
 			// TODO: actually verify success
-			_ = flowMgr[i].UpdateOnuInfo(ctx, uint32(i), uint32(o), fmt.Sprintf("i%do%d", i, o-1))
+			_ = flowMgr[i].AddOnuInfoToFlowMgrCacheAndKvStore(ctx, uint32(i), uint32(o), fmt.Sprintf("i%do%d", i, o-1))
 		}
 	}
 
@@ -718,7 +718,7 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 		// Delete all gemports
 		{"DeleteGemPortFromLocalCache2", args{0, 1, []uint32{1, 2, 3, 4}, []uint32{1, 2, 3, 4}, []uint32{}, "onu1", 0}},
 		// Try to delete when there is no gem port
-		{"DeleteGemPortFromLocalCache3", args{0, 1, []uint32{}, []uint32{1, 2}, []uint32{}, "onu1", 0}},
+		{"DeleteGemPortFromLocalCache3", args{0, 1, []uint32{}, []uint32{1, 2}, nil, "onu1", 0}},
 		// Try to delete non-existent gem port
 		{"DeleteGemPortFromLocalCache4", args{0, 1, []uint32{1}, []uint32{2}, []uint32{1}, "onu1", 1}},
 		// Try to delete two of the gem ports
@@ -728,19 +728,31 @@ func TestOpenOltFlowMgr_deleteGemPortFromLocalCache(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// TODO: should check returned errors are as expected?
-			_ = flowMgr[tt.args.intfID].UpdateOnuInfo(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum)
+			if err := flowMgr[tt.args.intfID].RemoveOnuInfoFromFlowMgrCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID); err != nil {
+				t.Errorf("failed to remove onu")
+			}
+			if err := flowMgr[tt.args.intfID].AddOnuInfoToFlowMgrCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+				t.Errorf("failed to add onu")
+			}
 			for _, gemPort := range tt.args.gemPortIDs {
 				flowMgr[tt.args.intfID].addGemPortToOnuInfoMap(ctx, tt.args.intfID, tt.args.onuID, gemPort)
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
 				flowMgr[tt.args.intfID].deleteGemPortFromLocalCache(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted)
 			}
-			lenofGemPorts := len(flowMgr[tt.args.intfID].onuGemInfoMap[1].GemPorts)
+			lenofGemPorts := 0
+			gP, ok := flowMgr[tt.args.intfID].onuGemInfoMap[tt.args.onuID]
+			if ok {
+				lenofGemPorts = len(gP.GemPorts)
+			}
 			if lenofGemPorts != tt.args.finalLength {
 				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
 			}
-			gemPorts := flowMgr[tt.args.intfID].onuGemInfoMap[1].GemPorts
+			gP, ok = flowMgr[tt.args.intfID].onuGemInfoMap[tt.args.onuID]
+			var gemPorts []uint32
+			if ok {
+				gemPorts = gP.GemPorts
+			}
 			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
 				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
