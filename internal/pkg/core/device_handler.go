@@ -1143,7 +1143,7 @@ func (dh *DeviceHandler) sendProxiedOmciMessage(ctx context.Context, onuDevice *
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id, "OmccEncryption": dh.openOLT.config.OmccEncryption})
-	if err := dh.flowMgr[intfID].UpdateOnuInfo(ctx, intfID, uint32(onuID), serialNumber); err != nil {
+	if err := dh.flowMgr[intfID].AddOnuInfoToFlowMgrCacheAndKvStore(ctx, intfID, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
 	}
 	var pir uint32 = 1000000
@@ -2182,8 +2182,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		for _, gem := range onuGem.GemPorts {
 			dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, intfID, gem)
 		}
-		err := dh.resourceMgr[intfID].DelOnuGemInfo(ctx, intfID, onuID)
-		if err != nil {
+		if err := dh.flowMgr[intfID].RemoveOnuInfoFromFlowMgrCacheAndKvStore(ctx, intfID, onuID); err != nil {
 			logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
 				"intf-id":    intfID,
 				"onu-device": onu,
