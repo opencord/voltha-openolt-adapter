@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90405338_4aca9c6e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-08-19T17:00:40Z",
+      "side": 1,
+      "message": "Same with the comment in 1508. Shouldn\u0027t we force clean the ONU too?",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab34c089_61ae7694",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1489,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-08-19T17:00:40Z",
+      "side": 1,
+      "message": "This function seems to called in clearUNIData.  That method also contains same loop for tpID. The other resources are cleared there. Why do we clear Schedulers here, but not there?",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e3e67ee_1d86fb42",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1508,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-08-19T17:00:40Z",
+      "side": 1,
+      "message": "Shouldn\u0027t TP related other resources(GEMs and TCONTs) be deleted here too?",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
