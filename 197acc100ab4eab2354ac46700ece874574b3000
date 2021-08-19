@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "8d80c16b_9fbfcd42",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-08-19T18:23:18Z",
+      "side": 1,
+      "message": "I see what you mean now. The thing is we land here only if OLT or ONU is deleted and in either case the ONU is reset automatically - basically the ONU sends a new discovery indication and the ONU is mib-reset and configured afresh. When OLT is deleted of course the OLT is also reset fully, but in case of ONU delete we need explicit clearing of resources on the OLT side only.",
+      "parentUuid": "ad2a22ec_dc33f5a8",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ab34c089_61ae7694",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
