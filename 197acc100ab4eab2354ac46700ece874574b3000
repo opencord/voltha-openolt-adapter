@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0d720ca7_9d2e62b1",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-08-19T17:38:21Z",
+      "side": 1,
+      "message": "This function is  only meant to clear the scheduler and queues. Not sure what you mean by force clean the ONU. That should be done in higher layer functions.",
+      "parentUuid": "90405338_4aca9c6e",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ab34c089_61ae7694",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "8a8d1460_09aa6535",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1489,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-08-19T17:38:21Z",
+      "side": 1,
+      "message": "The reason is to remove schedulers and queues, we need the TpInstance data. Because the TpInstance has certain information about Scheduler and Queue that we need to pass the to the openolt-agent to do the clean up. So before we delete the TpInstance here permanently, we use that information.",
+      "parentUuid": "ab34c089_61ae7694",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6e3e67ee_1d86fb42",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2021-08-19T17:00:40Z",
       "side": 1,
       "message": "Shouldn\u0027t TP related other resources(GEMs and TCONTs) be deleted here too?",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d8ceb2a_e9617182",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1508,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-08-19T17:38:21Z",
+      "side": 1,
+      "message": "This function is only meant to be called when all the resources for a UNI are being cleared as mentioned in the function description (basically cleanUNIData function). That function frees up the other PON resources as part of the handling.",
+      "parentUuid": "6e3e67ee_1d86fb42",
       "revId": "197acc100ab4eab2354ac46700ece874574b3000",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
