@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "ad2a22ec_dc33f5a8",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-08-19T17:52:18Z",
+      "side": 1,
+      "message": "Combining with my other comments; I mean the TP Instance includes some resources like schedulers,TCONTs and GEMs. With this method we are cleaning the schedulers from OLT, but how about GEMs and TCONTs in ONU? If we somehow want to force-delete the tp resources, should\u0027t this include all tp resources? I\u0027m saying this assuming that it is the olt-adapter who is responsible to send GEM and TCONT removal to the onu-adapter.",
+      "parentUuid": "0d720ca7_9d2e62b1",
+      "revId": "197acc100ab4eab2354ac46700ece874574b3000",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ab34c089_61ae7694",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
