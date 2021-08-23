@@ -216,6 +216,17 @@ func (dh *DeviceHandler) stop(ctx context.Context) {
 	logger.Debug(ctx, "device-agent-stopped")
 }
 
+func (dh *DeviceHandler) getPonTechnology(intfID uint32) string {
+	for _, resourceRanges := range dh.deviceInfo.GetRanges() {
+		for _, pooledIntfID := range resourceRanges.GetIntfIds() {
+			if pooledIntfID == intfID {
+				return resourceRanges.GetTechnology()
+			}
+		}
+	}
+	return ""
+}
+
 func macifyIP(ip net.IP) string {
 	if len(ip) > 0 {
 		oct1 := strconv.FormatInt(int64(ip[12]), 16)
