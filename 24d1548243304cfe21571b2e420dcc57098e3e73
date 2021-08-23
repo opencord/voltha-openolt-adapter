@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce49a13f_e95152a1",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2021-08-23T11:17:59Z",
+      "side": 1,
+      "message": "Just a cosmetic comment, should we change the name of the function to something more appropriate? Something like getOnuAlarmDetail?",
+      "revId": "24d1548243304cfe21571b2e420dcc57098e3e73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b23d19d9_8da06931",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2021-08-23T11:17:59Z",
+      "side": 1,
+      "message": "Although we want to have only a single LoS Event now, but having the information about which exact problem caused this would/might be useful. We could embed this information into the event or at least have a info level log which might help in figuring out issues.",
+      "revId": "24d1548243304cfe21571b2e420dcc57098e3e73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
