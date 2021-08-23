@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f63bd78_0c1083da",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1000608
+      },
+      "writtenOn": "2021-08-23T16:34:33Z",
+      "side": 1,
+      "message": "// Discovery event after these changes:\n{\n  \"header\": {\n    \"id\": \"Voltha.openolt.ONU_DISCOVERY.1629735267777725706\",\n    \"category\": 2,\n    \"type\": 3,\n    \"type_version\": \"0.1\",\n    \"raised_ts\": {\n      \"seconds\": 1629735267\n    },\n    \"reported_ts\": {\n      \"seconds\": 1629735267,\n      \"nanos\": 777726934\n    }\n  },\n  \"EventType\": {\n    \"DeviceEvent\": {\n      \"resource_id\": \"5295a1d5-a121-372e-b8dc-6f7eda83f0ba\",\n      \"device_event_name\": \"ONU_DISCOVERY_RAISE_EVENT\",\n      \"context\": {\n        \"intf-id\": \"0\",\n        \"onu-device-id\": \"049ab183-8b89-4490-b360-b17bfc36447b\",\n        \"onu-id\": \"1\",\n        \"pon-technology\": \"XGS-PON\",\n        \"port-label\": \"pon-0\",\n        \"serial-number\": \"BBSM00000001\"\n      }\n    }\n  }\n}\n\n// Discovery event before these changes:\n{\n  \"header\": {\n    \"id\": \"Voltha.openolt.ONU_DISCOVERY.1629735823774312006\",\n    \"category\": 2,\n    \"type\": 3,\n    \"type_version\": \"0.1\",\n    \"raised_ts\": {\n      \"seconds\": 1629735823,\n      \"nanos\": 774307520\n    },\n    \"reported_ts\": {\n      \"seconds\": 1629735823,\n      \"nanos\": 774313984\n    }\n  },\n  \"EventType\": {\n    \"DeviceEvent\": {\n      \"resource_id\": \"5295a1d5-a121-372e-b8dc-6f7eda83f0ba\",\n      \"device_event_name\": \"ONU_DISCOVERY_RAISE_EVENT\",\n      \"context\": {\n        \"intf-id\": \"0\",\n        \"onu-device-id\": \"f2007148-c794-4dad-91dd-2da9df582c10\",\n        \"onu-id\": \"1\",\n        \"serial-number\": \"BBSM00000001\"\n      }\n    }\n  }\n}\n\nFor quick reference",
+      "revId": "04386ee136a92f1016b019eb7c3162ad5e7c67e2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
