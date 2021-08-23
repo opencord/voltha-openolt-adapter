@@ -33,6 +33,24 @@
       "revId": "24d1548243304cfe21571b2e420dcc57098e3e73",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48a83538_ccd9d12a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-08-23T14:43:54Z",
+      "side": 1,
+      "message": "agreed, I think it\u0027s worth inserting the specific cause in here. \nis something %s_%s_%s where the first is onuLosEvent, second is specific type and third is RAISE_EVENT worth considering ?",
+      "parentUuid": "b23d19d9_8da06931",
+      "revId": "24d1548243304cfe21571b2e420dcc57098e3e73",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
