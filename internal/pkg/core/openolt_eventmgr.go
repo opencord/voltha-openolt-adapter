@@ -123,6 +123,10 @@ const (
 	ContextOnuDelineationErrors = "delineation-errors"
 	// ContextOnuDifferentialDistance is for the differential distance in an ONU event context
 	ContextOnuDifferentialDistance = "differential-distance"
+	// ContextOltPonTechnology is to indicate the pon-technology type, ie, 'GPON' or 'XGS-PON' (TODO check for combo?)
+	ContextOltPonTechnology = "pon-technology"
+	// ContextOltPortLabel is to indicate the string label of the pon-port, example: pon-0
+	ContextOltPortLabel = "port-label"
 )
 
 // OpenOltEventMgr struct contains
@@ -269,6 +273,8 @@ func (em *OpenOltEventMgr) OnuDiscoveryIndication(ctx context.Context, onuDisc *
 	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(onuDisc.IntfId), base10)
 	context[ContextOnuSerialNumber] = serialNumber
 	context[ContextOnuDeviceID] = onuDeviceID
+	context[ContextOltPonTechnology] = em.handler.getPonTechnology(onuDisc.IntfId)
+	context[ContextOltPortLabel], _ = GetportLabel(onuDisc.GetIntfId(), voltha.Port_PON_OLT)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = oltDeviceID
@@ -339,6 +345,7 @@ func (em *OpenOltEventMgr) populateContextWithSerialDeviceID(context map[string]
 		onuDeviceID = onu.(*OnuDevice).deviceID
 	}
 
+	context[ContextOltPortLabel], _ = GetportLabel(intfID, voltha.Port_PON_OLT)
 	context[ContextOnuSerialNumber] = serialNumber
 	context[ContextOnuDeviceID] = onuDeviceID
 }
