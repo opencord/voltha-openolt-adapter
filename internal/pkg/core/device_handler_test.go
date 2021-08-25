@@ -234,12 +234,16 @@ func newMockDeviceHandler() *DeviceHandler {
 		// Create a slice of buffered channels for handling concurrent flows per ONU.
 		// The additional entry (+1) is to handle the NNI trap flows on a separate channel from individual ONUs channel
 		dh.flowMgr[i].incomingFlows = make([]chan flowControlBlock, MaxOnusPerPon+1)
+		dh.flowMgr[i].stopFlowHandlerRoutine = make([]chan bool, MaxOnusPerPon+1)
+		dh.flowMgr[i].flowHandlerRoutineActive = make([]bool, MaxOnusPerPon+1)
 		for j := range dh.flowMgr[i].incomingFlows {
 			dh.flowMgr[i].incomingFlows[j] = make(chan flowControlBlock, maxConcurrentFlowsPerOnu)
+			dh.flowMgr[i].stopFlowHandlerRoutine[j] = make(chan bool, 1)
 			// Spin up a go routine to handling incoming flows (add/remove).
 			// There will be on go routine per ONU.
 			// This routine will be blocked on the flowMgr.incomingFlows[onu-id] channel for incoming flows.
-			go dh.flowMgr[i].perOnuFlowHandlerRoutine(dh.flowMgr[i].incomingFlows[j])
+			dh.flowMgr[i].flowHandlerRoutineActive[j] = true
+			go dh.flowMgr[i].perOnuFlowHandlerRoutine(j, dh.flowMgr[i].incomingFlows[j], dh.flowMgr[i].stopFlowHandlerRoutine[j])
 		}
 		dh.flowMgr[i].onuGemInfoMap = make(map[uint32]*resourcemanager.OnuGemInfo)
 	}

@@ -47,7 +47,7 @@ type OpenOltGroupMgr struct {
 
 //NewGroupManager creates OpenOltGroupMgr object and initializes the parameters
 func NewGroupManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr) *OpenOltGroupMgr {
-	logger.Infow(ctx, "initializing-flow-manager", log.Fields{"device-id": dh.device.Id})
+	logger.Infow(ctx, "initializing-group-manager", log.Fields{"device-id": dh.device.Id})
 	var grpMgr OpenOltGroupMgr
 	grpMgr.deviceHandler = dh
 	grpMgr.resourceMgr = rMgr
