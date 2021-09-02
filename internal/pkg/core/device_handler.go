@@ -643,6 +643,20 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	//starting the stat collector
 	go startCollector(ctx, dh)
 
+	// instantiate the mcast handler routines.
+	for i := range dh.incomingMcastFlowOrGroup {
+		// We land inside the below "if" code path, after the OLT comes back from a reboot, otherwise the routines
+		// are already active when the DeviceHandler module is first instantiated (as part of Adopt_device RPC invocation).
+		if !dh.mcastHandlerRoutineActive[i] {
+			// Spin up a go routine to handling incoming mcast flow/group (add/modify/remove).
+			// There will be MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine go routines.
+			// These routines will be blocked on the dh.incomingMcastFlowOrGroup[mcast-group-id modulo MaxNumOfGroupHandlerChannels] channel
+			// for incoming mcast flow/group to be processed serially.
+			dh.mcastHandlerRoutineActive[i] = true
+			go dh.mcastFlowOrGroupChannelHandlerRoutine(i, dh.incomingMcastFlowOrGroup[i], dh.stopMcastHandlerRoutine[i])
+		}
+	}
+
 	// Synchronous call to update device state - this method is run in its own go routine
 	if err := dh.coreProxy.DeviceStateUpdate(ctx, dh.device.Id, voltha.ConnectStatus_REACHABLE,
 		voltha.OperStatus_ACTIVE); err != nil {
