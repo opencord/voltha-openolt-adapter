@@ -256,7 +256,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	onuIDEnd := flowMgr.deviceHandler.deviceInfo.OnuIdEnd
 	for onuID := onuIDStart; onuID <= onuIDEnd; onuID++ {
 		// check for a valid serial number in onuGem as GetOnuGemInfo can return nil error in case of nothing found in the path.
-		onugem, err := rMgr.GetOnuGemInfo(ctx, onuID, ponPortIdx)
+		onugem, err := rMgr.GetOnuGemInfo(ctx, ponPortIdx, onuID)
 		if err == nil && onugem != nil && onugem.SerialNumber != "" {
 			flowMgr.onuGemInfoMap[onuID] = onugem
 		}
@@ -3291,7 +3291,7 @@ func (f *OpenOltFlowMgr) loadFlowIDsForGemAndGemIDsForFlow(ctx context.Context) 
 	for _, og := range f.onuGemInfoMap {
 		for _, gem := range og.GemPorts {
 			flowIDs, err := f.resourceMgr.GetFlowIDsForGem(ctx, f.ponPortIdx, gem)
-			if err != nil {
+			if err == nil {
 				f.gemToFlowIDs[gem] = flowIDs
 				for _, flowID := range flowIDs {
 					if _, ok := f.flowIDToGems[flowID]; !ok {
