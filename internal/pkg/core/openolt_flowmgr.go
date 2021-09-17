@@ -3202,11 +3202,11 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 	return nil
 }
 
-func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, ponID uint32, onuID uint32, uniID uint32) *ic.InterAdapterTechProfileDownloadMessage {
+func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, ponID uint32, onuID uint32, uniID uint32) (*ic.InterAdapterTechProfileDownloadMessage, error) {
 	tpInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
 	if err != nil {
-		logger.Errorw(ctx, "error-fetching-tp-instance", log.Fields{"tpPath": tpPath})
-		return nil
+		logger.Errorw(ctx, "error-fetching-tp-instance", log.Fields{"tpPath": tpPath, "err": err})
+		return nil, fmt.Errorf("error-fetching-tp-instance: %s", err.Error())
 	}
 
 	switch tpInst := tpInst.(type) {
@@ -3215,16 +3215,16 @@ func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPa
 		return &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID,
 			TpInstancePath: tpPath,
 			TechTpInstance: &ic.InterAdapterTechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
-		}
+		}, nil
 	case *openoltpb2.EponTechProfileInstance:
 		return &ic.InterAdapterTechProfileDownloadMessage{UniId: uniID,
 			TpInstancePath: tpPath,
 			TechTpInstance: &ic.InterAdapterTechProfileDownloadMessage_EponTpInstance{EponTpInstance: tpInst},
-		}
+		}, nil
 	default:
 		logger.Errorw(ctx, "unknown-tech", log.Fields{"tpPath": tpPath})
 	}
-	return nil
+	return nil, errors.New("error-fetching-tp-instance: unknown-technology")
 }
 
 func (f *OpenOltFlowMgr) getOnuGemInfoList(ctx context.Context) []rsrcMgr.OnuGemInfo {

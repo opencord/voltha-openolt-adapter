@@ -984,10 +984,10 @@ func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapa
 }
 
 // GetInterAdapterTechProfileDownloadMessage fetches the TechProfileDownloadMessage for the caller.
-func (dh *DeviceHandler) GetInterAdapterTechProfileDownloadMessage(ctx context.Context, tpPath string, ponPortNum uint32, onuID uint32, uniID uint32) *ic.InterAdapterTechProfileDownloadMessage {
+func (dh *DeviceHandler) GetInterAdapterTechProfileDownloadMessage(ctx context.Context, tpPath string, ponPortNum uint32, onuID uint32, uniID uint32) (*ic.InterAdapterTechProfileDownloadMessage, error) {
 	ifID, err := IntfIDFromPonPortNum(ctx, ponPortNum)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	return dh.flowMgr[ifID].getTechProfileDownloadMessage(ctx, tpPath, ifID, onuID, uniID)
 }

@@ -933,8 +933,9 @@ func (kp *interContainerProxy) handleMessage(ctx context.Context, msg *ic.InterC
 						returnedValues = append(returnedValues, returnError)
 					}
 				} else if len(out) == 2 && reflect.ValueOf(out[0].Interface()).IsValid() && reflect.ValueOf(out[0].Interface()).IsNil() {
-					logger.Warnw(ctx, "Unexpected response of (nil,nil)", log.Fields{"txId": msg.Header.Id})
-					return // Ignore - should not happen
+					// all inter container methods need to return an a value and an error and one of the two has to be populated
+					logger.Errorw(ctx, "Unexpected response of (nil,nil)", log.Fields{"txId": msg.Header.Id})
+					return
 				} else { // Non-error case
 					success = true
 					for idx, val := range out {

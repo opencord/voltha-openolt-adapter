@@ -19,6 +19,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -160,17 +161,17 @@ func (oo *OpenOLT) Process_inter_adapter_message(ctx context.Context, msg *ic.In
 }
 
 //Process_tech_profile_instance_request processes tech profile request message from onu adapter
-func (oo *OpenOLT) Process_tech_profile_instance_request(ctx context.Context, msg *ic.InterAdapterTechProfileInstanceRequestMessage) *ic.InterAdapterTechProfileDownloadMessage {
+func (oo *OpenOLT) Process_tech_profile_instance_request(ctx context.Context, msg *ic.InterAdapterTechProfileInstanceRequestMessage) (*ic.InterAdapterTechProfileDownloadMessage, error) {
 	logger.Debugw(ctx, "Process_tech_profile_instance_request", log.Fields{"tpPath": msg.TpInstancePath})
 	targetDeviceID := msg.ParentDeviceId // Request?
 	if targetDeviceID == "" {
 		logger.Error(ctx, "device-id-nil")
-		return nil
+		return nil, errors.New("device-id-nil")
 	}
 	if handler := oo.getDeviceHandler(targetDeviceID); handler != nil {
 		return handler.GetInterAdapterTechProfileDownloadMessage(ctx, msg.TpInstancePath, msg.ParentPonPort, msg.OnuId, msg.UniId)
 	}
-	return nil
+	return nil, errors.New("device-handler-not-found")
 }
 
 //Adapter_descriptor not implemented
