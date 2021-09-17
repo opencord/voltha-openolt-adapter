@@ -585,7 +585,10 @@ func (rhp *RequestHandlerProxy) Process_tech_profile_instance_request(ctx contex
 	logger.Debugw(ctx, "Process_tech_profile_instance_request", log.Fields{"tpPath": iaTpReqMsg.TpInstancePath})
 
 	//Invoke the tech profile instance request
-	tpInst := rhp.adapter.Process_tech_profile_instance_request(ctx, iaTpReqMsg)
+	tpInst, err := rhp.adapter.Process_tech_profile_instance_request(ctx, iaTpReqMsg)
+	if err != nil {
+		return nil, err
+	}
 
 	return tpInst, nil
 }

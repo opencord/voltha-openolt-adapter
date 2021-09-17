@@ -46,7 +46,7 @@ type IAdapter interface {
 	Unsuppress_event(ctx context.Context, filter *voltha.EventFilter) error
 	Get_ofp_device_info(ctx context.Context, device *voltha.Device) (*ic.SwitchCapability, error)
 	Process_inter_adapter_message(ctx context.Context, msg *ic.InterAdapterMessage) error
-	Process_tech_profile_instance_request(ctx context.Context, msg *ic.InterAdapterTechProfileInstanceRequestMessage) *ic.InterAdapterTechProfileDownloadMessage
+	Process_tech_profile_instance_request(ctx context.Context, msg *ic.InterAdapterTechProfileInstanceRequestMessage) (*ic.InterAdapterTechProfileDownloadMessage, error)
 	Download_image(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error)
 	Get_image_download_status(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error)
 	Cancel_image_download(ctx context.Context, device *voltha.Device, request *voltha.ImageDownload) (*voltha.ImageDownload, error)
