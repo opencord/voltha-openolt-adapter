@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "900370b7_3ee8f719",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-09-28T13:46:50Z",
+      "side": 1,
+      "message": "same comment as the core. if Kafka is only for outwards facing events shall we really be tearing everything down here ? I think the approach that ONOS take of issuing a warning is best.",
+      "revId": "1a294732f5ff12bb7d62dfb0ea872f1f86eca7cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3c9afd3_0074c1ce",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-09-28T13:46:50Z",
+      "side": 1,
+      "message": "we shoudl probably return here, otherwise a nil pointer can be produced at line 1044",
+      "revId": "1a294732f5ff12bb7d62dfb0ea872f1f86eca7cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
