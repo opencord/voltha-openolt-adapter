@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1d1a7bfa_edac6448",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2021-10-01T20:39:11Z",
+      "side": 1,
+      "message": "Kafka is actually used fo events, alarms, pms .... so I think it is an important part of Voltha. The StartAndWaitUntilKafkaConnectionIsUp function waits forever or until a context timeout.  In the code we do not set the timeout for these starting conditions as some components (e.g. etcd) can take quite some time before being ready.  Therefore we will need a timeout/retry max for this scenario. Since I don\u0027t know if we have tests that are checking on kafka therefore, I will leave it as is for now and we can decide later if it needs to change and which mechanism we will use to ascertain that we cannot connect to kafka because it\u0027s absent.",
+      "parentUuid": "900370b7_3ee8f719",
+      "revId": "1a294732f5ff12bb7d62dfb0ea872f1f86eca7cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b3c9afd3_0074c1ce",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 13
@@ -31,6 +49,24 @@
       "writtenOn": "2021-09-28T13:46:50Z",
       "side": 1,
       "message": "we shoudl probably return here, otherwise a nil pointer can be produced at line 1044",
+      "revId": "1a294732f5ff12bb7d62dfb0ea872f1f86eca7cc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "376126c6_70be42ed",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1040,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2021-10-01T20:39:11Z",
+      "side": 1,
+      "message": "good catch",
+      "parentUuid": "b3c9afd3_0074c1ce",
       "revId": "1a294732f5ff12bb7d62dfb0ea872f1f86eca7cc",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
