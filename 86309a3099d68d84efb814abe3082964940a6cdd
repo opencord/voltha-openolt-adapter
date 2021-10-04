@@ -34,6 +34,24 @@
       "parentUuid": "f1ac3d35_f2f694f9",
       "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "19eb052e_736dfd44",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2021-10-04T16:21:13Z",
+      "side": 1,
+      "message": "I believe DeletePacketInGemPortForOnu method can not be able to delete anything actually in any case since the key also includes vlan and priority fields. At the time we clear the UNI ports, we dont have the vlan and priority fields. \nWe may try to iterate over the map and find the related entries and delete those. Is that a good idea?",
+      "parentUuid": "bc7eaf56_a36fd2bc",
+      "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
