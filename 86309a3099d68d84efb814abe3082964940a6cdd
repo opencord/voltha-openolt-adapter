@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f1ac3d35_f2f694f9",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-04T15:45:48Z",
+      "side": 1,
+      "message": "Didn\u0027t the earlier mechanism work?\nBut the cache is to be updated also before we return. One way to that is to still fetch the list of key/value with rsrcMgr.KVStore.List(ctx, path) and use the key from the list to clear the entries in the cache, while use the rsrcMgr.KVStore.DeleteWithPrefix with the entire data.",
+      "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
