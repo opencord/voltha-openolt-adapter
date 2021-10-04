@@ -70,6 +70,24 @@
       "parentUuid": "19eb052e_736dfd44",
       "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53d3b7fc_f14949ff",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-04T23:48:06Z",
+      "side": 1,
+      "message": "*otherwise the cache and the external DB will be out-of-sync",
+      "parentUuid": "bbd25a37_687c9a92",
+      "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
