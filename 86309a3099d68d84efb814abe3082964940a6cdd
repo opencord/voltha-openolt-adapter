@@ -88,6 +88,24 @@
       "parentUuid": "bbd25a37_687c9a92",
       "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6ac17f46_843833f1",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2021-10-05T15:46:07Z",
+      "side": 1,
+      "message": "This cache might be a huge one if the OLT is full, right? I propose having different functions for two different cases:\n1. if we clear because we lost a UNI, then iterate over the cache and find and delete the related entry.\n2. if we clear because we lost the parent device then clear the cache fully without iterating.\n\nI believe the same mechanism can be applied for other cases. But those should be addressed in a different patch. I\u0027ll try to cover only the option 1 in this patch.",
+      "parentUuid": "53d3b7fc_f14949ff",
+      "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
