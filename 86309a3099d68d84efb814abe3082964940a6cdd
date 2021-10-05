@@ -106,6 +106,24 @@
       "parentUuid": "53d3b7fc_f14949ff",
       "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6802dff4_cb20c48b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-05T17:17:17Z",
+      "side": 1,
+      "message": "Agree. I sort of put the same approach on slack, did not realize you had it here. Copying what I wrote on slack.\n\n\"\nThe DeletePacketInGemPortForOnu function could use a new parameter, say clearCache which could be set to false when the whole OLT is getting deleted. So that way we do not have to iterate all the set of keys for all the ONUs as the OLT itself is getting deleted anyway. If a single ONU is getting deleted, then set clearCache to true. In that case we iterate over the keys (should only be a few) and clear them from cache.\n\"",
+      "parentUuid": "6ac17f46_843833f1",
+      "revId": "86309a3099d68d84efb814abe3082964940a6cdd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
