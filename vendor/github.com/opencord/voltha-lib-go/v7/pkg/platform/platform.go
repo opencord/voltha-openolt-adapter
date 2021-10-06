@@ -14,45 +14,20 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
-package core
+package platform
 
 import (
 	"context"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
-	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 /*=====================================================================
-
-@TODO: Looks like this Flow id concept below is not used anywhere
-       Propose to remove the below documentation of Flow Id on confirmation
-       of the same
-
-Flow id
-
-    Identifies a flow within a single OLT
-    Flow Id is unique per OLT
-    Multiple GEM ports can map to same flow id
-
-     13    11              4      0
-    +--------+--------------+------+
-    | pon id |    onu id    | Flow |
-    |        |              | idx  |
-    +--------+--------------+------+
-
-    14 bits = 16384 flows (per OLT).
-
-    pon id = 4 bits = 16 PON ports
-    onu id = 7 bits = 128 ONUss per PON port
-    Flow index = 3 bits = 4 bi-directional flows per ONU
-                        = 8 uni-directional flows per ONU
-
-
 Logical (OF) UNI port number
 
     OpenFlow port number corresponding to PON UNI
@@ -116,6 +91,8 @@ const (
 	minPonIntfPortNum = ponIntfMarkerValue << ponIntfMarkerPos
 	// maxPonIntfPortNum stores the maximum pon port number
 	maxPonIntfPortNum = (ponIntfMarkerValue << ponIntfMarkerPos) | (1 << bitsForPONID)
+	upstream          = "upstream"
+	downstream        = "downstream"
 )
 
 //MinUpstreamPortID value
@@ -176,7 +153,7 @@ func PortNoToIntfID(portno uint32, intfType voltha.Port_PortType) uint32 {
 func IntfIDFromNniPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 	if portNum < minNniIntPortNum || portNum > maxNniPortNum {
 		logger.Errorw(ctx, "nniportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
-		return uint32(0), olterrors.ErrInvalidPortRange
+		return uint32(0), status.Errorf(codes.InvalidArgument, "nni-port-number-out-of-range:%d", portNum)
 	}
 	return (portNum & 0xFFFF), nil
 }
@@ -185,7 +162,7 @@ func IntfIDFromNniPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 func IntfIDFromPonPortNum(ctx context.Context, portNum uint32) (uint32, error) {
 	if portNum < minPonIntfPortNum || portNum > maxPonIntfPortNum {
 		logger.Errorw(ctx, "ponportnumber-is-not-in-valid-range", log.Fields{"portnum": portNum})
-		return uint32(0), olterrors.ErrInvalidPortRange
+		return uint32(0), status.Errorf(codes.InvalidArgument, "invalid-pon-port-number:%d", portNum)
 	}
 	return (portNum & 0x7FFF), nil
 }
@@ -243,7 +220,7 @@ func FlowExtractInfo(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection 
 	var inPort uint32
 	var ethType uint32
 
-	if flowDirection == "upstream" {
+	if flowDirection == upstream {
 		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
 			for _, field := range flows.GetOfbFields(flow) {
 				if field.GetType() == flows.IN_PORT {
@@ -252,7 +229,7 @@ func FlowExtractInfo(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection 
 				}
 			}
 		}
-	} else if flowDirection == "downstream" {
+	} else if flowDirection == downstream {
 		if uniPortNo = flows.GetChildPortFromTunnelId(flow); uniPortNo == 0 {
 			for _, field := range flows.GetOfbFields(flow) {
 				if field.GetType() == flows.METADATA {
@@ -274,7 +251,7 @@ func FlowExtractInfo(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection 
 	}
 
 	if uniPortNo == 0 {
-		return 0, 0, 0, 0, 0, 0, olterrors.NewErrNotFound("pon-interface", log.Fields{"flow-direction": flowDirection}, nil)
+		return 0, 0, 0, 0, 0, 0, status.Errorf(codes.NotFound, "uni-not-found-flow-diraction:%s", flowDirection)
 	}
 
 	ponIntf = IntfIDFromUniPortNum(uniPortNo)

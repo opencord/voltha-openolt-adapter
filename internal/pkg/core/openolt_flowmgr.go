@@ -31,6 +31,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	tp "github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v5/go/common"
@@ -244,9 +245,9 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 
 	// Create a slice of buffered channels for handling concurrent flows per ONU.
 	// The additional entry (+1) is to handle the NNI trap flows on a separate channel from individual ONUs channel
-	flowMgr.incomingFlows = make([]chan flowControlBlock, MaxOnusPerPon+1)
-	flowMgr.stopFlowHandlerRoutine = make([]chan bool, MaxOnusPerPon+1)
-	flowMgr.flowHandlerRoutineActive = make([]bool, MaxOnusPerPon+1)
+	flowMgr.incomingFlows = make([]chan flowControlBlock, plt.MaxOnusPerPon+1)
+	flowMgr.stopFlowHandlerRoutine = make([]chan bool, plt.MaxOnusPerPon+1)
+	flowMgr.flowHandlerRoutineActive = make([]bool, plt.MaxOnusPerPon+1)
 	for i := range flowMgr.incomingFlows {
 		flowMgr.incomingFlows[i] = make(chan flowControlBlock, maxConcurrentFlowsPerOnu)
 		flowMgr.stopFlowHandlerRoutine[i] = make(chan bool, 1)
@@ -989,7 +990,7 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowCont
 	if vlan, exists := downlinkClassifier[VlanVid]; exists {
 		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) { //private VLAN given by core
 			if metadata, exists := downlinkClassifier[Metadata]; exists { // inport is filled in metadata by core
-				if uint32(metadata.(uint64)) == MkUniPortNum(ctx, flowContext.intfID, flowContext.onuID, flowContext.uniID) {
+				if uint32(metadata.(uint64)) == plt.MkUniPortNum(ctx, flowContext.intfID, flowContext.onuID, flowContext.uniID) {
 					logger.Infow(ctx, "ignoring-dl-trap-device-flow-from-core",
 						log.Fields{
 							"flow":      flowContext.logicalFlow,
@@ -1488,7 +1489,7 @@ func (f *OpenOltFlowMgr) DeleteTechProfileInstances(ctx context.Context, intfID 
 	for _, tpID := range tpIDList {
 
 		// Force cleanup scheduler/queues -- start
-		uniPortNum := MkUniPortNum(ctx, intfID, onuID, uniID)
+		uniPortNum := plt.MkUniPortNum(ctx, intfID, onuID, uniID)
 		uni := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
 		tpPath := f.getTPpath(ctx, intfID, uni, tpID)
 		tpInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
@@ -1638,7 +1639,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	var uniID = -1
 	var gemPortID = -1
 
-	networkInterfaceID, err := IntfIDFromNniPortNum(ctx, portNo)
+	networkInterfaceID, err := plt.IntfIDFromNniPortNum(ctx, portNo)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"nni-port-number": portNo}, err).Log()
 	}
@@ -1740,7 +1741,7 @@ func (f *OpenOltFlowMgr) getChildDevice(ctx context.Context, intfID uint32, onuI
 			"pon-port":  intfID,
 			"onu-id":    onuID,
 			"device-id": f.deviceHandler.device.Id})
-	parentPortNo := IntfIDToPortNo(intfID, voltha.Port_PON_OLT)
+	parentPortNo := plt.IntfIDToPortNo(intfID, voltha.Port_PON_OLT)
 	onuDevice, err := f.deviceHandler.GetChildDevice(ctx, parentPortNo, onuID)
 	if err != nil {
 		return nil, olterrors.NewErrNotFound("onu",
@@ -2017,7 +2018,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 
 	classifierInfo := make(map[string]interface{})
 
-	portNum, Intf, onu, uni, inPort, ethType, err := FlowExtractInfo(ctx, flow, flowDirection)
+	portNum, Intf, onu, uni, inPort, ethType, err := plt.FlowExtractInfo(ctx, flow, flowDirection)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
@@ -2053,7 +2054,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 		onuID = -1
 		uniID = -1
 		logger.Debug(ctx, "trap-on-nni-flow-set-oni--uni-to- -1")
-		Intf, err = IntfIDFromNniPortNum(ctx, inPort)
+		Intf, err = plt.IntfIDFromNniPortNum(ctx, inPort)
 		if err != nil {
 			logger.Errorw(ctx, "invalid-in-port-number",
 				log.Fields{
@@ -2126,7 +2127,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 	if flows.HasGroup(flow) {
 		direction = Multicast
 		return f.clearFlowFromDeviceAndResourceManager(ctx, flow, direction)
-	} else if IsUpstream(actionInfo[Output].(uint32)) {
+	} else if plt.IsUpstream(actionInfo[Output].(uint32)) {
 		direction = Upstream
 	} else {
 		direction = Downstream
@@ -2140,7 +2141,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 
 //isIgmpTrapDownstreamFlow return true if the flow is a downsteam IGMP trap-to-host flow; false otherwise
 func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
-	if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_ETHERNET_NNI {
+	if portType := plt.IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_ETHERNET_NNI {
 		if ethType, ok := classifierInfo[EthType]; ok {
 			if ethType.(uint32) == IPv4EthType {
 				if ipProto, ok := classifierInfo[IPProto]; ok {
@@ -2173,7 +2174,7 @@ func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *voltha
 	inPort, outPort := getPorts(flow)
 	var onuID uint32
 	if inPort != InvalidPort && outPort != InvalidPort {
-		_, _, onuID, _ = ExtractAccessFromFlow(inPort, outPort)
+		_, _, onuID, _ = plt.ExtractAccessFromFlow(inPort, outPort)
 	}
 	if f.flowHandlerRoutineActive[onuID] {
 		// inPort or outPort is InvalidPort for trap-from-nni flows.
@@ -2266,7 +2267,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 		log.Fields{
 			"classifierinfo_inport": classifierInfo[InPort],
 			"action_output":         actionInfo[Output]})
-	portNo, intfID, onuID, uniID := ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
+	portNo, intfID, onuID, uniID := plt.ExtractAccessFromFlow(classifierInfo[InPort].(uint32), actionInfo[Output].(uint32))
 
 	if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == LldpEthType {
@@ -2274,7 +2275,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 			return f.addLLDPFlow(ctx, flow, portNo)
 		}
 		if ethType.(uint32) == PPPoEDEthType {
-			if voltha.Port_ETHERNET_NNI == IntfIDToPortTypeName(classifierInfo[InPort].(uint32)) {
+			if voltha.Port_ETHERNET_NNI == plt.IntfIDToPortTypeName(classifierInfo[InPort].(uint32)) {
 				logger.Debug(ctx, "trap-pppoed-from-nni-flow")
 				return f.addTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 			}
@@ -2330,7 +2331,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 			"intf-id": intfID,
 			"onu-id":  onuID,
 			"uni-id":  uniID})
-	if IsUpstream(actionInfo[Output].(uint32)) {
+	if plt.IsUpstream(actionInfo[Output].(uint32)) {
 		UsMeterID = flows.GetMeterIdFromFlow(flow)
 		logger.Debugw(ctx, "upstream-flow-meter-id", log.Fields{"us-meter-id": UsMeterID})
 	} else {
@@ -2398,7 +2399,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 //getNNIInterfaceIDOfMulticastFlow returns associated NNI interface id of the inPort criterion if exists; returns the first NNI interface of the device otherwise
 func (f *OpenOltFlowMgr) getNNIInterfaceIDOfMulticastFlow(ctx context.Context, classifierInfo map[string]interface{}) (uint32, error) {
 	if inPort, ok := classifierInfo[InPort]; ok {
-		nniInterfaceID, err := IntfIDFromNniPortNum(ctx, inPort.(uint32))
+		nniInterfaceID, err := plt.IntfIDFromNniPortNum(ctx, inPort.(uint32))
 		if err != nil {
 			return 0, olterrors.NewErrInvalidValue(log.Fields{"nni-in-port-number": inPort}, err)
 		}
@@ -2570,12 +2571,12 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 		if packetIn.PortNo != 0 {
 			logicalPortNum = packetIn.PortNo
 		} else {
-			logicalPortNum = MkUniPortNum(ctx, packetIn.IntfId, onuID, uniID)
+			logicalPortNum = plt.MkUniPortNum(ctx, packetIn.IntfId, onuID, uniID)
 		}
 		// Store the gem port through which the packet_in came. Use the same gem port for packet_out
 		f.UpdateGemPortForPktIn(ctx, packetIn.IntfId, onuID, logicalPortNum, packetIn.GemportId, packetIn.Pkt)
 	} else if packetIn.IntfType == "nni" {
-		logicalPortNum = IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
+		logicalPortNum = plt.IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
 
 	if logger.V(log.DebugLevel) {
@@ -2822,7 +2823,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 	var direction = tp_pb.Direction_UPSTREAM
 	switch TpInst := TpInst.(type) {
 	case *tp_pb.TechProfileInstance:
-		if IsUpstream(actionInfo[Output].(uint32)) {
+		if plt.IsUpstream(actionInfo[Output].(uint32)) {
 			attributes = TpInst.UpstreamGemPortAttributeList
 		} else {
 			attributes = TpInst.DownstreamGemPortAttributeList
@@ -3124,10 +3125,10 @@ func formulateGroupActionInfoFromFlow(ctx context.Context, action *ofp.OfpAction
 }
 
 func formulateControllerBoundTrapFlowInfo(ctx context.Context, actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
-	if isControllerFlow := IsControllerBoundFlow(actionInfo[Output].(uint32)); isControllerFlow {
+	if isControllerFlow := plt.IsControllerBoundFlow(actionInfo[Output].(uint32)); isControllerFlow {
 		logger.Debug(ctx, "controller-bound-trap-flows--getting-inport-from-tunnelid")
 		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
-		if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
+		if portType := plt.IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
 				logger.Debugw(ctx, "upstream-pon-to-controller-flow--inport-in-tunnelid",
@@ -3144,7 +3145,7 @@ func formulateControllerBoundTrapFlowInfo(ctx context.Context, actionInfo, class
 	} else {
 		logger.Debug(ctx, "non-controller-flows--getting-uniport-from-tunnelid")
 		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
-		if portType := IntfIDToPortTypeName(actionInfo[Output].(uint32)); portType == voltha.Port_PON_OLT {
+		if portType := plt.IntfIDToPortTypeName(actionInfo[Output].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				actionInfo[Output] = uniPort
 				logger.Debugw(ctx, "downstream-nni-to-pon-port-flow, outport-in-tunnelid",
@@ -3158,7 +3159,7 @@ func formulateControllerBoundTrapFlowInfo(ctx context.Context, actionInfo, class
 						"flow":   flow}, nil)
 			}
 			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
-		} else if portType := IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
+		} else if portType := plt.IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_PON_OLT {
 			if uniPort := flows.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				classifierInfo[InPort] = uniPort
 				logger.Debugw(ctx, "upstream-pon-to-nni-port-flow, inport-in-tunnelid",
@@ -3215,9 +3216,9 @@ func appendUnique32bit(slice []uint32, item uint32) []uint32 {
 // getNniIntfID gets nni intf id from the flow classifier/action
 func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action map[string]interface{}) (uint32, error) {
 
-	portType := IntfIDToPortTypeName(classifier[InPort].(uint32))
+	portType := plt.IntfIDToPortTypeName(classifier[InPort].(uint32))
 	if portType == voltha.Port_PON_OLT {
-		intfID, err := IntfIDFromNniPortNum(ctx, action[Output].(uint32))
+		intfID, err := plt.IntfIDFromNniPortNum(ctx, action[Output].(uint32))
 		if err != nil {
 			logger.Debugw(ctx, "invalid-action-port-number",
 				log.Fields{
@@ -3228,7 +3229,7 @@ func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action
 		logger.Infow(ctx, "output-nni-intfId-is", log.Fields{"intf-id": intfID})
 		return intfID, nil
 	} else if portType == voltha.Port_ETHERNET_NNI {
-		intfID, err := IntfIDFromNniPortNum(ctx, classifier[InPort].(uint32))
+		intfID, err := plt.IntfIDFromNniPortNum(ctx, classifier[InPort].(uint32))
 		if err != nil {
 			logger.Debugw(ctx, "invalid-classifier-port-number",
 				log.Fields{

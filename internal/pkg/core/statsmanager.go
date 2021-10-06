@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
@@ -326,7 +327,7 @@ func InitPorts(ctx context.Context, Intftype string, DeviceID string, numOfPorts
 		PONPorts := make(map[uint32]*PonPort)
 		for i = 0; i < numOfPorts; i++ {
 			PONPort := BuildPortObject(ctx, i, "pon", DeviceID).(*PonPort)
-			PONPorts[PortNoToIntfID(PONPort.IntfID, voltha.Port_PON_OLT)] = PONPort
+			PONPorts[plt.PortNoToIntfID(PONPort.IntfID, voltha.Port_PON_OLT)] = PONPort
 		}
 		return PONPorts, nil
 	} else {
@@ -349,8 +350,8 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 	//This builds a port object which is added to the
 	//appropriate northbound or southbound values
 	if IntfType == "nni" {
-		IntfID := IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
-		nniID := PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
+		IntfID := plt.IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
+		nniID := plt.PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
 		logger.Debugw(ctx, "interface-type-nni",
 			log.Fields{
 				"nni-id":    nniID,
@@ -359,8 +360,8 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 	} else if IntfType == "pon" {
 		// PON ports require a different configuration
 		//  intf_id and pon_id are currently equal.
-		IntfID := IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
-		PONID := PortNoToIntfID(IntfID, voltha.Port_PON_OLT)
+		IntfID := plt.IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
+		PONID := plt.PortNoToIntfID(IntfID, voltha.Port_PON_OLT)
 		logger.Debugw(ctx, "interface-type-pon",
 			log.Fields{
 				"pon-id":    PONID,
@@ -643,15 +644,15 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 	//var err error
 	IntfID := PortStats.IntfId
 
-	if (IntfIDToPortNo(1, voltha.Port_ETHERNET_NNI) < IntfID) &&
-		(IntfID < IntfIDToPortNo(4, voltha.Port_ETHERNET_NNI)) {
+	if (plt.IntfIDToPortNo(1, voltha.Port_ETHERNET_NNI) < IntfID) &&
+		(IntfID < plt.IntfIDToPortNo(4, voltha.Port_ETHERNET_NNI)) {
 		/*
 		   for this release we are only interested in the first NNI for
 		   Northbound.
 		   we are not using the other 3
 		*/
 		return
-	} else if IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) == IntfID {
+	} else if plt.IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) == IntfID {
 
 		var portNNIStat NniPort
 		portNNIStat.IntfID = IntfID
@@ -673,7 +674,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 	}
 	for i := uint32(0); i < NumPonPorts; i++ {
 
-		if IntfIDToPortNo(i, voltha.Port_PON_OLT) == IntfID {
+		if plt.IntfIDToPortNo(i, voltha.Port_PON_OLT) == IntfID {
 			var portPonStat PonPort
 			portPonStat.IntfID = IntfID
 			portPonStat.PortNum = i

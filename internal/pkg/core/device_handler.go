@@ -42,6 +42,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	flow_utils "github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	"github.com/opencord/voltha-lib-go/v7/pkg/pmmetrics"
 
 	conf "github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
@@ -325,7 +326,7 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 		operStatus = voltha.OperStatus_DISCOVERED
 		dh.activePorts.Store(intfID, false)
 	}
-	portNum := IntfIDToPortNo(intfID, portType)
+	portNum := plt.IntfIDToPortNo(intfID, portType)
 	label, err := GetportLabel(intfID, portType)
 	if err != nil {
 		return olterrors.NewErrNotFound("port-label", log.Fields{"port-number": portNum, "port-type": portType}, err)
@@ -1002,7 +1003,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 			for _, port := range ports.Items {
 				// NNI Stats
 				if port.Type == voltha.Port_ETHERNET_NNI {
-					intfID := PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)
+					intfID := plt.PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI)
 					cmnni := dh.portStats.collectNNIMetrics(intfID)
 					logger.Debugw(ctx, "collect-nni-metrics", log.Fields{"metrics": cmnni})
 					go dh.portStats.publishMetrics(ctx, NNIStats, cmnni, port, dh.device.Id, dh.device.Type)
@@ -1010,7 +1011,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 				}
 				// PON Stats
 				if port.Type == voltha.Port_PON_OLT {
-					intfID := PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)
+					intfID := plt.PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT)
 					if val, ok := dh.activePorts.Load(intfID); ok && val == true {
 						cmpon := dh.portStats.collectPONMetrics(intfID)
 						logger.Debugw(ctx, "collect-pon-metrics", log.Fields{"metrics": cmpon})
@@ -1069,7 +1070,7 @@ func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapa
 
 // GetTechProfileDownloadMessage fetches the TechProfileDownloadMessage for the caller.
 func (dh *DeviceHandler) GetTechProfileDownloadMessage(ctx context.Context, request *ic.TechProfileInstanceRequestMessage) (*ic.TechProfileDownloadMessage, error) {
-	ifID, err := IntfIDFromPonPortNum(ctx, request.ParentPonPort)
+	ifID, err := plt.IntfIDFromPonPortNum(ctx, request.ParentPonPort)
 	if err != nil {
 		return nil, err
 	}
@@ -1094,7 +1095,7 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 	if onuInCache, ok := dh.onus.Load(onuKey); !ok {
 
 		logger.Debugw(ctx, "omci-indication-for-a-device-not-in-cache.", log.Fields{"intf-id": omciInd.IntfId, "onu-id": omciInd.OnuId, "device-id": dh.device.Id})
-		ponPort := IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
+		ponPort := plt.IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 
 		onuDevice, err := dh.getChildDeviceFromCore(ctx, &ic.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
@@ -1242,7 +1243,7 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
 	channelID := onuDiscInd.GetIntfId()
-	parentPortNo := IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
+	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
@@ -1393,7 +1394,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndication) error {
 
-	ponPort := IntfIDToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
+	ponPort := plt.IntfIDToPortNo(onuInd.GetIntfId(), voltha.Port_PON_OLT)
 	var onuDevice *voltha.Device
 	var err error
 	foundInCache := false
@@ -1792,7 +1793,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 	var uniID uint32
 	var err error
 	for _, port := range onu.UniPorts {
-		uniID = UniIDFromPortNum(port)
+		uniID = plt.UniIDFromPortNum(port)
 		logger.Debugw(ctx, "clearing-resource-data-for-uni-port", log.Fields{"port": port, "uni-id": uniID})
 		/* Delete tech-profile instance from the KV store */
 		if err = dh.flowMgr[onu.IntfID].DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
@@ -1964,7 +1965,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 		})
 	}
 
-	egressPortType := IntfIDToPortTypeName(uint32(egressPortNo))
+	egressPortType := plt.IntfIDToPortTypeName(uint32(egressPortNo))
 	if egressPortType == voltha.Port_ETHERNET_UNI {
 		outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
 		innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
@@ -1991,9 +1992,9 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 				}
 			}
 		}
-		intfID := IntfIDFromUniPortNum(uint32(egressPortNo))
-		onuID := OnuIDFromPortNum(uint32(egressPortNo))
-		uniID := UniIDFromPortNum(uint32(egressPortNo))
+		intfID := plt.IntfIDFromUniPortNum(uint32(egressPortNo))
+		onuID := plt.OnuIDFromPortNum(uint32(egressPortNo))
+		uniID := plt.UniIDFromPortNum(uint32(egressPortNo))
 
 		gemPortID, err := dh.flowMgr[intfID].GetPacketOutGemPortID(ctx, intfID, onuID, uint32(egressPortNo), packet.Data)
 		if err != nil {
@@ -2036,7 +2037,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 			}, err)
 		}
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		nniIntfID, err := IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
+		nniIntfID, err := plt.IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
 		if err != nil {
 			return olterrors.NewErrInvalidValue(log.Fields{
 				"egress-nni-port": egressPortNo,
@@ -2202,7 +2203,7 @@ func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, e
 			"enable-state": enablePort}, nil)
 	}
 	// fetch interfaceid from PortNo
-	ponID := PortNoToIntfID(port.GetPortNo(), voltha.Port_PON_OLT)
+	ponID := plt.PortNoToIntfID(port.GetPortNo(), voltha.Port_PON_OLT)
 	ponIntf := &oop.Interface{IntfId: ponID}
 	var operStatus voltha.OperStatus_Types
 	if enablePort {
@@ -2264,16 +2265,16 @@ func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*volth
 	for _, port := range ports {
 		if port.Type == voltha.Port_ETHERNET_NNI {
 			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
+				dh.activePorts.Store(plt.PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), true)
 			} else {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), false)
+				dh.activePorts.Store(plt.PortNoToIntfID(port.PortNo, voltha.Port_ETHERNET_NNI), false)
 			}
 		}
 		if port.Type == voltha.Port_PON_OLT {
 			if port.OperStatus == voltha.OperStatus_ACTIVE {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), true)
+				dh.activePorts.Store(plt.PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), true)
 			} else {
-				dh.activePorts.Store(PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), false)
+				dh.activePorts.Store(plt.PortNoToIntfID(port.PortNo, voltha.Port_PON_OLT), false)
 			}
 		}
 	}
@@ -2282,7 +2283,7 @@ func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*volth
 // ChildDeviceLost deletes ONU and clears pon resources related to it.
 func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32, onuSn string) error {
 	logger.Debugw(ctx, "child-device-lost", log.Fields{"parent-device-id": dh.device.Id})
-	intfID := PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
+	intfID := plt.PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
 	onuKey := dh.formOnuKey(intfID, onuID)
 
 	var sn *oop.SerialNumber
@@ -2367,21 +2368,21 @@ func getPorts(flow *of.OfpFlowStats) (uint32, uint32) {
 		return inPort, outPort
 	}
 
-	if isControllerFlow := IsControllerBoundFlow(outPort); isControllerFlow {
+	if isControllerFlow := plt.IsControllerBoundFlow(outPort); isControllerFlow {
 		/* Get UNI port/ IN Port from tunnel ID field for upstream controller bound flows  */
-		if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
+		if portType := plt.IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
 			if uniPort := flow_utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				return uniPort, outPort
 			}
 		}
 	} else {
 		// Downstream flow from NNI to PON port , Use tunnel ID as new OUT port / UNI port
-		if portType := IntfIDToPortTypeName(outPort); portType == voltha.Port_PON_OLT {
+		if portType := plt.IntfIDToPortTypeName(outPort); portType == voltha.Port_PON_OLT {
 			if uniPort := flow_utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				return inPort, uniPort
 			}
 			// Upstream flow from PON to NNI port , Use tunnel ID as new IN port / UNI port
-		} else if portType := IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
+		} else if portType := plt.IntfIDToPortTypeName(inPort); portType == voltha.Port_PON_OLT {
 			if uniPort := flow_utils.GetChildPortFromTunnelId(flow); uniPort != 0 {
 				return uniPort, outPort
 			}
@@ -2444,7 +2445,7 @@ func (dh *DeviceHandler) getPonIfFromFlow(flow *of.OfpFlowStats) uint32 {
 	var intfID uint32
 	inPort, outPort := getPorts(flow)
 	if inPort != InvalidPort && outPort != InvalidPort {
-		_, intfID, _, _ = ExtractAccessFromFlow(inPort, outPort)
+		_, intfID, _, _ = plt.ExtractAccessFromFlow(inPort, outPort)
 	}
 	return intfID
 }
@@ -2673,7 +2674,7 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 	}
 	if oltPortInfo.PortType == extension.GetOltPortCounters_Port_ETHERNET_NNI {
 		//get nni stats
-		intfID := PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_ETHERNET_NNI)
+		intfID := plt.PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_ETHERNET_NNI)
 		logger.Debugw(ctx, "getOltPortCounters intfID  ", log.Fields{"intfID": intfID})
 		cmnni := dh.portStats.collectNNIMetrics(intfID)
 		if cmnni == nil {
@@ -2685,7 +2686,7 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 
 	} else if oltPortInfo.PortType == extension.GetOltPortCounters_Port_PON_OLT {
 		// get pon stats
-		intfID := PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_PON_OLT)
+		intfID := plt.PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_PON_OLT)
 		if val, ok := dh.activePorts.Load(intfID); ok && val == true {
 			cmpon := dh.portStats.collectPONMetrics(intfID)
 			if cmpon == nil {

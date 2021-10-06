@@ -20,6 +20,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
@@ -329,7 +330,7 @@ func (g *OpenOltGroupMgr) buildMember(ctx context.Context, ofBucket *ofp.OfpBuck
 		logger.Debugw(ctx, "bucket-skipped-since-no-out-port-found-in-it", log.Fields{"ofBucket": ofBucket})
 		return nil
 	}
-	interfaceID := IntfIDFromUniPortNum(outPort)
+	interfaceID := plt.IntfIDFromUniPortNum(outPort)
 	logger.Debugw(ctx, "got-associated-interface-id-of-the-port",
 		log.Fields{
 			"portNumber:":  outPort,

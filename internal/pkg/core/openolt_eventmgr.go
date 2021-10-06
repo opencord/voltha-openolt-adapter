@@ -27,6 +27,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
+	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
@@ -299,7 +300,7 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 	var err error = nil
 	var de voltha.DeviceEvent
 	var alarmInd oop.OnuAlarmIndication
-	ponIntdID := PortNoToIntfID(oltLos.IntfId, voltha.Port_PON_OLT)
+	ponIntdID := plt.PortNoToIntfID(oltLos.IntfId, voltha.Port_PON_OLT)
 
 	context := make(map[string]string)
 	/* Populating event context */
@@ -667,7 +668,7 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(ctx context.Context, onuLOKI 
 
 // oltIntfOperIndication handles Up and Down state of an OLT PON ports
 func (em *OpenOltEventMgr) oltIntfOperIndication(ctx context.Context, ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) {
-	portNo := IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
+	portNo := plt.IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
 	if port, err := em.handler.getPortFromCore(ctx, &ic.PortFilter{
 		DeviceId: deviceID,
 		Port:     portNo,

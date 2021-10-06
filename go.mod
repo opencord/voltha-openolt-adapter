@@ -13,7 +13,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/opencord/voltha-lib-go/v7 v7.0.0
+	github.com/opencord/voltha-lib-go/v7 v7.0.1
 	github.com/opencord/voltha-protos/v5 v5.0.0
 	go.etcd.io/etcd v3.3.25+incompatible
 	google.golang.org/grpc v1.41.0
