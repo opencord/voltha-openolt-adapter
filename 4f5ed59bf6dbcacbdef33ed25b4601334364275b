@@ -55,6 +55,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f4da12b1_435b0a13",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-11T18:44:12Z",
+      "side": 1,
+      "message": "ok. PLease raise a separate jira if you think any more enhancements are needed. Thanks.",
+      "parentUuid": "21e8a9f5_2f3c7e0e",
+      "revId": "4f5ed59bf6dbcacbdef33ed25b4601334364275b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d3e55dd6_b62fb452",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 5
