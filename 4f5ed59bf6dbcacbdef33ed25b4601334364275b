@@ -37,6 +37,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "21e8a9f5_2f3c7e0e",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1078,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2021-10-11T18:37:14Z",
+      "side": 1,
+      "message": "I tried but It\u0027s gonna be more complicated then we think. A separate patch would be better.",
+      "parentUuid": "4f6ccd62_fe271861",
+      "revId": "4f5ed59bf6dbcacbdef33ed25b4601334364275b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d3e55dd6_b62fb452",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 5
@@ -48,6 +66,24 @@
       "writtenOn": "2021-10-11T18:10:53Z",
       "side": 1,
       "message": "I think this log can be removed altogether. After the for loop you may log error/warn if the length of rsrcMgr.gemPortForPacketInInfo is non-zero.",
+      "revId": "4f5ed59bf6dbcacbdef33ed25b4601334364275b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "de439e25_b2f73b49",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2021-10-11T18:37:14Z",
+      "side": 1,
+      "message": "I think this method is executed per ONU device. After all of the devices on the pon port is deleted, the cache will be empty.\nActually, the complexity of using the clearCache flag is because of the above reason.",
+      "parentUuid": "d3e55dd6_b62fb452",
       "revId": "4f5ed59bf6dbcacbdef33ed25b4601334364275b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
