@@ -304,7 +304,7 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 
 	context := make(map[string]string)
 	/* Populating event context */
-	context[ContextOltPonIntfID] = strconv.FormatUint(uint64(oltLos.IntfId), base10)
+	context[ContextOltPonIntfID] = strconv.FormatUint(uint64(ponIntdID), base10)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
@@ -335,7 +335,7 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 	if err := em.eventProxy.SendDeviceEvent(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_PON, raisedTs); err != nil {
 		return err
 	}
-	logger.Debugw(ctx, "olt-los-event-sent-to-kafka", log.Fields{"intf-id": oltLos.IntfId})
+	logger.Debugw(ctx, "olt-los-event-sent-to-kafka", log.Fields{"intf-id": ponIntdID})
 	return nil
 }
 
