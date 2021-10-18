@@ -1942,7 +1942,15 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	//Before this, ensure that the related TCONT deletions are informed to child.
 	//Refer to VOL-4215.
 	techprofileInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
-	if err != nil || techprofileInst == nil { // This should not happen, something wrong in KV backend transaction
+	if err != nil || techprofileInst == nil {
+		// The child device is possibly deleted which in turn had cleaned up all the resources (including tp instances), check..
+		childDevice, _ := f.getChildDevice(ctx, intfID, uint32(onuID)) // do not care about the error code
+		if childDevice == nil {
+			// happens when subscriber un-provision is immediately followed by child device delete
+			// before all the flow removes are processed, the child device delete has already arrived and cleaned up all the resources
+			logger.Warnw(ctx, "child device and its associated resources are already cleared", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID})
+			return nil
+		}
 		return olterrors.NewErrNotFound("tech-profile-in-kv-store",
 			log.Fields{
 				"tp-id": tpID,
