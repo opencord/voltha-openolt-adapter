@@ -22,8 +22,8 @@ import (
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-lib-go/v7/pkg/probe"
-	"github.com/opencord/voltha-protos/v5/go/adapter_services"
-	"github.com/opencord/voltha-protos/v5/go/core"
+	"github.com/opencord/voltha-protos/v5/go/adapter_service"
+	"github.com/opencord/voltha-protos/v5/go/core_service"
 	"github.com/phayes/freeport"
 	"google.golang.org/grpc"
 )
@@ -60,15 +60,15 @@ func NewMockGRPCServer(ctx context.Context) (*MockGRPCServer, error) {
 	return s, nil
 }
 
-func (s *MockGRPCServer) AddCoreService(ctx context.Context, srv core.CoreServiceServer) {
+func (s *MockGRPCServer) AddCoreService(ctx context.Context, srv core_service.CoreServiceServer) {
 	s.server.AddService(func(server *grpc.Server) {
-		core.RegisterCoreServiceServer(server, srv)
+		core_service.RegisterCoreServiceServer(server, srv)
 	})
 }
 
-func (s *MockGRPCServer) AddAdapterService(ctx context.Context, srv adapter_services.AdapterServiceServer) {
+func (s *MockGRPCServer) AddAdapterService(ctx context.Context, srv adapter_service.AdapterServiceServer) {
 	s.server.AddService(func(server *grpc.Server) {
-		adapter_services.RegisterAdapterServiceServer(server, srv)
+		adapter_service.RegisterAdapterServiceServer(server, srv)
 	})
 }
 

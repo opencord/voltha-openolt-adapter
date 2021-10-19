@@ -26,7 +26,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	"github.com/opencord/voltha-protos/v5/go/common"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
+	"github.com/opencord/voltha-protos/v5/go/health"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 )
@@ -47,12 +48,12 @@ type MockCoreService struct {
 }
 
 // GetHealthStatus implements mock GetHealthStatus
-func (mcs MockCoreService) GetHealthStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*voltha.HealthStatus, error) {
-	return &voltha.HealthStatus{State: voltha.HealthStatus_HEALTHY}, nil
+func (mcs MockCoreService) GetHealthStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*health.HealthStatus, error) {
+	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 
 // RegisterAdapter implements mock RegisterAdapter
-func (mcs MockCoreService) RegisterAdapter(ctx context.Context, in *ic.AdapterRegistration, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) RegisterAdapter(ctx context.Context, in *ca.AdapterRegistration, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if ctx == nil || in.Adapter == nil || in.DTypes == nil {
 		return nil, errors.New("registerAdapter func parameters cannot be nil")
 	}
@@ -79,7 +80,7 @@ func (mcs MockCoreService) PortCreated(ctx context.Context, in *voltha.Port, opt
 }
 
 // PortsStateUpdate implements mock PortsStateUpdate
-func (mcs MockCoreService) PortsStateUpdate(ctx context.Context, in *ic.PortStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) PortsStateUpdate(ctx context.Context, in *ca.PortStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if in.DeviceId == "" {
 		return nil, errors.New("no Device")
 	}
@@ -95,7 +96,7 @@ func (mcs MockCoreService) DeleteAllPorts(ctx context.Context, in *common.ID, op
 }
 
 // GetDevicePort implements mock GetDevicePort
-func (mcs MockCoreService) GetDevicePort(ctx context.Context, in *ic.PortFilter, opts ...grpc.CallOption) (*voltha.Port, error) {
+func (mcs MockCoreService) GetDevicePort(ctx context.Context, in *ca.PortFilter, opts ...grpc.CallOption) (*voltha.Port, error) {
 	for _, port := range mcs.DevicePorts[in.DeviceId] {
 		if port.PortNo == in.Port {
 			return port, nil
@@ -114,7 +115,7 @@ func (mcs MockCoreService) ListDevicePorts(ctx context.Context, in *common.ID, o
 }
 
 // DeviceStateUpdate implements mock DeviceStateUpdate
-func (mcs MockCoreService) DeviceStateUpdate(ctx context.Context, in *ic.DeviceStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) DeviceStateUpdate(ctx context.Context, in *ca.DeviceStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if in.DeviceId == "" {
 		return nil, errors.New("no Device id")
 	}
@@ -127,7 +128,7 @@ func (mcs MockCoreService) DevicePMConfigUpdate(ctx context.Context, in *voltha.
 }
 
 // ChildDeviceDetected implements mock ChildDeviceDetected
-func (mcs MockCoreService) ChildDeviceDetected(ctx context.Context, in *ic.DeviceDiscovery, opts ...grpc.CallOption) (*voltha.Device, error) {
+func (mcs MockCoreService) ChildDeviceDetected(ctx context.Context, in *ca.DeviceDiscovery, opts ...grpc.CallOption) (*voltha.Device, error) {
 	if in.ParentId == "" {
 		return nil, errors.New("no deviceID")
 	}
@@ -169,7 +170,7 @@ func (mcs MockCoreService) GetDevice(ctx context.Context, in *common.ID, opts ..
 }
 
 // GetChildDevice implements mock GetChildDevice
-func (mcs MockCoreService) GetChildDevice(ctx context.Context, in *ic.ChildDeviceFilter, opts ...grpc.CallOption) (*voltha.Device, error) {
+func (mcs MockCoreService) GetChildDevice(ctx context.Context, in *ca.ChildDeviceFilter, opts ...grpc.CallOption) (*voltha.Device, error) {
 	if in.ParentId == "" {
 		return nil, errors.New("device detection failed")
 	}
@@ -208,7 +209,7 @@ func (mcs MockCoreService) GetChildDevices(ctx context.Context, in *common.ID, o
 }
 
 // SendPacketIn implements mock SendPacketIn
-func (mcs MockCoreService) SendPacketIn(ctx context.Context, in *ic.PacketIn, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) SendPacketIn(ctx context.Context, in *ca.PacketIn, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if in.DeviceId == "" {
 		return nil, errors.New("no Device ID")
 	}
@@ -216,7 +217,7 @@ func (mcs MockCoreService) SendPacketIn(ctx context.Context, in *ic.PacketIn, op
 }
 
 // DeviceReasonUpdate implements mock DeviceReasonUpdate
-func (mcs MockCoreService) DeviceReasonUpdate(ctx context.Context, in *ic.DeviceReason, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) DeviceReasonUpdate(ctx context.Context, in *ca.DeviceReason, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if in.DeviceId == "" {
 		return nil, errors.New("no Device ID")
 	}
@@ -224,7 +225,7 @@ func (mcs MockCoreService) DeviceReasonUpdate(ctx context.Context, in *ic.Device
 }
 
 // PortStateUpdate implements mock PortStateUpdate
-func (mcs MockCoreService) PortStateUpdate(ctx context.Context, in *ic.PortState, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) PortStateUpdate(ctx context.Context, in *ca.PortState, opts ...grpc.CallOption) (*empty.Empty, error) {
 	if in.DeviceId == "" {
 		return nil, errors.New("no Device")
 	}
@@ -244,12 +245,12 @@ func (mcs MockCoreService) GetChildDeviceWithProxyAddress(ctx context.Context, i
 }
 
 // GetPorts implements mock GetPorts
-func (mcs MockCoreService) GetPorts(ctx context.Context, in *ic.PortFilter, opts ...grpc.CallOption) (*voltha.Ports, error) {
+func (mcs MockCoreService) GetPorts(ctx context.Context, in *ca.PortFilter, opts ...grpc.CallOption) (*voltha.Ports, error) {
 	return nil, nil
 }
 
 // ChildrenStateUpdate implements mock ChildrenStateUpdate
-func (mcs MockCoreService) ChildrenStateUpdate(ctx context.Context, in *ic.DeviceStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (mcs MockCoreService) ChildrenStateUpdate(ctx context.Context, in *ca.DeviceStateFilter, opts ...grpc.CallOption) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
 }
 

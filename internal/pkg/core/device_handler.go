@@ -32,7 +32,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
-	"github.com/opencord/voltha-protos/v5/go/adapter_services"
 
 	"github.com/cenkalti/backoff/v3"
 	"github.com/gogo/protobuf/proto"
@@ -49,8 +48,11 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v5/go/common"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
 	"github.com/opencord/voltha-protos/v5/go/extension"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	"github.com/opencord/voltha-protos/v5/go/health"
+	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
+	"github.com/opencord/voltha-protos/v5/go/onu_inter_adapter_service"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
@@ -146,11 +148,11 @@ type onuIndicationChannels struct {
 //There are MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine routines which monitor for any incoming mcast flow/group messages
 //and process them serially. The mcast flow/group are assigned these routines based on formula (group-id modulo MaxNumOfGroupHandlerChannels)
 type McastFlowOrGroupControlBlock struct {
-	ctx               context.Context       // Flow/group handler context
-	flowOrGroupAction string                // one of McastFlowOrGroupAdd, McastFlowOrGroupModify or McastFlowOrGroupDelete
-	flow              *voltha.OfpFlowStats  // Flow message (can be nil or valid flow)
-	group             *voltha.OfpGroupEntry // Group message (can be nil or valid group)
-	errChan           *chan error           // channel to report the mcast Flow/group handling error
+	ctx               context.Context   // Flow/group handler context
+	flowOrGroupAction string            // one of McastFlowOrGroupAdd, McastFlowOrGroupModify or McastFlowOrGroupDelete
+	flow              *of.OfpFlowStats  // Flow message (can be nil or valid flow)
+	group             *of.OfpGroupEntry // Group message (can be nil or valid group)
+	errChan           *chan error       // channel to report the mcast Flow/group handling error
 }
 
 var pmNames = []string{
@@ -332,13 +334,13 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 	}
 
 	// Check if port exists
-	port, err := dh.getPortFromCore(ctx, &ic.PortFilter{
+	port, err := dh.getPortFromCore(ctx, &ca.PortFilter{
 		DeviceId: dh.device.Id,
 		Port:     portNum,
 	})
 	if err == nil && port.Type == portType {
 		logger.Debug(ctx, "port-already-exists-updating-oper-status-of-port")
-		err = dh.updatePortStateInCore(ctx, &ic.PortState{
+		err = dh.updatePortStateInCore(ctx, &ca.PortState{
 			DeviceId:   dh.device.Id,
 			PortType:   portType,
 			PortNo:     portNum,
@@ -683,7 +685,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	}
 
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 		DeviceId:   dh.device.Id,
 		OperStatus: voltha.OperStatus_ACTIVE,
 		ConnStatus: voltha.ConnectStatus_REACHABLE,
@@ -730,7 +732,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 	dh.device = cloned
 	dh.lockDevice.Unlock()
 
-	if err = dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+	if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 		DeviceId:   cloned.Id,
 		OperStatus: cloned.OperStatus,
 		ConnStatus: cloned.ConnectStatus,
@@ -753,7 +755,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 			return err
 		}
 		subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.cfg.RPCTimeout)
-		_, err = ogClient.OnuIndication(subCtx, &ic.OnuIndicationMessage{
+		_, err = ogClient.OnuIndication(subCtx, &ia.OnuIndicationMessage{
 			DeviceId:      onuDevice.Id,
 			OnuIndication: &onuInd,
 		})
@@ -837,7 +839,7 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		cloned.OperStatus = voltha.OperStatus_UNKNOWN
 		dh.device = cloned
 
-		if err = dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 			DeviceId:   cloned.Id,
 			OperStatus: cloned.OperStatus,
 			ConnStatus: cloned.ConnectStatus,
@@ -1048,8 +1050,8 @@ func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device)
 }
 
 //GetOfpDeviceInfo Gets the Ofp information of the given device
-func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapability, error) {
-	return &ic.SwitchCapability{
+func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ca.SwitchCapability, error) {
+	return &ca.SwitchCapability{
 		Desc: &of.OfpDesc{
 			MfrDesc:   "VOLTHA Project",
 			HwDesc:    "open_pon",
@@ -1068,7 +1070,7 @@ func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ic.SwitchCapa
 }
 
 // GetTechProfileDownloadMessage fetches the TechProfileDownloadMessage for the caller.
-func (dh *DeviceHandler) GetTechProfileDownloadMessage(ctx context.Context, request *ic.TechProfileInstanceRequestMessage) (*ic.TechProfileDownloadMessage, error) {
+func (dh *DeviceHandler) GetTechProfileDownloadMessage(ctx context.Context, request *ia.TechProfileInstanceRequestMessage) (*ia.TechProfileDownloadMessage, error) {
 	ifID, err := plt.IntfIDFromPonPortNum(ctx, request.ParentPonPort)
 	if err != nil {
 		return nil, err
@@ -1096,7 +1098,7 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 		logger.Debugw(ctx, "omci-indication-for-a-device-not-in-cache.", log.Fields{"intf-id": omciInd.IntfId, "onu-id": omciInd.OnuId, "device-id": dh.device.Id})
 		ponPort := plt.IntfIDToPortNo(omciInd.GetIntfId(), voltha.Port_PON_OLT)
 
-		onuDevice, err := dh.getChildDeviceFromCore(ctx, &ic.ChildDeviceFilter{
+		onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
 			OnuId:        omciInd.OnuId,
 			ParentPortNo: ponPort,
@@ -1121,7 +1123,7 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 		childAdapterEndpoint = onuInCache.(*OnuDevice).adapterEndpoint
 	}
 
-	if err := dh.sendOmciIndicationToChildAdapter(ctx, childAdapterEndpoint, &ic.OmciMessage{
+	if err := dh.sendOmciIndicationToChildAdapter(ctx, childAdapterEndpoint, &ia.OmciMessage{
 		ParentDeviceId: proxyDeviceID,
 		ChildDeviceId:  deviceID,
 		Message:        omciInd.Pkt,
@@ -1139,16 +1141,16 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 // //ProcessInterAdapterMessage sends the proxied messages to the target device
 // // If the proxy address is not found in the unmarshalled message, it first fetches the onu device for which the message
 // // is meant, and then send the unmarshalled omci message to this onu
-// func (dh *DeviceHandler) ProcessInterAdapterMessage(ctx context.Context, msg *ic.InterAdapterMessage) error {
+// func (dh *DeviceHandler) ProcessInterAdapterMessage(ctx context.Context, msg *ca.InterAdapterMessage) error {
 // 	logger.Debugw(ctx, "process-inter-adapter-message", log.Fields{"msgID": msg.Header.Id})
-// 	if msg.Header.Type == ic.InterAdapterMessageType_OMCI_REQUEST {
+// 	if msg.Header.Type == ca.InterAdapterMessageType_OMCI_REQUEST {
 // 		return dh.handleInterAdapterOmciMsg(ctx, msg)
 // 	}
 // 	return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil)
 // }
 
 // ProxyOmciMessage sends the proxied OMCI message to the target device
-func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ic.OmciMessage) error {
+func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ia.OmciMessage) error {
 	logger.Debugw(ctx, "proxy-omci-message", log.Fields{"parent-device-id": omciMsg.ParentDeviceId, "child-device-id": omciMsg.ChildDeviceId, "proxy-address": omciMsg.ProxyAddress, "connect-status": omciMsg.ConnectStatus})
 
 	if omciMsg.GetProxyAddress() == nil {
@@ -1175,7 +1177,7 @@ func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ic.OmciM
 	return nil
 }
 
-func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *voltha.Device, omciMsg *ic.OmciMessage) error {
+func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *voltha.Device, omciMsg *ia.OmciMessage) error {
 	var intfID uint32
 	var onuID uint32
 	var connectStatus common.ConnectStatus_Types
@@ -1284,7 +1286,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	// check the ONU is already know to the OLT
 	// NOTE the second time the ONU is discovered this should return a device
-	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ic.ChildDeviceFilter{
+	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 		ParentId:     dh.device.Id,
 		SerialNumber: sn,
 	})
@@ -1323,7 +1325,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"serial-number": sn}, err)
 		}
 
-		if onuDevice, err = dh.sendChildDeviceDetectedToCore(ctx, &ic.DeviceDiscovery{
+		if onuDevice, err = dh.sendChildDeviceDetectedToCore(ctx, &ca.DeviceDiscovery{
 			ParentId:     dh.device.Id,
 			ParentPortNo: parentPortNo,
 			ChannelId:    channelID,
@@ -1371,7 +1373,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		log.Fields{"onu": onuDev,
 			"sn": sn})
 
-	if err := dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 		DeviceId:       onuDevice.Id,
 		ParentDeviceId: dh.device.Id,
 		OperStatus:     common.OperStatus_DISCOVERED,
@@ -1420,7 +1422,7 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 			errFields["onu-id"] = onuInd.OnuId
 			errFields["parent-port-no"] = ponPort
 		}
-		onuDevice, err = dh.getChildDeviceFromCore(ctx, &ic.ChildDeviceFilter{
+		onuDevice, err = dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
 			SerialNumber: serialNumber,
 			OnuId:        onuInd.OnuId,
@@ -1479,7 +1481,7 @@ func (dh *DeviceHandler) updateOnuStates(ctx context.Context, onuDevice *voltha.
 	case "up", "down":
 		logger.Debugw(ctx, "sending-interadapter-onu-indication", log.Fields{"onuIndication": onuInd, "device-id": onuDevice.Id, "operStatus": onuDevice.OperStatus, "adminStatus": onuDevice.AdminState})
 
-		err := dh.sendOnuIndicationToChildAdapter(ctx, onuDevice.AdapterEndpoint, &ic.OnuIndicationMessage{
+		err := dh.sendOnuIndicationToChildAdapter(ctx, onuDevice.AdapterEndpoint, &ia.OnuIndicationMessage{
 			DeviceId:      onuDevice.Id,
 			OnuIndication: onuInd,
 		})
@@ -1540,7 +1542,7 @@ func (dh *DeviceHandler) GetChildDevice(ctx context.Context, parentPort, onuID u
 			"onu-id":    onuID,
 			"device-id": dh.device.Id})
 
-	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ic.ChildDeviceFilter{
+	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 		ParentId:     dh.device.Id,
 		OnuId:        onuID,
 		ParentPortNo: parentPort,
@@ -1567,7 +1569,7 @@ func (dh *DeviceHandler) SendPacketInToCore(ctx context.Context, logicalPort uin
 		})
 	}
 
-	if err := dh.sendPacketToCore(ctx, &ic.PacketIn{
+	if err := dh.sendPacketToCore(ctx, &ca.PacketIn{
 		DeviceId: dh.device.Id,
 		Port:     logicalPort,
 		Packet:   packetPayload,
@@ -1606,7 +1608,7 @@ func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.P
 	}
 }
 
-func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, flowMetadata *voltha.FlowMetadata) []error {
+func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, flowMetadata *of.FlowMetadata) []error {
 	var err error
 	var errorsList []error
 
@@ -1687,7 +1689,7 @@ func (dh *DeviceHandler) handleGroups(ctx context.Context, groups *of.FlowGroupC
 }
 
 //UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *of.FlowMetadata) error {
 
 	var errorsList []error
 
@@ -1738,7 +1740,7 @@ func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Devic
 	dh.device = cloned
 
 	// Update the all pon ports state on that device to disable and NNI remains active as NNI remains active in openolt agent.
-	if err := dh.updatePortsStateInCore(ctx, &ic.PortStateFilter{
+	if err := dh.updatePortsStateInCore(ctx, &ca.PortStateFilter{
 		DeviceId:       cloned.Id,
 		PortTypeFilter: ^uint32(1 << voltha.Port_PON_OLT),
 		OperStatus:     voltha.OperStatus_UNKNOWN,
@@ -1761,7 +1763,7 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 	}
 	if onuDevices != nil {
 		for _, onuDevice := range onuDevices.Items {
-			err := dh.sendOnuIndicationToChildAdapter(ctx, onuDevice.AdapterEndpoint, &ic.OnuIndicationMessage{
+			err := dh.sendOnuIndicationToChildAdapter(ctx, onuDevice.AdapterEndpoint, &ia.OnuIndicationMessage{
 				DeviceId:      onuDevice.Id,
 				OnuIndication: &onuInd,
 			})
@@ -1807,7 +1809,7 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 	}
 	dh.device = device
 
-	if err := dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 		DeviceId:   device.Id,
 		OperStatus: device.OperStatus,
 		ConnStatus: device.ConnectStatus,
@@ -1962,7 +1964,7 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 		})
 	}
 
-	if err := dh.sendPacketToCore(ctx, &ic.PacketIn{
+	if err := dh.sendPacketToCore(ctx, &ca.PacketIn{
 		DeviceId: dh.device.Id,
 		Port:     logicalPortNum,
 		Packet:   packetIn.Pkt,
@@ -2156,7 +2158,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 	logger.Debugw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
 		"admin-state": device.AdminState, "oper-status": device.OperStatus})
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
-		if err = dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
+		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 			DeviceId:   dh.device.Id,
 			OperStatus: voltha.OperStatus_UNKNOWN,
 			ConnStatus: voltha.ConnectStatus_UNREACHABLE,
@@ -2164,7 +2166,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
-		if err = dh.updatePortsStateInCore(ctx, &ic.PortStateFilter{
+		if err = dh.updatePortsStateInCore(ctx, &ca.PortStateFilter{
 			DeviceId:       dh.device.Id,
 			PortTypeFilter: 0,
 			OperStatus:     voltha.OperStatus_UNKNOWN,
@@ -2260,7 +2262,7 @@ func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, e
 		dh.activePorts.Store(ponID, false)
 		logger.Infow(ctx, "disabled-pon-port", log.Fields{"out": out, "device-id": dh.device, "Port": port})
 	}
-	if err := dh.updatePortStateInCore(ctx, &ic.PortState{
+	if err := dh.updatePortStateInCore(ctx, &ca.PortState{
 		DeviceId:   dh.device.Id,
 		PortType:   voltha.Port_PON_OLT,
 		PortNo:     port.PortNo,
@@ -2438,11 +2440,11 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	dh.onus.Store(onuKey, onuDevice)
 }
 
-func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value extension.ValueType_Type) (*extension.ReturnValues, error) {
 	var err error
 	var sn *oop.SerialNumber
 	var ID uint32
-	resp := new(voltha.ReturnValues)
+	resp := new(extension.ReturnValues)
 	valueparam := new(oop.ValueParam)
 	ctx = log.WithSpanFromContext(context.Background(), ctx)
 	logger.Infow(ctx, "getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
@@ -2552,7 +2554,7 @@ func (dh *DeviceHandler) onuIndicationsRoutine(onuChannels *onuIndicationChannel
 
 // RouteMcastFlowOrGroupMsgToChannel routes incoming mcast flow or group to a channel to be handled by the a specific
 // instance of mcastFlowOrGroupChannelHandlerRoutine meant to handle messages for that group.
-func (dh *DeviceHandler) RouteMcastFlowOrGroupMsgToChannel(ctx context.Context, flow *voltha.OfpFlowStats, group *voltha.OfpGroupEntry, action string) error {
+func (dh *DeviceHandler) RouteMcastFlowOrGroupMsgToChannel(ctx context.Context, flow *of.OfpFlowStats, group *of.OfpGroupEntry, action string) error {
 	// Step1 : Fill McastFlowOrGroupControlBlock
 	// Step2 : Push the McastFlowOrGroupControlBlock to appropriate channel
 	// Step3 : Wait on response channel for response
@@ -2835,7 +2837,7 @@ func (dh *DeviceHandler) getDeviceFromCore(ctx context.Context, deviceID string)
 	return cClient.GetDevice(subCtx, &common.ID{Id: deviceID})
 }
 
-func (dh *DeviceHandler) getChildDeviceFromCore(ctx context.Context, childDeviceFilter *ic.ChildDeviceFilter) (*voltha.Device, error) {
+func (dh *DeviceHandler) getChildDeviceFromCore(ctx context.Context, childDeviceFilter *ca.ChildDeviceFilter) (*voltha.Device, error) {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return nil, err
@@ -2845,7 +2847,7 @@ func (dh *DeviceHandler) getChildDeviceFromCore(ctx context.Context, childDevice
 	return cClient.GetChildDevice(subCtx, childDeviceFilter)
 }
 
-func (dh *DeviceHandler) updateDeviceStateInCore(ctx context.Context, deviceStateFilter *ic.DeviceStateFilter) error {
+func (dh *DeviceHandler) updateDeviceStateInCore(ctx context.Context, deviceStateFilter *ca.DeviceStateFilter) error {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return err
@@ -2887,7 +2889,7 @@ func (dh *DeviceHandler) updateDeviceInCore(ctx context.Context, device *voltha.
 	return err
 }
 
-func (dh *DeviceHandler) sendChildDeviceDetectedToCore(ctx context.Context, deviceDiscoveryInfo *ic.DeviceDiscovery) (*voltha.Device, error) {
+func (dh *DeviceHandler) sendChildDeviceDetectedToCore(ctx context.Context, deviceDiscoveryInfo *ca.DeviceDiscovery) (*voltha.Device, error) {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return nil, err
@@ -2897,7 +2899,7 @@ func (dh *DeviceHandler) sendChildDeviceDetectedToCore(ctx context.Context, devi
 	return cClient.ChildDeviceDetected(subCtx, deviceDiscoveryInfo)
 }
 
-func (dh *DeviceHandler) sendPacketToCore(ctx context.Context, pkt *ic.PacketIn) error {
+func (dh *DeviceHandler) sendPacketToCore(ctx context.Context, pkt *ca.PacketIn) error {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return err
@@ -2919,7 +2921,7 @@ func (dh *DeviceHandler) createPortInCore(ctx context.Context, port *voltha.Port
 	return err
 }
 
-func (dh *DeviceHandler) updatePortsStateInCore(ctx context.Context, portFilter *ic.PortStateFilter) error {
+func (dh *DeviceHandler) updatePortsStateInCore(ctx context.Context, portFilter *ca.PortStateFilter) error {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return err
@@ -2930,7 +2932,7 @@ func (dh *DeviceHandler) updatePortsStateInCore(ctx context.Context, portFilter 
 	return err
 }
 
-func (dh *DeviceHandler) updatePortStateInCore(ctx context.Context, portState *ic.PortState) error {
+func (dh *DeviceHandler) updatePortStateInCore(ctx context.Context, portState *ca.PortState) error {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return err
@@ -2941,7 +2943,7 @@ func (dh *DeviceHandler) updatePortStateInCore(ctx context.Context, portState *i
 	return err
 }
 
-func (dh *DeviceHandler) getPortFromCore(ctx context.Context, portFilter *ic.PortFilter) (*voltha.Port, error) {
+func (dh *DeviceHandler) getPortFromCore(ctx context.Context, portFilter *ca.PortFilter) (*voltha.Port, error) {
 	cClient, err := dh.coreClient.GetCoreServiceClient()
 	if err != nil || cClient == nil {
 		return nil, err
@@ -2955,7 +2957,7 @@ func (dh *DeviceHandler) getPortFromCore(ctx context.Context, portFilter *ic.Por
 Helper functions to communicate with child adapter
 */
 
-func (dh *DeviceHandler) sendOmciIndicationToChildAdapter(ctx context.Context, childEndpoint string, response *ic.OmciMessage) error {
+func (dh *DeviceHandler) sendOmciIndicationToChildAdapter(ctx context.Context, childEndpoint string, response *ia.OmciMessage) error {
 	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
 	if err != nil || aClient == nil {
 		return err
@@ -2967,7 +2969,7 @@ func (dh *DeviceHandler) sendOmciIndicationToChildAdapter(ctx context.Context, c
 	return err
 }
 
-func (dh *DeviceHandler) sendOnuIndicationToChildAdapter(ctx context.Context, childEndpoint string, onuInd *ic.OnuIndicationMessage) error {
+func (dh *DeviceHandler) sendOnuIndicationToChildAdapter(ctx context.Context, childEndpoint string, onuInd *ia.OnuIndicationMessage) error {
 	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
 	if err != nil || aClient == nil {
 		return err
@@ -2979,7 +2981,7 @@ func (dh *DeviceHandler) sendOnuIndicationToChildAdapter(ctx context.Context, ch
 	return err
 }
 
-func (dh *DeviceHandler) sendDeleteTContToChildAdapter(ctx context.Context, childEndpoint string, tContInfo *ic.DeleteTcontMessage) error {
+func (dh *DeviceHandler) sendDeleteTContToChildAdapter(ctx context.Context, childEndpoint string, tContInfo *ia.DeleteTcontMessage) error {
 	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
 	if err != nil || aClient == nil {
 		return err
@@ -2991,7 +2993,7 @@ func (dh *DeviceHandler) sendDeleteTContToChildAdapter(ctx context.Context, chil
 	return err
 }
 
-func (dh *DeviceHandler) sendDeleteGemPortToChildAdapter(ctx context.Context, childEndpoint string, gemPortInfo *ic.DeleteGemPortMessage) error {
+func (dh *DeviceHandler) sendDeleteGemPortToChildAdapter(ctx context.Context, childEndpoint string, gemPortInfo *ia.DeleteGemPortMessage) error {
 	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
 	if err != nil || aClient == nil {
 		return err
@@ -3003,7 +3005,7 @@ func (dh *DeviceHandler) sendDeleteGemPortToChildAdapter(ctx context.Context, ch
 	return err
 }
 
-func (dh *DeviceHandler) sendDownloadTechProfileToChildAdapter(ctx context.Context, childEndpoint string, tpDownloadInfo *ic.TechProfileDownloadMessage) error {
+func (dh *DeviceHandler) sendDownloadTechProfileToChildAdapter(ctx context.Context, childEndpoint string, tpDownloadInfo *ia.TechProfileDownloadMessage) error {
 	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
 	if err != nil || aClient == nil {
 		return err
@@ -3061,16 +3063,7 @@ func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpo
 	return nil
 }
 
-// func (dh *DeviceHandler) getChildAdapterServiceClient(endpoint string) (adapter_services.OnuInterAdapterServiceClient, error) {
-// 	dh.lockChildAdapterClients.RLock()
-// 	defer dh.lockChildAdapterClients.RUnlock()
-// 	if cgClient, ok := dh.childAdapterClients[endpoint]; ok {
-// 		return cgClient.GetOnuInterAdapterServiceClient()
-// 	}
-// 	return nil, fmt.Errorf("no-client-for-endpoint-%s", endpoint)
-// }
-
-func (dh *DeviceHandler) getChildAdapterServiceClient(endpoint string) (adapter_services.OnuInterAdapterServiceClient, error) {
+func (dh *DeviceHandler) getChildAdapterServiceClient(endpoint string) (onu_inter_adapter_service.OnuInterAdapterServiceClient, error) {
 
 	// First check from cache
 	dh.lockChildAdapterClients.RLock()
@@ -3114,8 +3107,8 @@ func (dh *DeviceHandler) onuAdapterRestarted(ctx context.Context, endPoint strin
 
 // setAndTestAdapterServiceHandler is used to test whether the remote gRPC service is up
 func setAndTestAdapterServiceHandler(ctx context.Context, conn *grpc.ClientConn) interface{} {
-	svc := adapter_services.NewOnuInterAdapterServiceClient(conn)
-	if h, err := svc.GetHealthStatus(ctx, &empty.Empty{}); err != nil || h.State != voltha.HealthStatus_HEALTHY {
+	svc := onu_inter_adapter_service.NewOnuInterAdapterServiceClient(conn)
+	if h, err := svc.GetHealthStatus(ctx, &empty.Empty{}); err != nil || h.State != health.HealthStatus_HEALTHY {
 		return nil
 	}
 	return svc

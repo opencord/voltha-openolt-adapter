@@ -31,8 +31,11 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-protos/v5/go/common"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
 	"github.com/opencord/voltha-protos/v5/go/extension"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	"github.com/opencord/voltha-protos/v5/go/health"
+	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
+	"github.com/opencord/voltha-protos/v5/go/omci"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
@@ -119,8 +122,8 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 }
 
 // GetHealthStatus is used as a service readiness validation as a grpc connection
-func (oo *OpenOLT) GetHealthStatus(ctx context.Context, empty *empty.Empty) (*voltha.HealthStatus, error) {
-	return &voltha.HealthStatus{State: voltha.HealthStatus_HEALTHY}, nil
+func (oo *OpenOLT) GetHealthStatus(ctx context.Context, empty *empty.Empty) (*health.HealthStatus, error) {
+	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 
 // AdoptDevice creates a new device handler if not present already and then adopts the device
@@ -139,7 +142,7 @@ func (oo *OpenOLT) AdoptDevice(ctx context.Context, device *voltha.Device) (*emp
 }
 
 //GetOfpDeviceInfo returns OFP information for the given device
-func (oo *OpenOLT) GetOfpDeviceInfo(ctx context.Context, device *voltha.Device) (*ic.SwitchCapability, error) {
+func (oo *OpenOLT) GetOfpDeviceInfo(ctx context.Context, device *voltha.Device) (*ca.SwitchCapability, error) {
 	logger.Infow(ctx, "get_ofp_device_info", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		return handler.GetOfpDeviceInfo(device)
@@ -162,7 +165,7 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		}
 		subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), oo.rpcTimeout)
 		defer cancel()
-		if _, err := cgClient.DeviceStateUpdate(subCtx, &ic.DeviceStateFilter{
+		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
 			DeviceId:   device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
 			ConnStatus: device.ConnectStatus,
@@ -234,7 +237,7 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 }
 
 //UpdateFlowsIncrementally updates (add/remove) the flows on a given device
-func (oo *OpenOLT) UpdateFlowsIncrementally(ctx context.Context, incrFlows *ic.IncrementalFlows) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdateFlowsIncrementally(ctx context.Context, incrFlows *ca.IncrementalFlows) (*empty.Empty, error) {
 	logger.Infow(ctx, "update_flows_incrementally", log.Fields{"device-id": incrFlows.Device.Id, "flows": incrFlows.Flows, "flowMetadata": incrFlows.FlowMetadata})
 	if handler := oo.getDeviceHandler(incrFlows.Device.Id); handler != nil {
 		if err := handler.UpdateFlowsIncrementally(log.WithSpanFromContext(context.Background(), ctx), incrFlows.Device, incrFlows.Flows, incrFlows.Groups, incrFlows.FlowMetadata); err != nil {
@@ -246,7 +249,7 @@ func (oo *OpenOLT) UpdateFlowsIncrementally(ctx context.Context, incrFlows *ic.I
 }
 
 //UpdatePmConfig returns PmConfigs nil or error
-func (oo *OpenOLT) UpdatePmConfig(ctx context.Context, configs *ic.PmConfigsInfo) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdatePmConfig(ctx context.Context, configs *ca.PmConfigsInfo) (*empty.Empty, error) {
 	logger.Debugw(ctx, "update_pm_config", log.Fields{"device-id": configs.DeviceId, "pm-configs": configs.PmConfigs})
 	if handler := oo.getDeviceHandler(configs.DeviceId); handler != nil {
 		handler.UpdatePmConfig(log.WithSpanFromContext(context.Background(), ctx), configs.PmConfigs)
@@ -256,7 +259,7 @@ func (oo *OpenOLT) UpdatePmConfig(ctx context.Context, configs *ic.PmConfigsInfo
 }
 
 //SendPacketOut sends packet out to the device
-func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ic.PacketOut) (*empty.Empty, error) {
+func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*empty.Empty, error) {
 	logger.Debugw(ctx, "send_packet_out", log.Fields{"device-id": packet.DeviceId, "egress_port_no": packet.EgressPortNo, "pkt": packet.Packet})
 	if handler := oo.getDeviceHandler(packet.DeviceId); handler != nil {
 		if err := handler.PacketOut(log.WithSpanFromContext(context.Background(), ctx), packet.EgressPortNo, packet.Packet); err != nil {
@@ -323,9 +326,9 @@ func (oo *OpenOLT) ChildDeviceLost(ctx context.Context, childDevice *voltha.Devi
 }
 
 // GetExtValue retrieves a value on a particular ONU
-func (oo *OpenOLT) GetExtValue(ctx context.Context, extInfo *ic.GetExtValueMessage) (*voltha.ReturnValues, error) {
+func (oo *OpenOLT) GetExtValue(ctx context.Context, extInfo *ca.GetExtValueMessage) (*extension.ReturnValues, error) {
 	var err error
-	resp := new(voltha.ReturnValues)
+	resp := new(extension.ReturnValues)
 	logger.Infow(ctx, "get_ext_value", log.Fields{"parent-device-id": extInfo.ParentDevice.Id, "onu-id": extInfo.ChildDevice.Id})
 	if handler := oo.getDeviceHandler(extInfo.ParentDevice.Id); handler != nil {
 		if resp, err = handler.getExtValue(ctx, extInfo.ChildDevice, extInfo.ValueType); err != nil {
@@ -372,7 +375,7 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
  */
 
 // ProxyOmciRequest proxies an OMCI request from the child adapter
-func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ic.OmciMessage) (*empty.Empty, error) {
+func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*empty.Empty, error) {
 	logger.Debugw(ctx, "proxy-omci-request", log.Fields{"request": request})
 
 	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
@@ -385,7 +388,7 @@ func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ic.OmciMessage
 }
 
 // GetTechProfileInstance returns an instance of a tech profile
-func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ic.TechProfileInstanceRequestMessage) (*ic.TechProfileDownloadMessage, error) {
+func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ia.TechProfileInstanceRequestMessage) (*ia.TechProfileDownloadMessage, error) {
 	logger.Debugw(ctx, "getting-tech-profile-request", log.Fields{"request": request})
 
 	targetDeviceID := request.ParentDeviceId
@@ -406,12 +409,12 @@ func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ic.TechP
  */
 
 //SimulateAlarm is unimplemented
-func (oo *OpenOLT) SimulateAlarm(context.Context, *ic.SimulateAlarmMessage) (*voltha.OperationResp, error) {
+func (oo *OpenOLT) SimulateAlarm(context.Context, *ca.SimulateAlarmMessage) (*voltha.OperationResp, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //SetExtValue is unimplemented
-func (oo *OpenOLT) SetExtValue(context.Context, *ic.SetExtValueMessage) (*empty.Empty, error) {
+func (oo *OpenOLT) SetExtValue(context.Context, *ca.SetExtValueMessage) (*empty.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
@@ -421,7 +424,7 @@ func (oo *OpenOLT) SetSingleValue(context.Context, *extension.SingleSetValueRequ
 }
 
 //StartOmciTest not implemented
-func (oo *OpenOLT) StartOmciTest(ctx context.Context, test *ic.OMCITest) (*voltha.TestResponse, error) {
+func (oo *OpenOLT) StartOmciTest(ctx context.Context, test *ca.OMCITest) (*omci.TestResponse, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
@@ -436,27 +439,27 @@ func (oo *OpenOLT) UnSuppressEvent(ctx context.Context, filter *voltha.EventFilt
 }
 
 //DownloadImage is unimplemented
-func (oo *OpenOLT) DownloadImage(ctx context.Context, imageInfo *ic.ImageDownloadMessage) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) DownloadImage(ctx context.Context, imageInfo *ca.ImageDownloadMessage) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //GetImageDownloadStatus is unimplemented
-func (oo *OpenOLT) GetImageDownloadStatus(ctx context.Context, imageInfo *ic.ImageDownloadMessage) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) GetImageDownloadStatus(ctx context.Context, imageInfo *ca.ImageDownloadMessage) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //CancelImageDownload is unimplemented
-func (oo *OpenOLT) CancelImageDownload(ctx context.Context, imageInfo *ic.ImageDownloadMessage) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) CancelImageDownload(ctx context.Context, imageInfo *ca.ImageDownloadMessage) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //ActivateImageUpdate is unimplemented
-func (oo *OpenOLT) ActivateImageUpdate(ctx context.Context, imageInfo *ic.ImageDownloadMessage) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) ActivateImageUpdate(ctx context.Context, imageInfo *ca.ImageDownloadMessage) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 //RevertImageUpdate is unimplemented
-func (oo *OpenOLT) RevertImageUpdate(ctx context.Context, imageInfo *ic.ImageDownloadMessage) (*voltha.ImageDownload, error) {
+func (oo *OpenOLT) RevertImageUpdate(ctx context.Context, imageInfo *ca.ImageDownloadMessage) (*voltha.ImageDownload, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
@@ -491,7 +494,7 @@ func (oo *OpenOLT) CommitOnuImage(ctx context.Context, in *voltha.DeviceImageReq
 }
 
 // UpdateFlowsBulk is unimplemented
-func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ic.BulkFlows) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ca.BulkFlows) (*empty.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
