@@ -114,7 +114,7 @@ github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/opencord/voltha-lib-go/v7 v7.0.1
+# github.com/opencord/voltha-lib-go/v7 v7.0.1 => ../voltha-lib-go
 ## explicit
 github.com/opencord/voltha-lib-go/v7/pkg/config
 github.com/opencord/voltha-lib-go/v7/pkg/db
@@ -133,11 +133,12 @@ github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v7/pkg/probe
 github.com/opencord/voltha-lib-go/v7/pkg/techprofile
 github.com/opencord/voltha-lib-go/v7/pkg/version
-# github.com/opencord/voltha-protos/v5 v5.0.0
+# github.com/opencord/voltha-protos/v5 v5.0.0 => ../voltha-protos
 ## explicit
 github.com/opencord/voltha-protos/v5/go/adapter_services
 github.com/opencord/voltha-protos/v5/go/common
 github.com/opencord/voltha-protos/v5/go/core
+github.com/opencord/voltha-protos/v5/go/core_services
 github.com/opencord/voltha-protos/v5/go/ext/config
 github.com/opencord/voltha-protos/v5/go/extension
 github.com/opencord/voltha-protos/v5/go/inter_container
@@ -295,5 +296,7 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
 # github.com/coreos/bbolt v1.3.4 => go.etcd.io/bbolt v1.3.4
+# github.com/opencord/voltha-lib-go/v7 => ../voltha-lib-go
+# github.com/opencord/voltha-protos/v5 => ../voltha-protos
 # go.etcd.io/bbolt v1.3.4 => github.com/coreos/bbolt v1.3.4
 # google.golang.org/grpc => google.golang.org/grpc v1.25.1

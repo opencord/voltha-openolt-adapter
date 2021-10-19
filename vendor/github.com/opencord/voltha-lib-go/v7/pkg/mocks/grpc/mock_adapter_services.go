@@ -27,6 +27,7 @@ import (
 	common "github.com/opencord/voltha-protos/v5/go/common"
 	extension "github.com/opencord/voltha-protos/v5/go/extension"
 	inter_container "github.com/opencord/voltha-protos/v5/go/inter_container"
+	"github.com/opencord/voltha-protos/v5/go/omci"
 	voltha "github.com/opencord/voltha-protos/v5/go/voltha"
 	grpc "google.golang.org/grpc"
 )
@@ -315,14 +316,14 @@ func (mr *MockAdapterServiceClientMockRecorder) EnablePort(ctx, in interface{}, 
 }
 
 // GetExtValue mocks base method.
-func (m *MockAdapterServiceClient) GetExtValue(ctx context.Context, in *inter_container.GetExtValueMessage, opts ...grpc.CallOption) (*common.ReturnValues, error) {
+func (m *MockAdapterServiceClient) GetExtValue(ctx context.Context, in *inter_container.GetExtValueMessage, opts ...grpc.CallOption) (*extension.ReturnValues, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetExtValue", varargs...)
-	ret0, _ := ret[0].(*common.ReturnValues)
+	ret0, _ := ret[0].(*extension.ReturnValues)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -635,14 +636,14 @@ func (mr *MockAdapterServiceClientMockRecorder) SimulateAlarm(ctx, in interface{
 }
 
 // StartOmciTest mocks base method.
-func (m *MockAdapterServiceClient) StartOmciTest(ctx context.Context, in *inter_container.OMCITest, opts ...grpc.CallOption) (*voltha.TestResponse, error) {
+func (m *MockAdapterServiceClient) StartOmciTest(ctx context.Context, in *inter_container.OMCITest, opts ...grpc.CallOption) (*omci.TestResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "StartOmciTest", varargs...)
-	ret0, _ := ret[0].(*voltha.TestResponse)
+	ret0, _ := ret[0].(*omci.TestResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -973,10 +974,10 @@ func (mr *MockAdapterServiceServerMockRecorder) EnablePort(arg0, arg1 interface{
 }
 
 // GetExtValue mocks base method.
-func (m *MockAdapterServiceServer) GetExtValue(arg0 context.Context, arg1 *inter_container.GetExtValueMessage) (*common.ReturnValues, error) {
+func (m *MockAdapterServiceServer) GetExtValue(arg0 context.Context, arg1 *inter_container.GetExtValueMessage) (*extension.ReturnValues, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetExtValue", arg0, arg1)
-	ret0, _ := ret[0].(*common.ReturnValues)
+	ret0, _ := ret[0].(*extension.ReturnValues)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1213,10 +1214,10 @@ func (mr *MockAdapterServiceServerMockRecorder) SimulateAlarm(arg0, arg1 interfa
 }
 
 // StartOmciTest mocks base method.
-func (m *MockAdapterServiceServer) StartOmciTest(arg0 context.Context, arg1 *inter_container.OMCITest) (*voltha.TestResponse, error) {
+func (m *MockAdapterServiceServer) StartOmciTest(arg0 context.Context, arg1 *inter_container.OMCITest) (*omci.TestResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartOmciTest", arg0, arg1)
-	ret0, _ := ret[0].(*voltha.TestResponse)
+	ret0, _ := ret[0].(*omci.TestResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -23,6 +23,7 @@ import (
 	"io"
 
 	config "github.com/opencord/voltha-protos/v5/go/ext/config"
+	"github.com/opencord/voltha-protos/v5/go/extension"
 	openolt "github.com/opencord/voltha-protos/v5/go/openolt"
 	tech_profile "github.com/opencord/voltha-protos/v5/go/tech_profile"
 	"google.golang.org/grpc"
@@ -242,8 +243,8 @@ func (mock *mockOpenoltEnableIndicationClient) RecvMsg(m interface{}) error {
 }
 
 // GetExtValue mocks the GetExtValue function of Openoltclient.
-func (ooc *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.ValueParam, opts ...grpc.CallOption) (*openolt.ReturnValues, error) {
-	return &openolt.ReturnValues{}, nil
+func (ooc *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.ValueParam, opts ...grpc.CallOption) (*extension.ReturnValues, error) {
+	return &extension.ReturnValues{}, nil
 }
 
 // OnuItuPonAlarmSet mocks the OnuItuPonAlarmSet function of Openoltclient.

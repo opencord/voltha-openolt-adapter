@@ -144,11 +144,11 @@ type onuIndicationChannels struct {
 //There are MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine routines which monitor for any incoming mcast flow/group messages
 //and process them serially. The mcast flow/group are assigned these routines based on formula (group-id modulo MaxNumOfGroupHandlerChannels)
 type McastFlowOrGroupControlBlock struct {
-	ctx               context.Context       // Flow/group handler context
-	flowOrGroupAction string                // one of McastFlowOrGroupAdd, McastFlowOrGroupModify or McastFlowOrGroupDelete
-	flow              *voltha.OfpFlowStats  // Flow message (can be nil or valid flow)
-	group             *voltha.OfpGroupEntry // Group message (can be nil or valid group)
-	errChan           *chan error           // channel to report the mcast Flow/group handling error
+	ctx               context.Context   // Flow/group handler context
+	flowOrGroupAction string            // one of McastFlowOrGroupAdd, McastFlowOrGroupModify or McastFlowOrGroupDelete
+	flow              *of.OfpFlowStats  // Flow message (can be nil or valid flow)
+	group             *of.OfpGroupEntry // Group message (can be nil or valid group)
+	errChan           *chan error       // channel to report the mcast Flow/group handling error
 }
 
 var pmNames = []string{
@@ -1608,7 +1608,7 @@ func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.P
 }
 
 //UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *of.FlowMetadata) error {
 	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
 
 	var err error
@@ -2407,11 +2407,11 @@ func (dh *DeviceHandler) StoreOnuDevice(onuDevice *OnuDevice) {
 	dh.onus.Store(onuKey, onuDevice)
 }
 
-func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value voltha.ValueType_Type) (*voltha.ReturnValues, error) {
+func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device, value extension.ValueType_Type) (*extension.ReturnValues, error) {
 	var err error
 	var sn *oop.SerialNumber
 	var ID uint32
-	resp := new(voltha.ReturnValues)
+	resp := new(extension.ReturnValues)
 	valueparam := new(oop.ValueParam)
 	ctx = log.WithSpanFromContext(context.Background(), ctx)
 	logger.Infow(ctx, "getExtValue", log.Fields{"onu-id": device.Id, "pon-intf": device.ParentPortNo})
@@ -2521,7 +2521,7 @@ func (dh *DeviceHandler) onuIndicationsRoutine(onuChannels *onuIndicationChannel
 
 // RouteMcastFlowOrGroupMsgToChannel routes incoming mcast flow or group to a channel to be handled by the a specific
 // instance of mcastFlowOrGroupChannelHandlerRoutine meant to handle messages for that group.
-func (dh *DeviceHandler) RouteMcastFlowOrGroupMsgToChannel(ctx context.Context, flow *voltha.OfpFlowStats, group *voltha.OfpGroupEntry, action string) error {
+func (dh *DeviceHandler) RouteMcastFlowOrGroupMsgToChannel(ctx context.Context, flow *of.OfpFlowStats, group *of.OfpGroupEntry, action string) error {
 	// Step1 : Fill McastFlowOrGroupControlBlock
 	// Step2 : Push the McastFlowOrGroupControlBlock to appropriate channel
 	// Step3 : Wait on response channel for response

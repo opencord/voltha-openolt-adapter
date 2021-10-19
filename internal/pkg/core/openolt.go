@@ -33,6 +33,7 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/extension"
 	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	"github.com/opencord/voltha-protos/v5/go/omci"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
@@ -320,9 +321,9 @@ func (oo *OpenOLT) ChildDeviceLost(ctx context.Context, childDevice *voltha.Devi
 }
 
 // GetExtValue retrieves a value on a particular ONU
-func (oo *OpenOLT) GetExtValue(ctx context.Context, extInfo *ic.GetExtValueMessage) (*voltha.ReturnValues, error) {
+func (oo *OpenOLT) GetExtValue(ctx context.Context, extInfo *ic.GetExtValueMessage) (*extension.ReturnValues, error) {
 	var err error
-	resp := new(voltha.ReturnValues)
+	resp := new(extension.ReturnValues)
 	logger.Infow(ctx, "get_ext_value", log.Fields{"parent-device-id": extInfo.ParentDevice.Id, "onu-id": extInfo.ChildDevice.Id})
 	if handler := oo.getDeviceHandler(extInfo.ParentDevice.Id); handler != nil {
 		if resp, err = handler.getExtValue(ctx, extInfo.ChildDevice, extInfo.ValueType); err != nil {
@@ -418,7 +419,7 @@ func (oo *OpenOLT) SetSingleValue(context.Context, *extension.SingleSetValueRequ
 }
 
 //StartOmciTest not implemented
-func (oo *OpenOLT) StartOmciTest(ctx context.Context, test *ic.OMCITest) (*voltha.TestResponse, error) {
+func (oo *OpenOLT) StartOmciTest(ctx context.Context, test *ic.OMCITest) (*omci.TestResponse, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 

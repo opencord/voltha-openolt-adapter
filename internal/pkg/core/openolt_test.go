@@ -666,9 +666,9 @@ func TestOpenOLT_UnSuppressEvent(t *testing.T) {
 func TestOpenOLT_UpdateFlowsBulk(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
-		flows        *voltha.Flows
-		groups       *voltha.FlowGroups
-		flowMetadata *voltha.FlowMetadata
+		flows        *ofp.Flows
+		groups       *ofp.FlowGroups
+		flowMetadata *ofp.FlowMetadata
 	}
 	tests := []struct {
 		name    string
@@ -700,7 +700,7 @@ func TestOpenOLT_UpdateFlowsIncrementally(t *testing.T) {
 		device       *voltha.Device
 		flows        *openflow_13.FlowChanges
 		groups       *openflow_13.FlowGroupChanges
-		flowMetadata *voltha.FlowMetadata
+		flowMetadata *ofp.FlowMetadata
 	}
 
 	tests := []struct {
