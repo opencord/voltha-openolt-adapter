@@ -166,7 +166,7 @@ type schedQueue struct {
 	uniPort      uint32
 	tpInst       interface{}
 	meterID      uint32
-	flowMetadata *voltha.FlowMetadata
+	flowMetadata *ofp.FlowMetadata
 }
 
 type flowContext struct {
@@ -189,11 +189,11 @@ type flowContext struct {
 // There is on perOnuFlowHandlerRoutine routine per ONU that constantly monitors for any incoming
 // flow and processes it serially
 type flowControlBlock struct {
-	ctx          context.Context      // Flow handler context
-	addFlow      bool                 // if true flow to be added, else removed
-	flow         *voltha.OfpFlowStats // Flow message
-	flowMetadata *voltha.FlowMetadata // FlowMetadata that contains flow meter information. This can be nil for Flow remove
-	errChan      *chan error          // channel to report the Flow handling error
+	ctx          context.Context   // Flow handler context
+	addFlow      bool              // if true flow to be added, else removed
+	flow         *ofp.OfpFlowStats // Flow message
+	flowMetadata *ofp.FlowMetadata // FlowMetadata that contains flow meter information. This can be nil for Flow remove
+	errChan      *chan error       // channel to report the Flow handling error
 }
 
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
@@ -320,7 +320,7 @@ func (f *OpenOltFlowMgr) registerFlowIDForGemAndGemIDForFlow(ctx context.Context
 
 func (f *OpenOltFlowMgr) processAddFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
 	classifierInfo map[string]interface{}, actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpID uint32,
-	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) error {
+	UsMeterID uint32, DsMeterID uint32, flowMetadata *ofp.FlowMetadata) error {
 	var allocID uint32
 	var gemPorts []uint32
 	var TpInst interface{}
@@ -787,7 +787,7 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 }
 
 // This function allocates tconts and GEM ports for an ONU
-func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, interface{}) {
+func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *ofp.FlowMetadata) (uint32, []uint32, interface{}) {
 	var allocIDs []uint32
 	var allgemPortIDs []uint32
 	var gemPortIDs []uint32
@@ -888,7 +888,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 		// Send Tconts and GEM ports to KV store
 		f.storeTcontsGEMPortsIntoKVStore(ctx, intfID, onuID, uniID, allocIDs, allgemPortIDs)
 		return allocID, gemPortIDs, techProfileInstance
-	case *openoltpb2.EponTechProfileInstance:
+	case *tp_pb.EponTechProfileInstance:
 		// CreateSchedulerQueues for EPON needs to be implemented here
 		// when voltha-protos for EPON is completed.
 		allocID := tpInst.AllocId
@@ -2164,7 +2164,7 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 }
 
 // RouteFlowToOnuChannel routes incoming flow to ONU specific channel
-func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *voltha.OfpFlowStats, addFlow bool, flowMetadata *voltha.FlowMetadata) error {
+func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *ofp.OfpFlowStats, addFlow bool, flowMetadata *ofp.FlowMetadata) error {
 	// Step1 : Fill flowControlBlock
 	// Step2 : Push the flowControlBlock to ONU channel
 	// Step3 : Wait on response channel for response
@@ -2240,7 +2240,7 @@ func (f *OpenOltFlowMgr) StopAllFlowHandlerRoutines(ctx context.Context) {
 
 // AddFlow add flow to device
 // nolint: gocyclo
-func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) error {
+func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *ofp.FlowMetadata) error {
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
 	var UsMeterID uint32
@@ -3376,7 +3376,7 @@ func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPa
 			TpInstancePath: tpPath,
 			TechTpInstance: &ic.TechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
 		}, nil
-	case *openoltpb2.EponTechProfileInstance:
+	case *tp_pb.EponTechProfileInstance:
 		return &ic.TechProfileDownloadMessage{
 			DeviceId:       onuDeviceID,
 			UniId:          uniID,
