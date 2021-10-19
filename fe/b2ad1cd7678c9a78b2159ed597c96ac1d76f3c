@@ -1,0 +1,8 @@
+Code-Review+1: yasin sapli <yasin.sapli@netsia.com>
+Code-Review+2: Andrea Campanella <andrea@opennetworking.org>
+Verified+1: Jenkins Technical User <do-not-reply@opennetworking.org>
+Submitted-by: Andrea Campanella <andrea@opennetworking.org>
+Submitted-at: Tue, 19 Oct 2021 10:07:54 +0000
+Reviewed-on: https://gerrit.opencord.org/c/voltha-openolt-adapter/+/28301
+Project: voltha-openolt-adapter
+Branch: refs/heads/voltha-2.8
