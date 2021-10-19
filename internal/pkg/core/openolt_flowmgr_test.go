@@ -29,8 +29,6 @@ import (
 
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
 
-	"github.com/opencord/voltha-protos/v5/go/voltha"
-
 	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
@@ -74,12 +72,12 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
 		InstanceControl: &tp_pb.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
-	tprofile.UsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile.UsScheduler = &tp_pb.SchedulerAttributes{}
 	tprofile.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
 	tprofile.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
 	tprofile2 := tprofile
-	tprofile2.DsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile2.DsScheduler = &tp_pb.SchedulerAttributes{}
 	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
 	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
@@ -108,11 +106,11 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		{"CreateSchedulerQueues-6", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 2, 2, 65, 2, tprofile2, 2, createFlowMetadata(tprofile2, 3, Downstream)}, true},
 
 		//Negative testcases
-		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, &voltha.FlowMetadata{}}, false},
-		{"CreateSchedulerQueues-8", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 0, &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, &voltha.FlowMetadata{}}, false},
-		{"CreateSchedulerQueues-10", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, &voltha.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, &voltha.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, &ofp.FlowMetadata{}}, false},
+		{"CreateSchedulerQueues-8", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 0, &ofp.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, &ofp.FlowMetadata{}}, false},
+		{"CreateSchedulerQueues-10", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, &ofp.FlowMetadata{}}, true},
+		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, &ofp.FlowMetadata{}}, true},
 		{"CreateSchedulerQueues-12", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, nil}, true},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -126,8 +124,8 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 	}
 }
 
-func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, direction string) *voltha.FlowMetadata {
-	var additionalBw openoltpb2.AdditionalBW
+func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, direction string) *ofp.FlowMetadata {
+	var additionalBw tp_pb.AdditionalBW
 	bands := make([]*ofp.OfpMeterBandHeader, 0)
 	switch tcontType {
 	case 1:
@@ -166,7 +164,7 @@ func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, d
 	}
 
 	ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1, Bands: bands}
-	return &voltha.FlowMetadata{
+	return &ofp.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig}}
 }
 
@@ -175,13 +173,13 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
 		InstanceControl: &tp_pb.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
 	}
-	tprofile.UsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile.UsScheduler = &tp_pb.SchedulerAttributes{}
 	tprofile.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
 	tprofile.UsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	tprofile.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
 
 	tprofile2 := tprofile
-	tprofile2.DsScheduler = &openoltpb2.SchedulerAttributes{}
+	tprofile2.DsScheduler = &tp_pb.SchedulerAttributes{}
 	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
 	tprofile2.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
@@ -215,7 +213,7 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 	bands[0] = &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 1000, BurstSize: 5000, Data: &ofp.OfpMeterBandHeader_Drop{}}
 	bands[1] = &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 2000, BurstSize: 5000, Data: &ofp.OfpMeterBandHeader_Drop{}}
 	ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1, Bands: bands}
-	flowmetadata := &voltha.FlowMetadata{
+	flowmetadata := &ofp.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	}
 	type args struct {
@@ -227,7 +225,7 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 		TpID         uint32
 		UsMeterID    uint32
 		DsMeterID    uint32
-		flowMetadata *voltha.FlowMetadata
+		flowMetadata *ofp.FlowMetadata
 	}
 	tests := []struct {
 		name string
@@ -579,12 +577,12 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	fmt.Println(ofpstats6, ofpstats9, ofpstats10)
 
 	ofpMeterConfig := &ofp.OfpMeterConfig{Flags: 1, MeterId: 1}
-	flowMetadata := &voltha.FlowMetadata{
+	flowMetadata := &ofp.FlowMetadata{
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig},
 	}
 	type args struct {
 		flow         *ofp.OfpFlowStats
-		flowMetadata *voltha.FlowMetadata
+		flowMetadata *ofp.FlowMetadata
 	}
 	tests := []struct {
 		name string
@@ -1066,8 +1064,8 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			Onu: "1",
 			Uni: "16",
 		},
-		UsScheduler: &openoltpb2.SchedulerAttributes{},
-		DsScheduler: &openoltpb2.SchedulerAttributes{},
+		UsScheduler: &tp_pb.SchedulerAttributes{},
+		DsScheduler: &tp_pb.SchedulerAttributes{},
 	}
 	TpInst.UsScheduler.Priority = 1
 	TpInst.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
@@ -1245,7 +1243,7 @@ func TestOpenOltFlowMgr_TestMulticastFlowAndGroup(t *testing.T) {
 	}
 	ofpStats, _ := fu.MkFlowStat(multicastFlowArgs)
 	fmt.Println(ofpStats.Id)
-	err = flowMgr[0].AddFlow(ctx, ofpStats, &voltha.FlowMetadata{})
+	err = flowMgr[0].AddFlow(ctx, ofpStats, &ofp.FlowMetadata{})
 	if err != nil {
 		t.Error("Multicast flow-add failed", err)
 		return
@@ -1289,23 +1287,23 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	kwTable0Meter1["meter_id"] = 1
 	kwTable0Meter1["write_metadata"] = 0x4000000000 // Tech-Profile-ID 64
 
-	flowMetadata1 := voltha.FlowMetadata{Meters: []*voltha.OfpMeterConfig{
+	flowMetadata1 := ofp.FlowMetadata{Meters: []*ofp.OfpMeterConfig{
 		{
 			Flags:   5,
 			MeterId: 1,
-			Bands: []*voltha.OfpMeterBandHeader{
+			Bands: []*ofp.OfpMeterBandHeader{
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      ofp.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      16000,
 					BurstSize: 0,
 				},
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      ofp.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      32000,
 					BurstSize: 30,
 				},
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      ofp.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      64000,
 					BurstSize: 30,
 				},
@@ -1489,7 +1487,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 		ctx          context.Context
 		flow         *ofp.OfpFlowStats
 		addFlow      bool
-		flowMetadata *voltha.FlowMetadata
+		flowMetadata *ofp.FlowMetadata
 	}
 	tests := []struct {
 		name        string

@@ -37,7 +37,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
@@ -471,15 +471,15 @@ func TestGetportLabel(t *testing.T) {
 // 	ctx := context.Background()
 // 	dh := newMockDeviceHandler()
 // 	proxyAddr := dh.device.ProxyAddress
-// 	body := &ic.InterAdapterOmciMessage{
+// 	body := &ca.InterAdapterOmciMessage{
 // 		Message:      []byte("asdfasdfasdfasdfas"),
 // 		ProxyAddress: proxyAddr,
 // 	}
-// 	body2 := &ic.InterAdapterOmciMessage{
+// 	body2 := &ca.InterAdapterOmciMessage{
 // 		Message: []byte("asdfasdfasdfasdfas"),
 // 		//ProxyAddress: &voltha.Device_ProxyAddress{},
 // 	}
-// 	body3 := &ic.InterAdapterTechProfileDownloadMessage{}
+// 	body3 := &ca.InterAdapterTechProfileDownloadMessage{}
 // 	var marshalledData *any.Any
 // 	var err error
 
@@ -498,7 +498,7 @@ func TestGetportLabel(t *testing.T) {
 // 		logger.Errorw(ctx, "cannot-marshal-request", log.Fields{"err": err})
 // 	}
 // 	type args struct {
-// 		msg *ic.InterAdapterMessage
+// 		msg *ca.InterAdapterMessage
 // 	}
 // 	invalid := reflect.TypeOf(&olterrors.ErrInvalidValue{})
 // 	tests := []struct {
@@ -506,73 +506,73 @@ func TestGetportLabel(t *testing.T) {
 // 		args    args
 // 		wantErr reflect.Type
 // 	}{
-// 		{"ProcessInterAdapterMessage-1", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-1", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_FLOW_REQUEST,
+// 				Type: ca.InterAdapterMessageType_FLOW_REQUEST,
 // 			},
 // 			Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-2", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-2", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_FLOW_RESPONSE,
+// 				Type: ca.InterAdapterMessageType_FLOW_RESPONSE,
 // 			},
 // 			Body: marshalledData1,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-3", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-3", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_OMCI_REQUEST,
+// 				Type: ca.InterAdapterMessageType_OMCI_REQUEST,
 // 			},
 // 			Body: marshalledData,
 // 		}}, reflect.TypeOf(&olterrors.ErrCommunication{})},
-// 		{"ProcessInterAdapterMessage-4", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-4", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_OMCI_RESPONSE,
+// 				Type: ca.InterAdapterMessageType_OMCI_RESPONSE,
 // 			}, Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-5", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-5", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_METRICS_REQUEST,
+// 				Type: ca.InterAdapterMessageType_METRICS_REQUEST,
 // 			}, Body: marshalledData1,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-6", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-6", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_METRICS_RESPONSE,
+// 				Type: ca.InterAdapterMessageType_METRICS_RESPONSE,
 // 			}, Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-7", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-7", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_ONU_IND_REQUEST,
+// 				Type: ca.InterAdapterMessageType_ONU_IND_REQUEST,
 // 			}, Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-8", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-8", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_ONU_IND_RESPONSE,
+// 				Type: ca.InterAdapterMessageType_ONU_IND_RESPONSE,
 // 			}, Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-9", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-9", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
+// 				Type: ca.InterAdapterMessageType_TECH_PROFILE_DOWNLOAD_REQUEST,
 // 			}, Body: marshalledData,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-10", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-10", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
+// 				Type: ca.InterAdapterMessageType_DELETE_GEM_PORT_REQUEST,
 // 			}, Body: marshalledData2,
 // 		}}, invalid},
-// 		{"ProcessInterAdapterMessage-11", args{msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
+// 		{"ProcessInterAdapterMessage-11", args{msg: &ca.InterAdapterMessage{
+// 			Header: &ca.InterAdapterHeader{
 // 				Id:   "012345",
-// 				Type: ic.InterAdapterMessageType_DELETE_TCONT_REQUEST,
+// 				Type: ca.InterAdapterMessageType_DELETE_TCONT_REQUEST,
 // 			}, Body: marshalledData2,
 // 		}}, invalid},
 // 	}
@@ -604,7 +604,7 @@ func TestDeviceHandler_ProxyOmciMessage(t *testing.T) {
 	}
 	device2 := device1
 	device2.ConnectStatus = 2
-	iaomciMsg1 := &ic.OmciMessage{
+	iaomciMsg1 := &ia.OmciMessage{
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "onu2",
 			DeviceType:     "onu",
@@ -613,7 +613,7 @@ func TestDeviceHandler_ProxyOmciMessage(t *testing.T) {
 		},
 		ConnectStatus: 1,
 	}
-	iaomciMsg2 := &ic.OmciMessage{
+	iaomciMsg2 := &ia.OmciMessage{
 		ProxyAddress: &voltha.Device_ProxyAddress{
 			DeviceId:       "onu3",
 			DeviceType:     "onu",
@@ -624,19 +624,19 @@ func TestDeviceHandler_ProxyOmciMessage(t *testing.T) {
 	}
 	type args struct {
 		onuDevice *voltha.Device
-		omciMsg   *ic.OmciMessage
+		omciMsg   *ia.OmciMessage
 	}
 	tests := []struct {
 		name          string
 		devicehandler *DeviceHandler
 		args          args
 	}{
-		{"sendProxiedMessage-1", dh1, args{onuDevice: device1, omciMsg: &ic.OmciMessage{}}},
-		{"sendProxiedMessage-2", dh1, args{onuDevice: device2, omciMsg: &ic.OmciMessage{}}},
+		{"sendProxiedMessage-1", dh1, args{onuDevice: device1, omciMsg: &ia.OmciMessage{}}},
+		{"sendProxiedMessage-2", dh1, args{onuDevice: device2, omciMsg: &ia.OmciMessage{}}},
 		{"sendProxiedMessage-3", dh1, args{onuDevice: nil, omciMsg: iaomciMsg1}},
 		{"sendProxiedMessage-4", dh1, args{onuDevice: nil, omciMsg: iaomciMsg2}},
 		{"sendProxiedMessage-5", dh2, args{onuDevice: nil, omciMsg: iaomciMsg2}},
-		{"sendProxiedMessage-6", dh2, args{onuDevice: device1, omciMsg: &ic.OmciMessage{}}},
+		{"sendProxiedMessage-6", dh2, args{onuDevice: device1, omciMsg: &ia.OmciMessage{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1316,23 +1316,23 @@ func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
 		{"update-flow-when-device-handler-is-nil", dh1, true},
 	}
 
-	flowMetadata0 := voltha.FlowMetadata{Meters: []*voltha.OfpMeterConfig{
+	flowMetadata0 := of.FlowMetadata{Meters: []*of.OfpMeterConfig{
 		{
 			Flags:   5,
 			MeterId: 1,
-			Bands: []*voltha.OfpMeterBandHeader{
+			Bands: []*of.OfpMeterBandHeader{
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      of.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      16000,
 					BurstSize: 0,
 				},
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      of.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      32000,
 					BurstSize: 30,
 				},
 				{
-					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Type:      of.OfpMeterBandType_OFPMBT_DROP,
 					Rate:      64000,
 					BurstSize: 30,
 				},
@@ -1365,9 +1365,9 @@ func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
 	}
 
 	flow0, _ := fu.MkFlowStat(fa0)
-	flowAdd := of.Flows{Items: make([]*voltha.OfpFlowStats, 0)}
+	flowAdd := of.Flows{Items: make([]*of.OfpFlowStats, 0)}
 	flowAdd.Items = append(flowAdd.Items, flow0)
-	flowRemove := of.Flows{Items: make([]*voltha.OfpFlowStats, 0)}
+	flowRemove := of.Flows{Items: make([]*of.OfpFlowStats, 0)}
 	flowChanges := &ofp.FlowChanges{ToAdd: &flowAdd, ToRemove: &flowRemove}
 
 	for _, tt := range tests {

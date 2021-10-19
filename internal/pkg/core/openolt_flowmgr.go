@@ -35,7 +35,7 @@ import (
 	tp "github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v5/go/common"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	openoltpb2 "github.com/opencord/voltha-protos/v5/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
@@ -166,7 +166,7 @@ type schedQueue struct {
 	uniPort      uint32
 	tpInst       interface{}
 	meterID      uint32
-	flowMetadata *voltha.FlowMetadata
+	flowMetadata *ofp.FlowMetadata
 }
 
 type flowContext struct {
@@ -189,11 +189,11 @@ type flowContext struct {
 // There is on perOnuFlowHandlerRoutine routine per ONU that constantly monitors for any incoming
 // flow and processes it serially
 type flowControlBlock struct {
-	ctx          context.Context      // Flow handler context
-	addFlow      bool                 // if true flow to be added, else removed
-	flow         *voltha.OfpFlowStats // Flow message
-	flowMetadata *voltha.FlowMetadata // FlowMetadata that contains flow meter information. This can be nil for Flow remove
-	errChan      *chan error          // channel to report the Flow handling error
+	ctx          context.Context   // Flow handler context
+	addFlow      bool              // if true flow to be added, else removed
+	flow         *ofp.OfpFlowStats // Flow message
+	flowMetadata *ofp.FlowMetadata // FlowMetadata that contains flow meter information. This can be nil for Flow remove
+	errChan      *chan error       // channel to report the Flow handling error
 }
 
 //OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
@@ -320,7 +320,7 @@ func (f *OpenOltFlowMgr) registerFlowIDForGemAndGemIDForFlow(ctx context.Context
 
 func (f *OpenOltFlowMgr) processAddFlow(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, portNo uint32,
 	classifierInfo map[string]interface{}, actionInfo map[string]interface{}, flow *ofp.OfpFlowStats, TpID uint32,
-	UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) error {
+	UsMeterID uint32, DsMeterID uint32, flowMetadata *ofp.FlowMetadata) error {
 	var allocID uint32
 	var gemPorts []uint32
 	var TpInst interface{}
@@ -787,7 +787,7 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 }
 
 // This function allocates tconts and GEM ports for an ONU
-func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *voltha.FlowMetadata) (uint32, []uint32, interface{}) {
+func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, uniPort uint32, TpID uint32, UsMeterID uint32, DsMeterID uint32, flowMetadata *ofp.FlowMetadata) (uint32, []uint32, interface{}) {
 	var allocIDs []uint32
 	var allgemPortIDs []uint32
 	var gemPortIDs []uint32
@@ -888,7 +888,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 		// Send Tconts and GEM ports to KV store
 		f.storeTcontsGEMPortsIntoKVStore(ctx, intfID, onuID, uniID, allocIDs, allgemPortIDs)
 		return allocID, gemPortIDs, techProfileInstance
-	case *openoltpb2.EponTechProfileInstance:
+	case *tp_pb.EponTechProfileInstance:
 		// CreateSchedulerQueues for EPON needs to be implemented here
 		// when voltha-protos for EPON is completed.
 		allocID := tpInst.AllocId
@@ -1788,7 +1788,7 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(ctx context.Context, intfID ui
 		return err
 	}
 
-	delGemPortMsg := &ic.DeleteGemPortMessage{
+	delGemPortMsg := &ia.DeleteGemPortMessage{
 		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,
@@ -1828,7 +1828,7 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 		return err
 	}
 
-	delTcontMsg := &ic.DeleteTcontMessage{
+	delTcontMsg := &ia.DeleteTcontMessage{
 		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,
@@ -2181,7 +2181,7 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 }
 
 // RouteFlowToOnuChannel routes incoming flow to ONU specific channel
-func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *voltha.OfpFlowStats, addFlow bool, flowMetadata *voltha.FlowMetadata) error {
+func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *ofp.OfpFlowStats, addFlow bool, flowMetadata *ofp.FlowMetadata) error {
 	// Step1 : Fill flowControlBlock
 	// Step2 : Push the flowControlBlock to ONU channel
 	// Step3 : Wait on response channel for response
@@ -2257,7 +2257,7 @@ func (f *OpenOltFlowMgr) StopAllFlowHandlerRoutines(ctx context.Context) {
 
 // AddFlow add flow to device
 // nolint: gocyclo
-func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *voltha.FlowMetadata) error {
+func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, flowMetadata *ofp.FlowMetadata) error {
 	classifierInfo := make(map[string]interface{})
 	actionInfo := make(map[string]interface{})
 	var UsMeterID uint32
@@ -2450,11 +2450,11 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	logger.Debugw(ctx, "got-child-device-from-olt-device-handler", log.Fields{"onu-id": onuDev.deviceID})
 
 	tpPath := f.getTPpath(ctx, intfID, uni, TpID)
-	tpDownloadMsg := &ic.TechProfileDownloadMessage{
+	tpDownloadMsg := &ia.TechProfileDownloadMessage{
 		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,
-		TechTpInstance: &ic.TechProfileDownloadMessage_TpInstance{TpInstance: &tpInst},
+		TechTpInstance: &ia.TechProfileDownloadMessage_TpInstance{TpInstance: &tpInst},
 	}
 	logger.Debugw(ctx, "sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": *tpDownloadMsg})
 
@@ -2869,7 +2869,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			// Trim the bitMapPrefix form the binary string and then iterate each character in the binary string.
 			// If the character is set to pbit1, extract the pcp value from the position of this character in the string.
 			// Update the pbitToGem map with key being the pcp bit and the value being the gemPortID that consumes
-			// this pcp bit traffic.
+			// this pcp bit traffca.
 			for pos, pbitSet := range strings.TrimPrefix(pBitMap, bitMapPrefix) {
 				if pbitSet == pbit1 {
 					pcp := uint32(len(strings.TrimPrefix(pBitMap, bitMapPrefix))) - 1 - uint32(pos)
@@ -3380,7 +3380,7 @@ func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Conte
 	return nil
 }
 
-func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, uniID uint32, onuDeviceID string) (*ic.TechProfileDownloadMessage, error) {
+func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPath string, uniID uint32, onuDeviceID string) (*ia.TechProfileDownloadMessage, error) {
 	tpInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
 	if err != nil {
 		logger.Errorw(ctx, "error-fetching-tp-instance", log.Fields{"tpPath": tpPath})
@@ -3390,23 +3390,23 @@ func (f *OpenOltFlowMgr) getTechProfileDownloadMessage(ctx context.Context, tpPa
 	switch tpInst := tpInst.(type) {
 	case *tp_pb.TechProfileInstance:
 		logger.Debugw(ctx, "fetched-tp-instance-successfully-formulating-tp-download-msg", log.Fields{"tpPath": tpPath})
-		return &ic.TechProfileDownloadMessage{
+		return &ia.TechProfileDownloadMessage{
 			DeviceId:       onuDeviceID,
 			UniId:          uniID,
 			TpInstancePath: tpPath,
-			TechTpInstance: &ic.TechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
+			TechTpInstance: &ia.TechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
 		}, nil
-	case *openoltpb2.EponTechProfileInstance:
-		return &ic.TechProfileDownloadMessage{
+	case *tp_pb.EponTechProfileInstance:
+		return &ia.TechProfileDownloadMessage{
 			DeviceId:       onuDeviceID,
 			UniId:          uniID,
 			TpInstancePath: tpPath,
-			TechTpInstance: &ic.TechProfileDownloadMessage_EponTpInstance{EponTpInstance: tpInst},
+			TechTpInstance: &ia.TechProfileDownloadMessage_EponTpInstance{EponTpInstance: tpInst},
 		}, nil
 	default:
 		logger.Errorw(ctx, "unknown-tech", log.Fields{"tpPath": tpPath})
 	}
-	return &ic.TechProfileDownloadMessage{
+	return &ia.TechProfileDownloadMessage{
 		DeviceId:       onuDeviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,

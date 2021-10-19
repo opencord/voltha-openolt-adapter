@@ -44,8 +44,6 @@ github.com/eapache/queue
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
-# github.com/golang/mock v1.6.0
-github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.5.2
 ## explicit
 github.com/golang/protobuf/jsonpb
@@ -114,7 +112,7 @@ github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/opencord/voltha-lib-go/v7 v7.0.6
+# github.com/opencord/voltha-lib-go/v7 v7.1.0
 ## explicit
 github.com/opencord/voltha-lib-go/v7/pkg/config
 github.com/opencord/voltha-lib-go/v7/pkg/db
@@ -133,15 +131,19 @@ github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v7/pkg/probe
 github.com/opencord/voltha-lib-go/v7/pkg/techprofile
 github.com/opencord/voltha-lib-go/v7/pkg/version
-# github.com/opencord/voltha-protos/v5 v5.0.0
+# github.com/opencord/voltha-protos/v5 v5.1.0
 ## explicit
-github.com/opencord/voltha-protos/v5/go/adapter_services
+github.com/opencord/voltha-protos/v5/go/adapter_service
 github.com/opencord/voltha-protos/v5/go/common
-github.com/opencord/voltha-protos/v5/go/core
+github.com/opencord/voltha-protos/v5/go/core_adapter
+github.com/opencord/voltha-protos/v5/go/core_service
 github.com/opencord/voltha-protos/v5/go/ext/config
 github.com/opencord/voltha-protos/v5/go/extension
-github.com/opencord/voltha-protos/v5/go/inter_container
+github.com/opencord/voltha-protos/v5/go/health
+github.com/opencord/voltha-protos/v5/go/inter_adapter
+github.com/opencord/voltha-protos/v5/go/olt_inter_adapter_service
 github.com/opencord/voltha-protos/v5/go/omci
+github.com/opencord/voltha-protos/v5/go/onu_inter_adapter_service
 github.com/opencord/voltha-protos/v5/go/openflow_13
 github.com/opencord/voltha-protos/v5/go/openolt
 github.com/opencord/voltha-protos/v5/go/tech_profile
@@ -216,7 +218,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# google.golang.org/genproto v0.0.0-20210924002016-3dee208752a0
+# google.golang.org/genproto v0.0.0-20211101144312-62acf1d99145
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.41.0 => google.golang.org/grpc v1.25.1

@@ -38,9 +38,11 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/version"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	ac "github.com/opencord/voltha-openolt-adapter/internal/pkg/core"
-	"github.com/opencord/voltha-protos/v5/go/adapter_services"
-	"github.com/opencord/voltha-protos/v5/go/core"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	"github.com/opencord/voltha-protos/v5/go/adapter_service"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
+	"github.com/opencord/voltha-protos/v5/go/core_service"
+	"github.com/opencord/voltha-protos/v5/go/health"
+	"github.com/opencord/voltha-protos/v5/go/olt_inter_adapter_service"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 )
@@ -170,8 +172,8 @@ func (a *adapter) coreRestarted(ctx context.Context, endPoint string) error {
 
 // setAndTestCoreServiceHandler is used to test whether the remote gRPC service is up
 func setAndTestCoreServiceHandler(ctx context.Context, conn *grpc.ClientConn) interface{} {
-	svc := core.NewCoreServiceClient(conn)
-	if h, err := svc.GetHealthStatus(ctx, &empty.Empty{}); err != nil || h.State != voltha.HealthStatus_HEALTHY {
+	svc := core_service.NewCoreServiceClient(conn)
+	if h, err := svc.GetHealthStatus(ctx, &empty.Empty{}); err != nil || h.State != health.HealthStatus_HEALTHY {
 		return nil
 	}
 	return svc
@@ -313,19 +315,19 @@ func (a *adapter) startGRPCService(ctx context.Context, server *vgrpc.GrpcServer
 	probe.UpdateStatusFromContext(ctx, serviceName, probe.ServiceStatusStopped)
 }
 
-func (a *adapter) addAdapterService(ctx context.Context, server *vgrpc.GrpcServer, handler adapter_services.AdapterServiceServer) {
+func (a *adapter) addAdapterService(ctx context.Context, server *vgrpc.GrpcServer, handler adapter_service.AdapterServiceServer) {
 	logger.Info(ctx, "adding-adapter-service")
 
 	server.AddService(func(gs *grpc.Server) {
-		adapter_services.RegisterAdapterServiceServer(gs, handler)
+		adapter_service.RegisterAdapterServiceServer(gs, handler)
 	})
 }
 
-func (a *adapter) addOltInterAdapterService(ctx context.Context, server *vgrpc.GrpcServer, handler adapter_services.OltInterAdapterServiceServer) {
+func (a *adapter) addOltInterAdapterService(ctx context.Context, server *vgrpc.GrpcServer, handler olt_inter_adapter_service.OltInterAdapterServiceServer) {
 	logger.Info(ctx, "adding-olt-inter-adapter-service")
 
 	server.AddService(func(gs *grpc.Server) {
-		adapter_services.RegisterOltInterAdapterServiceServer(gs, handler)
+		olt_inter_adapter_service.RegisterOltInterAdapterServiceServer(gs, handler)
 	})
 }
 
@@ -371,7 +373,7 @@ func (a *adapter) registerWithCore(ctx context.Context, serviceName string, retr
 	for {
 		gClient, err := a.coreClient.GetCoreServiceClient()
 		if gClient != nil {
-			if _, err = gClient.RegisterAdapter(log.WithSpanFromContext(context.TODO(), ctx), &ic.AdapterRegistration{
+			if _, err = gClient.RegisterAdapter(log.WithSpanFromContext(context.TODO(), ctx), &ca.AdapterRegistration{
 				Adapter: adapterDescription,
 				DTypes:  deviceTypes}); err == nil {
 				break

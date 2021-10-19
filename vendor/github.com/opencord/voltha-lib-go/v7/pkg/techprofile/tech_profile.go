@@ -31,7 +31,6 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
-	"github.com/opencord/voltha-protos/v5/go/openolt"
 	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
 )
 
@@ -460,7 +459,7 @@ func (t *TechProfileMgr) GetGemportForPbit(ctx context.Context, tp interface{}, 
 			}
 		}
 		logger.Errorw(ctx, "No-GemportId-Found-For-Pcp", log.Fields{"pcpVlan": pbit})
-	case *openolt.EponTechProfileInstance:
+	case *tp_pb.EponTechProfileInstance:
 		if dir == tp_pb.Direction_UPSTREAM {
 			// upstream GEM ports
 			numGemPorts := len(tp.UpstreamQueueAttributeList)
