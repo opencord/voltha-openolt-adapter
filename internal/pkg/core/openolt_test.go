@@ -36,7 +36,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
 	"github.com/opencord/voltha-protos/v5/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
@@ -116,7 +116,7 @@ func TestNewOpenOLT(t *testing.T) {
 
 func TestOpenOLT_ActivateImageUpdate(t *testing.T) {
 	type args struct {
-		request *ic.ImageDownloadMessage
+		request *ca.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -177,7 +177,7 @@ func TestOpenOLT_AdoptDevice(t *testing.T) {
 
 func TestOpenOLT_CancelImageDownload(t *testing.T) {
 	type args struct {
-		request *ic.ImageDownloadMessage
+		request *ca.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -253,7 +253,7 @@ func TestOpenOLT_DisableDevice(t *testing.T) {
 
 func TestOpenOLT_DownloadImage(t *testing.T) {
 	type args struct {
-		request *ic.ImageDownloadMessage
+		request *ca.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -282,7 +282,7 @@ func TestOpenOLT_DownloadImage(t *testing.T) {
 
 func TestOpenOLT_GetImageDownloadStatus(t *testing.T) {
 	type args struct {
-		request *ic.ImageDownloadMessage
+		request *ca.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -318,10 +318,10 @@ func TestOpenOLT_GetOfpDeviceInfo(t *testing.T) {
 		name    string
 		fields  *fields
 		args    args
-		want    *ic.SwitchCapability
+		want    *ca.SwitchCapability
 		wantErr error
 	}{
-		{"get_ofp_device_info-1", mockOlt(), args{mockDevice()}, &ic.SwitchCapability{
+		{"get_ofp_device_info-1", mockOlt(), args{mockDevice()}, &ca.SwitchCapability{
 			Desc: &openflow_13.OfpDesc{
 				MfrDesc: "VOLTHA Project",
 				HwDesc:  "open_pon",
@@ -347,63 +347,6 @@ func TestOpenOLT_GetOfpDeviceInfo(t *testing.T) {
 		})
 	}
 }
-
-// func TestOpenOLT_Process_inter_adapter_message(t *testing.T) {
-// 	type args struct {
-// 		msg *ic.InterAdapterMessage
-// 	}
-// 	var message1 = args{
-// 		msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
-// 				Id:            "olt",
-// 				ProxyDeviceId: "",
-// 				ToDeviceId:    "onu1",
-// 			},
-// 		},
-// 	}
-// 	var message2 = args{
-// 		msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
-// 				Id:            "olt",
-// 				ProxyDeviceId: "olt",
-// 				ToDeviceId:    "olt",
-// 				Type:          ic.InterAdapterMessageType_OMCI_REQUEST,
-// 			},
-// 		},
-// 	}
-// 	var message3 = args{
-// 		msg: &ic.InterAdapterMessage{
-// 			Header: &ic.InterAdapterHeader{
-// 				Id:            "olt",
-// 				ProxyDeviceId: "olt",
-// 				ToDeviceId:    "olt",
-// 				Type:          ic.InterAdapterMessageType_FLOW_REQUEST,
-// 			},
-// 		},
-// 	}
-// 	tests := []struct {
-// 		name        string
-// 		fields      *fields
-// 		args        args
-// 		wantErrType reflect.Type
-// 	}{
-// 		{"process_inter_adaptor_messgae-1", mockOlt(), message1,
-// 			reflect.TypeOf(&olterrors.ErrNotFound{})},
-// 		{"process_inter_adaptor_messgae-2", mockOlt(), message2,
-// 			reflect.TypeOf(&olterrors.ErrAdapter{})},
-// 		{"process_inter_adaptor_messgae-3", mockOlt(), message3,
-// 			reflect.TypeOf(&olterrors.ErrInvalidValue{})},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			oo := testOltObject(tt.fields)
-// 			if err := oo.Process_inter_adapter_message(context.Background(), tt.args.msg); reflect.TypeOf(err) != tt.wantErrType {
-// 				t.Errorf("Process_inter_adapter_message() error = %v, wantErr %v",
-// 					reflect.TypeOf(err), tt.wantErrType)
-// 			}
-// 		})
-// 	}
-// }
 
 func TestOpenOLT_RebootDevice(t *testing.T) {
 	type args struct {
@@ -456,7 +399,7 @@ func TestOpenOLT_SendPacketOut(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if _, err := oo.SendPacketOut(context.Background(), &ic.PacketOut{
+			if _, err := oo.SendPacketOut(context.Background(), &ca.PacketOut{
 				DeviceId:     tt.args.deviceID,
 				EgressPortNo: uint32(tt.args.egressPortNo),
 				Packet:       tt.args.packet}); !reflect.DeepEqual(err, tt.wantErr) {
@@ -517,7 +460,7 @@ func TestOpenOLT_ReEnableDevice(t *testing.T) {
 
 func TestOpenOLT_RevertImageUpdate(t *testing.T) {
 	type args struct {
-		request *ic.ImageDownloadMessage
+		request *ca.ImageDownloadMessage
 	}
 	tests := []struct {
 		name    string
@@ -666,9 +609,9 @@ func TestOpenOLT_UnSuppressEvent(t *testing.T) {
 func TestOpenOLT_UpdateFlowsBulk(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
-		flows        *voltha.Flows
-		groups       *voltha.FlowGroups
-		flowMetadata *voltha.FlowMetadata
+		flows        *ofp.Flows
+		groups       *ofp.FlowGroups
+		flowMetadata *ofp.FlowMetadata
 	}
 	tests := []struct {
 		name    string
@@ -683,7 +626,7 @@ func TestOpenOLT_UpdateFlowsBulk(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if _, err := oo.UpdateFlowsBulk(context.Background(), &ic.BulkFlows{
+			if _, err := oo.UpdateFlowsBulk(context.Background(), &ca.BulkFlows{
 				Device:       tt.args.device,
 				Flows:        tt.args.flows,
 				Groups:       tt.args.groups,
@@ -700,7 +643,7 @@ func TestOpenOLT_UpdateFlowsIncrementally(t *testing.T) {
 		device       *voltha.Device
 		flows        *openflow_13.FlowChanges
 		groups       *openflow_13.FlowGroupChanges
-		flowMetadata *voltha.FlowMetadata
+		flowMetadata *ofp.FlowMetadata
 	}
 
 	tests := []struct {
@@ -716,7 +659,7 @@ func TestOpenOLT_UpdateFlowsIncrementally(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if _, err := oo.UpdateFlowsIncrementally(context.Background(), &ic.IncrementalFlows{
+			if _, err := oo.UpdateFlowsIncrementally(context.Background(), &ca.IncrementalFlows{
 				Device:       tt.args.device,
 				Flows:        tt.args.flows,
 				Groups:       tt.args.groups,
@@ -744,7 +687,7 @@ func TestOpenOLT_UpdatePmConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			oo := testOltObject(tt.fields)
-			if _, err := oo.UpdatePmConfig(context.Background(), &ic.PmConfigsInfo{DeviceId: tt.args.device.Id, PmConfigs: tt.args.pmConfigs}); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := oo.UpdatePmConfig(context.Background(), &ca.PmConfigsInfo{DeviceId: tt.args.device.Id, PmConfigs: tt.args.pmConfigs}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_pm_config() error = %v, wantErr %v", err, tt.wantErr)
 			}
 

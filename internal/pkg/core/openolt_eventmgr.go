@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"strconv"
 
-	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
+	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
@@ -669,7 +669,7 @@ func (em *OpenOltEventMgr) onuLossOfSyncIndication(ctx context.Context, onuLOKI 
 // oltIntfOperIndication handles Up and Down state of an OLT PON ports
 func (em *OpenOltEventMgr) oltIntfOperIndication(ctx context.Context, ifindication *oop.IntfOperIndication, deviceID string, raisedTs int64) {
 	portNo := plt.IntfIDToPortNo(ifindication.IntfId, voltha.Port_PON_OLT)
-	if port, err := em.handler.getPortFromCore(ctx, &ic.PortFilter{
+	if port, err := em.handler.getPortFromCore(ctx, &ca.PortFilter{
 		DeviceId: deviceID,
 		Port:     portNo,
 	}); err != nil {
