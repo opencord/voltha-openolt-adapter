@@ -1565,7 +1565,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "RouteFlowToOnuChannel-7",
@@ -1612,15 +1612,17 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	var wg sync.WaitGroup
 	defer wg.Wait() // wait for all go routines to complete
 	for _, tt := range tests {
+		wg.Add(1) // one per go routine
+		// The flows needs to be pushed in a particular order as they are stateful - meaning a flow delete can happen only if a flow add was done
+		// This delay is needed so that flows arrive in order. Otherwise if all flows are pushed at once the go routine can get scheduled
+		// in random order causing flows to come out of order and test fails
+		time.Sleep(5 * time.Millisecond)
 		t.Run(tt.name, func(t *testing.T) {
-			wg.Add(1) // one per go routine
-			go func() {
-				defer wg.Done()
-				tt.returnedErr = flowMgr[0].RouteFlowToOnuChannel(tt.args.ctx, tt.args.flow, tt.args.addFlow, tt.args.flowMetadata)
-				if (tt.wantErr == false && tt.returnedErr != nil) || (tt.wantErr == true && tt.returnedErr == nil) {
-					t.Errorf("OpenOltFlowMgr.RouteFlowToOnuChannel() error = %v, wantErr %v", tt.returnedErr, tt.wantErr)
-				}
-			}()
+			defer wg.Done()
+			tt.returnedErr = flowMgr[0].RouteFlowToOnuChannel(tt.args.ctx, tt.args.flow, tt.args.addFlow, tt.args.flowMetadata)
+			if (tt.wantErr == false && tt.returnedErr != nil) || (tt.wantErr == true && tt.returnedErr == nil) {
+				t.Errorf("OpenOltFlowMgr.RouteFlowToOnuChannel() error = %v, wantErr %v", tt.returnedErr, tt.wantErr)
+			}
 		})
 	}
 }
