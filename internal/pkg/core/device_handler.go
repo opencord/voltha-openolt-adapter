@@ -229,9 +229,6 @@ func (dh *DeviceHandler) stop(ctx context.Context) {
 	logger.Debug(ctx, "stopping-device-agent")
 	dh.exitChannel <- 1
 
-	// Stop the adapter grpc clients for that parent device
-	dh.deleteAdapterClients(ctx)
-
 	logger.Debug(ctx, "device-agent-stopped")
 }
 
@@ -1858,6 +1855,8 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	// So any attempt to update the operation status and connection status of the OLT will result in core throwing an error back,
 	// because the device does not exist in DB.
 
+	// Stop the adapter grpc clients for that parent device
+	dh.deleteAdapterClients(ctx)
 	return nil
 }
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
@@ -3077,7 +3076,7 @@ func (dh *DeviceHandler) deleteAdapterClients(ctx context.Context) {
 
 // TODO:  Any action the adapter needs to do following a onu adapter restart?
 func (dh *DeviceHandler) onuAdapterRestarted(ctx context.Context, endPoint string) error {
-	logger.Warnw(ctx, "onu-adapter-restarted", log.Fields{"endpoint": endPoint})
+	logger.Warnw(ctx, "onu-adapter-reconnected", log.Fields{"endpoint": endPoint})
 	return nil
 }
 
