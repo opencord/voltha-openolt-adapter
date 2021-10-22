@@ -1763,14 +1763,21 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 
 	// Update the all ports state on that device to enable
 	ports, err := dh.listDevicePortsFromCore(ctx, device.Id)
+	var retError error
 	if err != nil {
-		return olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device-id": device.Id}, err)
+		retError = olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device-id": device.Id}, err)
+	} else {
+		if err := dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
+			retError = olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
+		}
 	}
-	if err := dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
-		return olterrors.NewErrAdapter("port-status-update-failed-after-olt-reenable", log.Fields{"device": device}, err)
+	if retError == nil {
+		//Update the device oper status as ACTIVE
+		device.OperStatus = voltha.OperStatus_ACTIVE
+	} else {
+		//Update the device oper status as FAILED
+		device.OperStatus = voltha.OperStatus_FAILED
 	}
-	//Update the device oper status as ACTIVE
-	device.OperStatus = voltha.OperStatus_ACTIVE
 	dh.device = device
 
 	if err := dh.updateDeviceStateInCore(ctx, &ic.DeviceStateFilter{
@@ -1786,7 +1793,7 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 
 	logger.Debugw(ctx, "reenabledevice-end", log.Fields{"device-id": device.Id})
 
-	return nil
+	return retError
 }
 
 func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemInfo) error {
