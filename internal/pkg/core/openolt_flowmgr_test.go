@@ -305,7 +305,7 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 	//multicast flow
 	multicastFa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.VlanVid(660),             //vlan
 			fu.Metadata_ofp(uint64(66)), //inner vlan
 			fu.EthType(0x800),           //ipv4
@@ -373,7 +373,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kw,
@@ -382,7 +382,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	// Downstream flow
 	fa3 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.Metadata_ofp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
 		},
@@ -516,7 +516,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.Metadata_ofp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 			fu.VlanPcp(1000),
-			fu.UdpDst(1048576),
+			fu.UdpDst(16777216),
 			fu.UdpSrc(536870912),
 			fu.Ipv4Dst(65535),
 			fu.Ipv4Src(536870912),
@@ -551,7 +551,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 	//multicast flow
 	fa11 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.VlanVid(660),             //vlan
 			fu.Metadata_ofp(uint64(66)), //inner vlan
 			fu.EthType(0x800),           //ipv4
@@ -776,10 +776,10 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 255, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1, false},
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "nni", IntfId: 0, GemportId: 1, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1048576, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "nni", IntfId: 0, GemportId: 1, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 16777216, false},
 		// Negative Test cases.
 		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 1, GemportId: 1, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 1, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 1, false},
-		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 257, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 0, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 16, false},
+		{"GetLogicalPortFromPacketIn", args{packetIn: &openoltpb2.PacketIndication{IntfType: "pon", IntfId: 0, GemportId: 257, OnuId: 1, UniId: 0, FlowId: 100, PortNo: 0, Cookie: 100, Pkt: []byte("GetLogicalPortFromPacketIn")}}, 256, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -915,7 +915,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kw,
@@ -933,7 +933,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kw,
@@ -950,7 +950,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kw,
@@ -958,7 +958,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 
 	fa4 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.Metadata_ofp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 			fu.VlanPcp(1),
@@ -983,7 +983,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		},
 		Actions: []*ofp.OfpAction{
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kw,
@@ -1233,7 +1233,7 @@ func TestOpenOltFlowMgr_TestMulticastFlowAndGroup(t *testing.T) {
 	//create multicast flow
 	multicastFlowArgs := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.VlanVid(660),             //vlan
 			fu.Metadata_ofp(uint64(66)), //inner vlan
 			fu.EthType(0x800),           //ipv4
@@ -1316,7 +1316,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	// Downstream LLDP Trap from NNI0 flow
 	fa0 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.EthType(35020),
 		},
 		Actions: []*ofp.OfpAction{
@@ -1333,7 +1333,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.IpProto(17), // dhcp
 			fu.VlanPcp(0),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1352,7 +1352,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.EthType(0x888E),
 			fu.VlanPcp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1370,12 +1370,12 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.Metadata_ofp(1),
 			//fu.EthType(0x8100),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
-			fu.Output(1048576),
+			fu.Output(16777216),
 			fu.PushVlan(0x8100),
 		},
 		KV: kwTable1Meter1,
@@ -1384,11 +1384,11 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	// Downstream HSIA - ONU1 UNI0 PON0
 	fa4 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
-			fu.InPort(1048576),
+			fu.InPort(16777216),
 			fu.Metadata_ofp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 			fu.VlanPcp(1),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1407,7 +1407,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.IpProto(17), // dhcp
 			fu.VlanPcp(0),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1426,7 +1426,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.EthType(0x888E),
 			fu.VlanPcp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 259),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1445,7 +1445,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.EthType(0x8863),
 			fu.VlanPcp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
@@ -1464,7 +1464,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.EthType(0x8863),
 			fu.VlanPcp(1),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 259),
-			fu.TunnelId(16),
+			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
 			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),

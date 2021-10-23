@@ -998,8 +998,8 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 		{"PacketOut-1", dh1, args{egressPortNo: 0, packet: pktout}, false},
 		{"PacketOut-2", dh2, args{egressPortNo: 1, packet: pktout}, false},
 		{"PacketOut-3", dh2, args{egressPortNo: 4112, packet: pktout}, false},
-		{"PacketOut-4", dh1, args{egressPortNo: 1048577, packet: pktout}, false},
-		{"PacketOut-5", dh2, args{egressPortNo: 1048576, packet: pktout}, false},
+		{"PacketOut-4", dh1, args{egressPortNo: 16777217, packet: pktout}, false},
+		{"PacketOut-5", dh2, args{egressPortNo: 16777216, packet: pktout}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1205,8 +1205,8 @@ func Test_startCollector(t *testing.T) {
 	mcs := newMockCoreService()
 	mcs.DevicePorts[dh.device.Id] = []*voltha.Port{
 		{PortNo: 1, Label: "pon", Type: voltha.Port_PON_OLT},
-		{PortNo: 1048577, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
-		{PortNo: 1048578, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+		{PortNo: 16777216, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
+		{PortNo: 16777218, Label: "nni", Type: voltha.Port_ETHERNET_NNI},
 	}
 	dh.coreClient.SetService(mcs)
 	dh.portStats.NorthBoundPort = make(map[uint32]*NniPort)
