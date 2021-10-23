@@ -114,7 +114,7 @@ github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/opencord/voltha-lib-go/v7 v7.0.1
+# github.com/opencord/voltha-lib-go/v7 v7.0.4
 ## explicit
 github.com/opencord/voltha-lib-go/v7/pkg/config
 github.com/opencord/voltha-lib-go/v7/pkg/db
