@@ -16,6 +16,23 @@
       "message": "Has a dependency on https://gerrit.opencord.org/c/voltha-openonu-adapter-go/+/28513. So https://gerrit.opencord.org/c/voltha-openonu-adapter-go/+/28513 has to merge first.",
       "revId": "0c009fcf9e09a4dbf3c52a154d416978bb16b7fa",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96b09d6c_c1810b2c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-25T19:24:26Z",
+      "side": 1,
+      "message": "recheck",
+      "revId": "0c009fcf9e09a4dbf3c52a154d416978bb16b7fa",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
