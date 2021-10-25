@@ -16,6 +16,23 @@
       "message": "Needs to be merged with VOL-4411 changes",
       "revId": "67d4f0d22c56bf4ed8e1b40976d81ec83daf4167",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8647cd39_382fd9f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-10-25T07:50:02Z",
+      "side": 1,
+      "message": "needs rebase, can be done instead of a recheck after voltha-system-tests change gets merged ",
+      "revId": "67d4f0d22c56bf4ed8e1b40976d81ec83daf4167",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
