@@ -1868,7 +1868,6 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 			var err error
 			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
-				onuID := make([]uint32, 1)
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
 				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
@@ -1877,8 +1876,6 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 				for _, gem := range onu.GemPorts {
 					dh.resourceMgr[ponPort].DeleteFlowIDsForGem(ctx, ponPort, gem)
 				}
-				onuID[0] = onu.OnuID
-				dh.resourceMgr[ponPort].FreeonuID(ctx, ponPort, onuID)
 				err = dh.resourceMgr[ponPort].DelOnuGemInfo(ctx, ponPort, onu.OnuID)
 				if err != nil {
 					logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
@@ -2325,7 +2322,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			//Not returning error on cleanup.
 		}
 		logger.Debugw(ctx, "removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGem})
-		dh.resourceMgr[intfID].FreeonuID(ctx, intfID, []uint32{onuGem.OnuID})
+		dh.resourceMgr[intfID].FreeonuID(ctx, intfID, []uint32{onuID})
 	}
 	dh.onus.Delete(onuKey)
 	dh.discOnus.Delete(onuSn)
