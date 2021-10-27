@@ -24,6 +24,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d10854b4_a0ddf8ab",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1884,
+      "author": {
+        "id": 1000726
+      },
+      "writtenOn": "2021-10-27T06:09:44Z",
+      "side": 1,
+      "message": "Here after the for loop for geminfo we have \ndh.resourceMgr[ponPort].Delete(ctx, ponPort)\n\nThis will delete all the device pool, hence we need not call freeonuid",
+      "parentUuid": "e936ad31_b6dcba6c",
+      "range": {
+        "startLine": 1884,
+        "startChar": 3,
+        "endLine": 1884,
+        "endChar": 4
+      },
+      "revId": "d3b71caeddabd992e9622b455151a460da16ea05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a29fd26d_417a12af",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-10-27T05:51:22Z",
       "side": 1,
       "message": "I guess FreeonuID() function shouldn\u0027t be call in the if-else block. Even there is no GEM found for ONU, the onuID should be cleared.",
+      "range": {
+        "startLine": 2331,
+        "startChar": 0,
+        "endLine": 2331,
+        "endChar": 64
+      },
+      "revId": "d3b71caeddabd992e9622b455151a460da16ea05",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c54d546d_2477fd50",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2331,
+      "author": {
+        "id": 1000726
+      },
+      "writtenOn": "2021-10-27T06:09:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a29fd26d_417a12af",
       "range": {
         "startLine": 2331,
         "startChar": 0,
