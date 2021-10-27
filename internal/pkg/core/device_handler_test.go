@@ -285,6 +285,15 @@ func negativeDeviceHandler() *DeviceHandler {
 	device.Id = ""
 	return dh
 }
+
+func negativeDeviceHandlerNilFlowMgr() *DeviceHandler {
+	dh := newMockDeviceHandler()
+	device := dh.device
+	device.Id = ""
+	dh.flowMgr = nil
+	return dh
+}
+
 func Test_generateMacFromHost(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
@@ -1294,6 +1303,81 @@ func TestDeviceHandler_TestReconcileStatus(t *testing.T) {
 			isRestarted := tt.devicehandler.Client.(*mocks.MockOpenoltClient).IsRestarted
 			if tt.expectedRestart != isRestarted {
 				t.Errorf("olt-reboot-failed expected= %v, got= %v", tt.expectedRestart, isRestarted)
+			}
+		})
+	}
+}
+
+func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
+	dh1 := negativeDeviceHandlerNilFlowMgr()
+	tests := []struct {
+		name          string
+		devicehandler *DeviceHandler
+		wantErr       bool
+	}{
+		{"update-flow-when-device-handler-is-nil", dh1, true},
+	}
+
+	flowMetadata0 := voltha.FlowMetadata{Meters: []*voltha.OfpMeterConfig{
+		{
+			Flags:   5,
+			MeterId: 1,
+			Bands: []*voltha.OfpMeterBandHeader{
+				{
+					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Rate:      16000,
+					BurstSize: 0,
+				},
+				{
+					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Rate:      32000,
+					BurstSize: 30,
+				},
+				{
+					Type:      voltha.OfpMeterBandType_OFPMBT_DROP,
+					Rate:      64000,
+					BurstSize: 30,
+				},
+			},
+		},
+	}}
+
+	kwTable0Meter1 := make(map[string]uint64)
+	kwTable0Meter1["table_id"] = 0
+	kwTable0Meter1["meter_id"] = 1
+	kwTable0Meter1["write_metadata"] = 0x4000000000 // Tech-Profile-ID 64
+
+	// Upstream flow DHCP flow - ONU1 UNI0 PON0
+	fa0 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.Metadata_ofp(1),
+			fu.IpProto(17), // dhcp
+			fu.VlanPcp(0),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
+			fu.TunnelId(256),
+		},
+		Actions: []*ofp.OfpAction{
+			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.Output(2147483645),
+			fu.PushVlan(0x8100),
+		},
+		KV: kwTable0Meter1,
+	}
+
+	flow0, _ := fu.MkFlowStat(fa0)
+	flowAdd := of.Flows{Items: make([]*voltha.OfpFlowStats, 0)}
+	flowAdd.Items = append(flowAdd.Items, flow0)
+	flowRemove := of.Flows{Items: make([]*voltha.OfpFlowStats, 0)}
+	flowChanges := &ofp.FlowChanges{ToAdd: &flowAdd, ToRemove: &flowRemove}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.devicehandler.UpdateFlowsIncrementally(context.Background(), tt.devicehandler.device, flowChanges, nil, &flowMetadata0)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DeviceHandler.populateDeviceInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
