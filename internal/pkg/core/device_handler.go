@@ -1638,7 +1638,13 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 			if flow_utils.HasGroup(flow) {
 				err = dh.RouteMcastFlowOrGroupMsgToChannel(ctx, flow, nil, McastFlowOrGroupAdd)
 			} else {
-				err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
+				if dh.flowMgr == nil || dh.flowMgr[ponIf] == nil {
+					// The flow manager module could be uninitialized if the flow arrives too soon before the device has reconciled fully
+					logger.Errorw(ctx, "flow-manager-uninitialized", log.Fields{"device-id": device.Id})
+					err = errors.New(fmt.Sprintf("flow-manager-uninitialized-%v", device.Id))
+				} else {
+					err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
+				}
 			}
 			if err != nil {
 				errorsList = append(errorsList, err)
