@@ -16,6 +16,24 @@
       "message": "this will generate an NPE if the resource manager is nil. need to be done at line 2331. or are you seeing the issue with the nil resource manager ?",
       "revId": "bcc95855240ddd49b6631020fb7e734179890fad",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c6db35d_defafe9b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2333,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-10-27T11:19:44Z",
+      "side": 1,
+      "message": "actually no NPE can be generated",
+      "parentUuid": "4d5698cc_95e63864",
+      "revId": "bcc95855240ddd49b6631020fb7e734179890fad",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
