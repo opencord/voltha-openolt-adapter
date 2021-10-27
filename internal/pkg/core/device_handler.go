@@ -1604,10 +1604,7 @@ func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.P
 	}
 }
 
-//UpdateFlowsIncrementally updates the device flow
-func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
-	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
-
+func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, flowMetadata *voltha.FlowMetadata) []error {
 	var err error
 	var errorsList []error
 
@@ -1638,13 +1635,26 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 			if flow_utils.HasGroup(flow) {
 				err = dh.RouteMcastFlowOrGroupMsgToChannel(ctx, flow, nil, McastFlowOrGroupAdd)
 			} else {
-				err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
+				if dh.flowMgr == nil || dh.flowMgr[ponIf] == nil {
+					// The flow manager module could be uninitialized if the flow arrives too soon before the device has reconciled fully
+					logger.Errorw(ctx, "flow-manager-uninitialized", log.Fields{"device-id": device.Id})
+					err = fmt.Errorf("flow-manager-uninitialized-%v", device.Id)
+				} else {
+					err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
+				}
 			}
 			if err != nil {
 				errorsList = append(errorsList, err)
 			}
 		}
 	}
+
+	return errorsList
+}
+
+func (dh *DeviceHandler) handleGroups(ctx context.Context, groups *of.FlowGroupChanges) []error {
+	var err error
+	var errorsList []error
 
 	// Whether we need to synchronize multicast group adds and modifies like flow add and delete needs to be investigated
 	if groups != nil {
@@ -1670,6 +1680,17 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 			}
 		}
 	}
+
+	return errorsList
+}
+
+//UpdateFlowsIncrementally updates the device flow
+func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+
+	var errorsList []error
+	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
+	errorsList = append(errorsList, dh.handleFlows(ctx, device, flows, flowMetadata)...)
+	errorsList = append(errorsList, dh.handleGroups(ctx, groups)...)
 	if len(errorsList) > 0 {
 		return fmt.Errorf("errors-installing-flows-groups, errors:%v", errorsList)
 	}

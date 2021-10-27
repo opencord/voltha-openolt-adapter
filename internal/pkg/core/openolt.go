@@ -155,11 +155,6 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 	logger.Infow(ctx, "reconcile-device", log.Fields{"device-id": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		handler := NewDeviceHandler(oo.coreClient, oo.eventProxy, device, oo, oo.configManager, oo.config)
-		handler.adapterPreviouslyConnected = true
-		oo.addDeviceHandlerToMap(handler)
-		handler.transitionMap = NewTransitionMap(handler)
-
 		//Setting state to RECONCILING
 		cgClient, err := oo.coreClient.GetCoreServiceClient()
 		if err != nil {
@@ -174,6 +169,14 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		}); err != nil {
 			return nil, olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": device.Id}, err)
 		}
+
+		// The OperState of the device is set to RECONCILING in the previous section. This also needs to be set on the
+		// locally cached copy of the device struct.
+		device.OperStatus = voltha.OperStatus_RECONCILING
+		handler := NewDeviceHandler(oo.coreClient, oo.eventProxy, device, oo, oo.configManager, oo.config)
+		handler.adapterPreviouslyConnected = true
+		oo.addDeviceHandlerToMap(handler)
+		handler.transitionMap = NewTransitionMap(handler)
 
 		handler.transitionMap.Handle(log.WithSpanFromContext(context.Background(), ctx), DeviceInit)
 	}
