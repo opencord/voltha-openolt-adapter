@@ -325,7 +325,6 @@ func (rsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, PonIntfID uint3
 		return 0, err
 	}
 	if len(onuID) > 0 {
-		rsrcMgr.PonRsrMgr.InitResourceMap(ctx, fmt.Sprintf("%d,%d", PonIntfID, onuID[0]))
 		return onuID[0], err
 	}
 
@@ -490,13 +489,6 @@ func (rsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 		})
 	} else {
 		logger.Infow(ctx, "freed onu id", log.Fields{"intfID": intfID, "onuID": onuID})
-	}
-
-	/* Free onu id for a particular interface.*/
-	var IntfonuID string
-	for _, onu := range onuID {
-		IntfonuID = fmt.Sprintf("%d,%d", intfID, onu)
-		rsrcMgr.PonRsrMgr.RemoveResourceMap(ctx, IntfonuID)
 	}
 }
 
