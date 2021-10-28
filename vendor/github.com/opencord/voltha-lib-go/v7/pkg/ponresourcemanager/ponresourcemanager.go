@@ -1132,15 +1132,23 @@ func (PONRMgr *PONResourceManager) UpdateAllocIdsForOnu(ctx context.Context, Int
 	var Value []byte
 	var err error
 	Path := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
-	Value, err = json.Marshal(AllocIDs)
-	if err != nil {
-		logger.Error(ctx, "failed to Marshal")
-		return err
-	}
+	if AllocIDs == nil {
+		// No more alloc ids associated with the key. Delete the key entirely
+		if err = PONRMgr.KVStore.Delete(ctx, Path); err != nil {
+			logger.Errorf(ctx, "Failed to delete key %s", Path)
+			return err
+		}
+	} else {
+		Value, err = json.Marshal(AllocIDs)
+		if err != nil {
+			logger.Error(ctx, "failed to Marshal")
+			return err
+		}
 
-	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", Path)
-		return err
+		if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
+			logger.Errorf(ctx, "Failed to update resource %s", Path)
+			return err
+		}
 	}
 	return err
 }
@@ -1156,15 +1164,23 @@ func (PONRMgr *PONResourceManager) UpdateGEMPortIDsForOnu(ctx context.Context, I
 	var err error
 	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
 	logger.Debugf(ctx, "Updating gemport ids for %s", Path)
-	Value, err = json.Marshal(GEMPortIDs)
-	if err != nil {
-		logger.Error(ctx, "failed to Marshal")
-		return err
-	}
+	if GEMPortIDs == nil {
+		// No more gemport ids associated with the key. Delete the key entirely
+		if err = PONRMgr.KVStore.Delete(ctx, Path); err != nil {
+			logger.Errorf(ctx, "Failed to delete key %s", Path)
+			return err
+		}
+	} else {
+		Value, err = json.Marshal(GEMPortIDs)
+		if err != nil {
+			logger.Error(ctx, "failed to Marshal")
+			return err
+		}
 
-	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", Path)
-		return err
+		if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
+			logger.Errorf(ctx, "Failed to update resource %s", Path)
+			return err
+		}
 	}
 	return err
 }
@@ -1257,12 +1273,10 @@ func (PONRMgr *PONResourceManager) GenerateNextID(ctx context.Context, Resource 
 	*/
 	ByteArray, err := ToByte(Resource[POOL])
 	if err != nil {
-		logger.Error(ctx, "Failed to convert resource to byte array")
 		return 0, err
 	}
 	Data := bitmap.TSFromData(ByteArray, false)
 	if Data == nil {
-		logger.Error(ctx, "Failed to get data from byte array")
 		return 0, errors.New("Failed to get data from byte array")
 	}
 
@@ -1272,6 +1286,9 @@ func (PONRMgr *PONResourceManager) GenerateNextID(ctx context.Context, Resource 
 		if !Data.Get(Idx) {
 			break
 		}
+	}
+	if Idx == Len {
+		return 0, errors.New("resource-exhausted--no-free-id-in-the-pool")
 	}
 	Data.Set(Idx, true)
 	res := uint32(Resource[START_IDX].(float64))
@@ -1297,6 +1314,10 @@ func (PONRMgr *PONResourceManager) ReleaseID(ctx context.Context, Resource map[s
 		return false
 	}
 	Idx := Id - uint32(Resource[START_IDX].(float64))
+	if Idx >= uint32(Data.Len()) {
+		logger.Errorf(ctx, "ID %d is out of the boundaries of the pool", Id)
+		return false
+	}
 	Data.Set(int(Idx), false)
 	Resource[POOL] = Data.Data(false)
 
@@ -1314,6 +1335,10 @@ func (PONRMgr *PONResourceManager) reserveID(ctx context.Context, TSData *bitmap
 		return false
 	}
 	Idx := Id - StartIndex
+	if Idx >= uint32(Data.Len()) {
+		logger.Errorf(ctx, "Reservation failed. ID %d is out of the boundaries of the pool", Id)
+		return false
+	}
 	Data.Set(int(Idx), true)
 	return true
 }
