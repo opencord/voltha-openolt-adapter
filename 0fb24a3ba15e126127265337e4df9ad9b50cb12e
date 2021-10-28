@@ -50,6 +50,23 @@
       "message": "recheck",
       "revId": "0fb24a3ba15e126127265337e4df9ad9b50cb12e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94755e4b_276ab894",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-28T03:14:30Z",
+      "side": 1,
+      "message": "hardware test\nfunctional tests",
+      "revId": "0fb24a3ba15e126127265337e4df9ad9b50cb12e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
