@@ -968,7 +968,7 @@ func (f *OpenOltFlowMgr) populateTechProfileForCurrentPonPort(ctx context.Contex
 }
 
 func (f *OpenOltFlowMgr) addUpstreamDataPathFlow(ctx context.Context, flowContext *flowContext) error {
-	flowContext.classifier[PacketTagType] = SingleTag
+	flowContext.classifier[PacketTagType] = SingleTag // FIXME: This hardcoding needs to be removed.
 	logger.Debugw(ctx, "adding-upstream-data-flow",
 		log.Fields{
 			"uplinkClassifier": flowContext.classifier,
@@ -981,7 +981,16 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowCont
 	downlinkClassifier := flowContext.classifier
 	downlinkAction := flowContext.action
 
-	downlinkClassifier[PacketTagType] = DoubleTag
+	// TODO: For now mark the PacketTagType as SingleTag when OLT is transparent to VLAN
+	// Per some deployment models, it is also possible that ONU operates on double tagged packets,
+	// so this hardcoding of SingeTag packet-tag-type may be problem for such deployment models.
+	// Need a better way for detection of packet tag type from OpenFlow message.
+	if _, ok := downlinkClassifier[VlanVid]; !ok {
+		downlinkClassifier[PacketTagType] = SingleTag
+	} else {
+		downlinkClassifier[PacketTagType] = DoubleTag
+		downlinkAction[PopVlan] = true
+	}
 	logger.Debugw(ctx, "adding-downstream-data-flow",
 		log.Fields{
 			"downlinkClassifier": downlinkClassifier,
@@ -1003,17 +1012,10 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowCont
 		}
 	}
 
-	/* Already this info available classifier? */
-	downlinkAction[PopVlan] = true
 	// vlan_vid is a uint32.  must be type asserted as such or conversion fails
 	dlClVid, ok := downlinkClassifier[VlanVid].(uint32)
 	if ok {
 		downlinkAction[VlanVid] = dlClVid & 0xfff
-	} else {
-		return olterrors.NewErrInvalidValue(log.Fields{
-			"reason":    "failed-to-convert-vlanid-classifier",
-			"vlan-id":   VlanVid,
-			"device-id": f.deviceHandler.device.Id}, nil).Log()
 	}
 
 	return f.addSymmetricDataPathFlow(ctx, flowContext, Downstream)
@@ -1403,10 +1405,21 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 			classifier.OVid = vid
 		}
 	}
+	// The classifierInfo[Metadata] carries the vlan that the OLT see when it receives packet from the ONU
 	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
 		vid := uint32(metadata)
-		if vid != ReservedVlan {
-			classifier.IVid = vid
+		// Set the OVid or IVid classifier based on the whether OLT is using a transparent tag or not
+		// If OLT is using transparent tag mechanism, then it classifies whatever tag it sees to/from ONU which
+		//is OVid from the perspective of the OLT. When OLT also places or pops the outer tag, then classifierInfo[Metadata]
+		// becomes the IVid.
+		if classifier.OVid != 0 && classifier.OVid != ReservedVlan { // This is case when classifier.OVid is not set
+			if vid != ReservedVlan {
+				classifier.IVid = vid
+			}
+		} else {
+			if vid != ReservedVlan {
+				classifier.OVid = vid
+			}
 		}
 	}
 	// Use VlanPCPMask (0xff) to signify NO PCP. Else use valid PCP (0 to 7)
@@ -1461,9 +1474,13 @@ func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo ma
 		}
 	} else if _, ok := actionInfo[TrapToHost]; ok {
 		action.Cmd.TrapToHost = actionInfo[TrapToHost].(bool)
-	} else {
-		return nil, olterrors.NewErrInvalidValue(log.Fields{"action-command": actionInfo}, nil)
 	}
+	// When OLT is transparent to vlans no-action is valid.
+	/*
+		else {
+			return nil, olterrors.NewErrInvalidValue(log.Fields{"action-command": actionInfo}, nil)
+		}
+	*/
 	return &action, nil
 }
 
@@ -3029,8 +3046,11 @@ func formulateClassifierInfoFromFlow(ctx context.Context, classifierInfo map[str
 			classifierInfo[InPort] = field.GetPort()
 			logger.Debug(ctx, "field-type-in-port", log.Fields{"classifierInfo[IN_PORT]": classifierInfo[InPort].(uint32)})
 		} else if field.Type == flows.VLAN_VID {
-			classifierInfo[VlanVid] = field.GetVlanVid() & 0xfff
-			logger.Debug(ctx, "field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
+			// The ReservedVlan is used to signify transparent vlan. Do not do any classification when we see ReservedVlan
+			if field.GetVlanVid() != ReservedVlan {
+				classifierInfo[VlanVid] = field.GetVlanVid() & 0xfff
+				logger.Debug(ctx, "field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
+			}
 		} else if field.Type == flows.VLAN_PCP {
 			classifierInfo[VlanPcp] = field.GetVlanPcp()
 			logger.Debug(ctx, "field-type-vlan-pcp", log.Fields{"classifierInfo[VLAN_PCP]": classifierInfo[VlanPcp].(uint32)})
