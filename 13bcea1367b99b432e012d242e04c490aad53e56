@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c98fd078_2266f89b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-10-28T22:19:10Z",
+      "side": 1,
+      "message": "needs https://gerrit.opencord.org/c/voltha-lib-go/+/28700\n",
+      "revId": "13bcea1367b99b432e012d242e04c490aad53e56",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
