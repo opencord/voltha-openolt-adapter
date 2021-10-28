@@ -2319,7 +2319,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 
 // handleFlowWithGroup adds multicast flow to the device.
 func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
-	classifierInfo[PacketTagType] = DoubleTag
+	classifierInfo[PacketTagType] = getPacketTypeFromClassifiers(classifierInfo)
 	logger.Debugw(ctx, "add-multicast-flow", log.Fields{
 		"classifier-info": classifierInfo,
 		"actionInfo":      actionInfo})
