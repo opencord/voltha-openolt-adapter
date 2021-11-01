@@ -16,6 +16,23 @@
       "message": "https://gerrit.opencord.org/c/voltha-lib-go/+/28771 has to merge first",
       "revId": "f29d0e4869701c4ae7b1f665b79b9df08bde6103",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7fb4b65_c7a516b3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2021-11-01T21:30:35Z",
+      "side": 1,
+      "message": "recheck",
+      "revId": "f29d0e4869701c4ae7b1f665b79b9df08bde6103",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
