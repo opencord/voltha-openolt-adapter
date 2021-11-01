@@ -1138,15 +1138,23 @@ func (PONRMgr *PONResourceManager) UpdateAllocIdsForOnu(ctx context.Context, Int
 	var Value []byte
 	var err error
 	Path := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
-	Value, err = json.Marshal(AllocIDs)
-	if err != nil {
-		logger.Error(ctx, "failed to Marshal")
-		return err
-	}
+	if AllocIDs == nil {
+		// No more alloc ids associated with the key. Delete the key entirely
+		if err = PONRMgr.KVStore.Delete(ctx, Path); err != nil {
+			logger.Errorf(ctx, "Failed to delete key %s", Path)
+			return err
+		}
+	} else {
+		Value, err = json.Marshal(AllocIDs)
+		if err != nil {
+			logger.Error(ctx, "failed to Marshal")
+			return err
+		}
 
-	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", Path)
-		return err
+		if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
+			logger.Errorf(ctx, "Failed to update resource %s", Path)
+			return err
+		}
 	}
 	return err
 }
@@ -1162,15 +1170,23 @@ func (PONRMgr *PONResourceManager) UpdateGEMPortIDsForOnu(ctx context.Context, I
 	var err error
 	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
 	logger.Debugf(ctx, "Updating gemport ids for %s", Path)
-	Value, err = json.Marshal(GEMPortIDs)
-	if err != nil {
-		logger.Error(ctx, "failed to Marshal")
-		return err
-	}
+	if GEMPortIDs == nil {
+		// No more gemport ids associated with the key. Delete the key entirely
+		if err = PONRMgr.KVStore.Delete(ctx, Path); err != nil {
+			logger.Errorf(ctx, "Failed to delete key %s", Path)
+			return err
+		}
+	} else {
+		Value, err = json.Marshal(GEMPortIDs)
+		if err != nil {
+			logger.Error(ctx, "failed to Marshal")
+			return err
+		}
 
-	if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
-		logger.Errorf(ctx, "Failed to update resource %s", Path)
-		return err
+		if err = PONRMgr.KVStore.Put(ctx, Path, Value); err != nil {
+			logger.Errorf(ctx, "Failed to update resource %s", Path)
+			return err
+		}
 	}
 	return err
 }
