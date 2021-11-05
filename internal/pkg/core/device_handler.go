@@ -114,6 +114,8 @@ type DeviceHandler struct {
 
 	adapterPreviouslyConnected bool
 	agentPreviouslyConnected   bool
+
+	isDeviceDeletionInProgress bool
 }
 
 //OnuDevice represents ONU related info
@@ -1604,9 +1606,21 @@ func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.P
 	}
 }
 
+<<<<<<< HEAD   (faa421 [VOL-4439] Support transparent VLAN at the OLT.)
 func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, flowMetadata *voltha.FlowMetadata) []error {
+=======
+//UpdateFlowsIncrementally updates the device flow
+func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
+	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
+>>>>>>> CHANGE (1cd96d VOL-4446: Fix etcd stale data issue post device delete)
 	var err error
 	var errorsList []error
+
+	if dh.getDeviceDeletionInProgressFlag() {
+		// The device itself is going to be reset as part of deletion. So nothing to be done.
+		logger.Infow(ctx, "device-deletion-in-progress--not-handling-flows-or-groups", log.Fields{"device-id": device.Id})
+		return nil
+	}
 
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
@@ -1855,6 +1869,9 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	   This clears up flow data and also resource map data for various
 	   other pon resources like alloc_id and gemport_id
 	*/
+
+	dh.setDeviceDeletionInProgressFlag(true)
+
 	dh.cleanupDeviceResources(ctx)
 	logger.Debugw(ctx, "removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 	// Stop the Stats collector
@@ -1899,6 +1916,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
 				}
+<<<<<<< HEAD   (faa421 [VOL-4439] Support transparent VLAN at the OLT.)
 				// Clear flowids for gem cache.
 				for _, gem := range onu.GemPorts {
 					dh.resourceMgr[ponPort].DeleteFlowIDsForGem(ctx, ponPort, gem)
@@ -1907,7 +1925,12 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 				if err != nil {
 					logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
 				}
+=======
+>>>>>>> CHANGE (1cd96d VOL-4446: Fix etcd stale data issue post device delete)
 			}
+			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, ponPort)
+			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx, ponPort)
+
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
 				logger.Debug(ctx, err)
 			}
@@ -2815,6 +2838,7 @@ func generateSingleGetValueErrorResponse(err error) *extension.SingleGetValueRes
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_REASON_UNDEFINED)
 }
 
+<<<<<<< HEAD   (faa421 [VOL-4439] Support transparent VLAN at the OLT.)
 /*
 Helper functions to communicate with Core
 */
@@ -3113,4 +3137,16 @@ func setAndTestAdapterServiceHandler(ctx context.Context, conn *grpc.ClientConn)
 		return nil
 	}
 	return svc
+=======
+func (dh *DeviceHandler) setDeviceDeletionInProgressFlag(flag bool) {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	dh.isDeviceDeletionInProgress = flag
+}
+
+func (dh *DeviceHandler) getDeviceDeletionInProgressFlag() bool {
+	dh.lockDevice.RLock()
+	defer dh.lockDevice.RUnlock()
+	return dh.isDeviceDeletionInProgress
+>>>>>>> CHANGE (1cd96d VOL-4446: Fix etcd stale data issue post device delete)
 }

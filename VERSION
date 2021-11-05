@@ -1,1 +1,5 @@
+<<<<<<< HEAD   (faa421 [VOL-4439] Support transparent VLAN at the OLT.)
 4.0.1
+=======
+3.5.9
+>>>>>>> CHANGE (1cd96d VOL-4446: Fix etcd stale data issue post device delete)
