@@ -33,7 +33,7 @@ import (
 
 // NewMockCoreClient creates a new mock core client for a given core service
 func NewMockCoreClient(coreService *MockCoreService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-core-endpoint", "mock-server-endpoint", "voltha.CoreService", nil)
 	cc.SetService(coreService)
 	return cc
 }

@@ -50,7 +50,7 @@ type fields struct {
 	numOnus        int
 	KVStoreAddress string
 	KVStoreType    string
-	exitChannel    chan int
+	exitChannel    chan struct{}
 	ctx            context.Context
 }
 
@@ -600,7 +600,7 @@ func TestOpenOLT_Stop(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"stop-1", &fields{exitChannel: make(chan int, 1)}, args{}, errors.New("stop error")},
+		{"stop-1", &fields{exitChannel: make(chan struct{})}, args{}, errors.New("stop error")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

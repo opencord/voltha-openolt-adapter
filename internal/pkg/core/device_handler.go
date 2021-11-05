@@ -3027,7 +3027,10 @@ func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpo
 
 	// Setup child's adapter grpc connection
 	var err error
-	if dh.childAdapterClients[endpoint], err = vgrpc.NewClient(endpoint,
+	if dh.childAdapterClients[endpoint], err = vgrpc.NewClient(
+		dh.cfg.AdapterEndpoint,
+		endpoint,
+		"voltha.OnuInterAdapterService",
 		dh.onuAdapterRestarted,
 		vgrpc.ActivityCheck(true)); err != nil {
 		logger.Errorw(ctx, "grpc-client-not-created", log.Fields{"error": err, "endpoint": endpoint})

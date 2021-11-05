@@ -20,6 +20,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
+	"github.com/opencord/voltha-protos/v5/go/adapter_services"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/extension"
 	ic "github.com/opencord/voltha-protos/v5/go/inter_container"
@@ -46,7 +48,7 @@ type OpenOLT struct {
 	numOnus                     int
 	KVStoreAddress              string
 	KVStoreType                 string
-	exitChannel                 chan int
+	exitChannel                 chan struct{}
 	HeartbeatCheckInterval      time.Duration
 	HeartbeatFailReportInterval time.Duration
 	GrpcTimeoutInterval         time.Duration
@@ -61,7 +63,7 @@ func NewOpenOLT(ctx context.Context,
 	coreClient *vgrpc.Client,
 	eventProxy eventif.EventProxy, cfg *config.AdapterFlags, cm *conf.ConfigManager) *OpenOLT {
 	var openOLT OpenOLT
-	openOLT.exitChannel = make(chan int, 1)
+	openOLT.exitChannel = make(chan struct{})
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
 	openOLT.config = cfg
 	openOLT.numOnus = cfg.OnuNumber
@@ -90,7 +92,7 @@ func (oo *OpenOLT) Start(ctx context.Context) error {
 //Stop terminates the session
 func (oo *OpenOLT) Stop(ctx context.Context) error {
 	logger.Info(ctx, "stopping-device-manager")
-	oo.exitChannel <- 1
+	close(oo.exitChannel)
 	logger.Info(ctx, "device-manager-stopped")
 	return nil
 }
@@ -397,6 +399,30 @@ func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ic.TechP
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.DeviceId}, nil).Log()
 
+}
+
+func (oo *OpenOLT) KeepAliveConnection(conn *common.Connection, remote adapter_services.AdapterService_KeepAliveConnectionServer) error {
+	logger.Debugw(context.Background(), "receive-stream-connection", log.Fields{"connection": conn})
+
+	if conn == nil {
+		return fmt.Errorf("conn-is-nil %v", conn)
+	}
+	var err error
+loop:
+	for {
+		keepAliveTimer := time.NewTimer(time.Duration(conn.KeepAliveInterval))
+		select {
+		case <-keepAliveTimer.C:
+			if err = remote.Send(&common.Connection{Endpoint: oo.config.AdapterEndpoint}); err != nil {
+				break loop
+			}
+		case <-oo.exitChannel:
+			logger.Warnw(context.Background(), "received-stop", log.Fields{"remote": conn.Endpoint})
+			break loop
+		}
+	}
+	logger.Errorw(context.Background(), "connection-down", log.Fields{"remote": conn.Endpoint, "error": err})
+	return err
 }
 
 /*

@@ -29,7 +29,7 @@ import (
 
 // NewMockChildAdapterClient create a mock child adapter client
 func NewMockChildAdapterClient(srv *MockOnuInterAdapterService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-child-endpoint", "mock-server-endpoint", "voltha.OnuInterAdapterService", nil)
 	cc.SetService(srv)
 	return cc
 }

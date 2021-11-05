@@ -53,16 +53,17 @@ const (
 )
 
 type adapter struct {
-	instanceID  string
-	config      *config.AdapterFlags
-	grpcServer  *vgrpc.GrpcServer
-	oltAdapter  *ac.OpenOLT
-	kafkaClient kafka.Client
-	kvClient    kvstore.Client
-	coreClient  *vgrpc.Client
-	eventProxy  eventif.EventProxy
-	halted      bool
-	exitChannel chan int
+	instanceID      string
+	config          *config.AdapterFlags
+	grpcServer      *vgrpc.GrpcServer
+	oltAdapter      *ac.OpenOLT
+	oltInterAdapter *ac.OpenOLTInterAdapter
+	kafkaClient     kafka.Client
+	kvClient        kvstore.Client
+	coreClient      *vgrpc.Client
+	eventProxy      eventif.EventProxy
+	halted          bool
+	exitChannel     chan int
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
@@ -128,7 +129,10 @@ func (a *adapter) start(ctx context.Context) {
 
 	// Create the Core client to handle requests to the Core.  Note that the coreClient is an interface and needs to be
 	// cast to the appropriate grpc client by invoking GetCoreGrpcClient on the a.coreClient
-	if a.coreClient, err = vgrpc.NewClient(a.config.CoreEndpoint,
+	if a.coreClient, err = vgrpc.NewClient(
+		a.config.AdapterEndpoint,
+		a.config.CoreEndpoint,
+		"voltha.CoreService",
 		a.coreRestarted,
 		vgrpc.ActivityCheck(true)); err != nil {
 		logger.Fatal(ctx, "grpc-client-not-created")
@@ -141,6 +145,11 @@ func (a *adapter) start(ctx context.Context) {
 		logger.Fatalw(ctx, "error-starting-openolt", log.Fields{"error": err})
 	}
 
+	// Create the open OLT Inter adapter adapter
+	if a.oltInterAdapter, err = a.startOpenOLTInterAdapter(ctx, a.oltAdapter); err != nil {
+		logger.Fatalw(ctx, "error-starting-openolt-inter-adapter", log.Fields{"error": err})
+	}
+
 	// Create and start the grpc server
 	a.grpcServer = vgrpc.NewGrpcServer(a.config.GrpcAddress, nil, false, p)
 
@@ -148,7 +157,7 @@ func (a *adapter) start(ctx context.Context) {
 	a.addAdapterService(ctx, a.grpcServer, a.oltAdapter)
 
 	//Register the olt inter-adapter  service
-	a.addOltInterAdapterService(ctx, a.grpcServer, a.oltAdapter)
+	a.addOltInterAdapterService(ctx, a.grpcServer, a.oltInterAdapter)
 
 	// Start the grpc server
 	go a.startGRPCService(ctx, a.grpcServer, oltAdapterService)
@@ -235,6 +244,10 @@ func (a *adapter) stop(ctx context.Context) {
 
 	// send exit signal
 	a.exitChannel <- 0
+
+	// Stop all grpc processing
+	a.oltAdapter.Stop(ctx)
+	a.oltInterAdapter.Stop(ctx)
 
 	// Cleanup - applies only if we had a kvClient
 	if a.kvClient != nil {
@@ -341,6 +354,19 @@ func (a *adapter) startOpenOLT(ctx context.Context, cc *vgrpc.Client, ep eventif
 
 	logger.Info(ctx, "open-olt-started")
 	return sOLT, nil
+}
+
+func (a *adapter) startOpenOLTInterAdapter(ctx context.Context, oo *ac.OpenOLT) (*ac.OpenOLTInterAdapter, error) {
+	logger.Info(ctx, "starting-open-olt-inter-adapter")
+	var err error
+	sOLTInterAdapter := ac.NewOpenOLTInterAdapter(oo)
+
+	if err = sOLTInterAdapter.Start(ctx); err != nil {
+		return nil, err
+	}
+
+	logger.Info(ctx, "open-olt-inter-adapter-started")
+	return sOLTInterAdapter, nil
 }
 
 func (a *adapter) registerWithCore(ctx context.Context, serviceName string, retries int) error {
