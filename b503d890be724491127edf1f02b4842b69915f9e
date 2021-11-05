@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7190864_2708bbb1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-11-05T20:37:25Z",
+      "side": 1,
+      "message": "I didn\u0027t get the reason pointing out he local folders for protos and lib in go.mod. Rest seems ok to me.",
+      "revId": "b503d890be724491127edf1f02b4842b69915f9e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
