@@ -106,6 +106,8 @@ type DeviceHandler struct {
 
 	adapterPreviouslyConnected bool
 	agentPreviouslyConnected   bool
+
+	isDeviceDeletionInProgress bool
 }
 
 //OnuDevice represents ONU related info
@@ -1526,9 +1528,14 @@ func (dh *DeviceHandler) UpdatePmConfig(ctx context.Context, pmConfigs *voltha.P
 //UpdateFlowsIncrementally updates the device flow
 func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *voltha.FlowMetadata) error {
 	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
-
 	var err error
 	var errorsList []error
+
+	if dh.getDeviceDeletionInProgressFlag() {
+		// The device itself is going to be reset as part of deletion. So nothing to be done.
+		logger.Infow(ctx, "device-deletion-in-progress--not-handling-flows-or-groups", log.Fields{"device-id": device.Id})
+		return nil
+	}
 
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
@@ -1735,6 +1742,9 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	   This clears up flow data and also resource map data for various
 	   other pon resources like alloc_id and gemport_id
 	*/
+
+	dh.setDeviceDeletionInProgressFlag(true)
+
 	dh.cleanupDeviceResources(ctx)
 	logger.Debugw(ctx, "removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 	// Stop the Stats collector
@@ -1769,22 +1779,14 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 			var err error
 			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
-				onuID := make([]uint32, 1)
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
 				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
 				}
-				// Clear flowids for gem cache.
-				for _, gem := range onu.GemPorts {
-					dh.resourceMgr[ponPort].DeleteFlowIDsForGem(ctx, ponPort, gem)
-				}
-				onuID[0] = onu.OnuID
-				dh.resourceMgr[ponPort].FreeonuID(ctx, ponPort, onuID)
-				err = dh.resourceMgr[ponPort].DelOnuGemInfo(ctx, ponPort, onu.OnuID)
-				if err != nil {
-					logger.Errorw(ctx, "failed-to-update-onugem-info", log.Fields{"intfid": ponPort, "onugeminfo": onuGemData})
-				}
 			}
+			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, ponPort)
+			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx, ponPort)
+
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
 				logger.Debug(ctx, err)
 			}
@@ -2644,4 +2646,16 @@ func generateSingleGetValueErrorResponse(err error) *extension.SingleGetValueRes
 	}
 
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_REASON_UNDEFINED)
+}
+
+func (dh *DeviceHandler) setDeviceDeletionInProgressFlag(flag bool) {
+	dh.lockDevice.Lock()
+	defer dh.lockDevice.Unlock()
+	dh.isDeviceDeletionInProgress = flag
+}
+
+func (dh *DeviceHandler) getDeviceDeletionInProgressFlag() bool {
+	dh.lockDevice.RLock()
+	defer dh.lockDevice.RUnlock()
+	return dh.isDeviceDeletionInProgress
 }
