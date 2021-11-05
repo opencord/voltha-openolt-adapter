@@ -441,6 +441,58 @@ func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
 	}
 }
 
+func TestOpenOltResourceMgr_DeleteAllFlowIDsForGemForIntf(t *testing.T) {
+
+	type args struct {
+		PONIntfID uint32
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+		want   error
+	}{
+		{"DeleteAllFlowIDsForGemForIntf-1", getResMgr(), args{0}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := RsrcMgr.DeleteAllFlowIDsForGemForIntf(ctx, tt.args.PONIntfID)
+			if err != nil {
+				t.Errorf("DeleteAllFlowIDsForGemForIntf() returned error")
+			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_DeleteAllOnuGemInfoForIntf(t *testing.T) {
+
+	type args struct {
+		PONIntfID uint32
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+		want   error
+	}{
+		{"DeleteAllOnuGemInfoForIntf-1", getResMgr(), args{0}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := RsrcMgr.DeleteAllOnuGemInfoForIntf(ctx, tt.args.PONIntfID)
+			if err != nil {
+				t.Errorf("DeleteAllOnuGemInfoForIntf() returned error")
+			}
+		})
+	}
+}
+
 func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 	type args struct {
 		intfID uint32

@@ -45,14 +45,19 @@ const (
 	tpIDPathSuffix = "{%d,%d,%d}/tp_id"
 	//MeterIDPathSuffix - <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
 	MeterIDPathSuffix = "{%d,%d,%d}/{%d}/meter_id/{%s}"
-	// OnuPacketINPathPrefix - path prefix where ONU packet-in vlanID/PCP is stored
+
+	// OnuPacketInPathPrefix - path prefix where ONU packet-in vlanID/PCP is stored
 	//format: onu_packetin/{<intfid>,<onuid>,<logicalport>}
-	OnuPacketINPathPrefix = "onu_packetin/{%d,%d,%d}"
-	// OnuPacketINPath path on the kvstore to store packetin gemport,which will be used for packetin, packetout
+	OnuPacketInPathPrefix = "onu_packetin/{%d,%d,%d}"
+	// OnuPacketInPath path on the kvstore to store packetin gemport,which will be used for packetin, packetout
 	//format: onu_packetin/{<intfid>,<onuid>,<logicalport>}/{<vlanId>,<priority>}
-	OnuPacketINPath = OnuPacketINPathPrefix + "/{%d,%d}"
-	//FlowIDsForGem flowids_per_gem/<intfid>/<gemport-id>
-	FlowIDsForGem = "flowids_per_gem/{%d}/{%d}"
+	OnuPacketInPath = OnuPacketInPathPrefix + "/{%d,%d}"
+
+	//FlowIDsForGemPathPrefix format: flowids_for_gem/<intfid>
+	FlowIDsForGemPathPrefix = "flowids_per_gem/{%d}"
+	//FlowIDsForGem flowids_for_gem/<intfid>/<gemport-id>
+	FlowIDsForGem = FlowIDsForGemPathPrefix + "/{%d}"
+
 	//McastQueuesForIntf multicast queues for pon interfaces
 	McastQueuesForIntf = "mcast_qs_for_int"
 	//FlowGroup flow_groups/<flow_group_id>
@@ -72,9 +77,11 @@ const (
 	//Format: BasePathKvStore/<(pon_intf_id, onu_id, uni_id)>/flow_ids
 	FlowIDPath = "{%s}/flow_ids"
 
+	//OnuGemInfoPathPathPrefix format: onu_gem_info/<intfid>
+	OnuGemInfoPathPathPrefix = "onu_gem_info/{%d}"
 	//OnuGemInfoPath is path on the kvstore to store onugem info map
-	//format: <device-id>/onu_gem_info/<intfid>
-	OnuGemInfoPath = "onu_gem_info/{%d}/{%d}" // onu_gem/<intfid>/<onuID>
+	//format: onu_gem_info/<intfid>/<onu_id>
+	OnuGemInfoPath = OnuGemInfoPathPathPrefix + "/{%d}"
 )
 
 // FlowInfo holds the flow information
@@ -328,7 +335,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, PonIntfID uint3
 		return onuID[0], err
 	}
 
-	return 0, err // return onuID 0 on error
+	return 0, fmt.Errorf("no-onu-id-allocated")
 }
 
 // GetCurrentFlowIDsForOnu fetches flow ID from the resource manager
@@ -975,6 +982,24 @@ func (rsrcMgr *OpenOltResourceMgr) DelOnuGemInfo(ctx context.Context, intfID uin
 	return nil
 }
 
+//DeleteAllOnuGemInfoForIntf deletes all the all onu gem info on the given pon interface
+func (rsrcMgr *OpenOltResourceMgr) DeleteAllOnuGemInfoForIntf(ctx context.Context, intfID uint32) error {
+
+	path := fmt.Sprintf(OnuGemInfoPathPathPrefix, intfID)
+
+	logger.Debugw(ctx, "delete-all-onu-gem-info-for-pon-intf", log.Fields{"intfID": intfID})
+	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
+		return err
+	}
+
+	// Reset cache. Normally not necessary as the entire device is getting deleted when this API is invoked.
+	rsrcMgr.onuGemInfoLock.Lock()
+	rsrcMgr.onuGemInfo = make(map[string]*OnuGemInfo)
+	rsrcMgr.onuGemInfoLock.Unlock()
+	return nil
+}
+
 // AddUniPortToOnuInfo adds uni port to the onuinfo kvstore. check if the uni is already present if not update the kv store.
 func (rsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, intfID uint32, onuID uint32, portNo uint32) {
 
@@ -1006,7 +1031,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, intf
 //UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno, vlan id, priority bit
 func (rsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pktIn PacketInInfoKey, gemPort uint32) {
 
-	path := fmt.Sprintf(OnuPacketINPath, pktIn.IntfID, pktIn.OnuID, pktIn.LogicalPort, pktIn.VlanID, pktIn.Priority)
+	path := fmt.Sprintf(OnuPacketInPath, pktIn.IntfID, pktIn.OnuID, pktIn.LogicalPort, pktIn.VlanID, pktIn.Priority)
 	// update cache
 	rsrcMgr.gemPortForPacketInInfoLock.Lock()
 	rsrcMgr.gemPortForPacketInInfo[path] = gemPort
@@ -1029,7 +1054,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, p
 
 	var Val []byte
 
-	path := fmt.Sprintf(OnuPacketINPath, packetInInfoKey.IntfID, packetInInfoKey.OnuID, packetInInfoKey.LogicalPort,
+	path := fmt.Sprintf(OnuPacketInPath, packetInInfoKey.IntfID, packetInInfoKey.OnuID, packetInInfoKey.LogicalPort,
 		packetInInfoKey.VlanID, packetInInfoKey.Priority)
 	// get from cache
 	rsrcMgr.gemPortForPacketInInfoLock.RLock()
@@ -1068,7 +1093,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, p
 
 //DeletePacketInGemPortForOnu deletes the packet-in gemport for ONU
 func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Context, intfID uint32, onuID uint32, logicalPort uint32) error {
-	path := fmt.Sprintf(OnuPacketINPathPrefix, intfID, onuID, logicalPort)
+	path := fmt.Sprintf(OnuPacketInPathPrefix, intfID, onuID, logicalPort)
 	value, err := rsrcMgr.KVStore.List(ctx, path)
 	if err != nil {
 		logger.Errorf(ctx, "failed-to-read-value-from-path-%s", path)
@@ -1078,7 +1103,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 	//remove them one by one
 	for key := range value {
 		// Remove the PathPrefix from the path on KV key.
-		// gemPortForPacketInInfo cache uses OnuPacketINPath as the key
+		// gemPortForPacketInInfo cache uses OnuPacketInPath as the key
 		stringToBeReplaced := rsrcMgr.KVStore.PathPrefix + "/"
 		replacedWith := ""
 		key = strings.Replace(key, stringToBeReplaced, replacedWith, 1)
@@ -1149,6 +1174,9 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 	rsrcMgr.flowIDsForGemLock.Unlock()
 
 	if flowIDs == nil {
+		if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+			logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
+		}
 		return nil
 	}
 	val, err := json.Marshal(flowIDs)
@@ -1175,6 +1203,24 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
 	}
+}
+
+//DeleteAllFlowIDsForGemForIntf deletes all the flow ids associated for all the gems on the given pon interface
+func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Context, intfID uint32) error {
+
+	path := fmt.Sprintf(FlowIDsForGemPathPrefix, intfID)
+
+	logger.Debugw(ctx, "delete-flow-ids-for-gem-for-pon-intf", log.Fields{"intfID": intfID})
+	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
+		return err
+	}
+
+	// Reset cache. Normally not necessary as the entire device is getting deleted when this API is invoked.
+	rsrcMgr.flowIDsForGemLock.Lock()
+	rsrcMgr.flowIDsForGem = make(map[uint32][]uint64)
+	rsrcMgr.flowIDsForGemLock.Unlock()
+	return nil
 }
 
 //GetMcastQueuePerInterfaceMap gets multicast queue info per pon interface
