@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "60effd12_a1376f14",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3078,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2021-11-15T22:03:37Z",
+      "side": 1,
+      "message": "An error here means that the client connection is down and there is a retry in progress.  Is the intent of the change here is to wait until a valid client is available (unless there is a catastrophic situation)?",
+      "revId": "b99547c6512915b80a79038dd66829ff1fc93367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "258750c2_0c8d383e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3085,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2021-11-15T22:03:37Z",
+      "side": 1,
+      "message": "You may want to use ctx from the params instead of context.Background()",
+      "revId": "b99547c6512915b80a79038dd66829ff1fc93367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
