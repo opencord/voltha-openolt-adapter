@@ -750,7 +750,7 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 		onuInd := oop.OnuIndication{}
 		onuInd.OperState = "down"
 
-		ogClient, err := dh.getChildAdapterServiceClient(onuDevice.AdapterEndpoint)
+		ogClient, err := dh.getChildAdapterServiceClient(ctx, onuDevice.AdapterEndpoint)
 		if err != nil {
 			return err
 		}
@@ -2958,7 +2958,7 @@ Helper functions to communicate with child adapter
 */
 
 func (dh *DeviceHandler) sendOmciIndicationToChildAdapter(ctx context.Context, childEndpoint string, response *ia.OmciMessage) error {
-	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
+	aClient, err := dh.getChildAdapterServiceClient(ctx, childEndpoint)
 	if err != nil || aClient == nil {
 		return err
 	}
@@ -2970,7 +2970,7 @@ func (dh *DeviceHandler) sendOmciIndicationToChildAdapter(ctx context.Context, c
 }
 
 func (dh *DeviceHandler) sendOnuIndicationToChildAdapter(ctx context.Context, childEndpoint string, onuInd *ia.OnuIndicationMessage) error {
-	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
+	aClient, err := dh.getChildAdapterServiceClient(ctx, childEndpoint)
 	if err != nil || aClient == nil {
 		return err
 	}
@@ -2982,7 +2982,7 @@ func (dh *DeviceHandler) sendOnuIndicationToChildAdapter(ctx context.Context, ch
 }
 
 func (dh *DeviceHandler) sendDeleteTContToChildAdapter(ctx context.Context, childEndpoint string, tContInfo *ia.DeleteTcontMessage) error {
-	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
+	aClient, err := dh.getChildAdapterServiceClient(ctx, childEndpoint)
 	if err != nil || aClient == nil {
 		return err
 	}
@@ -2994,7 +2994,7 @@ func (dh *DeviceHandler) sendDeleteTContToChildAdapter(ctx context.Context, chil
 }
 
 func (dh *DeviceHandler) sendDeleteGemPortToChildAdapter(ctx context.Context, childEndpoint string, gemPortInfo *ia.DeleteGemPortMessage) error {
-	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
+	aClient, err := dh.getChildAdapterServiceClient(ctx, childEndpoint)
 	if err != nil || aClient == nil {
 		return err
 	}
@@ -3006,7 +3006,7 @@ func (dh *DeviceHandler) sendDeleteGemPortToChildAdapter(ctx context.Context, ch
 }
 
 func (dh *DeviceHandler) sendDownloadTechProfileToChildAdapter(ctx context.Context, childEndpoint string, tpDownloadInfo *ia.TechProfileDownloadMessage) error {
-	aClient, err := dh.getChildAdapterServiceClient(childEndpoint)
+	aClient, err := dh.getChildAdapterServiceClient(ctx, childEndpoint)
 	if err != nil || aClient == nil {
 		return err
 	}
@@ -3063,13 +3063,39 @@ func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpo
 	return nil
 }
 
-func (dh *DeviceHandler) getChildAdapterServiceClient(endpoint string) (onu_inter_adapter_service.OnuInterAdapterServiceClient, error) {
+func (dh *DeviceHandler) getChildAdapterServiceClient(ctx context.Context, endpoint string) (onu_inter_adapter_service.OnuInterAdapterServiceClient, error) {
 
 	// First check from cache
 	dh.lockChildAdapterClients.RLock()
 	if cgClient, ok := dh.childAdapterClients[endpoint]; ok {
 		dh.lockChildAdapterClients.RUnlock()
-		return cgClient.GetOnuInterAdapterServiceClient()
+		iaSvcClient, err := cgClient.GetOnuInterAdapterServiceClient()
+		// If there is an error retrieving the OnuInterAdapterServiceClient, we should remove that from the internal cache
+		// and reattempt connection once. On ONU adapter restart, the client endpoints are not invalidated immediately,
+		// so we end up having stale entries for some transient time here. If openolt adapter uses such clients, the
+		// RPCs fail and this is especially an issue for OMCI Response messages which have a limited retries before it
+		// completely fails.
+		if err != nil {
+			dh.lockChildAdapterClients.Lock()
+			dh.childAdapterClients[endpoint].Stop(ctx)
+			delete(dh.childAdapterClients, endpoint)
+			dh.lockChildAdapterClients.Unlock()
+
+			// Set the child connection - can occur on restarts
+			ctx, cancel := context.WithTimeout(context.Background(), dh.cfg.RPCTimeout)
+			err := dh.setupChildInterAdapterClient(ctx, endpoint)
+			cancel()
+			if err != nil {
+				return nil, err
+			}
+			dh.lockChildAdapterClients.RLock()
+			defer dh.lockChildAdapterClients.RUnlock()
+			if cgClient, ok = dh.childAdapterClients[endpoint]; ok {
+				return cgClient.GetOnuInterAdapterServiceClient()
+			}
+			return nil, fmt.Errorf("error-setting-up-connection-for-endpoint-%v", endpoint)
+		}
+		return iaSvcClient, err
 	}
 	dh.lockChildAdapterClients.RUnlock()
 
