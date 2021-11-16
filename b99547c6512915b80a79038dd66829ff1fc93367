@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c3aac029_1c24f15a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3078,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-16T00:03:49Z",
+      "side": 1,
+      "message": "There is a retry mechanism but that does that periodically (right now it is configured at 5s). \nLet\u0027s assume that at time X the openolt adapter tried to setup connection with openonu adapter and it failed. It will only retry at time X+5. Now lets assume at time X+1 the openonu adapter is ready. At X+1 it sent a OMCI Req but the response could not be sent. At X+2 the openonu timed out (because the OMCI timeout is configured at 1s). At time X+2 it sent out another OMCI request and it timedout at X+3 (because the connection between openolt and openonu adapter is still not up). Now the openonu adapter gives up on retries because the max retry is set at 2. \nThe intention of the code here is that deletes client endpoint from the map as soon as it gets an error and tries to establish the connection immediately. This way we do not need to wait for the next cycle.\nI am not sure if I clear and if so, do you think this makes sense?",
+      "parentUuid": "60effd12_a1376f14",
+      "revId": "b99547c6512915b80a79038dd66829ff1fc93367",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "258750c2_0c8d383e",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
