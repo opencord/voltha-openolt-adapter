@@ -2528,17 +2528,18 @@ func (dh *DeviceHandler) onuIndicationsRoutine(onuChannels *onuIndicationChannel
 		select {
 		// process one indication per onu, before proceeding to the next one
 		case onuInd := <-onuChannels.indicationChannel:
+			indication := *onuInd.indication
 			logger.Debugw(onuInd.ctx, "calling-indication", log.Fields{"device-id": dh.device.Id,
-				"ind": onuInd.indication})
-			switch onuInd.indication.Data.(type) {
+				"ind": indication})
+			switch indication.Data.(type) {
 			case *oop.Indication_OnuInd:
-				if err := dh.onuIndication(onuInd.ctx, onuInd.indication.GetOnuInd()); err != nil {
+				if err := dh.onuIndication(onuInd.ctx, indication.GetOnuInd()); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{
 						"type":      "onu-indication",
 						"device-id": dh.device.Id}, err).Log()
 				}
 			case *oop.Indication_OnuDiscInd:
-				if err := dh.onuDiscIndication(onuInd.ctx, onuInd.indication.GetOnuDiscInd()); err != nil {
+				if err := dh.onuDiscIndication(onuInd.ctx, indication.GetOnuDiscInd()); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{
 						"type":      "onu-discovery",
 						"device-id": dh.device.Id}, err).Log()
