@@ -2346,7 +2346,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		}
 		// Clear flowids for gem cache.
 		for _, gem := range onuGem.GemPorts {
-			dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, intfID, gem)
+			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, intfID, gem)
 		}
 		if err := dh.flowMgr[intfID].RemoveOnuInfoFromFlowMgrCacheAndKvStore(ctx, intfID, onuID); err != nil {
 			logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{

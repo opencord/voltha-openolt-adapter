@@ -809,13 +809,6 @@ func (rsrcMgr *OpenOltResourceMgr) HandleMeterInfoRefCntUpdate(ctx context.Conte
 		meterInfo.RefCnt++
 	} else {
 		meterInfo.RefCnt--
-		// If RefCnt become 0 clear the meter information from the DB.
-		if meterInfo.RefCnt == 0 {
-			if err := rsrcMgr.RemoveMeterInfoForOnu(ctx, Direction, intfID, onuID, uniID, tpID); err != nil {
-				return err
-			}
-			return nil
-		}
 	}
 	if err := rsrcMgr.StoreMeterInfoForOnu(ctx, Direction, intfID, onuID, uniID, tpID, meterInfo); err != nil {
 		return err
@@ -1194,15 +1187,17 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 }
 
 //DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
-func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) {
+func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) error {
 	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
+	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
+		return err
+	}
 	// update cache
 	rsrcMgr.flowIDsForGemLock.Lock()
 	delete(rsrcMgr.flowIDsForGem, gem)
 	rsrcMgr.flowIDsForGemLock.Unlock()
-	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
-		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
-	}
+	return nil
 }
 
 //DeleteAllFlowIDsForGemForIntf deletes all the flow ids associated for all the gems on the given pon interface
