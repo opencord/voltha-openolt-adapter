@@ -2202,6 +2202,11 @@ func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 
 // RouteFlowToOnuChannel routes incoming flow to ONU specific channel
 func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *ofp.OfpFlowStats, addFlow bool, flowMetadata *ofp.FlowMetadata) error {
+	if f.deviceHandler.getDeviceDeletionInProgressFlag() {
+		// The device itself is going to be reset as part of deletion. So nothing to be done.
+		logger.Infow(ctx, "device-deletion-in-progress--not-handling-flows-or-groups", log.Fields{"device-id": f.deviceHandler.device.Id})
+		return nil
+	}
 	// Step1 : Fill flowControlBlock
 	// Step2 : Push the flowControlBlock to ONU channel
 	// Step3 : Wait on response channel for response
@@ -2238,11 +2243,12 @@ func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *ofp.Of
 // This routine is unique per ONU ID and blocks on flowControlBlock channel for incoming flows
 // Each incoming flow is processed in a synchronous manner, i.e., the flow is processed to completion before picking another
 func (f *OpenOltFlowMgr) perOnuFlowHandlerRoutine(handlerRoutineIndex int, subscriberFlowChannel chan flowControlBlock, stopHandler chan bool) {
+	var flowCb flowControlBlock
 	for {
 		select {
 		// block on the channel to receive an incoming flow
 		// process the flow completely before proceeding to handle the next flow
-		case flowCb := <-subscriberFlowChannel:
+		case flowCb = <-subscriberFlowChannel:
 			if flowCb.addFlow {
 				logger.Info(flowCb.ctx, "adding-flow-start")
 				startTime := time.Now()
@@ -2266,12 +2272,17 @@ func (f *OpenOltFlowMgr) perOnuFlowHandlerRoutine(handlerRoutineIndex int, subsc
 }
 
 // StopAllFlowHandlerRoutines stops all flow handler routines. Call this when device is being rebooted or deleted
-func (f *OpenOltFlowMgr) StopAllFlowHandlerRoutines(ctx context.Context) {
+func (f *OpenOltFlowMgr) StopAllFlowHandlerRoutines(ctx context.Context, wg *sync.WaitGroup) {
 	for i, v := range f.stopFlowHandlerRoutine {
 		if f.flowHandlerRoutineActive[i] {
-			v <- true
+			select {
+			case v <- true:
+			case <-time.After(time.Second * 5):
+				logger.Warnw(ctx, "timeout stopping flow handler routine", log.Fields{"onuID": i, "deviceID": f.deviceHandler.device.Id})
+			}
 		}
 	}
+	wg.Done()
 	logger.Debugw(ctx, "stopped all flow handler routines", log.Fields{"ponPortIdx": f.ponPortIdx})
 }
 
