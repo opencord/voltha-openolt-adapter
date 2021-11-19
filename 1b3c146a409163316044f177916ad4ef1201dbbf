@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "888c0618_9faf9ec9",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1909,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-19T08:16:27Z",
+      "side": 1,
+      "message": "There will be :) After we merge this one, I will send another patch to revert scheduler/queues in a failure (rollback mechanism), I will use it there. For now, I removed it from this patch. -- I will re-add it in the rollback patch.",
+      "parentUuid": "754a68a6_517a6712",
+      "range": {
+        "startLine": 1909,
+        "startChar": 45,
+        "endLine": 1909,
+        "endChar": 65
+      },
+      "revId": "1b3c146a409163316044f177916ad4ef1201dbbf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d91e886a_75a76174",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 1
@@ -54,6 +78,30 @@
       "writtenOn": "2021-11-19T01:02:14Z",
       "side": 1,
       "message": "This makes sense to delete from store before deleting from cache. There are many other instances in this file where I see it is being deleted from cache before deleting from store. Can you evaluate please if need to have fix there as well?",
+      "range": {
+        "startLine": 1192,
+        "startChar": 0,
+        "endLine": 1195,
+        "endChar": 2
+      },
+      "revId": "1b3c146a409163316044f177916ad4ef1201dbbf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b2f701e_a988ba30",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1195,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-19T08:16:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d91e886a_75a76174",
       "range": {
         "startLine": 1192,
         "startChar": 0,
