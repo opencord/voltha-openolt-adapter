@@ -189,13 +189,13 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.device = cloned
 	dh.openOLT = adapter
-	dh.exitChannel = make(chan int, 1)
+	dh.exitChannel = make(chan int, 1) // TODO: Why buffered?
 	dh.lockDevice = sync.RWMutex{}
-	dh.stopCollector = make(chan bool, 2)
-	dh.stopHeartbeatCheck = make(chan bool, 2)
+	dh.stopCollector = make(chan bool, 2)      // TODO: Why buffered?
+	dh.stopHeartbeatCheck = make(chan bool, 2) // TODO: Why buffered?
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	dh.activePorts = sync.Map{}
-	dh.stopIndications = make(chan bool, 1)
+	dh.stopIndications = make(chan bool, 1) // TODO: Why buffered?
 	dh.perPonOnuIndicationChannel = make(map[uint32]onuIndicationChannels)
 	dh.childAdapterClients = make(map[string]*vgrpc.Client)
 	dh.cfg = cfg
@@ -205,7 +205,7 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	dh.mcastHandlerRoutineActive = make([]bool, MaxNumOfGroupHandlerChannels)
 	for i := range dh.incomingMcastFlowOrGroup {
 		dh.incomingMcastFlowOrGroup[i] = make(chan McastFlowOrGroupControlBlock, MaxNumOfGroupHandlerChannels)
-		dh.stopMcastHandlerRoutine[i] = make(chan bool, 1)
+		dh.stopMcastHandlerRoutine[i] = make(chan bool)
 		// Spin up a go routine to handling incoming mcast flow/group (add/modify/remove).
 		// There will be MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine go routines.
 		// These routines will be blocked on the dh.incomingMcastFlowOrGroup[mcast-group-id modulo MaxNumOfGroupHandlerChannels] channel
