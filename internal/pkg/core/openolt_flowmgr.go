@@ -548,11 +548,16 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 		log.Fields{"direction": sq.direction,
 			"traffic-queues": trafficQueues,
 			"device-id":      f.deviceHandler.device.Id})
-	if _, err := f.deviceHandler.Client.CreateTrafficQueues(ctx,
-		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
-			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficQueues: trafficQueues,
-			TechProfileId: TrafficSched[0].TechProfileId}); err != nil {
+	queues := &tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+		UniId: sq.uniID, PortNo: sq.uniPort,
+		TrafficQueues: trafficQueues,
+		TechProfileId: TrafficSched[0].TechProfileId}
+	if _, err := f.deviceHandler.Client.CreateTrafficQueues(ctx, queues); err != nil {
+		if len(queues.TrafficQueues) > 1 {
+			logger.Debug(ctx, "removing-queues-for-1tcont-multi-gem", log.Fields{"intfID": sq.intfID, "onuID": sq.onuID, "dir": sq.direction})
+			_, _ = f.deviceHandler.Client.RemoveTrafficQueues(ctx, queues)
+		}
+		f.revertScheduler(ctx, sq, TrafficSched)
 		return olterrors.NewErrAdapter("failed-to-create-traffic-queues-in-device", log.Fields{"traffic-queues": trafficQueues}, err)
 	}
 	logger.Infow(ctx, "successfully-created-traffic-schedulers", log.Fields{
@@ -847,6 +852,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 						"intf-id":   intfID,
 						"meter-id":  UsMeterID,
 						"device-id": f.deviceHandler.device.Id})
+				f.revertTechProfileInstance(ctx, sq)
 				return 0, nil, nil
 			}
 		}
@@ -862,6 +868,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 						"intf-id":   intfID,
 						"meter-id":  DsMeterID,
 						"device-id": f.deviceHandler.device.Id})
+				f.revertTechProfileInstance(ctx, sq)
 				return 0, nil, nil
 			}
 		}
@@ -1904,7 +1911,7 @@ deleteLoop:
 //clearResources clears pon resources in kv store and the device
 // nolint: gocyclo
 func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuID int32, uniID int32,
-	flowID uint64, portNum uint32, tpID uint32) error {
+	flowID uint64, portNum uint32, tpID uint32, sendDeleteGemRequest bool) error {
 
 	logger.Debugw(ctx, "clearing-resources", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "tpID": tpID})
 
@@ -2022,15 +2029,17 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 				f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID)
 
 				// Delete the gem port on the ONU.
-				if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID, tpPath); err != nil {
-					logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
-						log.Fields{
-							"err":        err,
-							"intfID":     intfID,
-							"onu-id":     onuID,
-							"uni-id":     uniID,
-							"device-id":  f.deviceHandler.device.Id,
-							"gemport-id": gemPortID})
+				if sendDeleteGemRequest {
+					if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID, tpPath); err != nil {
+						logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
+							log.Fields{
+								"err":        err,
+								"intfID":     intfID,
+								"onu-id":     onuID,
+								"uni-id":     uniID,
+								"device-id":  f.deviceHandler.device.Id,
+								"gemport-id": gemPortID})
+					}
 				}
 			}
 		}
@@ -2132,7 +2141,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 	delete(f.flowIDToGems, flow.Id)
 	f.flowIDToGemsLock.Unlock()
 
-	if err = f.clearResources(ctx, Intf, onuID, uniID, flow.Id, portNum, tpID); err != nil {
+	if err = f.clearResources(ctx, Intf, onuID, uniID, flow.Id, portNum, tpID, true); err != nil {
 		logger.Errorw(ctx, "failed-to-clear-resources-for-flow", log.Fields{
 			"flow-id":   flow.Id,
 			"device-id": f.deviceHandler.device.Id,
@@ -2931,6 +2940,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			//Adding DHCP upstream flow
 			if err := f.addDHCPTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
+				logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 				return err
 			}
 
@@ -2943,6 +2954,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 					"classifier-info:": classifierInfo})
 			if err := f.addIGMPTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
+				logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 				return err
 			}
 		} else {
@@ -2965,6 +2978,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			}
 			if err := f.addEthTypeBasedFlow(ctx, flowContext, vlanID, ethType.(uint32)); err != nil {
 				logger.Warn(ctx, err)
+				logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 				return err
 			}
 		} else if ethType.(uint32) == PPPoEDEthType {
@@ -2978,6 +2993,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 			//Adding PPPOED upstream flow
 			if err := f.addUpstreamTrapFlow(ctx, flowContext); err != nil {
 				logger.Warn(ctx, err)
+				logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 				return err
 			}
 		}
@@ -2990,6 +3007,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 		//Adding HSIA upstream flow
 		if err := f.addUpstreamDataPathFlow(ctx, flowContext); err != nil {
 			logger.Warn(ctx, err)
+			logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+			_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 			return err
 		}
 	} else if direction == tp_pb.Direction_DOWNSTREAM {
@@ -3001,6 +3020,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 		//Adding HSIA downstream flow
 		if err := f.addDownstreamDataPathFlow(ctx, flowContext); err != nil {
 			logger.Warn(ctx, err)
+			logger.Errorw(ctx, "reverting-scheduler-and-queue-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "flow-id": flow.Id, "tp-id": tpID})
+			_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false)
 			return err
 		}
 	} else {
@@ -3451,4 +3472,50 @@ func (f *OpenOltFlowMgr) getOnuGemInfoList(ctx context.Context) []rsrcMgr.OnuGem
 		onuGemInfoLst = append(onuGemInfoLst, *v)
 	}
 	return onuGemInfoLst
+}
+
+// revertTechProfileInstance is called when CreateScheduler or CreateQueues request fails
+func (f *OpenOltFlowMgr) revertTechProfileInstance(ctx context.Context, sq schedQueue) {
+
+	intfID := sq.intfID
+	onuID := sq.onuID
+	uniID := sq.uniID
+	tpID := sq.tpID
+
+	var reverseDirection string
+	if sq.direction == tp_pb.Direction_UPSTREAM {
+		reverseDirection = "downstream"
+	} else {
+		reverseDirection = "upstream"
+	}
+
+	// check reverse direction - if reverse meter exists, tech profile instance is in use - do not delete
+	if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, reverseDirection, intfID, onuID, uniID, tpID); KvStoreMeter != nil {
+		return
+	}
+
+	// revert-delete tech-profile instance and delete tech profile id for onu
+	logger.Warnw(ctx, "reverting-tech-profile-instance-and-tech-profile-id-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "tp-id": tpID})
+	uniPortName := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
+	_ = f.DeleteTechProfileInstance(ctx, intfID, onuID, uniID, uniPortName, tpID)
+	_ = f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, onuID, uniID, tpID)
+
+	// free gem/alloc
+	switch techprofileInst := sq.tpInst.(type) {
+	case *tp_pb.TechProfileInstance:
+		for _, gem := range techprofileInst.UpstreamGemPortAttributeList {
+			f.resourceMgr.FreeGemPortID(ctx, intfID, onuID, uniID, gem.GemportId)
+		}
+		f.resourceMgr.FreeAllocID(ctx, intfID, onuID, uniID, techprofileInst.UsScheduler.AllocId)
+	}
+}
+
+// revertSchduler is called when CreateQueues request fails
+func (f *OpenOltFlowMgr) revertScheduler(ctx context.Context, sq schedQueue, TrafficSched []*tp_pb.TrafficScheduler) {
+	// revert scheduler
+	logger.Warnw(ctx, "reverting-scheduler-for-onu", log.Fields{"intf-id": sq.intfID, "onu-id": sq.onuID, "uni-id": sq.uniID, "tp-id": sq.tpID})
+	_, _ = f.deviceHandler.Client.RemoveTrafficSchedulers(ctx, &tp_pb.TrafficSchedulers{
+		IntfId: sq.intfID, OnuId: sq.onuID,
+		UniId: sq.uniID, PortNo: sq.uniPort,
+		TrafficScheds: TrafficSched})
 }
