@@ -249,7 +249,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	flowMgr.flowHandlerRoutineActive = make([]bool, MaxOnusPerPon+1)
 	for i := range flowMgr.incomingFlows {
 		flowMgr.incomingFlows[i] = make(chan flowControlBlock, maxConcurrentFlowsPerOnu)
-		flowMgr.stopFlowHandlerRoutine[i] = make(chan bool, 1)
+		flowMgr.stopFlowHandlerRoutine[i] = make(chan bool)
 		// Spin up a go routine to handling incoming flows (add/remove).
 		// There will be on go routine per ONU.
 		// This routine will be blocked on the flowMgr.incomingFlows[onu-id] channel for incoming flows.
