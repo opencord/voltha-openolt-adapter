@@ -112,6 +112,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "d8e246e1_8493990d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T08:24:23Z",
+      "side": 1,
+      "message": "There always will be at least a queue to be created if we come to this line. What I\u0027m trying to do here is:\nif we send multiple queue definitions in a CreateQueues request (i.e, in the 1tcont-4gem model, we send four queue definitions in one CreateQueue request), and if we receive an error from this call, we don\u0027t know which queue definition is incorrect. We just receive an error for the entire request. So, we need to send a RemoveQueue request for all queues. The agent should remove the created ones and return ok if a queue does not exist. But if we send only one queue definition in a CreateQueue request (i.e., in the 1tcont-1gem model, we send only one queue definition in a request), and if we receive an error from this call, we know that the specific queue fails. So, we don\u0027t need to send a RemoveQueues request again. -- I call CreateQueues for all cases, and if I receive an error and the model is in 1tcont-Ngem model, I call removeQueues to rollback.\n If you ask something else, can you please give an example?",
+      "parentUuid": "bff23211_5391adb0",
+      "range": {
+        "startLine": 556,
+        "startChar": 0,
+        "endLine": 556,
+        "endChar": 36
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e4716123_a144811d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 2
