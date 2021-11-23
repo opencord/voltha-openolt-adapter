@@ -89,6 +89,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bff23211_5391adb0",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-11-23T07:50:52Z",
+      "side": 1,
+      "message": "Isn\u0027t it better to move this check before f.deviceHandler.Client.CreateTrafficQueues() call? Is there a meaning of calling it if there is no queues to be created ?",
+      "range": {
+        "startLine": 556,
+        "startChar": 0,
+        "endLine": 556,
+        "endChar": 36
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e4716123_a144811d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 2
