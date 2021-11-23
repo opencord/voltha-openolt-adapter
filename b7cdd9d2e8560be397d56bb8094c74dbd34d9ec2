@@ -50,6 +50,103 @@
       "message": "hardware test\nfunctional tests",
       "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd915b55_3210c0dd",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-23T05:13:40Z",
+      "side": 1,
+      "message": "It is possible that partial set of queues are installed on the device by agent, how is the cleanup handled in that case. Also the agent never returns failure for creation of schedulers and queues - https://github.com/opencord/openolt/blob/master/agent/common/server.cc. Is there another patch expected there?",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4716123_a144811d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-23T05:13:40Z",
+      "side": 1,
+      "message": "No log for else case or is it implicit?",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7387d55_407c147f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2944,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-23T05:13:40Z",
+      "side": 1,
+      "message": "Why false? Can you please clarify the expected behavior here? Same comment in other places below.",
+      "range": {
+        "startLine": 2944,
+        "startChar": 89,
+        "endLine": 2944,
+        "endChar": 94
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9376e9e0_d92467cf",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3485,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-23T05:13:40Z",
+      "side": 1,
+      "message": "reverseDirection ?",
+      "range": {
+        "startLine": 3485,
+        "startChar": 5,
+        "endLine": 3485,
+        "endChar": 14
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d67d17c2_e1c4b6bd",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3502,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-11-23T05:13:40Z",
+      "side": 1,
+      "message": "Should you also ensure that meter id for the given direction (not reverse direction) is also removed from the kv store?",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
