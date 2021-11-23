@@ -136,6 +136,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ca48a922_4d1c873c",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2021-11-23T17:52:06Z",
+      "side": 1,
+      "message": "Ok. Some comment would be better here.",
+      "parentUuid": "d8e246e1_8493990d",
+      "range": {
+        "startLine": 556,
+        "startChar": 0,
+        "endLine": 556,
+        "endChar": 36
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e4716123_a144811d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 2
