@@ -71,6 +71,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "162b4e0a_fb2e9aeb",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T07:23:41Z",
+      "side": 1,
+      "message": "Burak Gürdağ will send a patch for the agent changes that cover your questions.",
+      "parentUuid": "bd915b55_3210c0dd",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e4716123_a144811d",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 2
@@ -88,6 +106,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "fb8022cc_3e4b2487",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T07:23:41Z",
+      "side": 1,
+      "message": "If a queue creation that is in the 1tcont-1gem model fails, no need to send a removeQueue request - removal of the scheduler is enough. RevertScheduler method which removes the scheduler has a log (line 3516), so I didn\u0027t add a log for else case.",
+      "parentUuid": "e4716123_a144811d",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f7387d55_407c147f",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 2
@@ -99,6 +135,30 @@
       "writtenOn": "2021-11-23T05:13:40Z",
       "side": 1,
       "message": "Why false? Can you please clarify the expected behavior here? Same comment in other places below.",
+      "range": {
+        "startLine": 2944,
+        "startChar": 89,
+        "endLine": 2944,
+        "endChar": 94
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "76448b54_c3e3405a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2944,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T07:23:41Z",
+      "side": 1,
+      "message": "If a flow operation fails when sending trap or data-plane flows to the agent (if we receive an error from these methods), the olt flow manager doesn\u0027t send downloadTechProfileRequest to the ONU adapter, and it immediately returns. So, we don\u0027t need to send deleteGemRequest.  We can remove this flag and send this request to the ONU adapter, but it will be an unnecessary method call.",
+      "parentUuid": "f7387d55_407c147f",
       "range": {
         "startLine": 2944,
         "startChar": 89,
@@ -132,6 +192,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c293ae1c_ef79a11d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3485,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T07:23:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9376e9e0_d92467cf",
+      "range": {
+        "startLine": 3485,
+        "startChar": 5,
+        "endLine": 3485,
+        "endChar": 14
+      },
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d67d17c2_e1c4b6bd",
@@ -145,6 +229,24 @@
       "writtenOn": "2021-11-23T05:13:40Z",
       "side": 1,
       "message": "Should you also ensure that meter id for the given direction (not reverse direction) is also removed from the kv store?",
+      "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d2b8fdac_bf8eb4ca",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3502,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2021-11-23T07:23:41Z",
+      "side": 1,
+      "message": "When we call this method for a specific direction (direction in schedQueue object), it means the related meter is not in the KV store. (If scheduler/queue is created successfully, we add the meter to the KV store - but one of these fails, we call revertTechProfileInstance method immediately before adding to store). So I think I don\u0027t need to check the meter id for the given direction.",
+      "parentUuid": "d67d17c2_e1c4b6bd",
       "revId": "b7cdd9d2e8560be397d56bb8094c74dbd34d9ec2",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
