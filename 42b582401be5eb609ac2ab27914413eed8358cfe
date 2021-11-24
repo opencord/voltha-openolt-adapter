@@ -33,6 +33,24 @@
       "message": "ignoring the error her might lead to nil pointers in the context, please check the error and avoid inserting the object in the context if getting it is not successful.",
       "revId": "42b582401be5eb609ac2ab27914413eed8358cfe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a35d2790_5be16898",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2021-11-24T19:35:18Z",
+      "side": 1,
+      "message": "Since the second parameter to the function is the constant voltha.Port_PON_OLT, this function call will always return nil as the error. So I guess ignoring the error return in case could be ok.",
+      "parentUuid": "581433bf_d570dbee",
+      "revId": "42b582401be5eb609ac2ab27914413eed8358cfe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
