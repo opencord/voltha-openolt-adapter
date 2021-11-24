@@ -305,6 +305,7 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 	context := make(map[string]string)
 	/* Populating event context */
 	context[ContextOltPonIntfID] = strconv.FormatUint(uint64(ponIntdID), base10)
+	context[ContextOltPortLabel], _ = GetportLabel(oltLos.IntfId, voltha.Port_PON_OLT)
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
