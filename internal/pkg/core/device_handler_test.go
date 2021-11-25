@@ -42,6 +42,7 @@ import (
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -642,6 +643,89 @@ func TestDeviceHandler_ProxyOmciMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_ = tt.devicehandler.ProxyOmciMessage(ctx, tt.args.omciMsg)
 			//TODO: actually verify test cases
+		})
+	}
+}
+
+func TestDeviceHandler_ProxyOmciRequests(t *testing.T) {
+	ctx := context.Background()
+	dh1 := newMockDeviceHandler()
+	dh2 := negativeDeviceHandler()
+	device1 := &voltha.Device{
+		Id:       "onu1",
+		Root:     false,
+		ParentId: "logical_device",
+		ProxyAddress: &voltha.Device_ProxyAddress{
+			DeviceId:       "onu1",
+			DeviceType:     "onu",
+			ChannelId:      1,
+			ChannelGroupId: 1,
+		},
+		ConnectStatus: 1,
+	}
+	device2 := device1
+	device2.ConnectStatus = 2
+
+	iaomciMsg1 := &ia.OmciMessages{
+		ConnectStatus: 1,
+		ProxyAddress: &voltha.Device_ProxyAddress{
+			DeviceId:       "onu2",
+			DeviceType:     "onu",
+			ChannelId:      1,
+			ChannelGroupId: 1,
+		},
+	}
+
+	iaomciMsg2 := &ia.OmciMessages{
+		ConnectStatus: 1,
+		ProxyAddress: &voltha.Device_ProxyAddress{
+			DeviceId:       "onu3",
+			DeviceType:     "onu",
+			ChannelId:      1,
+			ChannelGroupId: 1,
+		},
+	}
+
+	type args struct {
+		onuDevice *voltha.Device
+		omciMsg   *ia.OmciMessages
+	}
+	tests := []struct {
+		name          string
+		devicehandler *DeviceHandler
+		args          args
+	}{
+		{"sendProxiedMessage-1", dh1, args{onuDevice: device1, omciMsg: &ia.OmciMessages{}}},
+		{"sendProxiedMessage-2", dh1, args{onuDevice: device2, omciMsg: &ia.OmciMessages{}}},
+		{"sendProxiedMessage-3", dh1, args{onuDevice: nil, omciMsg: iaomciMsg1}},
+		{"sendProxiedMessage-4", dh1, args{onuDevice: nil, omciMsg: iaomciMsg2}},
+		{"sendProxiedMessage-5", dh2, args{onuDevice: nil, omciMsg: iaomciMsg2}},
+		{"sendProxiedMessage-6", dh2, args{onuDevice: device1, omciMsg: &ia.OmciMessages{}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "sendProxiedMessage-1":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "no deviceID")
+			case "sendProxiedMessage-2":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "no deviceID")
+			case "sendProxiedMessage-3":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "failed-communication")
+			case "sendProxiedMessage-4":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "failed-communication")
+			case "sendProxiedMessage-5":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "failed-communication")
+			case "sendProxiedMessage-6":
+				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
+				assert.Contains(t, err.Error(), "no deviceID")
+
+			}
+
 		})
 	}
 }

@@ -131,7 +131,7 @@ github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager
 github.com/opencord/voltha-lib-go/v7/pkg/probe
 github.com/opencord/voltha-lib-go/v7/pkg/techprofile
 github.com/opencord/voltha-lib-go/v7/pkg/version
-# github.com/opencord/voltha-protos/v5 v5.1.2
+# github.com/opencord/voltha-protos/v5 v5.2.0
 ## explicit
 github.com/opencord/voltha-protos/v5/go/adapter_service
 github.com/opencord/voltha-protos/v5/go/common
@@ -159,8 +159,13 @@ github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 github.com/rcrowley/go-metrics
+# github.com/stretchr/testify v1.7.0
+## explicit
+github.com/stretchr/testify/assert
 # github.com/uber/jaeger-client-go v2.29.1+incompatible
 github.com/uber/jaeger-client-go
 github.com/uber/jaeger-client-go/config
@@ -296,6 +301,8 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+gopkg.in/yaml.v3
 # github.com/coreos/bbolt v1.3.4 => go.etcd.io/bbolt v1.3.4
 # go.etcd.io/bbolt v1.3.4 => github.com/coreos/bbolt v1.3.4
 # google.golang.org/grpc => google.golang.org/grpc v1.25.1
