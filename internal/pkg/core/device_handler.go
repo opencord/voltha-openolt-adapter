@@ -1148,6 +1148,82 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 // 	return olterrors.NewErrInvalidValue(log.Fields{"inter-adapter-message-type": msg.Header.Type}, nil)
 // }
 
+// ProxyOmciRequests sends the proxied OMCI message to the target device
+func (dh *DeviceHandler) ProxyOmciRequests(ctx context.Context, omciMsg *ia.OmciMessages) error {
+	if omciMsg.GetProxyAddress() == nil {
+		onuDevice, err := dh.getDeviceFromCore(ctx, omciMsg.ChildDeviceId)
+		if err != nil {
+			return olterrors.NewErrNotFound("onu", log.Fields{
+				"parent-device-id": dh.device.Id,
+				"child-device-id":  omciMsg.ChildDeviceId}, err)
+		}
+		logger.Debugw(ctx, "device-retrieved-from-core", log.Fields{"onu-device-proxy-address": onuDevice.ProxyAddress})
+		if err := dh.sendProxyOmciRequests(log.WithSpanFromContext(context.Background(), ctx), onuDevice, omciMsg); err != nil {
+			return olterrors.NewErrCommunication("send-failed", log.Fields{
+				"parent-device-id": dh.device.Id,
+				"child-device-id":  omciMsg.ChildDeviceId}, err)
+		}
+	} else {
+		logger.Debugw(ctx, "proxy-address-found-in-omci-message", log.Fields{"onu-device-proxy-address": omciMsg.ProxyAddress})
+		if err := dh.sendProxyOmciRequests(log.WithSpanFromContext(context.Background(), ctx), nil, omciMsg); err != nil {
+			return olterrors.NewErrCommunication("send-failed", log.Fields{
+				"parent-device-id": dh.device.Id,
+				"child-device-id":  omciMsg.ChildDeviceId}, err)
+		}
+	}
+	return nil
+}
+
+func (dh *DeviceHandler) sendProxyOmciRequests(ctx context.Context, onuDevice *voltha.Device, omciMsg *ia.OmciMessages) error {
+	var intfID uint32
+	var onuID uint32
+	var connectStatus common.ConnectStatus_Types
+	if onuDevice != nil {
+		intfID = onuDevice.ProxyAddress.GetChannelId()
+		onuID = onuDevice.ProxyAddress.GetOnuId()
+		connectStatus = onuDevice.ConnectStatus
+	} else {
+		intfID = omciMsg.GetProxyAddress().GetChannelId()
+		onuID = omciMsg.GetProxyAddress().GetOnuId()
+		connectStatus = omciMsg.GetConnectStatus()
+	}
+	if connectStatus != voltha.ConnectStatus_REACHABLE {
+		logger.Debugw(ctx, "onu-not-reachable--cannot-send-omci", log.Fields{"intf-id": intfID, "onu-id": onuID})
+
+		return olterrors.NewErrCommunication("unreachable", log.Fields{
+			"intf-id": intfID,
+			"onu-id":  onuID}, nil)
+	}
+
+	// TODO: OpenOLT Agent oop.OmciMsg expects a hex encoded string for OMCI packets rather than the actual bytes.
+	//  Fix this in the agent and then we can pass byte array as Pkt: omciMsg.Message.
+
+	onuSecOmciMsgList := omciMsg.GetMessages()
+
+	for _, onuSecOmciMsg := range onuSecOmciMsgList {
+
+		var omciMessage *oop.OmciMsg
+		hexPkt := make([]byte, hex.EncodedLen(len(onuSecOmciMsg)))
+		hex.Encode(hexPkt, onuSecOmciMsg)
+		omciMessage = &oop.OmciMsg{IntfId: intfID, OnuId: onuID, Pkt: hexPkt}
+
+		// TODO: Below logging illustrates the "stringify" of the omci Pkt.
+		//  once above is fixed this log line can change to just use hex.EncodeToString(omciMessage.Pkt)
+		transid := extractOmciTransactionID(onuSecOmciMsg)
+		logger.Debugw(ctx, "sent-omci-msg", log.Fields{"intf-id": intfID, "onu-id": onuID,
+			"omciTransactionID": transid, "omciMsg": string(omciMessage.Pkt)})
+
+		_, err := dh.Client.OmciMsgOut(log.WithSpanFromContext(context.Background(), ctx), omciMessage)
+		if err != nil {
+			return olterrors.NewErrCommunication("omci-send-failed", log.Fields{
+				"intf-id": intfID,
+				"onu-id":  onuID,
+				"message": omciMessage}, err)
+		}
+	}
+	return nil
+}
+
 // ProxyOmciMessage sends the proxied OMCI message to the target device
 func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ia.OmciMessage) error {
 	logger.Debugw(ctx, "proxy-omci-message", log.Fields{"parent-device-id": omciMsg.ParentDeviceId, "child-device-id": omciMsg.ChildDeviceId, "proxy-address": omciMsg.ProxyAddress, "connect-status": omciMsg.ConnectStatus})
