@@ -374,6 +374,17 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
  *  OLT Inter-adapter service
  */
 
+// ProxyOnuSwDownloadOmciRequest proxies an onu sw download OMCI request from the child adapter
+func (oo *OpenOLT) ProxyOnuSwDownloadOmciRequest(ctx context.Context, request *ia.OnuSwDownloadOmciMessage) (*empty.Empty, error) {
+	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
+		if err := handler.ProxyOnuSwDownloadSectionsOmciMessage(ctx, request); err != nil {
+			return nil, errors.New(err.Error())
+		}
+		return &empty.Empty{}, nil
+	}
+	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.ChildDeviceId}, nil).Log()
+}
+
 // ProxyOmciRequest proxies an OMCI request from the child adapter
 func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*empty.Empty, error) {
 	logger.Debugw(ctx, "proxy-omci-request", log.Fields{"request": request})
