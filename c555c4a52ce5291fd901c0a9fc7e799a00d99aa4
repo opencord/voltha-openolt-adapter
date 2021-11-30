@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "151ec530_968a2dc0",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2021-11-30T19:40:34Z",
+      "side": 1,
+      "message": "same comment as the Onus patch, why RAISE ? no clear will ever be done.",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
