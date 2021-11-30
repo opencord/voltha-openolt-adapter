@@ -611,7 +611,7 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 	ke.Type = voltha.KpiEventType_slice
 	ke.Ts = float64(raisedTs)
 
-	if err := StatMgr.Device.EventProxy.SendKpiEvent(ctx, "STATS_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
+	if err := StatMgr.Device.EventProxy.SendKpiEvent(ctx, "STATS_RAISE_EVENT", &ke, voltha.EventCategory_EQUIPMENT, volthaEventSubCatgry, raisedTs); err != nil {
 		logger.Errorw(ctx, "failed-to-send-stats", log.Fields{"err": err})
 	}
 }
