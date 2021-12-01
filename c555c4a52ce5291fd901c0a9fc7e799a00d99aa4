@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9172167_b607a093",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-12-01T05:45:49Z",
+      "side": 1,
+      "message": "How is this fix related to issue described in VOL-3877. Also agree with Andrea\u0027s comment that \"RAISE\" does not make much sense given this is a statistics report.",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "151ec530_968a2dc0",
