@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f051425c_e900cf70",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000726
+      },
+      "writtenOn": "2021-12-01T07:49:44Z",
+      "side": 1,
+      "message": "The same issue will come here also.",
+      "parentUuid": "e9172167_b607a093",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "151ec530_968a2dc0",
@@ -31,6 +49,24 @@
       "writtenOn": "2021-11-30T19:40:34Z",
       "side": 1,
       "message": "same comment as the Onus patch, why RAISE ? no clear will ever be done.",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2429803_8ae5e494",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000726
+      },
+      "writtenOn": "2021-12-01T07:49:44Z",
+      "side": 1,
+      "message": "Voltha lib go considers the event name to be reported by the caller as eventname_\u003cRAISE/CLEAR\u003e_EVENT and the getEventHeader discards the RAISE/CLEAR_EVENT from the event name while sending the event, thats why STATS_EVENT name is getting removed from the event name and empty string is the result in event name. With this change STATS will be inserted in the event name.",
+      "parentUuid": "151ec530_968a2dc0",
       "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
