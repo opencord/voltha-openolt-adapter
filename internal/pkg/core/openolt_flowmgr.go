@@ -2082,14 +2082,33 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 		return f.clearMulticastFlowFromResourceManager(ctx, flow)
 	}
 
-	classifierInfo := make(map[string]interface{})
+	var ethType, ipProto, inPort uint32
+	for _, field := range flows.GetOfbFields(flow) {
+		if field.Type == flows.IP_PROTO {
+			ipProto = field.GetIpProto()
+			logger.Debugw(ctx, "field-type-ip-proto", log.Fields{"ipProto": ipProto})
+		} else if field.Type == flows.ETH_TYPE {
+			ethType = field.GetEthType()
+			logger.Debugw(ctx, "field-type-eth-type", log.Fields{"ethType": ethType})
+		} else if field.Type == flows.IN_PORT {
+			inPort = field.GetPort()
+			logger.Debugw(ctx, "field-type-in-port", log.Fields{"inPort": inPort})
+		}
+	}
+	portType := plt.IntfIDToPortTypeName(inPort)
+	if (ethType == uint32(LldpEthType) || ipProto == uint32(IPProtoDhcp) || ipProto == uint32(IgmpProto)) &&
+		(portType == voltha.Port_ETHERNET_NNI) {
+		removeFlowMessage := openoltpb2.Flow{FlowId: flow.Id, AccessIntfId: -1, OnuId: -1, UniId: -1, TechProfileId: 0, FlowType: Downstream}
+		logger.Debugw(ctx, "nni-trap-flow-to-be-deleted", log.Fields{"flow": flow})
+		return f.removeFlowFromDevice(ctx, &removeFlowMessage, flow.Id)
+		// No more processing needed for trap from nni flows.
+	}
 
-	portNum, Intf, onu, uni, inPort, ethType, err := plt.FlowExtractInfo(ctx, flow, flowDirection)
+	portNum, Intf, onu, uni, _, _, err := plt.FlowExtractInfo(ctx, flow, flowDirection)
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
-
 	onuID := int32(onu)
 	uniID := int32(uni)
 	tpID, err := getTpIDFromFlow(ctx, flow)
@@ -2103,32 +2122,12 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 				"device-id": f.deviceHandler.device.Id}, err)
 	}
 
-	for _, field := range flows.GetOfbFields(flow) {
-		if field.Type == flows.IP_PROTO {
-			classifierInfo[IPProto] = field.GetIpProto()
-			logger.Debugw(ctx, "field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
-		}
-	}
 	logger.Infow(ctx, "extracted-access-info-from-flow-to-be-deleted",
 		log.Fields{
 			"flow-id": flow.Id,
 			"intf-id": Intf,
 			"onu-id":  onuID,
 			"uni-id":  uniID})
-
-	if ethType == LldpEthType || ((classifierInfo[IPProto] == IPProtoDhcp) && (flowDirection == "downstream")) {
-		onuID = -1
-		uniID = -1
-		logger.Debug(ctx, "trap-on-nni-flow-set-oni--uni-to- -1")
-		Intf, err = plt.IntfIDFromNniPortNum(ctx, inPort)
-		if err != nil {
-			logger.Errorw(ctx, "invalid-in-port-number",
-				log.Fields{
-					"port-number": inPort,
-					"err":         err})
-			return err
-		}
-	}
 
 	removeFlowMessage := openoltpb2.Flow{FlowId: flow.Id, AccessIntfId: int32(Intf), OnuId: onuID, UniId: uniID, TechProfileId: tpID, FlowType: flowDirection}
 	logger.Debugw(ctx, "flow-to-be-deleted", log.Fields{"flow": flow})

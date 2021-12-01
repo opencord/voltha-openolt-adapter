@@ -1609,6 +1609,16 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "RouteFlowToOnuChannel-11", // Test Remove trap-from-nni LLDP flow
+			args: args{
+				ctx:          ctx,
+				flow:         flow0,
+				addFlow:      false,
+				flowMetadata: &flowMetadata1,
+			},
+			wantErr: false,
+		},
 	}
 
 	var wg sync.WaitGroup
