@@ -103,6 +103,24 @@
       "parentUuid": "151ec530_968a2dc0",
       "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd3e275a_bdf1e72c",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-12-01T09:20:08Z",
+      "side": 1,
+      "message": "Ok. I have not looked at the voltha-lib-go code but it looks like the library may need some improvements.",
+      "parentUuid": "b2429803_8ae5e494",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
