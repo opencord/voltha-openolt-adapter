@@ -138,6 +138,24 @@
       "parentUuid": "b2429803_8ae5e494",
       "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6544338e_875388a1",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-12-01T16:42:46Z",
+      "side": 1,
+      "message": "I just saw your patch on voltha-lib-go. I think what you did in voltha-lib-go could work but there is too much of tight coupling with voltha-lib-go using some hardcoded suffixes and adapter adhering to some particular formats. This is legacy code unfortunately and we have to deal with it :(\nWe could make the existing voltha-lib-go happy with changing STATS_EVENT to STATS_PUBLISH_EVENT. I think the main concern here was the RAISE wording. \nSorry about too much of back-and-forth with the code changes.",
+      "parentUuid": "bd3e275a_bdf1e72c",
+      "revId": "c555c4a52ce5291fd901c0a9fc7e799a00d99aa4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
