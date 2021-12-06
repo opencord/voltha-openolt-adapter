@@ -3198,6 +3198,15 @@ func appendUnique32bit(slice []uint32, item uint32) []uint32 {
 	return append(slice, item)
 }
 
+func appendUnique64bit(slice []uint64, item uint64) []uint64 {
+	for _, sliceElement := range slice {
+		if sliceElement == item {
+			return slice
+		}
+	}
+	return append(slice, item)
+}
+
 // getNniIntfID gets nni intf id from the flow classifier/action
 func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action map[string]interface{}) (uint32, error) {
 
