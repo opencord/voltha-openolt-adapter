@@ -2518,15 +2518,41 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			"err":       err})
 	} else {
 		logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
+		// Delete flows from device before schedulers and queue
+		// Clear flowids for gem cache.
+		removedFlows := []uint64{}
+		for _, gem := range onuGem.GemPorts {
+			if flowIDs, err := dh.resourceMgr[intfID].GetFlowIDsForGem(ctx, gem); err == nil {
+				for _, flowID := range flowIDs {
+					//multiple gem port can have the same flow id
+					//it is better to send only one flowRemove request to the agent
+					var alreadyRemoved bool
+					for _, removedFlowID := range removedFlows {
+						if removedFlowID == flowID {
+							logger.Debugw(ctx, "flow-is-already-removed-due-to-another-gem", log.Fields{"flowID": flowID})
+							alreadyRemoved = true
+							break
+						}
+					}
+					if !alreadyRemoved {
+						flow := &oop.Flow{FlowId: flowID}
+						if err := dh.flowMgr[intfID].removeFlowFromDevice(ctx, flow, flowID); err != nil {
+							logger.Warnw(ctx, "failed-to-remove-flow-from-device", log.Fields{
+								"device-id":  dh.device.Id,
+								"onu-device": onu,
+								"err":        err})
+						}
+						removedFlows = appendUnique64bit(removedFlows, flowID)
+					}
+				}
+			}
+			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, gem)
+		}
 		if err := dh.clearUNIData(ctx, onuGem); err != nil {
 			logger.Warnw(ctx, "failed-to-clear-uni-data-for-onu", log.Fields{
 				"device-id":  dh.device.Id,
 				"onu-device": onu,
 				"err":        err})
-		}
-		// Clear flowids for gem cache.
-		for _, gem := range onuGem.GemPorts {
-			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, gem)
 		}
 		if err := dh.resourceMgr[intfID].DelOnuGemInfo(ctx, onuID); err != nil {
 			logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
