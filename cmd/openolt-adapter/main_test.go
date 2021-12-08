@@ -83,7 +83,9 @@ func Test_registerWithCore(t *testing.T) {
 	go ms.Start(ctx)
 	defer ms.Stop()
 
-	if ad.coreClient, err = vgrpc.NewClient(ms.ApiEndpoint,
+	if ad.coreClient, err = vgrpc.NewClient(
+		"olt-endpoint",
+		ms.ApiEndpoint,
 		ad.coreRestarted); err != nil {
 		t.Errorf("grpc client: expected error:nil, got error: %v", err)
 	}
