@@ -122,7 +122,7 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 }
 
 // GetHealthStatus is used as a service readiness validation as a grpc connection
-func (oo *OpenOLT) GetHealthStatus(ctx context.Context, empty *empty.Empty) (*health.HealthStatus, error) {
+func (oo *OpenOLT) GetHealthStatus(ctx context.Context, clientConn *common.Connection) (*health.HealthStatus, error) {
 	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 

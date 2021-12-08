@@ -30,7 +30,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 
 	"github.com/cenkalti/backoff/v3"
@@ -3075,13 +3074,14 @@ func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpo
 
 	// Setup child's adapter grpc connection
 	var err error
-	if dh.childAdapterClients[endpoint], err = vgrpc.NewClient(endpoint,
-		dh.onuAdapterRestarted,
-		vgrpc.ActivityCheck(true)); err != nil {
+	if dh.childAdapterClients[endpoint], err = vgrpc.NewClient(
+		dh.cfg.AdapterEndpoint,
+		endpoint,
+		dh.onuAdapterRestarted); err != nil {
 		logger.Errorw(ctx, "grpc-client-not-created", log.Fields{"error": err, "endpoint": endpoint})
 		return err
 	}
-	go dh.childAdapterClients[endpoint].Start(log.WithSpanFromContext(context.TODO(), ctx), setAndTestAdapterServiceHandler)
+	go dh.childAdapterClients[endpoint].Start(log.WithSpanFromContext(context.TODO(), ctx), dh.setAndTestOnuInterAdapterServiceHandler)
 
 	// Wait until we have a connection to the child adapter.
 	// Unlimited retries or until context expires
@@ -3145,10 +3145,21 @@ func (dh *DeviceHandler) onuAdapterRestarted(ctx context.Context, endPoint strin
 	return nil
 }
 
-// setAndTestAdapterServiceHandler is used to test whether the remote gRPC service is up
-func setAndTestAdapterServiceHandler(ctx context.Context, conn *grpc.ClientConn) interface{} {
+// setAndTestOnuInterAdapterServiceHandler is used to test whether the remote gRPC service is up
+func (dh *DeviceHandler) setAndTestOnuInterAdapterServiceHandler(ctx context.Context, conn *grpc.ClientConn, clientConn *common.Connection) interface{} {
+	// The onu adapter needs to know whether the olt adapter can connect to it.   Since the olt adapter
+	// has a grpc client connection per device handler (i.e. per olt device) to the onu adapter
+	// then the onu adapter needs to know whether that specific client can connect to it. Because the
+	// client uses a polling mechanism then not all grpc clients could be connected at the same time,
+	// a maximum difference of 5 sec.  We therefore add the parent device as additional contextual information
+	// to this request.
+	dh.lockDevice.RLock()
+	if dh.device != nil {
+		clientConn.ContextInfo = dh.device.Id
+	}
+	dh.lockDevice.RUnlock()
 	svc := onu_inter_adapter_service.NewOnuInterAdapterServiceClient(conn)
-	if h, err := svc.GetHealthStatus(ctx, &empty.Empty{}); err != nil || h.State != health.HealthStatus_HEALTHY {
+	if h, err := svc.GetHealthStatus(ctx, clientConn); err != nil || h.State != health.HealthStatus_HEALTHY {
 		return nil
 	}
 	return svc

@@ -34,7 +34,7 @@ import (
 
 // NewMockCoreClient creates a new mock core client for a given core service
 func NewMockCoreClient(coreService *MockCoreService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-local-endpoint", "mock-remote-endpoint", nil)
 	cc.SetService(coreService)
 	return cc
 }
@@ -48,7 +48,7 @@ type MockCoreService struct {
 }
 
 // GetHealthStatus implements mock GetHealthStatus
-func (mcs MockCoreService) GetHealthStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*health.HealthStatus, error) {
+func (mcs MockCoreService) GetHealthStatus(ctx context.Context, in *common.Connection, opts ...grpc.CallOption) (*health.HealthStatus, error) {
 	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 

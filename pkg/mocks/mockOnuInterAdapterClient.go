@@ -22,6 +22,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
+	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/health"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	"google.golang.org/grpc"
@@ -29,7 +30,7 @@ import (
 
 // NewMockChildAdapterClient create a mock child adapter client
 func NewMockChildAdapterClient(srv *MockOnuInterAdapterService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-local-endpoint", "mock-remote-endpoint", nil)
 	cc.SetService(srv)
 	return cc
 }
@@ -39,7 +40,7 @@ type MockOnuInterAdapterService struct {
 }
 
 // GetHealthStatus implements mock GetHealthStatus
-func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*health.HealthStatus, error) {
+func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, in *common.Connection, opts ...grpc.CallOption) (*health.HealthStatus, error) {
 	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 
