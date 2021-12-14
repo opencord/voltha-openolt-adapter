@@ -50,6 +50,23 @@
       "message": "hardware test",
       "revId": "6071f380121d3262cc81104626f2a22aa4fc084d",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7272e71d_315b4251",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2021-12-14T11:30:45Z",
+      "side": 1,
+      "message": "The bng config was missing on the hardware causing test failure. Triggering again.",
+      "revId": "6071f380121d3262cc81104626f2a22aa4fc084d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
