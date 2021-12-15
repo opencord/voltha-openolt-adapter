@@ -81,7 +81,7 @@ type DeviceHandler struct {
 	lockChildAdapterClients sync.RWMutex
 	EventProxy              eventif.EventProxy
 	openOLT                 *OpenOLT
-	exitChannel             chan int
+	exitChannel             chan struct{}
 	lockDevice              sync.RWMutex
 	Client                  oop.OpenoltClient
 	transitionMap           *TransitionMap
@@ -188,7 +188,7 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	cloned := (proto.Clone(device)).(*voltha.Device)
 	dh.device = cloned
 	dh.openOLT = adapter
-	dh.exitChannel = make(chan int, 1) // TODO: Why buffered?
+	dh.exitChannel = make(chan struct{})
 	dh.lockDevice = sync.RWMutex{}
 	dh.stopCollector = make(chan bool, 2)      // TODO: Why buffered?
 	dh.stopHeartbeatCheck = make(chan bool, 2) // TODO: Why buffered?
@@ -226,12 +226,14 @@ func (dh *DeviceHandler) start(ctx context.Context) {
 }
 
 // stop stops the device dh.  Not much to do for now
-func (dh *DeviceHandler) stop(ctx context.Context) {
+func (dh *DeviceHandler) Stop(ctx context.Context) {
 	dh.lockDevice.Lock()
 	defer dh.lockDevice.Unlock()
 	logger.Debug(ctx, "stopping-device-agent")
-	dh.exitChannel <- 1
+	close(dh.exitChannel)
 
+	// Delere (which will stop also) all grpc connections to the child adapters
+	dh.deleteAdapterClients(ctx)
 	logger.Debug(ctx, "device-agent-stopped")
 }
 
@@ -3077,7 +3079,9 @@ func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpo
 	if dh.childAdapterClients[endpoint], err = vgrpc.NewClient(
 		dh.cfg.AdapterEndpoint,
 		endpoint,
-		dh.onuAdapterRestarted); err != nil {
+		"onu_inter_adapter_service.OnuInterAdapterService",
+		dh.onuAdapterRestarted,
+		vgrpc.ClientContextData(dh.device.Id)); err != nil {
 		logger.Errorw(ctx, "grpc-client-not-created", log.Fields{"error": err, "endpoint": endpoint})
 		return err
 	}
