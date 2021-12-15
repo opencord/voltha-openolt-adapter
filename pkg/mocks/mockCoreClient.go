@@ -27,14 +27,14 @@ import (
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
-	"github.com/opencord/voltha-protos/v5/go/health"
+	"github.com/opencord/voltha-protos/v5/go/core_service"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 )
 
 // NewMockCoreClient creates a new mock core client for a given core service
 func NewMockCoreClient(coreService *MockCoreService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-local-endpoint", "mock-remote-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-core-endpoint", "mock-server-endpoint", "core_service.CoreService", nil)
 	cc.SetService(coreService)
 	return cc
 }
@@ -45,11 +45,6 @@ type MockCoreService struct {
 	// TODO store relevant info in this, use this info for negative and positive tests
 	Devices     map[string]*voltha.Device
 	DevicePorts map[string][]*voltha.Port
-}
-
-// GetHealthStatus implements mock GetHealthStatus
-func (mcs MockCoreService) GetHealthStatus(ctx context.Context, in *common.Connection, opts ...grpc.CallOption) (*health.HealthStatus, error) {
-	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 
 // RegisterAdapter implements mock RegisterAdapter
@@ -230,6 +225,10 @@ func (mcs MockCoreService) PortStateUpdate(ctx context.Context, in *ca.PortState
 		return nil, errors.New("no Device")
 	}
 	return &empty.Empty{}, nil
+}
+
+func (mcs MockCoreService) GetHealthStatus(ctx context.Context, opts ...grpc.CallOption) (core_service.CoreService_GetHealthStatusClient, error) {
+	return nil, nil
 }
 
 // Additional API found in the Core - unused?
