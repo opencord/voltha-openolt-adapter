@@ -1103,10 +1103,10 @@ func TestDeviceHandler_start(t *testing.T) {
 	dh := newMockDeviceHandler()
 	dh1 := negativeDeviceHandler()
 	dh.start(context.Background())
-	dh.stop(context.Background())
+	dh.Stop(context.Background())
 
 	dh1.start(context.Background())
-	dh1.stop(context.Background())
+	dh1.Stop(context.Background())
 
 }
 
