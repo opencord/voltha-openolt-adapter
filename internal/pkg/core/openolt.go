@@ -20,6 +20,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
+	"github.com/opencord/voltha-protos/v5/go/adapter_service"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
 	"github.com/opencord/voltha-protos/v5/go/extension"
@@ -49,7 +51,7 @@ type OpenOLT struct {
 	numOnus                     int
 	KVStoreAddress              string
 	KVStoreType                 string
-	exitChannel                 chan int
+	exitChannel                 chan struct{}
 	HeartbeatCheckInterval      time.Duration
 	HeartbeatFailReportInterval time.Duration
 	GrpcTimeoutInterval         time.Duration
@@ -64,7 +66,7 @@ func NewOpenOLT(ctx context.Context,
 	coreClient *vgrpc.Client,
 	eventProxy eventif.EventProxy, cfg *config.AdapterFlags, cm *conf.ConfigManager) *OpenOLT {
 	var openOLT OpenOLT
-	openOLT.exitChannel = make(chan int, 1)
+	openOLT.exitChannel = make(chan struct{})
 	openOLT.deviceHandlers = make(map[string]*DeviceHandler)
 	openOLT.config = cfg
 	openOLT.numOnus = cfg.OnuNumber
@@ -93,7 +95,15 @@ func (oo *OpenOLT) Start(ctx context.Context) error {
 //Stop terminates the session
 func (oo *OpenOLT) Stop(ctx context.Context) error {
 	logger.Info(ctx, "stopping-device-manager")
-	oo.exitChannel <- 1
+	close(oo.exitChannel)
+	// Stop the device handlers
+	oo.stopAllDeviceHandlers(ctx)
+
+	// Stop the core grpc client connection
+	if oo.coreClient != nil {
+		oo.coreClient.Stop(ctx)
+	}
+
 	logger.Info(ctx, "device-manager-stopped")
 	return nil
 }
@@ -121,9 +131,12 @@ func (oo *OpenOLT) getDeviceHandler(deviceID string) *DeviceHandler {
 	return nil
 }
 
-// GetHealthStatus is used as a service readiness validation as a grpc connection
-func (oo *OpenOLT) GetHealthStatus(ctx context.Context, clientConn *common.Connection) (*health.HealthStatus, error) {
-	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
+func (oo *OpenOLT) stopAllDeviceHandlers(ctx context.Context) {
+	oo.lockDeviceHandlersMap.Lock()
+	defer oo.lockDeviceHandlersMap.Unlock()
+	for _, handler := range oo.deviceHandlers {
+		handler.Stop(ctx)
+	}
 }
 
 // AdoptDevice creates a new device handler if not present already and then adopts the device
@@ -411,6 +424,50 @@ func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ia.TechP
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.DeviceId}, nil).Log()
 
+}
+
+// GetHealthStatus is used by a OltAdapterService client to detect a connection
+// lost with the gRPC server hosting the OltAdapterService service
+func (oo *OpenOLT) GetHealthStatus(stream adapter_service.AdapterService_GetHealthStatusServer) error {
+	ctx := context.Background()
+	logger.Debugw(ctx, "receive-stream-connection", log.Fields{"stream": stream})
+
+	if stream == nil {
+		return fmt.Errorf("conn-is-nil %v", stream)
+	}
+	initialRequestTime := time.Now()
+	var remoteClient *common.Connection
+	var tempClient *common.Connection
+	var err error
+loop:
+	for {
+		tempClient, err = stream.Recv()
+		if err != nil {
+			logger.Warnw(ctx, "received-stream-error", log.Fields{"remote-client": remoteClient, "error": err})
+			break loop
+		}
+		// Send a response back
+		err = stream.Send(&health.HealthStatus{State: health.HealthStatus_HEALTHY})
+		if err != nil {
+			logger.Warnw(ctx, "sending-stream-error", log.Fields{"remote-client": remoteClient, "error": err})
+			break loop
+		}
+
+		remoteClient = tempClient
+		logger.Debugw(ctx, "received-keep-alive", log.Fields{"remote-client": remoteClient})
+
+		select {
+		case <-stream.Context().Done():
+			logger.Infow(ctx, "stream-keep-alive-context-done", log.Fields{"remote-client": remoteClient, "error": stream.Context().Err()})
+			break loop
+		case <-oo.exitChannel:
+			logger.Warnw(ctx, "received-stop", log.Fields{"remote-client": remoteClient, "initial-conn-time": initialRequestTime})
+			break loop
+		default:
+		}
+	}
+	logger.Errorw(ctx, "connection-down", log.Fields{"remote-client": remoteClient, "error": err, "initial-conn-time": initialRequestTime})
+	return err
 }
 
 /*
