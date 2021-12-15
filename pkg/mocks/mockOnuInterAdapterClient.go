@@ -22,26 +22,20 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
-	"github.com/opencord/voltha-protos/v5/go/common"
-	"github.com/opencord/voltha-protos/v5/go/health"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
+	"github.com/opencord/voltha-protos/v5/go/onu_inter_adapter_service"
 	"google.golang.org/grpc"
 )
 
 // NewMockChildAdapterClient create a mock child adapter client
 func NewMockChildAdapterClient(srv *MockOnuInterAdapterService) *vgrpc.Client {
-	cc, _ := vgrpc.NewClient("mock-local-endpoint", "mock-remote-endpoint", nil)
+	cc, _ := vgrpc.NewClient("mock-child-endpoint", "mock-server-endpoint", "OnuInterAdapterService", nil)
 	cc.SetService(srv)
 	return cc
 }
 
 // MockOnuInterAdapterService represents a child adapter mock service
 type MockOnuInterAdapterService struct {
-}
-
-// GetHealthStatus implements mock GetHealthStatus
-func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, in *common.Connection, opts ...grpc.CallOption) (*health.HealthStatus, error) {
-	return &health.HealthStatus{State: health.HealthStatus_HEALTHY}, nil
 }
 
 // OnuIndication implements mock OnuIndication
@@ -67,4 +61,9 @@ func (mos *MockOnuInterAdapterService) DeleteGemPort(ctx context.Context, in *ia
 // DeleteTCont implements mock DeleteTCont
 func (mos *MockOnuInterAdapterService) DeleteTCont(ctx context.Context, in *ia.DeleteTcontMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
+}
+
+// GetHealthStatus implements mock GetHealthStatus
+func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, opts ...grpc.CallOption) (onu_inter_adapter_service.OnuInterAdapterService_GetHealthStatusServer, error) {
+	return nil, nil
 }
