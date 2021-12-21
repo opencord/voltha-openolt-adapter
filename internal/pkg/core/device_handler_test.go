@@ -178,9 +178,9 @@ func newMockDeviceHandler() *DeviceHandler {
 	deviceInf := &oop.DeviceInfo{Vendor: "openolt", Ranges: oopRanges, Model: "openolt", DeviceId: dh.device.Id, PonPorts: NumPonPorts}
 	dh.deviceInfo = deviceInf
 	dh.device = device
-	dh.resourceMgr = make([]*resourcemanager.OpenOltResourceMgr, deviceInf.PonPorts)
+	dh.resourceMgr = make([]*resourcemanager.OpenOltResourceMgr, deviceInf.PonPorts+1)
 	var i uint32
-	for i = 0; i < deviceInf.PonPorts; i++ {
+	for i = 0; i < deviceInf.PonPorts+1; i++ {
 		dh.resourceMgr[i] = &resourcemanager.OpenOltResourceMgr{DeviceID: dh.device.Id, DeviceType: dh.device.Type, DevInfo: deviceInf,
 			KVStore: &db.Backend{
 				StoreType: "etcd",
@@ -225,8 +225,8 @@ func newMockDeviceHandler() *DeviceHandler {
 	defer cancel()
 	dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr[0])
 	dh.totalPonPorts = NumPonPorts
-	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
-	for i = 0; i < dh.totalPonPorts; i++ {
+	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts+1)
+	for i = 0; i < dh.totalPonPorts+1; i++ {
 		dh.flowMgr[i] = &OpenOltFlowMgr{}
 		dh.flowMgr[i].deviceHandler = dh
 		dh.flowMgr[i].ponPortIdx = i
