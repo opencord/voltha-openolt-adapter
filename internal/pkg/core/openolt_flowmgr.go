@@ -279,6 +279,10 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 }
 
 func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) error {
+	// In case of nni trap flow
+	if deviceFlow.AccessIntfId == -1 {
+		return f.registerFlowIDForGemAndGemIDForFlow(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.AccessIntfId), flowFromCore)
+	}
 	if !deviceFlow.ReplicateFlow && deviceFlow.GemportId > 0 {
 		// Flow is not replicated in this case, we need to register the flow for a single gem-port
 		return f.registerFlowIDForGemAndGemIDForFlow(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowFromCore)
@@ -1041,14 +1045,20 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 			"gemport-id":  gemPortID,
 			"logicalflow": *logicalFlow})
 
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Infow(ctx, "flow-already-exists",
 			log.Fields{
 				"device-id": f.deviceHandler.device.Id,
 				"intf-id":   intfID,
 				"onu-id":    onuID})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addSymmetricDataPathFlow--flow-may-already-exist",
+			log.Fields{"intf-id": intfID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
+
 	classifierProto, err := makeOpenOltClassifierField(classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier, "device-id": f.deviceHandler.device.Id}, err).Log()
@@ -1134,13 +1144,18 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 	classifier[UDPDst] = uint32(67)
 	classifier[PacketTagType] = SingleTag
 
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Infow(ctx, "flow-exists--not-re-adding",
 			log.Fields{
 				"device-id": f.deviceHandler.device.Id,
 				"intf-id":   intfID,
 				"onu-id":    onuID})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addDHCPTrapFlow--flow-may-already-exist",
+			log.Fields{"intf-id": intfID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
 
 	logger.Debugw(ctx, "creating-ul-dhcp-flow",
@@ -1227,9 +1242,14 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *f
 	action[TrapToHost] = true
 	classifier[PacketTagType] = SingleTag
 
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkIntfID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkIntfID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{"device-id": f.deviceHandler.device.Id})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addUpstreamTrapFlow--flow-may-already-exist",
+			log.Fields{"intf-id": intfID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
 
 	logger.Debugw(ctx, "creating-upstream-trap-flow",
@@ -1313,13 +1333,18 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *f
 	uplinkClassifier[VlanPcp] = classifier[VlanPcp]
 	// Fill action
 	uplinkAction[TrapToHost] = true
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{
 			"device-id": f.deviceHandler.device.Id,
 			"onu-id":    onuID,
 			"intf-id":   intfID,
 			"ethType":   ethType})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addEthTypeBasedFlow--flow-may-already-exist",
+			log.Fields{"intf-id": intfID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
 	//Add Uplink EthType Flow
 	logger.Debugw(ctx, "creating-ul-ethType-flow",
@@ -1589,13 +1614,9 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 			"device-id": f.deviceHandler.device.Id,
 			"intf-id":   intfID})
 
-	// Case of trap-on-nni flow when deviceFlow.AccessIntfId is invalid (-1)
-	if deviceFlow.AccessIntfId != -1 {
-		// No need to register the flow if it is a trap on nni flow.
-		if err := f.registerFlow(ctx, logicalFlow, deviceFlow); err != nil {
-			logger.Errorw(ctx, "failed-to-register-flow", log.Fields{"err": err})
-			return err
-		}
+	if err := f.registerFlow(ctx, logicalFlow, deviceFlow); err != nil {
+		logger.Errorw(ctx, "failed-to-register-flow", log.Fields{"err": err})
+		return err
 	}
 	return nil
 }
@@ -1656,9 +1677,15 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"nni-port-number": portNo}, err).Log()
 	}
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), int32(uniID), flow.Id); present {
+
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), flow.Id)
+	if present {
 		logger.Infow(ctx, "flow-exists--not-re-adding", log.Fields{"device-id": f.deviceHandler.device.Id})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addLLDPFlow--flow-may-already-exist",
+			log.Fields{"intf-id": networkInterfaceID, "onu-id": onuID, "flow-id": flow.Id})
+		return err
 	}
 
 	classifierProto, err := makeOpenOltClassifierField(classifierInfo)
@@ -2416,12 +2443,17 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	delete(classifierInfo, EthType)
 
 	onuID := NoneOnuID
-	uniID := NoneUniID
 
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), int32(uniID), flow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), flow.Id)
+	if present {
 		logger.Infow(ctx, "multicast-flow-exists-not-re-adding", log.Fields{"classifier-info": classifierInfo})
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-handleFlowWithGroup--flow-may-already-exist",
+			log.Fields{"intf-id": networkInterfaceID, "onu-id": onuID, "flow-id": flow.Id})
+		return err
 	}
+
 	classifierProto, err := makeOpenOltClassifierField(classifierInfo)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifierInfo}, err)
@@ -2721,9 +2753,14 @@ func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.
 			err)
 	}
 
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Info(ctx, "flow-exists-not-re-adding")
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addTrapFlowOnNNI--flow-may-already-exist",
+			log.Fields{"intf-id": networkInterfaceID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
 
 	logger.Debugw(ctx, "creating-trap-of-nni-flow",
@@ -2817,9 +2854,15 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 			"action":     action},
 			err)
 	}
-	if present := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), int32(uniID), logicalFlow.Id); present {
+
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), logicalFlow.Id)
+	if present {
 		logger.Info(ctx, "igmp-flow-exists-not-re-adding")
 		return nil
+	} else if err != nil {
+		logger.Errorw(ctx, "aborting-addIgmpTrapFlowOnNNI--flow-may-already-exist",
+			log.Fields{"intf-id": networkInterfaceID, "onu-id": onuID, "flow-id": logicalFlow.Id})
+		return err
 	}
 
 	classifierProto, err := makeOpenOltClassifierField(classifier)
