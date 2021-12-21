@@ -110,6 +110,7 @@ func getResMgr() *fields {
 	ranges["gemport_id_shared"] = uint32(0)
 	ranges["flow_id_shared"] = uint32(0)
 	resMgr.NumOfPonPorts = 16
+	resMgr.DevInfo = &openolt.DeviceInfo{PonPorts: 16}
 	resMgr.PonRsrMgr.DeviceID = "onu-1"
 	resMgr.PonRsrMgr.IntfIDs = []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	resMgr.PonRsrMgr.KVStore = &db.Backend{
@@ -406,37 +407,6 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 						break
 					}
 				}
-			}
-		})
-	}
-}
-
-func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
-
-	type args struct {
-		PONIntfID uint32
-		ONUID     int32
-		UNIID     int32
-	}
-	tests := []struct {
-		name   string
-		fields *fields
-		args   args
-		want   []uint64
-	}{
-		{"GetCurrentFlowIDsForOnu-1", getResMgr(), args{1, 2, 2}, []uint64{1, 2}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			got, err := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID)
-			if err != nil {
-				t.Errorf("GetCurrentFlowIDsForOnu() returned error")
-			}
-			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
-				t.Errorf("GetCurrentFlowIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
 	}

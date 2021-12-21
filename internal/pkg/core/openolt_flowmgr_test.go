@@ -48,7 +48,7 @@ func newMockFlowmgr() []*OpenOltFlowMgr {
 	// onuGemInfoMap := make([]rsrcMgr.onuGemInfoMap, NumPonPorts)
 	var i uint32
 
-	for i = 0; i < NumPonPorts; i++ {
+	for i = 0; i < NumPonPorts+1; i++ {
 		packetInGemPort := make(map[rsrcMgr.PacketInInfoKey]uint32)
 		packetInGemPort[rsrcMgr.PacketInInfoKey{IntfID: i, OnuID: i + 1, LogicalPort: i + 1, VlanID: uint16(i), Priority: uint8(i)}] = i + 1
 
@@ -1401,6 +1401,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 
 	type args struct {
 		ctx          context.Context
+		intfID       int32
 		flow         *ofp.OfpFlowStats
 		addFlow      bool
 		flowMetadata *ofp.FlowMetadata
@@ -1415,6 +1416,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-0",
 			args: args{
 				ctx:          ctx,
+				intfID:       NumPonPorts,
 				flow:         flow0,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1425,6 +1427,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-1",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow1,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1435,6 +1438,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-2",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow2,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1445,6 +1449,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-3",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow3,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1455,6 +1460,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-4",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow4,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1465,6 +1471,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-5",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow1,
 				addFlow:      false,
 				flowMetadata: &flowMetadata1,
@@ -1475,6 +1482,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-6",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow1,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1485,6 +1493,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-7",
 			args: args{
 				ctx:          ctx,
+				intfID:       15,
 				flow:         flow5,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1495,6 +1504,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-8",
 			args: args{
 				ctx:          ctx,
+				intfID:       15,
 				flow:         flow6,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1505,6 +1515,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-9",
 			args: args{
 				ctx:          ctx,
+				intfID:       0,
 				flow:         flow7,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1515,6 +1526,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-10",
 			args: args{
 				ctx:          ctx,
+				intfID:       15,
 				flow:         flow8,
 				addFlow:      true,
 				flowMetadata: &flowMetadata1,
@@ -1525,6 +1537,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			name: "RouteFlowToOnuChannel-11", // Test Remove trap-from-nni LLDP flow
 			args: args{
 				ctx:          ctx,
+				intfID:       NumPonPorts,
 				flow:         flow0,
 				addFlow:      false,
 				flowMetadata: &flowMetadata1,
@@ -1543,7 +1556,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 		time.Sleep(5 * time.Millisecond)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			tt.returnedErr = flowMgr[0].RouteFlowToOnuChannel(tt.args.ctx, tt.args.flow, tt.args.addFlow, tt.args.flowMetadata)
+			tt.returnedErr = flowMgr[tt.args.intfID].RouteFlowToOnuChannel(tt.args.ctx, tt.args.flow, tt.args.addFlow, tt.args.flowMetadata)
 			if (tt.wantErr == false && tt.returnedErr != nil) || (tt.wantErr == true && tt.returnedErr == nil) {
 				t.Errorf("OpenOltFlowMgr.RouteFlowToOnuChannel() error = %v, wantErr %v", tt.returnedErr, tt.wantErr)
 			}

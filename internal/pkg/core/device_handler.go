@@ -944,11 +944,14 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	}
 	dh.totalPonPorts = dh.deviceInfo.GetPonPorts()
 	dh.agentPreviouslyConnected = dh.deviceInfo.PreviouslyConnected
-
-	dh.resourceMgr = make([]*rsrcMgr.OpenOltResourceMgr, dh.totalPonPorts)
-	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts)
+	// +1 is for NNI
+	dh.resourceMgr = make([]*rsrcMgr.OpenOltResourceMgr, dh.totalPonPorts+1)
+	dh.flowMgr = make([]*OpenOltFlowMgr, dh.totalPonPorts+1)
 	var i uint32
-	for i = 0; i < dh.totalPonPorts; i++ {
+	// Index from 0 to until totalPonPorts ( Ex: 0 .. 15 ) 	-> 	PonPort Managers
+	// Index totalPonPorts ( Ex: 16 ) 				 	    -> 	NniPort Manager
+	// There is only one NNI manager since multiple NNI is not supported for now
+	for i = 0; i < dh.totalPonPorts+1; i++ {
 		// Instantiate resource manager
 		if dh.resourceMgr[i] = rsrcMgr.NewResourceMgr(ctx, i, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, dh.deviceInfo, dh.cm.Backend.PathPrefix); dh.resourceMgr[i] == nil {
 			return olterrors.ErrResourceManagerInstantiating
@@ -959,7 +962,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	if dh.groupMgr = NewGroupManager(ctx, dh, dh.resourceMgr[0]); dh.groupMgr == nil {
 		return olterrors.ErrGroupManagerInstantiating
 	}
-	for i = 0; i < dh.totalPonPorts; i++ {
+	for i = 0; i < dh.totalPonPorts+1; i++ {
 		// Instantiate flow manager
 		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, i); dh.flowMgr[i] == nil {
 			return olterrors.ErrFlowManagerInstantiating
@@ -1730,16 +1733,16 @@ func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device,
 
 	if flows != nil {
 		for _, flow := range flows.ToRemove.Items {
-			ponIf := dh.getPonIfFromFlow(flow)
+			intfID := dh.getIntfIDFromFlow(ctx, flow)
 
 			logger.Debugw(ctx, "removing-flow",
 				log.Fields{"device-id": device.Id,
-					"ponIf":        ponIf,
+					"intfId":       intfID,
 					"flowToRemove": flow})
 			if flow_utils.HasGroup(flow) {
 				err = dh.RouteMcastFlowOrGroupMsgToChannel(ctx, flow, nil, McastFlowOrGroupRemove)
 			} else {
-				err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, false, nil)
+				err = dh.flowMgr[intfID].RouteFlowToOnuChannel(ctx, flow, false, nil)
 			}
 			if err != nil {
 				errorsList = append(errorsList, err)
@@ -1747,20 +1750,20 @@ func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device,
 		}
 
 		for _, flow := range flows.ToAdd.Items {
-			ponIf := dh.getPonIfFromFlow(flow)
+			intfID := dh.getIntfIDFromFlow(ctx, flow)
 			logger.Debugw(ctx, "adding-flow",
 				log.Fields{"device-id": device.Id,
-					"ponIf":     ponIf,
+					"ponIf":     intfID,
 					"flowToAdd": flow})
 			if flow_utils.HasGroup(flow) {
 				err = dh.RouteMcastFlowOrGroupMsgToChannel(ctx, flow, nil, McastFlowOrGroupAdd)
 			} else {
-				if dh.flowMgr == nil || dh.flowMgr[ponIf] == nil {
+				if dh.flowMgr == nil || dh.flowMgr[intfID] == nil {
 					// The flow manager module could be uninitialized if the flow arrives too soon before the device has reconciled fully
 					logger.Errorw(ctx, "flow-manager-uninitialized", log.Fields{"device-id": device.Id})
 					err = fmt.Errorf("flow-manager-uninitialized-%v", device.Id)
 				} else {
-					err = dh.flowMgr[ponIf].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
+					err = dh.flowMgr[intfID].RouteFlowToOnuChannel(ctx, flow, true, flowMetadata)
 				}
 			}
 			if err != nil {
@@ -2051,6 +2054,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 				logger.Debug(ctx, err)
 			}
 		}
+		_ = dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx, dh.totalPonPorts)
 	}
 
 	/*Delete ONU map for the device*/
@@ -2612,9 +2616,9 @@ func (dh *DeviceHandler) getExtValue(ctx context.Context, device *voltha.Device,
 	return resp, nil
 }
 
-func (dh *DeviceHandler) getPonIfFromFlow(flow *of.OfpFlowStats) uint32 {
-	// Default to PON0
-	var intfID uint32
+func (dh *DeviceHandler) getIntfIDFromFlow(ctx context.Context, flow *of.OfpFlowStats) uint32 {
+	// Default to NNI
+	var intfID = dh.totalPonPorts
 	inPort, outPort := getPorts(flow)
 	if inPort != InvalidPort && outPort != InvalidPort {
 		_, intfID, _, _ = plt.ExtractAccessFromFlow(inPort, outPort)
