@@ -2001,6 +2001,10 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 
 	if dh.resourceMgr != nil {
+		// Clear NNI trap flows here
+		// 4294967295 corresponds to -1 in unsigned type
+		_ = dh.resourceMgr[0].DeleteAllFlowIDsForGemForIntf(ctx, uint32(4294967295))
+		// Clear PON related flows
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			var err error
