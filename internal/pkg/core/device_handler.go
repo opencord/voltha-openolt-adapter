@@ -1924,6 +1924,8 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 
 	if dh.resourceMgr != nil {
 		var ponPort uint32
+		// Clear NNI trap flows here
+		_ = dh.resourceMgr[0].DeleteAllFlowIDsForGemForIntf(ctx, -1)
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			var err error
 			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList(ctx)
@@ -1933,7 +1935,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
 				}
 			}
-			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, ponPort)
+			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, int32(ponPort))
 			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx, ponPort)
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
 				logger.Debug(ctx, err)
