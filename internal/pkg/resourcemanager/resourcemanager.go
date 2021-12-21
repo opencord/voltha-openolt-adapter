@@ -82,6 +82,9 @@ const (
 	//OnuGemInfoPath is path on the kvstore to store onugem info map
 	//format: onu_gem_info/<intfid>/<onu_id>
 	OnuGemInfoPath = OnuGemInfoPathPathPrefix + "/{%d}"
+
+	// uint32 version of -1 which represents the NNI port
+	NNI = 4294967295
 )
 
 // FlowInfo holds the flow information
@@ -133,9 +136,6 @@ type OpenOltResourceMgr struct {
 	PonRsrMgr *ponrmgr.PONResourceManager
 
 	// Local maps used for write-through-cache - start
-	flowIDsForOnu     map[string][]uint64
-	flowIDsForOnuLock sync.RWMutex
-
 	allocIDsForOnu     map[string][]uint32
 	allocIDsForOnuLock sync.RWMutex
 
@@ -253,7 +253,6 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 
 //InitLocalCache initializes local maps used for write-through-cache
 func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
-	rsrcMgr.flowIDsForOnu = make(map[string][]uint64)
 	rsrcMgr.allocIDsForOnu = make(map[string][]uint32)
 	rsrcMgr.gemPortIDsForOnu = make(map[string][]uint32)
 	rsrcMgr.techProfileIDsForOnu = make(map[string][]uint32)
@@ -384,42 +383,6 @@ func (rsrcMgr *OpenOltResourceMgr) GetONUID(ctx context.Context, PonIntfID uint3
 	}
 
 	return 0, fmt.Errorf("no-onu-id-allocated")
-}
-
-// GetCurrentFlowIDsForOnu fetches flow ID from the resource manager
-// Note: For flows which trap from the NNI and not really associated with any particular
-// ONU (like LLDP), the onu_id and uni_id is set as -1. The intf_id is the NNI intf_id.
-func (rsrcMgr *OpenOltResourceMgr) GetCurrentFlowIDsForOnu(ctx context.Context, PonIntfID uint32, onuID int32, uniID int32) ([]uint64, error) {
-
-	subs := fmt.Sprintf("%d,%d,%d", PonIntfID, onuID, uniID)
-	path := fmt.Sprintf(FlowIDPath, subs)
-
-	// fetch from cache
-	rsrcMgr.flowIDsForOnuLock.RLock()
-	flowIDsForOnu, ok := rsrcMgr.flowIDsForOnu[path]
-	rsrcMgr.flowIDsForOnuLock.RUnlock()
-
-	if ok {
-		return flowIDsForOnu, nil
-	}
-
-	var data []uint64
-	value, err := rsrcMgr.KVStore.Get(ctx, path)
-	if err == nil {
-		if value != nil {
-			Val, _ := toByte(value.Value)
-			if err = json.Unmarshal(Val, &data); err != nil {
-				logger.Error(ctx, "Failed to unmarshal")
-				return nil, err
-			}
-		}
-	}
-	// update cache
-	rsrcMgr.flowIDsForOnuLock.Lock()
-	rsrcMgr.flowIDsForOnu[path] = data
-	rsrcMgr.flowIDsForOnuLock.Unlock()
-
-	return data, nil
 }
 
 // UpdateAllocIdsForOnu updates alloc ids in kv store for a given pon interface id, onu id and uni id
@@ -639,23 +602,44 @@ func (rsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, i
 
 // IsFlowOnKvStore checks if the given flowID is present on the kv store
 // Returns true if the flowID is found, otherwise it returns false
-func (rsrcMgr *OpenOltResourceMgr) IsFlowOnKvStore(ctx context.Context, intfID uint32, onuID int32, uniID int32,
-	flowID uint64) bool {
+func (rsrcMgr *OpenOltResourceMgr) IsFlowOnKvStore(ctx context.Context, intfID uint32, onuID int32, flowID uint64) (bool, error) {
+	var anyError error
 
-	FlowIDs, err := rsrcMgr.GetCurrentFlowIDsForOnu(ctx, intfID, onuID, uniID)
-	if err != nil {
-		// error logged in the called function
-		return false
-	}
-	if FlowIDs != nil {
-		logger.Debugw(ctx, "Found flowId(s) for this ONU", log.Fields{"pon": intfID, "onuID": onuID, "uniID": uniID})
-		for _, id := range FlowIDs {
+	// In case of nni trap flow
+	if onuID == -1 {
+		nniTrapflowIDs, err := rsrcMgr.GetFlowIDsForGem(ctx, NNI, NNI)
+		if err != nil {
+			logger.Warnw(ctx, "failed-to-get-nni-trap-flowIDs", log.Fields{"err": err})
+			return false, err
+		}
+		for _, id := range nniTrapflowIDs {
 			if flowID == id {
-				return true
+				return true, nil
 			}
 		}
 	}
-	return false
+
+	path := fmt.Sprintf(OnuGemInfoPath, intfID, onuID)
+	rsrcMgr.onuGemInfoLock.RLock()
+	val, ok := rsrcMgr.onuGemInfo[path]
+	rsrcMgr.onuGemInfoLock.RUnlock()
+
+	if ok {
+		for _, gem := range val.GemPorts {
+			flowIDs, err := rsrcMgr.GetFlowIDsForGem(ctx, intfID, gem)
+			if err != nil {
+				anyError = err
+				logger.Warnw(ctx, "failed-to-get-flowIDs-for-gem", log.Fields{"err": err, "onuID": onuID, "gem": gem})
+			} else {
+				for _, id := range flowIDs {
+					if flowID == id {
+						return true, nil
+					}
+				}
+			}
+		}
+	}
+	return false, anyError
 }
 
 // GetTechProfileIDForOnu fetches Tech-Profile-ID from the KV-Store for the given onu based on the path
@@ -1326,6 +1310,9 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 //DeleteAllFlowIDsForGemForIntf deletes all the flow ids associated for all the gems on the given pon interface
 func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Context, intfID uint32) error {
 
+	if intfID == rsrcMgr.DevInfo.PonPorts {
+		intfID = NNI
+	}
 	path := fmt.Sprintf(FlowIDsForGemPathPrefix, intfID)
 
 	logger.Debugw(ctx, "delete-flow-ids-for-gem-for-pon-intf", log.Fields{"intfID": intfID})

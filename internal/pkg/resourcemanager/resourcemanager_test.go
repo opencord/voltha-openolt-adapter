@@ -411,37 +411,6 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 	}
 }
 
-func TestOpenOltResourceMgr_GetCurrentFlowIDsForOnu(t *testing.T) {
-
-	type args struct {
-		PONIntfID uint32
-		ONUID     int32
-		UNIID     int32
-	}
-	tests := []struct {
-		name   string
-		fields *fields
-		args   args
-		want   []uint64
-	}{
-		{"GetCurrentFlowIDsForOnu-1", getResMgr(), args{1, 2, 2}, []uint64{1, 2}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			RsrcMgr := testResMgrObject(tt.fields)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			got, err := RsrcMgr.GetCurrentFlowIDsForOnu(ctx, tt.args.PONIntfID, tt.args.ONUID, tt.args.UNIID)
-			if err != nil {
-				t.Errorf("GetCurrentFlowIDsForOnu() returned error")
-			}
-			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
-				t.Errorf("GetCurrentFlowIDsForOnu() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestOpenOltResourceMgr_DeleteAllFlowIDsForGemForIntf(t *testing.T) {
 
 	type args struct {
