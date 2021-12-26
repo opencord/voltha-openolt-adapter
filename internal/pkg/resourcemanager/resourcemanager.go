@@ -154,8 +154,11 @@ type OpenOltResourceMgr struct {
 	gemPortForPacketInInfo     map[string]uint32
 	gemPortForPacketInInfoLock sync.RWMutex
 
-	flowIDsForGem     map[uint32][]uint64
-	flowIDsForGemLock sync.RWMutex
+	FlowIDsForGem     map[uint32][]uint64
+	FlowIDsForGemLock sync.RWMutex
+
+	GemsForFlowID     map[uint64][]uint32
+	GemsForFlowIDLock sync.RWMutex
 
 	mcastQueueForIntf                  map[uint32][]uint32
 	mcastQueueForIntfLock              sync.RWMutex
@@ -258,7 +261,7 @@ func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
 	rsrcMgr.meterInfoForOnu = make(map[string]*MeterInfo)
 	rsrcMgr.onuGemInfo = make(map[string]*OnuGemInfo)
 	rsrcMgr.gemPortForPacketInInfo = make(map[string]uint32)
-	rsrcMgr.flowIDsForGem = make(map[uint32][]uint64)
+	rsrcMgr.FlowIDsForGem = make(map[uint32][]uint64)
 	rsrcMgr.mcastQueueForIntf = make(map[uint32][]uint32)
 	rsrcMgr.groupInfo = make(map[string]*GroupInfo)
 }
@@ -1130,14 +1133,49 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 	return nil
 }
 
+func (rsrcMgr *OpenOltResourceMgr) LoadFlowIDsForGemAndGemIDsForFlow(ctx context.Context, ponPort uint32) {
+	logger.Debug(ctx, "loadFlowIDsForGemAndGemIDsForFlow - start")
+	rsrcMgr.onuGemInfoLock.RLock()
+	rsrcMgr.FlowIDsForGemLock.Lock()
+	rsrcMgr.GemsForFlowIDLock.Lock()
+	for _, og := range rsrcMgr.onuGemInfo {
+		for _, gem := range og.GemPorts {
+			flowIDs, err := rsrcMgr.GetFlowIDsForGem(ctx, ponPort, gem)
+			if err == nil {
+				rsrcMgr.FlowIDsForGem[gem] = flowIDs
+				for _, flowID := range flowIDs {
+					if _, ok := rsrcMgr.GemsForFlowID[flowID]; !ok {
+						rsrcMgr.GemsForFlowID[flowID] = []uint32{gem}
+					} else {
+						rsrcMgr.GemsForFlowID[flowID] = appendUnique32bit(rsrcMgr.GemsForFlowID[flowID], gem)
+					}
+				}
+			}
+		}
+	}
+	rsrcMgr.GemsForFlowIDLock.Unlock()
+	rsrcMgr.FlowIDsForGemLock.Unlock()
+	rsrcMgr.onuGemInfoLock.RUnlock()
+	logger.Debug(ctx, "loadFlowIDsForGemAndGemIDsForFlow - end")
+}
+
+func appendUnique32bit(slice []uint32, item uint32) []uint32 {
+	for _, sliceElement := range slice {
+		if sliceElement == item {
+			return slice
+		}
+	}
+	return append(slice, item)
+}
+
 //GetFlowIDsForGem gets the list of FlowIDs for the given gemport
 func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf uint32, gem uint32) ([]uint64, error) {
 	path := fmt.Sprintf(FlowIDsForGem, intf, gem)
 
 	// get from cache
-	rsrcMgr.flowIDsForGemLock.RLock()
-	flowIDs, ok := rsrcMgr.flowIDsForGem[gem]
-	rsrcMgr.flowIDsForGemLock.RUnlock()
+	rsrcMgr.FlowIDsForGemLock.RLock()
+	flowIDs, ok := rsrcMgr.FlowIDsForGem[gem]
+	rsrcMgr.FlowIDsForGemLock.RUnlock()
 	if ok {
 		return flowIDs, nil
 	}
@@ -1162,9 +1200,9 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf ui
 	}
 
 	// update cache
-	rsrcMgr.flowIDsForGemLock.Lock()
-	rsrcMgr.flowIDsForGem[gem] = flowIDs
-	rsrcMgr.flowIDsForGemLock.Unlock()
+	rsrcMgr.FlowIDsForGemLock.Lock()
+	rsrcMgr.FlowIDsForGem[gem] = flowIDs
+	rsrcMgr.FlowIDsForGemLock.Unlock()
 
 	return flowIDs, nil
 }
@@ -1193,9 +1231,9 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, intf
 	logger.Debugw(ctx, "added flowid list for gem to kv successfully", log.Fields{"path": path, "flowidlist": flowIDs})
 
 	// update cache
-	rsrcMgr.flowIDsForGemLock.Lock()
-	rsrcMgr.flowIDsForGem[gem] = flowIDs
-	rsrcMgr.flowIDsForGemLock.Unlock()
+	rsrcMgr.FlowIDsForGemLock.Lock()
+	rsrcMgr.FlowIDsForGem[gem] = flowIDs
+	rsrcMgr.FlowIDsForGemLock.Unlock()
 	return nil
 }
 
@@ -1207,9 +1245,9 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, intf
 		return err
 	}
 	// update cache
-	rsrcMgr.flowIDsForGemLock.Lock()
-	delete(rsrcMgr.flowIDsForGem, gem)
-	rsrcMgr.flowIDsForGemLock.Unlock()
+	rsrcMgr.FlowIDsForGemLock.Lock()
+	delete(rsrcMgr.FlowIDsForGem, gem)
+	rsrcMgr.FlowIDsForGemLock.Unlock()
 	return nil
 }
 
@@ -1225,9 +1263,9 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Con
 	}
 
 	// Reset cache. Normally not necessary as the entire device is getting deleted when this API is invoked.
-	rsrcMgr.flowIDsForGemLock.Lock()
-	rsrcMgr.flowIDsForGem = make(map[uint32][]uint64)
-	rsrcMgr.flowIDsForGemLock.Unlock()
+	rsrcMgr.FlowIDsForGemLock.Lock()
+	rsrcMgr.FlowIDsForGem = make(map[uint32][]uint64)
+	rsrcMgr.FlowIDsForGemLock.Unlock()
 	return nil
 }
 

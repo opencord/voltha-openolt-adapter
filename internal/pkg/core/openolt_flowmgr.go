@@ -239,7 +239,6 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 		logger.Errorw(ctx, "error-while-populating-tech-profile-mgr", log.Fields{"err": err})
 		return nil
 	}
-	flowMgr.gemToFlowIDs = make(map[uint32][]uint64)
 	flowMgr.packetInGemPort = make(map[rsrcMgr.PacketInInfoKey]uint32)
 	flowMgr.flowIDToGems = make(map[uint64][]uint32)
 
@@ -270,7 +269,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 	}
 
 	//Load flowID list per gem map And gemIDs per flow per interface from the kvstore.
-	flowMgr.loadFlowIDsForGemAndGemIDsForFlow(ctx)
+	flowMgr.resourceMgr.LoadFlowIDsForGemAndGemIDsForFlow(ctx, ponPortIdx)
 
 	//load interface to multicast queue map from kv store
 	flowMgr.grpMgr.LoadInterfaceToMulticastQueueMap(ctx)
@@ -295,15 +294,15 @@ func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.Ofp
 
 func (f *OpenOltFlowMgr) registerFlowIDForGemAndGemIDForFlow(ctx context.Context, accessIntfID uint32, gemPortID uint32, flowFromCore *ofp.OfpFlowStats) error {
 	// update gem->flows map
-	f.gemToFlowIDsKey.Lock()
-	flowIDList, ok := f.gemToFlowIDs[gemPortID]
+	f.resourceMgr.FlowIDsForGemLock.Lock()
+	flowIDList, ok := f.resourceMgr.FlowIDsForGem[gemPortID]
 	if !ok {
 		flowIDList = []uint64{flowFromCore.Id}
 	} else {
 		flowIDList = appendUnique64bit(flowIDList, flowFromCore.Id)
 	}
-	f.gemToFlowIDs[gemPortID] = flowIDList
-	f.gemToFlowIDsKey.Unlock()
+	f.resourceMgr.FlowIDsForGem[gemPortID] = flowIDList
+	f.resourceMgr.FlowIDsForGemLock.Unlock()
 
 	// update flow->gems map
 	f.flowIDToGemsLock.Lock()
@@ -1934,15 +1933,15 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			used := f.isGemPortUsedByAnotherFlow(gemPortID, flowID)
 			if used {
 				f.gemToFlowIDsKey.RLock()
-				flowIDs := f.gemToFlowIDs[gemPortID]
+				flowIDs := f.resourceMgr.FlowIDsForGem[gemPortID]
 				f.gemToFlowIDsKey.RUnlock()
 
 				for i, flowIDinMap := range flowIDs {
 					if flowIDinMap == flowID {
 						flowIDs = append(flowIDs[:i], flowIDs[i+1:]...)
-						f.gemToFlowIDsKey.Lock()
-						f.gemToFlowIDs[gemPortID] = flowIDs
-						f.gemToFlowIDsKey.Unlock()
+						f.resourceMgr.FlowIDsForGemLock.Lock()
+						f.resourceMgr.FlowIDsForGem[gemPortID] = flowIDs
+						f.resourceMgr.FlowIDsForGemLock.Unlock()
 						// everytime gemToFlowIDs cache is updated the same should be updated
 						// in kv store by calling UpdateFlowIDsForGem
 						if err := f.resourceMgr.UpdateFlowIDsForGem(ctx, intfID, gemPortID, flowIDs); err != nil {
@@ -2000,9 +1999,9 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 				if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err == nil {
 					//everytime an entry is deleted from gemToFlowIDs cache, the same should be updated in kv as well
 					// by calling DeleteFlowIDsForGem
-					f.gemToFlowIDsKey.Lock()
-					delete(f.gemToFlowIDs, gemPortID)
-					f.gemToFlowIDsKey.Unlock()
+					f.resourceMgr.FlowIDsForGemLock.Lock()
+					delete(f.resourceMgr.FlowIDsForGem, gemPortID)
+					f.resourceMgr.FlowIDsForGemLock.Unlock()
 				} else {
 					logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
 						log.Fields{
@@ -3038,9 +3037,9 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 }
 
 func (f *OpenOltFlowMgr) isGemPortUsedByAnotherFlow(gemPortID uint32, flowID uint64) bool {
-	f.gemToFlowIDsKey.RLock()
-	flowIDList := f.gemToFlowIDs[gemPortID]
-	f.gemToFlowIDsKey.RUnlock()
+	f.resourceMgr.FlowIDsForGemLock.RLock()
+	flowIDList := f.resourceMgr.FlowIDsForGem[gemPortID]
+	f.resourceMgr.FlowIDsForGemLock.RUnlock()
 	if len(flowIDList) > 0 {
 		for _, id := range flowIDList {
 			if flowID != id {

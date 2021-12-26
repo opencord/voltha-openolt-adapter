@@ -232,7 +232,6 @@ func newMockDeviceHandler() *DeviceHandler {
 		dh.flowMgr[i].grpMgr = dh.groupMgr
 		dh.flowMgr[i].resourceMgr = dh.resourceMgr[i]
 		dh.flowMgr[i].techprofile = mocks.MockTechProfile{}
-		dh.flowMgr[i].gemToFlowIDs = make(map[uint32][]uint64)
 		dh.flowMgr[i].packetInGemPort = make(map[resourcemanager.PacketInInfoKey]uint32)
 		dh.flowMgr[i].flowIDToGems = make(map[uint64][]uint32)
 
