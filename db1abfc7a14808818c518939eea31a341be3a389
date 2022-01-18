@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3fe2967e_f5c45f45",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1152,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-18T23:33:16Z",
+      "side": 1,
+      "message": "Please add UT to test this API. Otherwise rest of the changes looks good.",
+      "revId": "db1abfc7a14808818c518939eea31a341be3a389",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
