@@ -16,6 +16,23 @@
       "message": "hardware test\nfunctional tests",
       "revId": "9ef317d208e2a02d54af16fe6b9cbb421c349e35",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "149b1745_13f36c80",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-19T00:21:15Z",
+      "side": 1,
+      "message": "Is there an openolt-agent counter part change expected before merging this patch?",
+      "revId": "9ef317d208e2a02d54af16fe6b9cbb421c349e35",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
