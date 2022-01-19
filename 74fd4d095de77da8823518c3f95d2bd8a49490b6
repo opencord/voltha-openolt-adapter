@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1e471e0b_b8cb302c",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-19T00:05:27Z",
+      "side": 1,
+      "message": "Don\u0027t ignore this. Put \u0027ok\u0027 variable here to be used later.",
+      "range": {
+        "startLine": 555,
+        "startChar": 6,
+        "endLine": 555,
+        "endChar": 7
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "230d12b3_5938730f",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-19T00:05:27Z",
+      "side": 1,
+      "message": "val could be nil. In that case this will crash. Shouldn\u0027t you check the \u0027ok\u0027 variable mentioned earlier and only then loop.",
+      "range": {
+        "startLine": 558,
+        "startChar": 18,
+        "endLine": 558,
+        "endChar": 21
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "82c95990_9c160338",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-19T00:05:27Z",
+      "side": 1,
+      "message": "FlowIDs -\u003e flowIDs\nGenerally start with caps for exported functions/variables. But it does not make sense to use caps here for a local variable.",
+      "range": {
+        "startLine": 559,
+        "startChar": 2,
+        "endLine": 559,
+        "endChar": 9
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6307a5df_542c4884",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-19T00:05:27Z",
+      "side": 1,
+      "message": "This log is not necessary. The calling function logs in case a flow is found.",
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
