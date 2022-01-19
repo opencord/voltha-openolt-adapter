@@ -56,6 +56,30 @@
       },
       "revId": "9ef317d208e2a02d54af16fe6b9cbb421c349e35",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0cabe11f_02b88ef4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 2373,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-19T13:25:42Z",
+      "side": 1,
+      "message": "Yes you\u0027re right. There is no need for a flowType at this point. I will update the patch",
+      "parentUuid": "256cb6f5_d1d3a2f1",
+      "range": {
+        "startLine": 2373,
+        "startChar": 45,
+        "endLine": 2373,
+        "endChar": 62
+      },
+      "revId": "9ef317d208e2a02d54af16fe6b9cbb421c349e35",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
