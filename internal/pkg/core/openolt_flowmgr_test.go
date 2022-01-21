@@ -168,7 +168,7 @@ func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, d
 		Meters: []*ofp.OfpMeterConfig{ofpMeterConfig}}
 }
 
-func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
+func TestOpenOltFlowMgr_RemoveScheduler(t *testing.T) {
 	tprofile := &tp_pb.TechProfileInstance{Name: "tp1", SubscriberIdentifier: "subscriber1",
 		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
 		InstanceControl: &tp_pb.InstanceControl{Onu: "1", Uni: "1", MaxGemPayloadSize: "1"},
@@ -189,19 +189,82 @@ func TestOpenOltFlowMgr_RemoveSchedulerQueues(t *testing.T) {
 		schedQueue schedQueue
 		wantErr    bool
 	}{
-		// TODO: Add test cases.
-		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
-		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		// negative test cases
-		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		{"RemoveSchedulerQueues", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveScheduler-1", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
+		{"RemoveScheduler-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveScheduler-3", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveScheduler-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := flowMgr[tt.schedQueue.intfID].RemoveSchedulerQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
-				t.Errorf("OpenOltFlowMgr.RemoveSchedulerQueues() error = %v, wantErr %v", err, tt.wantErr)
+			if err := flowMgr[tt.schedQueue.intfID].RemoveScheduler(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
+				t.Errorf("OpenOltFlowMgr.RemoveScheduler() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+
+}
+
+func TestOpenOltFlowMgr_RemoveQueues(t *testing.T) {
+	tprofile := &tp_pb.TechProfileInstance{Name: "tp1", SubscriberIdentifier: "subscriber1",
+		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
+		InstanceControl: &tp_pb.InstanceControl{Onu: "single-instance", Uni: "single-instance", MaxGemPayloadSize: "1"},
+	}
+	tprofile.UsScheduler = &tp_pb.SchedulerAttributes{}
+	tprofile.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
+	tprofile.UsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	tprofile.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
+	tprofile.DsScheduler = &tp_pb.SchedulerAttributes{}
+	tprofile.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
+	tprofile.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_BestEffort
+	tprofile.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_StrictPriority
+	tprofile.UpstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	tprofile.UpstreamGemPortAttributeList = append(tprofile.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b00000011"})
+	tprofile.UpstreamGemPortAttributeList = append(tprofile.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 2, PbitMap: "0b00001100"})
+	tprofile.UpstreamGemPortAttributeList = append(tprofile.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 3, PbitMap: "0b00110000"})
+	tprofile.UpstreamGemPortAttributeList = append(tprofile.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 4, PbitMap: "0b11000000"})
+
+	tprofile.DownstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	tprofile.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b00000011"})
+	tprofile.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 2, PbitMap: "0b00001100"})
+	tprofile.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 3, PbitMap: "0b00110000"})
+	tprofile.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 4, PbitMap: "0b11000000"})
+
+	tprofile2 := &tp_pb.TechProfileInstance{Name: "tp2", SubscriberIdentifier: "subscriber2",
+		ProfileType: "pt1", NumGemPorts: 1, Version: 1,
+		InstanceControl: &tp_pb.InstanceControl{Onu: "multi-instance", Uni: "single-instance", MaxGemPayloadSize: "1"},
+	}
+	tprofile2.UsScheduler = &tp_pb.SchedulerAttributes{}
+	tprofile2.UsScheduler.Direction = tp_pb.Direction_UPSTREAM
+	tprofile2.UsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
+	tprofile2.UsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
+	tprofile2.DsScheduler = &tp_pb.SchedulerAttributes{}
+	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
+	tprofile2.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_BestEffort
+	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_StrictPriority
+	tprofile2.UpstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	tprofile2.UpstreamGemPortAttributeList = append(tprofile.UpstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b11111111"})
+	tprofile2.DownstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
+	tprofile2.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b11111111"})
+
+	//defTprofile := &tp.DefaultTechProfile{}
+	tests := []struct {
+		name       string
+		schedQueue schedQueue
+		wantErr    bool
+	}{
+		{"RemoveQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
+		{"RemoveQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveQueues-3", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveQueues-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := flowMgr[tt.schedQueue.intfID].RemoveQueues(ctx, tt.schedQueue); (err != nil) != tt.wantErr {
+				t.Errorf("OpenOltFlowMgr.RemoveQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
