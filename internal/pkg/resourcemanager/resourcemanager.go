@@ -508,18 +508,22 @@ func (rsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 // for the given OLT device.
 // The caller should ensure that this is a blocking call and this operation is serialized for
 // the ONU so as not cause resource corruption since there are no mutexes used here.
+// Setting freeFromResourcePool to false will not clear it from the resource pool but only
+// clear it for the given pon/onu/uni
 func (rsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, intfID uint32, onuID uint32,
-	uniID uint32, allocID uint32) {
+	uniID uint32, allocID uint32, freeFromResourcePool bool) {
 
 	rsrcMgr.RemoveAllocIDForOnu(ctx, intfID, onuID, uniID, allocID)
-	allocIDs := make([]uint32, 0)
-	allocIDs = append(allocIDs, allocID)
-	if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, intfID, ponrmgr.ALLOC_ID, allocIDs); err != nil {
-		logger.Errorw(ctx, "error-while-freeing-alloc-id", log.Fields{
-			"intf-id": intfID,
-			"onu-id":  onuID,
-			"err":     err.Error(),
-		})
+	if freeFromResourcePool {
+		allocIDs := make([]uint32, 0)
+		allocIDs = append(allocIDs, allocID)
+		if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, intfID, ponrmgr.ALLOC_ID, allocIDs); err != nil {
+			logger.Errorw(ctx, "error-while-freeing-alloc-id", log.Fields{
+				"intf-id": intfID,
+				"onu-id":  onuID,
+				"err":     err.Error(),
+			})
+		}
 	}
 }
 
