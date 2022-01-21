@@ -1966,18 +1966,62 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	}
 
 	logger.Debugw(ctx, "all-gem-ports-are-free-to-be-deleted", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "tpID": tpID})
+
+	// Free TPInstance, TPID and GemPorts. AllocID and Schedulers will be cleared later only if they are not shared across all the UNIs
+	switch techprofileInst := techprofileInst.(type) {
+	case *tp_pb.TechProfileInstance:
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+
+		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
+			gemPortID := gemPort.GemportId
+			f.deleteGemPortFromLocalCache(ctx, intfID, uint32(onuID), gemPortID)
+			_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, intfID, uint32(onuID), gemPortID) // ignore error and proceed.
+
+			if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err == nil {
+				//everytime an entry is deleted from gemToFlowIDs cache, the same should be updated in kv as well
+				// by calling DeleteFlowIDsForGem
+				f.gemToFlowIDsKey.Lock()
+				delete(f.gemToFlowIDs, gemPortID)
+				f.gemToFlowIDsKey.Unlock()
+			} else {
+				logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
+					log.Fields{
+						"err":        err,
+						"intf":       intfID,
+						"onu-id":     onuID,
+						"uni-id":     uniID,
+						"device-id":  f.deviceHandler.device.Id,
+						"gemport-id": gemPortID})
+			}
+
+			f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID)
+
+			// Delete the gem port on the ONU.
+			if sendDeleteGemRequest {
+				if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID, tpPath); err != nil {
+					logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
+						log.Fields{
+							"err":        err,
+							"intfID":     intfID,
+							"onu-id":     onuID,
+							"uni-id":     uniID,
+							"device-id":  f.deviceHandler.device.Id,
+							"gemport-id": gemPortID})
+				}
+			}
+		}
+	}
+
 	switch techprofileInst := techprofileInst.(type) {
 	case *tp_pb.TechProfileInstance:
 		schedQueue := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst}
 		allocExists := f.isAllocUsedByAnotherUNI(ctx, schedQueue)
 		if !allocExists {
-			if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
-				logger.Warn(ctx, err)
-			}
-			if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
-				logger.Warn(ctx, err)
-			}
-
 			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "upstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
 				if err := f.RemoveSchedulerQueues(ctx, schedQueue); err != nil {
 					logger.Warn(ctx, err)
@@ -1989,45 +2033,6 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "downstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
 				if err := f.RemoveSchedulerQueues(ctx, schedQueue); err != nil {
 					logger.Warn(ctx, err)
-				}
-			}
-
-			for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
-				gemPortID := gemPort.GemportId
-				f.deleteGemPortFromLocalCache(ctx, intfID, uint32(onuID), gemPortID)
-				_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, intfID, uint32(onuID), gemPortID) // ignore error and proceed.
-
-				if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err == nil {
-					//everytime an entry is deleted from gemToFlowIDs cache, the same should be updated in kv as well
-					// by calling DeleteFlowIDsForGem
-					f.gemToFlowIDsKey.Lock()
-					delete(f.gemToFlowIDs, gemPortID)
-					f.gemToFlowIDsKey.Unlock()
-				} else {
-					logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
-						log.Fields{
-							"err":        err,
-							"intf":       intfID,
-							"onu-id":     onuID,
-							"uni-id":     uniID,
-							"device-id":  f.deviceHandler.device.Id,
-							"gemport-id": gemPortID})
-				}
-
-				f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID)
-
-				// Delete the gem port on the ONU.
-				if sendDeleteGemRequest {
-					if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID, tpPath); err != nil {
-						logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
-							log.Fields{
-								"err":        err,
-								"intfID":     intfID,
-								"onu-id":     onuID,
-								"uni-id":     uniID,
-								"device-id":  f.deviceHandler.device.Id,
-								"gemport-id": gemPortID})
-					}
 				}
 			}
 		}
