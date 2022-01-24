@@ -92,6 +92,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "34852c5f_115b7f26",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-24T22:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e471e0b_b8cb302c",
+      "range": {
+        "startLine": 555,
+        "startChar": 6,
+        "endLine": 555,
+        "endChar": 7
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "230d12b3_5938730f",
@@ -105,6 +129,30 @@
       "writtenOn": "2022-01-19T00:05:27Z",
       "side": 1,
       "message": "val could be nil. In that case this will crash. Shouldn\u0027t you check the \u0027ok\u0027 variable mentioned earlier and only then loop.",
+      "range": {
+        "startLine": 558,
+        "startChar": 18,
+        "endLine": 558,
+        "endChar": 21
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26805252_1108564b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-24T22:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "230d12b3_5938730f",
       "range": {
         "startLine": 558,
         "startChar": 18,
@@ -138,6 +186,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ffccaf22_cb449253",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-24T22:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82c95990_9c160338",
+      "range": {
+        "startLine": 559,
+        "startChar": 2,
+        "endLine": 559,
+        "endChar": 9
+      },
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6307a5df_542c4884",
@@ -151,6 +223,24 @@
       "writtenOn": "2022-01-19T00:05:27Z",
       "side": 1,
       "message": "This log is not necessary. The calling function logs in case a flow is found.",
+      "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5aea6e32_4fe98a26",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-24T22:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6307a5df_542c4884",
       "revId": "74fd4d095de77da8823518c3f95d2bd8a49490b6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
