@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81f666a3_0b1d0846",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-24T16:42:25Z",
+      "side": 1,
+      "message": "Let\u0027s wait for https://gerrit.opencord.org/c/openolt/+/30300 to merge first and also the corresponding bbsim patch.",
+      "revId": "40d762fcce1c10530d7436a0355b3a5c9c314873",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
