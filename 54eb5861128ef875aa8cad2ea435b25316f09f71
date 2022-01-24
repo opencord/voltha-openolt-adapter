@@ -33,6 +33,24 @@
       "message": "As you know, we are deleting gemports from the OLT when we call the RemoveSchedulerQueues method. Now, you are deleting a gem port from the cache and sending a gemPortDelete request to the ONU adapter before we delete the gem port from OLT. So, what if the gemport removal operation fails on the OLT? There will be a synchronization problem (ONU adapter will remove the gemport, we already freed the gemport-id but, the gemport will be on the OLT). After that, when we want to provision a new service to another ONU on the same pon port, it will always fail because of the gemport-id allocation. (OLT still uses the gemport for the previous ONU). How will we solve this problem?",
       "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a74d035_11a7dd60",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2002,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-24T18:57:53Z",
+      "side": 1,
+      "message": "Got it. But it is unclear to me to how this is different in terms of OLT failure handling from previous code. This patch is addressing a different issue where the TCONT-Delete request was not sent to ONU when ONU instance was single-instance for a multi-uni scenario.\nI think some improvements are needed in handling failure scenarios in the code that exists which we should address in different jira. Or did I understand something wrong, meaning did I introduce some issue?",
+      "parentUuid": "15a3b40e_14e0291c",
+      "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
