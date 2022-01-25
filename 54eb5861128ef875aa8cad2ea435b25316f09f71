@@ -69,6 +69,24 @@
       "parentUuid": "4a74d035_11a7dd60",
       "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43d935d4_f13f50f3",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2002,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-25T20:16:29Z",
+      "side": 1,
+      "message": "Very good point. What you describe is an issue. I tried to address this in the next patch where I clear the queues immediately. The schedulers are cleared later when no references are found for the TP. Basically the RemoveSchedulerQueues is split into RemoveScheduler and RemoveQueues.\nAlso for another problem you describe w.r.to ONU and OLT not being in the same state if any failures happen at the OLT, I created jira VOL-4563.",
+      "parentUuid": "e36c0103_2779e32e",
+      "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
