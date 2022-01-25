@@ -51,6 +51,24 @@
       "parentUuid": "15a3b40e_14e0291c",
       "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e36c0103_2779e32e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2002,
+      "author": {
+        "id": 1000405
+      },
+      "writtenOn": "2022-01-25T13:37:32Z",
+      "side": 1,
+      "message": "No, you didn\u0027t introduce the issue. I just realized the problem while I was reading your code changes. It would be great if we create a new Jira. \nHowever, I think there is another problem with the changes you made. I will try to explain the problem with an example:\n1. TpID 64: ONU: single-instance, UNI: single-instance\n2. We provision service to PON1 - ONU1 - UNI1 with TpID 64. It uses Tcont 1024, Gem 1024.\n3. We provision the same service to PON1 - ONU1 - UNI2 with TpID 64. It uses Tcont 1024, Gem 1025. (same Tcont usage because of \"single-instance\" definition)\n4. We remove the service from PON1 - ONU1 - UNI2 with TpID 64. We will delete TechProfileInstance, free Gem 1025 and, send the sendDeleteGemPortToChild request to the ONU adapter. The code will call the \"isAllocUsedByAnotherUNI\" method and get true (allocExists) because of the PON1 - ONU1- UNI1 alignment. We won\u0027t delete GEM 1025 from the OLT.\n5. We provision the same service to PON1 - ONU2 - UNI1 with TpID 64 (or 65, I think it doesn\u0027t matter). OLT adapter will try to assign Tcont 1025, Gem 1025. (Gem 1025 is free). OLT is using Gem 1025 for PON1 - ONU1 - UNI1. So, the CreateQueue request will fail.\nWhat do you think? Am I missing something?",
+      "parentUuid": "4a74d035_11a7dd60",
+      "revId": "54eb5861128ef875aa8cad2ea435b25316f09f71",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
