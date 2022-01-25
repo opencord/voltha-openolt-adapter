@@ -16,6 +16,98 @@
       "message": "hardware test\nfunctional tests",
       "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c5858ea_4326355d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2454,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-25T23:29:32Z",
+      "side": 1,
+      "message": "i do not think this will now with mcast flows",
+      "range": {
+        "startLine": 2445,
+        "startChar": 0,
+        "endLine": 2454,
+        "endChar": 2
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b482ff00_37045319",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2762,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-25T23:29:32Z",
+      "side": 1,
+      "message": "IsFlowOnKvStore logic will not work now for trap-from-nni flows. There will no gem ports.",
+      "range": {
+        "startLine": 2754,
+        "startChar": 0,
+        "endLine": 2762,
+        "endChar": 2
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f899ebe3_ed79ad90",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2855,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-25T23:29:32Z",
+      "side": 1,
+      "message": "IsFlowOnKvStore logic will not work now for trap-from-nni flows. There will no gem ports.",
+      "range": {
+        "startLine": 2855,
+        "startChar": 1,
+        "endLine": 2855,
+        "endChar": 101
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "becf57e8_5c9e2456",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-25T23:29:32Z",
+      "side": 1,
+      "message": "This logic will not work for trap from NNI flows where no gem ports will be found. Sorry for this late comment, I realized this now.\nAlso I do not realize in general what is the advantage of refactoring this. I do not see any significant improvement from the previous way of doing things.",
+      "range": {
+        "startLine": 552,
+        "startChar": 0,
+        "endLine": 557,
+        "endChar": 8
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
