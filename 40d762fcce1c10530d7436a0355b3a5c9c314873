@@ -16,6 +16,23 @@
       "message": "Let\u0027s wait for https://gerrit.opencord.org/c/openolt/+/30300 to merge first and also the corresponding bbsim patch.",
       "revId": "40d762fcce1c10530d7436a0355b3a5c9c314873",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bbafc8f2_f8568314",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-26T22:11:46Z",
+      "side": 1,
+      "message": "The corresponding bbsim patch is reverted. So this shall not be merged at the moment",
+      "revId": "40d762fcce1c10530d7436a0355b3a5c9c314873",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
