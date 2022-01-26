@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6bf67f97_7813b1ab",
+        "filename": "internal/pkg/core/openoltInterAdapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-26T00:45:51Z",
+      "side": 1,
+      "message": "Copy paste error. Change description.",
+      "revId": "fc96e0fa7fc1744c9ebd6f224045fd5b47d0fd47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
