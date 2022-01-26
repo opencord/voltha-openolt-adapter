@@ -41,6 +41,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62cfd7ed_8ae1817a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2454,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-26T07:10:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2c5858ea_4326355d",
+      "range": {
+        "startLine": 2445,
+        "startChar": 0,
+        "endLine": 2454,
+        "endChar": 2
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b482ff00_37045319",
@@ -54,6 +78,30 @@
       "writtenOn": "2022-01-25T23:29:32Z",
       "side": 1,
       "message": "IsFlowOnKvStore logic will not work now for trap-from-nni flows. There will no gem ports.",
+      "range": {
+        "startLine": 2754,
+        "startChar": 0,
+        "endLine": 2762,
+        "endChar": 2
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "76123f4e_b693a80e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2762,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-26T07:10:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b482ff00_37045319",
       "range": {
         "startLine": 2754,
         "startChar": 0,
@@ -87,6 +135,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "90140253_dccabd6f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2855,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-26T07:10:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f899ebe3_ed79ad90",
+      "range": {
+        "startLine": 2855,
+        "startChar": 1,
+        "endLine": 2855,
+        "endChar": 101
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "becf57e8_5c9e2456",
@@ -100,6 +172,30 @@
       "writtenOn": "2022-01-25T23:29:32Z",
       "side": 1,
       "message": "This logic will not work for trap from NNI flows where no gem ports will be found. Sorry for this late comment, I realized this now.\nAlso I do not realize in general what is the advantage of refactoring this. I do not see any significant improvement from the previous way of doing things.",
+      "range": {
+        "startLine": 552,
+        "startChar": 0,
+        "endLine": 557,
+        "endChar": 8
+      },
+      "revId": "b6170ff80ae5803248add3e5be4dbf6e015687c4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7dbfd952_a2aa38e5",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-26T07:10:09Z",
+      "side": 1,
+      "message": "GetCurrentFlowIDsForOnu is fetching from this path: FlowIDPath \u003d \"{%s}/flow_ids\". However this is always empty since no one writes to this path. We are already storing flowIDs with the relation of gem ports. Therefore isFlowONKVStore should check the correct path where flows exist.",
+      "parentUuid": "becf57e8_5c9e2456",
       "range": {
         "startLine": 552,
         "startChar": 0,
