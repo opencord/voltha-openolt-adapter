@@ -16,6 +16,23 @@
       "message": "hardware test\nfunctional tests",
       "revId": "20454f391aba7095d711673bb428e5586fa97839",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "da55003c_710c21c8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-26T21:56:14Z",
+      "side": 1,
+      "message": "In the latest patch the validation for duplicate flow is missing for trap-from-nni and mcast flows which is not correct. The new logic to find flows referencing gem will definitely not work for this, so the current logic has to be enhanced/fixed, ie., storing flow-ids for onu that way you do not have to go back to using gem referenced flows.",
+      "revId": "20454f391aba7095d711673bb428e5586fa97839",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
