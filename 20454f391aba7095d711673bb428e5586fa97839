@@ -33,6 +33,24 @@
       "message": "In the latest patch the validation for duplicate flow is missing for trap-from-nni and mcast flows which is not correct. The new logic to find flows referencing gem will definitely not work for this, so the current logic has to be enhanced/fixed, ie., storing flow-ids for onu that way you do not have to go back to using gem referenced flows.",
       "revId": "20454f391aba7095d711673bb428e5586fa97839",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "486d9f24_456467be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-01-27T15:11:47Z",
+      "side": 1,
+      "message": "I see your point. I\u0027d tried do it in a way so that we won\u0027t have to store flowIds in the relation of both gem\u0027s and onu\u0027s. Because maintaining two different maps and KV paths is not very efficient. I am uploading a new patch set in order to deal with nni trap flows. How about storing nni trap flows under the gem port\u003d-1 ?. Thus we can fetch all the nni trap flows in the system by checking the flowIDs for gem\u003d-1.",
+      "parentUuid": "da55003c_710c21c8",
+      "revId": "20454f391aba7095d711673bb428e5586fa97839",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
