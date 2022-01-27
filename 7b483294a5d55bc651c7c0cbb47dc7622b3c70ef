@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9882a258_5d976174",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-27T04:06:09Z",
+      "side": 1,
+      "message": "This is tested on hardware with TT workflow. onu single-instance used for hsi and voip service and multi-instance for vod/mcast service. Test with multi-uni configured (2 uni) and service provisioned on both unis. Test onu disable, onu reboot and subscriber remove-\u003eadd-\u003eremove. ",
+      "revId": "7b483294a5d55bc651c7c0cbb47dc7622b3c70ef",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
