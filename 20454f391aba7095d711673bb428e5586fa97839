@@ -51,6 +51,24 @@
       "parentUuid": "da55003c_710c21c8",
       "revId": "20454f391aba7095d711673bb428e5586fa97839",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33a1a015_4a4eaebe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-27T18:39:13Z",
+      "side": 1,
+      "message": "Yes logically this seems like this could work. It seems like there are some stale entries left on the KV store post device delete and that is why BBSIM sanity test is failing. Can you look into that.",
+      "parentUuid": "486d9f24_456467be",
+      "revId": "20454f391aba7095d711673bb428e5586fa97839",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }

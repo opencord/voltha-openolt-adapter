@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "358e87e2_8739f2a8",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1057,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-27T18:39:13Z",
+      "side": 1,
+      "message": "nitpick: This actually gives incorrect information to the user. When err !\u003d nil, we actually fail to find anything due to some internal error.\nError string could be \"error-fetching-flow-state-from-db\". Same issues in other place.",
+      "range": {
+        "startLine": 1057,
+        "startChar": 22,
+        "endLine": 1057,
+        "endChar": 79
+      },
+      "revId": "e68d387ee889bd9a0f9a4fbcb6314b0272ec22cd",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
