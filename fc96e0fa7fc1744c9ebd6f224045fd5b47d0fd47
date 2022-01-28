@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ff88d7fc_da5daf79",
+        "filename": "internal/pkg/core/openolt_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-01-28T20:41:10Z",
+      "side": 1,
+      "message": "Will open a Jira - existing code.",
+      "parentUuid": "5f5ae348_0c952e60",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 12
+      },
+      "revId": "fc96e0fa7fc1744c9ebd6f224045fd5b47d0fd47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7a690a9f_ad6e8067",
         "filename": "internal/pkg/core/openolt_test.go",
         "patchSetId": 2
@@ -54,6 +78,30 @@
       "writtenOn": "2022-01-26T16:55:24Z",
       "side": 1,
       "message": "if this is ever converted to add t.Parallel() this will have to be reworked a bit, including adding t.Parallel() inside the `range tests` loop and creating a local override of `tt` in the loop before calling run, i.e. `tt :\u003d tt`. google `golang test parallel table driven tests` and you should get some articles on it.",
+      "range": {
+        "startLine": 548,
+        "startChar": 0,
+        "endLine": 559,
+        "endChar": 1
+      },
+      "revId": "fc96e0fa7fc1744c9ebd6f224045fd5b47d0fd47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f01c201c_69390048",
+        "filename": "internal/pkg/core/openolt_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-01-28T20:41:10Z",
+      "side": 1,
+      "message": "Existing code - will open a Jira.",
+      "parentUuid": "7a690a9f_ad6e8067",
       "range": {
         "startLine": 548,
         "startChar": 0,
