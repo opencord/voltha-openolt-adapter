@@ -16,6 +16,24 @@
       "message": "Please add UT to test this API. Otherwise rest of the changes looks good.",
       "revId": "db1abfc7a14808818c518939eea31a341be3a389",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "af6fcc1a_eee30ac6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1152,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-01-31T13:36:17Z",
+      "side": 1,
+      "message": "Added UT for this api",
+      "parentUuid": "3fe2967e_f5c45f45",
+      "revId": "db1abfc7a14808818c518939eea31a341be3a389",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
