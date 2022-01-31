@@ -33,6 +33,23 @@
       "message": "The corresponding bbsim patch is reverted. So this shall not be merged at the moment",
       "revId": "40d762fcce1c10530d7436a0355b3a5c9c314873",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9a128520_e5715883",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-01-31T02:16:55Z",
+      "side": 1,
+      "message": "This patch is good to merge now, but we need to hold merging his patch until all the physical OLTs are updated with the latest OLT debian packages to handle FlowRemove without direction parameter. There are some infrastructure issues in updating the debian packages. Until that is resolved, let\u0027s hold this patch.",
+      "revId": "40d762fcce1c10530d7436a0355b3a5c9c314873",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
