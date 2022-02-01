@@ -233,9 +233,7 @@ func newMockDeviceHandler() *DeviceHandler {
 		dh.flowMgr[i].grpMgr = dh.groupMgr
 		dh.flowMgr[i].resourceMgr = dh.resourceMgr[i]
 		dh.flowMgr[i].techprofile = mocks.MockTechProfile{}
-		dh.flowMgr[i].gemToFlowIDs = make(map[uint32][]uint64)
 		dh.flowMgr[i].packetInGemPort = make(map[resourcemanager.PacketInInfoKey]uint32)
-		dh.flowMgr[i].flowIDToGems = make(map[uint64][]uint32)
 
 		dh.resourceMgr[i].TechprofileRef = dh.flowMgr[i].techprofile
 
@@ -253,7 +251,6 @@ func newMockDeviceHandler() *DeviceHandler {
 			dh.flowMgr[i].flowHandlerRoutineActive[j] = true
 			go dh.flowMgr[i].perOnuFlowHandlerRoutine(j, dh.flowMgr[i].incomingFlows[j], dh.flowMgr[i].stopFlowHandlerRoutine[j])
 		}
-		dh.flowMgr[i].onuGemInfoMap = make(map[uint32]*resourcemanager.OnuGemInfo)
 	}
 	dh.Client = &mocks.MockOpenoltClient{}
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}, handler: dh}
