@@ -244,6 +244,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	}
 
 	ResourceMgr.InitLocalCache()
+	ResourceMgr.LoadLocalCacheFromKVStore(ctx, PonIntfID)
 
 	logger.Info(ctx, "Initialization of  resource manager success!")
 	return &ResourceMgr
@@ -261,6 +262,23 @@ func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
 	rsrcMgr.flowIDsForGem = make(map[uint32][]uint64)
 	rsrcMgr.mcastQueueForIntf = make(map[uint32][]uint32)
 	rsrcMgr.groupInfo = make(map[string]*GroupInfo)
+}
+
+//LoadLocalCacheFromKVStore loads local maps
+func (rsrcMgr *OpenOltResourceMgr) LoadLocalCacheFromKVStore(ctx context.Context, PonIntfID uint32) {
+	//Load the onugem info cache from kv store on resource manager start
+	onuIDStart := rsrcMgr.DevInfo.OnuIdStart
+	onuIDEnd := rsrcMgr.DevInfo.OnuIdEnd
+	for onuID := onuIDStart; onuID <= onuIDEnd; onuID++ {
+		// check for a valid serial number in onuGem as GetOnuGemInfo can return nil error in case of nothing found in the path.
+		_, err := rsrcMgr.GetOnuGemInfo(ctx, PonIntfID, onuID)
+		if err != nil {
+			logger.Warnw(ctx, "failed-to-load-local-cache-for-onuGem", log.Fields{
+				"intf-id": PonIntfID,
+				"onuID":   onuID,
+				"err":     err})
+		}
+	}
 }
 
 // InitializeDeviceResourceRangeAndPool initializes the resource range pool according to the sharing type, then apply
@@ -944,6 +962,38 @@ func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfo(ctx context.Context, intfID uin
 	return &onugem, nil
 }
 
+//AddNewOnuGemInfoToCacheAndKvStore function adds a new  onu gem info to cache and kvstore
+func (rsrcMgr *OpenOltResourceMgr) AddNewOnuGemInfoToCacheAndKvStore(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
+
+	Path := fmt.Sprintf(OnuGemInfoPath, intfID, onuID)
+
+	rsrcMgr.onuGemInfoLock.Lock()
+	_, ok := rsrcMgr.onuGemInfo[Path]
+	rsrcMgr.onuGemInfoLock.Unlock()
+
+	// If the ONU already exists in onuGemInfo list, nothing to do
+	if ok {
+		logger.Debugw(ctx, "onu-id-already-exists-in-cache",
+			log.Fields{"onuID": onuID,
+				"serialNum": serialNum})
+		return nil
+	}
+
+	onuGemInfo := OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
+
+	if err := rsrcMgr.AddOnuGemInfo(ctx, intfID, onuID, onuGemInfo); err != nil {
+		return err
+	}
+	logger.Infow(ctx, "added-onuinfo",
+		log.Fields{
+			"intf-id":    intfID,
+			"onu-id":     onuID,
+			"serial-num": serialNum,
+			"onu":        onuGemInfo,
+			"device-id":  rsrcMgr.DeviceID})
+	return nil
+}
+
 // AddOnuGemInfo adds onu info on to the kvstore per interface
 func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, intfID uint32, onuID uint32, onuGem OnuGemInfo) error {
 
@@ -1167,6 +1217,36 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf ui
 	rsrcMgr.flowIDsForGemLock.Unlock()
 
 	return flowIDs, nil
+}
+
+// IsGemPortUsedByAnotherFlow returns true if given gem is used by another flow
+func (rsrcMgr *OpenOltResourceMgr) IsGemPortUsedByAnotherFlow(gemPortID uint32, flowID uint64) bool {
+	rsrcMgr.flowIDsForGemLock.RLock()
+	flowIDList := rsrcMgr.flowIDsForGem[gemPortID]
+	rsrcMgr.flowIDsForGemLock.RUnlock()
+	if len(flowIDList) > 0 {
+		for _, id := range flowIDList {
+			if flowID != id {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// RegisterFlowIDForGem updates both cache and KV store for flowIDsForGem map
+func (rsrcMgr *OpenOltResourceMgr) RegisterFlowIDForGem(ctx context.Context, accessIntfID uint32, gemPortID uint32, flowFromCore *ofp.OfpFlowStats) error {
+	// get from cache
+	rsrcMgr.flowIDsForGemLock.RLock()
+	flowIDs, ok := rsrcMgr.flowIDsForGem[gemPortID]
+	rsrcMgr.flowIDsForGemLock.RUnlock()
+	if !ok {
+		flowIDs = []uint64{flowFromCore.Id}
+	} else {
+		flowIDs = appendUnique64bit(flowIDs, flowFromCore.Id)
+	}
+	// update the flowids for a gem to the KVstore
+	return rsrcMgr.UpdateFlowIDsForGem(ctx, accessIntfID, gemPortID, flowIDs)
 }
 
 //UpdateFlowIDsForGem updates flow id per gemport
@@ -1409,6 +1489,17 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowGroupFromKVStore(ctx context.Context, 
 	return false, groupInfo, nil
 }
 
+// GetOnuGemInfoList returns all gems in the onuGemInfo map
+func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfoList(ctx context.Context) []OnuGemInfo {
+	var onuGemInfoLst []OnuGemInfo
+	rsrcMgr.onuGemInfoLock.RLock()
+	defer rsrcMgr.onuGemInfoLock.RUnlock()
+	for _, v := range rsrcMgr.onuGemInfo {
+		onuGemInfoLst = append(onuGemInfoLst, *v)
+	}
+	return onuGemInfoLst
+}
+
 // toByte converts an interface value to a []byte.  The interface should either be of
 // a string type or []byte.  Otherwise, an error is returned.
 func toByte(value interface{}) ([]byte, error) {
@@ -1420,4 +1511,13 @@ func toByte(value interface{}) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unexpected-type-%T", t)
 	}
+}
+
+func appendUnique64bit(slice []uint64, item uint64) []uint64 {
+	for _, sliceElement := range slice {
+		if sliceElement == item {
+			return slice
+		}
+	}
+	return append(slice, item)
 }
