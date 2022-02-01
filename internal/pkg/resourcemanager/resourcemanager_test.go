@@ -27,6 +27,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -488,6 +489,162 @@ func TestOpenOltResourceMgr_DeleteAllOnuGemInfoForIntf(t *testing.T) {
 			err := RsrcMgr.DeleteAllOnuGemInfoForIntf(ctx, tt.args.PONIntfID)
 			if err != nil {
 				t.Errorf("DeleteAllOnuGemInfoForIntf() returned error")
+			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_deleteGemPort(t *testing.T) {
+
+	type args struct {
+		intfID                uint32
+		onuID                 uint32
+		gemPortIDs            []uint32
+		gemPortIDsToBeDeleted []uint32
+		gemPortIDsRemaining   []uint32
+		serialNum             string
+		finalLength           int
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+	}{
+		// Add/Delete single gem port
+		{"DeleteGemPortFromLocalCache1", getResMgr(), args{0, 1, []uint32{1}, []uint32{1}, []uint32{}, "onu1", 0}},
+		// Delete all gemports
+		{"DeleteGemPortFromLocalCache2", getResMgr(), args{0, 1, []uint32{1, 2, 3, 4}, []uint32{1, 2, 3, 4}, []uint32{}, "onu1", 0}},
+		// Try to delete when there is no gem port
+		{"DeleteGemPortFromLocalCache3", getResMgr(), args{0, 1, []uint32{}, []uint32{1, 2}, nil, "onu1", 0}},
+		// Try to delete non-existent gem port
+		{"DeleteGemPortFromLocalCache4", getResMgr(), args{0, 1, []uint32{1}, []uint32{2}, []uint32{1}, "onu1", 1}},
+		// Try to delete two of the gem ports
+		{"DeleteGemPortFromLocalCache5", getResMgr(), args{0, 1, []uint32{1, 2, 3, 4}, []uint32{2, 4}, []uint32{1, 3}, "onu1", 2}},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID); err != nil {
+				t.Errorf("failed to remove onu")
+			}
+			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+				t.Errorf("failed to add onu")
+			}
+			for _, gemPort := range tt.args.gemPortIDs {
+				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPort); err != nil {
+					t.Errorf("failed to add gem to onu")
+				}
+			}
+			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
+				if err := RsrcMgr.RemoveGemFromOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted); err != nil {
+					t.Errorf("failed to remove gem from onu")
+				}
+			}
+			lenofGemPorts := 0
+			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID)
+			if err != nil || gP == nil {
+				t.Errorf("failed to get onuGemInfo")
+			}
+			var gemPorts []uint32
+
+			lenofGemPorts = len(gP.GemPorts)
+			gemPorts = gP.GemPorts
+
+			if lenofGemPorts != tt.args.finalLength {
+				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
+			}
+
+			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
+				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
+			}
+		})
+	}
+}
+
+func TestOpenOltResourceMgr_AddNewOnuGemInfo(t *testing.T) {
+
+	type args struct {
+		PONIntfID uint32
+		OnuCount  uint32
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+		want   error
+	}{
+		{"AddNewOnuGemInfoForIntf-0", getResMgr(), args{0, 32}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			for j := 1; j <= int(tt.args.OnuCount); j++ {
+				go func(i uint32, j uint32) {
+					// TODO: actually verify success
+					_ = RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, i, i, fmt.Sprintf("onu-%d", i))
+				}(tt.args.PONIntfID, uint32(j))
+			}
+		})
+	}
+}
+
+func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
+
+	type args struct {
+		intfID              uint32
+		onuID               uint32
+		gemPortIDs          []uint32
+		gemPortIDsRemaining []uint32
+		serialNum           string
+		finalLength         int
+	}
+	tests := []struct {
+		name   string
+		fields *fields
+		args   args
+	}{
+		// Add single gem port
+		{"addGemPortToOnuInfoMap1", getResMgr(), args{0, 1, []uint32{1}, []uint32{1}, "onu1", 1}},
+		// Delete all gemports
+		{"addGemPortToOnuInfoMap2", getResMgr(), args{0, 1, []uint32{1, 2, 3, 4}, []uint32{1, 2, 3, 4}, "onu1", 4}},
+		// Do not add any gemport
+		{"addGemPortToOnuInfoMap3", getResMgr(), args{0, 1, []uint32{}, nil, "onu1", 0}},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID); err != nil {
+				t.Errorf("failed to remove onu")
+			}
+			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+				t.Errorf("failed to add onu")
+			}
+			for _, gemPort := range tt.args.gemPortIDs {
+				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPort); err != nil {
+					t.Errorf("failed to add gem to onu")
+				}
+			}
+
+			lenofGemPorts := 0
+			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID)
+
+			var gemPorts []uint32
+			if err == nil && gP != nil {
+				lenofGemPorts = len(gP.GemPorts)
+				gemPorts = gP.GemPorts
+			}
+			if lenofGemPorts != tt.args.finalLength {
+				t.Errorf("GemPorts length is not as expected len = %d, want %d", lenofGemPorts, tt.args.finalLength)
+			}
+
+			if !reflect.DeepEqual(tt.args.gemPortIDsRemaining, gemPorts) {
+				t.Errorf("GemPorts are not as expected = %v, want %v", gemPorts, tt.args.gemPortIDsRemaining)
 			}
 		})
 	}

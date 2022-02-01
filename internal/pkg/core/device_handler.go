@@ -1052,7 +1052,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 					}
 					logger.Debugw(ctx, "publish-pon-metrics", log.Fields{"pon-port": port.Label})
 
-					onuGemInfoLst := dh.flowMgr[intfID].getOnuGemInfoList(ctx)
+					onuGemInfoLst := dh.resourceMgr[intfID].GetOnuGemInfoList(ctx)
 					if len(onuGemInfoLst) > 0 {
 						go dh.portStats.collectOnuAndGemStats(ctx, onuGemInfoLst)
 					}
@@ -1333,7 +1333,7 @@ func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *volt
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id, "OmccEncryption": dh.openOLT.config.OmccEncryption})
-	if err := dh.flowMgr[intfID].AddOnuInfoToFlowMgrCacheAndKvStore(ctx, intfID, uint32(onuID), serialNumber); err != nil {
+	if err := dh.resourceMgr[intfID].AddNewOnuGemInfoToCacheAndKvStore(ctx, intfID, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
 	}
 	var pir uint32 = 1000000
@@ -2037,7 +2037,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			var err error
-			onuGemData := dh.flowMgr[ponPort].getOnuGemInfoList(ctx)
+			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
 				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
@@ -2487,7 +2487,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		for _, gem := range onuGem.GemPorts {
 			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, intfID, gem)
 		}
-		if err := dh.flowMgr[intfID].RemoveOnuInfoFromFlowMgrCacheAndKvStore(ctx, intfID, onuID); err != nil {
+		if err := dh.resourceMgr[intfID].DelOnuGemInfo(ctx, intfID, onuID); err != nil {
 			logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
 				"intf-id":    intfID,
 				"onu-device": onu,
