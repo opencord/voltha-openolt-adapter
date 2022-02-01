@@ -244,7 +244,9 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	}
 
 	ResourceMgr.InitLocalCache()
-
+	if err := ResourceMgr.LoadLocalCacheFromKVStore(ctx, PonIntfID); err != nil {
+		logger.Error(ctx, "failed-to-load-local-cache-from-kvstore")
+	}
 	logger.Info(ctx, "Initialization of  resource manager success!")
 	return &ResourceMgr
 }
@@ -261,6 +263,52 @@ func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
 	rsrcMgr.flowIDsForGem = make(map[uint32][]uint64)
 	rsrcMgr.mcastQueueForIntf = make(map[uint32][]uint32)
 	rsrcMgr.groupInfo = make(map[string]*GroupInfo)
+}
+
+//LoadLocalCacheFromKVStore loads local maps
+func (rsrcMgr *OpenOltResourceMgr) LoadLocalCacheFromKVStore(ctx context.Context, PonIntfID uint32) error {
+
+	//List all the keys for OnuGemInfo
+	prefixPath := fmt.Sprintf(OnuGemInfoPathPathPrefix, PonIntfID)
+	keys, err := rsrcMgr.KVStore.List(ctx, prefixPath)
+	logger.Debugw(ctx, "load-local-cache-from-KV-store-started", log.Fields{})
+	if err != nil {
+		logger.Errorf(ctx, "failed-to-list-keys-from-path-%s", prefixPath)
+		return err
+	}
+	for path := range keys {
+		var Val []byte
+		var onugem OnuGemInfo
+		// Get rid of the path prefix
+		stringToBeReplaced := rsrcMgr.KVStore.PathPrefix + "/"
+		replacedWith := ""
+		path = strings.Replace(path, stringToBeReplaced, replacedWith, 1)
+
+		value, err := rsrcMgr.KVStore.Get(ctx, path)
+		if err != nil {
+			logger.Errorw(ctx, "failed-to-get-from-kv-store", log.Fields{"path": path})
+			return err
+		} else if value == nil {
+			logger.Debug(ctx, "no-onugeminfo-for-path", log.Fields{"path": path})
+			continue
+		}
+		if Val, err = kvstore.ToByte(value.Value); err != nil {
+			logger.Error(ctx, "failed-to-covert-to-byte-array")
+			return err
+		}
+		if err = json.Unmarshal(Val, &onugem); err != nil {
+			logger.Error(ctx, "failed-to-unmarshall")
+			return err
+		}
+		logger.Debugw(ctx, "found-onugeminfo-from-path", log.Fields{"path": path, "onuGemInfo": onugem})
+
+		rsrcMgr.onuGemInfoLock.Lock()
+		rsrcMgr.onuGemInfo[path] = &onugem
+		rsrcMgr.onuGemInfoLock.Unlock()
+
+	}
+	logger.Debugw(ctx, "load-local-cache-from-KV-store-finished", log.Fields{})
+	return nil
 }
 
 // InitializeDeviceResourceRangeAndPool initializes the resource range pool according to the sharing type, then apply
@@ -944,6 +992,36 @@ func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfo(ctx context.Context, intfID uin
 	return &onugem, nil
 }
 
+//AddNewOnuGemInfoToCacheAndKvStore function adds a new  onu gem info to cache and kvstore
+func (rsrcMgr *OpenOltResourceMgr) AddNewOnuGemInfoToCacheAndKvStore(ctx context.Context, intfID uint32, onuID uint32, serialNum string) error {
+
+	Path := fmt.Sprintf(OnuGemInfoPath, intfID, onuID)
+
+	rsrcMgr.onuGemInfoLock.Lock()
+	_, ok := rsrcMgr.onuGemInfo[Path]
+	rsrcMgr.onuGemInfoLock.Unlock()
+
+	// If the ONU already exists in onuGemInfo list, nothing to do
+	if ok {
+		logger.Debugw(ctx, "onu-id-already-exists-in-cache", log.Fields{"onuID": onuID, "serialNum": serialNum})
+		return nil
+	}
+
+	onuGemInfo := OnuGemInfo{OnuID: onuID, SerialNumber: serialNum, IntfID: intfID}
+
+	if err := rsrcMgr.AddOnuGemInfo(ctx, intfID, onuID, onuGemInfo); err != nil {
+		return err
+	}
+	logger.Infow(ctx, "added-onuinfo",
+		log.Fields{
+			"intf-id":    intfID,
+			"onu-id":     onuID,
+			"serial-num": serialNum,
+			"onu":        onuGemInfo,
+			"device-id":  rsrcMgr.DeviceID})
+	return nil
+}
+
 // AddOnuGemInfo adds onu info on to the kvstore per interface
 func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, intfID uint32, onuID uint32, onuGem OnuGemInfo) error {
 
@@ -961,7 +1039,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, intfID uin
 		logger.Errorf(ctx, "Failed to update resource %s", Path)
 		return err
 	}
-	logger.Debugw(ctx, "added onu gem info to store", log.Fields{"onuGemInfo": onuGem})
+	logger.Debugw(ctx, "added onu gem info to store", log.Fields{"onuGemInfo": onuGem, "Path": Path})
 
 	//update cache
 	rsrcMgr.onuGemInfoLock.Lock()
@@ -1167,6 +1245,34 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, intf ui
 	rsrcMgr.flowIDsForGemLock.Unlock()
 
 	return flowIDs, nil
+}
+
+// IsGemPortUsedByAnotherFlow returns true if given gem is used by another flow
+func (rsrcMgr *OpenOltResourceMgr) IsGemPortUsedByAnotherFlow(gemPortID uint32, flowID uint64) bool {
+	rsrcMgr.flowIDsForGemLock.RLock()
+	flowIDList := rsrcMgr.flowIDsForGem[gemPortID]
+	rsrcMgr.flowIDsForGemLock.RUnlock()
+	for _, id := range flowIDList {
+		if flowID != id {
+			return true
+		}
+	}
+	return false
+}
+
+// RegisterFlowIDForGem updates both cache and KV store for flowIDsForGem map
+func (rsrcMgr *OpenOltResourceMgr) RegisterFlowIDForGem(ctx context.Context, accessIntfID uint32, gemPortID uint32, flowFromCore *ofp.OfpFlowStats) error {
+	// get from cache
+	rsrcMgr.flowIDsForGemLock.RLock()
+	flowIDs, ok := rsrcMgr.flowIDsForGem[gemPortID]
+	rsrcMgr.flowIDsForGemLock.RUnlock()
+	if !ok {
+		flowIDs = []uint64{flowFromCore.Id}
+	} else {
+		flowIDs = appendUnique64bit(flowIDs, flowFromCore.Id)
+	}
+	// update the flowids for a gem to the KVstore
+	return rsrcMgr.UpdateFlowIDsForGem(ctx, accessIntfID, gemPortID, flowIDs)
 }
 
 //UpdateFlowIDsForGem updates flow id per gemport
@@ -1409,6 +1515,17 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowGroupFromKVStore(ctx context.Context, 
 	return false, groupInfo, nil
 }
 
+// GetOnuGemInfoList returns all gems in the onuGemInfo map
+func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfoList(ctx context.Context) []OnuGemInfo {
+	var onuGemInfoLst []OnuGemInfo
+	rsrcMgr.onuGemInfoLock.RLock()
+	defer rsrcMgr.onuGemInfoLock.RUnlock()
+	for _, v := range rsrcMgr.onuGemInfo {
+		onuGemInfoLst = append(onuGemInfoLst, *v)
+	}
+	return onuGemInfoLst
+}
+
 // toByte converts an interface value to a []byte.  The interface should either be of
 // a string type or []byte.  Otherwise, an error is returned.
 func toByte(value interface{}) ([]byte, error) {
@@ -1420,4 +1537,13 @@ func toByte(value interface{}) ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unexpected-type-%T", t)
 	}
+}
+
+func appendUnique64bit(slice []uint64, item uint64) []uint64 {
+	for _, sliceElement := range slice {
+		if sliceElement == item {
+			return slice
+		}
+	}
+	return append(slice, item)
 }
