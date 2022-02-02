@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "690c7f0d_9ec6740e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-02T04:33:42Z",
+      "side": 1,
+      "message": "Remove the DRAFT in the commit message if this is no longer a DRAFT",
+      "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7d07b64c_63a2c386",
