@@ -502,3 +502,8 @@ func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ca.BulkFlows) (*e
 func (oo *OpenOLT) SelfTestDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
+
+//ProxyOmciRequests unimplemented
+func (oo *OpenOLT) ProxyOmciRequests(ctx context.Context, requests *ia.OmciMessages) (*empty.Empty, error) {
+	return nil, olterrors.ErrNotImplemented
+}
