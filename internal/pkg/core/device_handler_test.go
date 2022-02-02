@@ -907,44 +907,89 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 func TestDeviceHandler_addPort(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
+
+	const defaultCapacity = uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)
 	type args struct {
-		intfID   uint32
-		portType voltha.Port_PortType
-		state    string
+		intfID    uint32
+		portType  voltha.Port_PortType
+		state     string
+		speedMbps uint32
 	}
 	tests := []struct {
-		name          string
-		devicehandler *DeviceHandler
-		args          args
+		name             string
+		devicehandler    *DeviceHandler
+		args             args
+		expectedCapacity uint32
 	}{
 		// State up
-		{"addPort.1", dh1, args{intfID: 1, portType: voltha.Port_UNKNOWN, state: "up"}},
-		{"addPort.2", dh1, args{intfID: 1, portType: voltha.Port_VENET_OLT, state: "up"}},
-		{"addPort.3", dh1, args{intfID: 1, portType: voltha.Port_VENET_ONU, state: "up"}},
-		{"addPort.4", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up"}},
-		{"addPort.5", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "up"}},
-		{"addPort.6", dh1, args{intfID: 1, portType: voltha.Port_PON_OLT, state: "up"}},
-		{"addPort.7", dh1, args{intfID: 1, portType: voltha.Port_PON_ONU, state: "up"}},
-		{"addPort.8", dh1, args{intfID: 1, portType: 8, state: "up"}},
+		{"addPort.1", dh1, args{intfID: 1, portType: voltha.Port_UNKNOWN, state: "up"}, defaultCapacity},
+		{"addPort.2", dh1, args{intfID: 1, portType: voltha.Port_VENET_OLT, state: "up"}, defaultCapacity},
+		{"addPort.3", dh1, args{intfID: 1, portType: voltha.Port_VENET_ONU, state: "up"}, defaultCapacity},
+		{"addPort.4", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: defaultPortSpeedMbps}, defaultCapacity},
+		{"addPort.5", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "up"}, defaultCapacity},
+		{"addPort.6", dh1, args{intfID: 1, portType: voltha.Port_PON_OLT, state: "up"}, defaultCapacity},
+		{"addPort.7", dh1, args{intfID: 1, portType: voltha.Port_PON_ONU, state: "up"}, defaultCapacity},
+		{"addPort.8", dh1, args{intfID: 1, portType: 8, state: "up"}, defaultCapacity},
 		// state discovery
-		{"addPort.9", dh1, args{intfID: 1, portType: voltha.Port_UNKNOWN, state: "down"}},
-		{"addPort.10", dh1, args{intfID: 1, portType: voltha.Port_VENET_OLT, state: "down"}},
-		{"addPort.11", dh1, args{intfID: 1, portType: voltha.Port_VENET_ONU, state: "down"}},
-		{"addPort.12", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "down"}},
-		{"addPort.13", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "down"}},
-		{"addPort.14", dh1, args{intfID: 1, portType: voltha.Port_PON_OLT, state: "down"}},
-		{"addPort.15", dh1, args{intfID: 1, portType: voltha.Port_PON_ONU, state: "down"}},
-		{"addPort.16", dh1, args{intfID: 1, portType: 8, state: "down"}},
+		{"addPort.9", dh1, args{intfID: 1, portType: voltha.Port_UNKNOWN, state: "down"}, defaultCapacity},
+		{"addPort.10", dh1, args{intfID: 1, portType: voltha.Port_VENET_OLT, state: "down"}, defaultCapacity},
+		{"addPort.11", dh1, args{intfID: 1, portType: voltha.Port_VENET_ONU, state: "down"}, defaultCapacity},
+		{"addPort.12", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "down", speedMbps: defaultPortSpeedMbps}, defaultCapacity},
+		{"addPort.13", dh1, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "down"}, defaultCapacity},
+		{"addPort.14", dh1, args{intfID: 1, portType: voltha.Port_PON_OLT, state: "down"}, defaultCapacity},
+		{"addPort.15", dh1, args{intfID: 1, portType: voltha.Port_PON_ONU, state: "down"}, defaultCapacity},
+		{"addPort.16", dh1, args{intfID: 1, portType: 8, state: "down"}, defaultCapacity},
 
-		{"addPort.17", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up"}},
-		{"addPort.18", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "up"}},
-		{"addPort.19", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "down"}},
-		{"addPort.20", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "down"}},
+		{"addPort.17", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: defaultPortSpeedMbps}, defaultCapacity},
+		{"addPort.18", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "up"}, defaultCapacity},
+		{"addPort.19", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "down", speedMbps: defaultPortSpeedMbps}, defaultCapacity},
+		{"addPort.20", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_UNI, state: "down"}, defaultCapacity},
+
+		// NNI speeds
+		{"addPort.21", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 0}, defaultCapacity},
+		{"addPort.22", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 10}, uint32(of.OfpPortFeatures_OFPPF_10MB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.23", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 100}, uint32(of.OfpPortFeatures_OFPPF_100MB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.24", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 1000}, uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.25", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 10000}, uint32(of.OfpPortFeatures_OFPPF_10GB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.26", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 40000}, uint32(of.OfpPortFeatures_OFPPF_40GB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.27", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 100000}, uint32(of.OfpPortFeatures_OFPPF_100GB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.28", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 1000000}, uint32(of.OfpPortFeatures_OFPPF_1TB_FD | of.OfpPortFeatures_OFPPF_FIBER)},
+		{"addPort.29", dh2, args{intfID: 1, portType: voltha.Port_ETHERNET_NNI, state: "up", speedMbps: 12345}, uint32(of.OfpPortFeatures_OFPPF_OTHER | of.OfpPortFeatures_OFPPF_FIBER)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state)
-			//TODO: actually verify test cases
+			_ = tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state, tt.args.speedMbps)
+
+			//Check if the correct state is stored
+			storedState, ok := tt.devicehandler.activePorts.Load(tt.args.intfID)
+			expectedState := tt.args.state == "up"
+
+			if !ok {
+				t.Errorf("Port state not stored in test %v", tt.name)
+			} else if storedState != expectedState {
+				t.Errorf("Expected stored port state: %v, found: %v in test %v", expectedState, storedState, tt.name)
+			}
+
+			//Check if the reported speed values are correct
+			ofpPort := makeOfpPort(tt.devicehandler.device.MacAddress, tt.args.speedMbps)
+
+			if ofpPort.Curr != tt.expectedCapacity ||
+				ofpPort.Advertised != tt.expectedCapacity ||
+				ofpPort.Peer != tt.expectedCapacity {
+				t.Errorf("Expected port capacity: %v, found: (%v,%v,%v) in test %v", tt.expectedCapacity, ofpPort.Curr, ofpPort.Advertised, ofpPort.Peer, tt.name)
+			}
+
+			var expectedSpeedKbps uint32
+			if tt.args.speedMbps == 0 {
+				expectedSpeedKbps = defaultPortSpeedMbps * 1000
+			} else {
+				expectedSpeedKbps = tt.args.speedMbps * 1000
+			}
+
+			if ofpPort.CurrSpeed != expectedSpeedKbps ||
+				ofpPort.MaxSpeed != expectedSpeedKbps {
+				t.Errorf("Expected port speed: %v, found: (%v,%v) in test %v", expectedSpeedKbps, ofpPort.CurrSpeed, ofpPort.MaxSpeed, tt.name)
+			}
 		})
 	}
 }

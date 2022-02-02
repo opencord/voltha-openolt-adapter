@@ -69,6 +69,8 @@ const (
 	McastFlowOrGroupModify = "McastFlowOrGroupModify"
 	McastFlowOrGroupRemove = "McastFlowOrGroupRemove"
 	oltPortInfoTimeout     = 3
+
+	defaultPortSpeedMbps = 1000
 )
 
 //DeviceHandler will interact with the OLT device.
@@ -316,7 +318,48 @@ func GetportLabel(portNum uint32, portType voltha.Port_PortType) (string, error)
 	return "", olterrors.NewErrInvalidValue(log.Fields{"port-type": portType}, nil)
 }
 
-func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType voltha.Port_PortType, state string) error {
+func makeOfpPort(macAddress string, speedMbps uint32) *of.OfpPort {
+	if speedMbps == 0 {
+		//In case it was not set in the indication
+		//and no other value was provided
+		speedMbps = defaultPortSpeedMbps
+	}
+
+	ofpPortSpeed := of.OfpPortFeatures_OFPPF_OTHER
+	switch speedMbps {
+	case 1000000:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_1TB_FD
+	case 100000:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_100GB_FD
+	case 40000:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_40GB_FD
+	case 10000:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_10GB_FD
+	case 1000:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_1GB_FD
+	case 100:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_100MB_FD
+	case 10:
+		ofpPortSpeed = of.OfpPortFeatures_OFPPF_10MB_FD
+	}
+
+	capacity := uint32(ofpPortSpeed | of.OfpPortFeatures_OFPPF_FIBER)
+
+	port := &of.OfpPort{
+		HwAddr:     macAddressToUint32Array(macAddress),
+		Config:     0,
+		State:      uint32(of.OfpPortState_OFPPS_LIVE),
+		Curr:       capacity,
+		Advertised: capacity,
+		Peer:       capacity,
+		CurrSpeed:  speedMbps * 1000, //kbps
+		MaxSpeed:   speedMbps * 1000, //kbps
+	}
+
+	return port
+}
+
+func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType voltha.Port_PortType, state string, speedMbps uint32) error {
 	var operStatus common.OperStatus_Types
 	if state == "up" {
 		operStatus = voltha.OperStatus_ACTIVE
@@ -355,23 +398,13 @@ func (dh *DeviceHandler) addPort(ctx context.Context, intfID uint32, portType vo
 	}
 
 	// Now create Port
-	capacity := uint32(of.OfpPortFeatures_OFPPF_1GB_FD | of.OfpPortFeatures_OFPPF_FIBER)
 	port = &voltha.Port{
 		DeviceId:   dh.device.Id,
 		PortNo:     portNum,
 		Label:      label,
 		Type:       portType,
 		OperStatus: operStatus,
-		OfpPort: &of.OfpPort{
-			HwAddr:     macAddressToUint32Array(dh.device.MacAddress),
-			Config:     0,
-			State:      uint32(of.OfpPortState_OFPPS_LIVE),
-			Curr:       capacity,
-			Advertised: capacity,
-			Peer:       capacity,
-			CurrSpeed:  uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
-			MaxSpeed:   uint32(of.OfpPortFeatures_OFPPF_1GB_FD),
-		},
+		OfpPort:    makeOfpPort(dh.device.MacAddress, speedMbps),
 	}
 	logger.Debugw(ctx, "sending-port-update-to-core", log.Fields{"port": port})
 	// Synchronous call to update device - this method is run in its own go routine
@@ -557,7 +590,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 
 		intfInd := indication.GetIntfInd()
 		go func() {
-			if err := dh.addPort(ctx, intfInd.GetIntfId(), voltha.Port_PON_OLT, intfInd.GetOperState()); err != nil {
+			if err := dh.addPort(ctx, intfInd.GetIntfId(), voltha.Port_PON_OLT, intfInd.GetOperState(), defaultPortSpeedMbps); err != nil {
 				_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface", "device-id": dh.device.Id}, err).Log()
 			}
 		}()
@@ -569,7 +602,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		intfOperInd := indication.GetIntfOperInd()
 		if intfOperInd.GetType() == "nni" {
 			go func() {
-				if err := dh.addPort(ctx, intfOperInd.GetIntfId(), voltha.Port_ETHERNET_NNI, intfOperInd.GetOperState()); err != nil {
+				if err := dh.addPort(ctx, intfOperInd.GetIntfId(), voltha.Port_ETHERNET_NNI, intfOperInd.GetOperState(), intfOperInd.GetSpeed()); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-nni", "device-id": dh.device.Id}, err).Log()
 				}
 			}()
@@ -577,7 +610,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 			// TODO: Check what needs to be handled here for When PON PORT down, ONU will be down
 			// Handle pon port update
 			go func() {
-				if err := dh.addPort(ctx, intfOperInd.GetIntfId(), voltha.Port_PON_OLT, intfOperInd.GetOperState()); err != nil {
+				if err := dh.addPort(ctx, intfOperInd.GetIntfId(), voltha.Port_PON_OLT, intfOperInd.GetOperState(), defaultPortSpeedMbps); err != nil {
 					_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "interface-oper-pon", "device-id": dh.device.Id}, err).Log()
 				}
 			}()
