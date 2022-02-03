@@ -508,18 +508,22 @@ func (rsrcMgr *OpenOltResourceMgr) FreeonuID(ctx context.Context, intfID uint32,
 // for the given OLT device.
 // The caller should ensure that this is a blocking call and this operation is serialized for
 // the ONU so as not cause resource corruption since there are no mutexes used here.
+// Setting freeFromResourcePool to false will not clear it from the resource pool but only
+// clear it for the given pon/onu/uni
 func (rsrcMgr *OpenOltResourceMgr) FreeAllocID(ctx context.Context, intfID uint32, onuID uint32,
-	uniID uint32, allocID uint32) {
+	uniID uint32, allocID uint32, freeFromResourcePool bool) {
 
 	rsrcMgr.RemoveAllocIDForOnu(ctx, intfID, onuID, uniID, allocID)
-	allocIDs := make([]uint32, 0)
-	allocIDs = append(allocIDs, allocID)
-	if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, intfID, ponrmgr.ALLOC_ID, allocIDs); err != nil {
-		logger.Errorw(ctx, "error-while-freeing-alloc-id", log.Fields{
-			"intf-id": intfID,
-			"onu-id":  onuID,
-			"err":     err.Error(),
-		})
+	if freeFromResourcePool {
+		allocIDs := make([]uint32, 0)
+		allocIDs = append(allocIDs, allocID)
+		if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, intfID, ponrmgr.ALLOC_ID, allocIDs); err != nil {
+			logger.Errorw(ctx, "error-while-freeing-alloc-id", log.Fields{
+				"intf-id": intfID,
+				"onu-id":  onuID,
+				"err":     err.Error(),
+			})
+		}
 	}
 }
 
@@ -1299,6 +1303,17 @@ func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, int
 	}
 	logger.Debugw(ctx, "added multicast queue info to KV store successfully", log.Fields{"path": path, "interfaceId": intf, "gem": gem, "svcPrior": servicePriority})
 	return nil
+}
+
+//DeleteMcastQueueForIntf deletes multicast queue info for the current pon interface from kvstore
+func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) {
+	path := McastQueuesForIntf
+
+	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+		logger.Errorw(ctx, "Failed to delete multicast queue info from kvstore", log.Fields{"err": err, "interfaceId": rsrcMgr.PonIntfID})
+		return
+	}
+	logger.Debugw(ctx, "deleted multicast queue info from KV store successfully", log.Fields{"interfaceId": rsrcMgr.PonIntfID})
 }
 
 //AddFlowGroupToKVStore adds flow group into KV store

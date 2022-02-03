@@ -2046,6 +2046,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 			}
 			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, ponPort)
 			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx, ponPort)
+			dh.resourceMgr[ponPort].DeleteMcastQueueForIntf(ctx)
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
 				logger.Debug(ctx, err)
 			}

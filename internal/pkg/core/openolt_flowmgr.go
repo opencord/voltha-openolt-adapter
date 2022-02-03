@@ -388,9 +388,10 @@ func (f *OpenOltFlowMgr) processAddFlow(ctx context.Context, intfID uint32, onuI
 }
 
 // CreateSchedulerQueues creates traffic schedulers on the device with the given scheduler configuration and traffic shaping info
+// nolint: gocyclo
 func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueue) error {
 
-	logger.Debugw(ctx, "CreateSchedulerQueues",
+	logger.Infow(ctx, "CreateSchedulerQueues",
 		log.Fields{"dir": sq.direction,
 			"intf-id":      sq.intfID,
 			"onu-id":       sq.onuID,
@@ -406,12 +407,34 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 		return err
 	}
 
+	var TrafficShaping *tp_pb.TrafficShapingInfo
+	if sq.flowMetadata == nil || len(sq.flowMetadata.Meters) != 1 {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
+
+	if TrafficShaping, err = meters.GetTrafficShapingInfo(ctx, sq.flowMetadata.Meters[0]); err != nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason":    "invalid-meter-config",
+			"meter-id":  sq.meterID,
+			"device-id": f.deviceHandler.device.Id}, nil)
+	}
+
+	var SchedCfg *tp_pb.SchedulerConfig
+	if sq.direction == tp_pb.Direction_UPSTREAM {
+		SchedCfg = f.techprofile.GetUsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
+	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+		SchedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
+	}
+	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
+	TrafficSched[0].TechProfileId = sq.tpID
+
 	/* Lets make a simple assumption that if the meter-id is present on the KV store,
 	 * then the scheduler and queues configuration is applied on the OLT device
 	 * in the given direction.
 	 */
-
-	var SchedCfg *tp_pb.SchedulerConfig
 	meterInfo, err := f.resourceMgr.GetMeterInfoForOnu(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
 	if err != nil {
 		return olterrors.NewErrNotFound("meter",
@@ -421,11 +444,42 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 				"device-id": f.deviceHandler.device.Id}, err)
 	}
 
-	// update referernce count and return if the meter was already installed before
+	// update reference count and return if the meter was already installed before
 	if meterInfo != nil && meterInfo.MeterID == sq.meterID {
-		logger.Debugw(ctx, "scheduler-already-created-for-direction",
+		logger.Infow(ctx, "scheduler-already-created-for-direction",
 			log.Fields{"device-id": f.deviceHandler.device.Id, "direction": direction, "meter-id": sq.meterID})
-		return f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID, true)
+		if err = f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID, true); err != nil {
+			return err
+		}
+
+		if allocExists := f.isAllocUsedByAnotherUNI(ctx, sq); allocExists {
+			// Alloc object was already created as part of flow setup on another uni of the onu for the same service.
+			// Just create gem ports and traffic queues on the current uni for the given service
+			logger.Infow(ctx, "alloc in use on another uni, schedulers already created, creating queues only",
+				log.Fields{"intf-id": sq.intfID,
+					"onu-id":    sq.onuID,
+					"uni-id":    sq.uniID,
+					"tp-id":     sq.tpID,
+					"device-id": f.deviceHandler.device.Id})
+			// The upstream scheduler is already created. We only need to create the queues
+			// If there are multiple upstream flows on a given uni, then it is possible that
+			// we call pushTrafficQueues multiple times, but that is OK as BAL returns OK.
+			// TODO: Find better mechanism to not duplicate request.
+			if err = f.pushTrafficQueues(ctx, sq, TrafficSched); err != nil {
+				return olterrors.NewErrAdapter("failure-pushing-traffic-queues-to-device",
+					log.Fields{"intf-id": sq.intfID,
+						"direction": sq.direction,
+						"device-id": f.deviceHandler.device.Id}, err)
+			}
+		} else {
+			logger.Infow(ctx, "alloc not in use on another uni, only meter ref cnt updated",
+				log.Fields{"intf-id": sq.intfID,
+					"onu-id":    sq.onuID,
+					"uni-id":    sq.uniID,
+					"tp-id":     sq.tpID,
+					"device-id": f.deviceHandler.device.Id})
+		}
+		return err
 	}
 
 	logger.Debugw(ctx, "meter-does-not-exist-creating-new",
@@ -433,12 +487,6 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"meter-id":  sq.meterID,
 			"direction": direction,
 			"device-id": f.deviceHandler.device.Id})
-
-	if sq.direction == tp_pb.Direction_UPSTREAM {
-		SchedCfg = f.techprofile.GetUsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
-		SchedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
-	}
 
 	found := false
 	meterInfo = &rsrcMgr.MeterInfo{}
@@ -465,17 +513,6 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"device-id":     f.deviceHandler.device.Id}, nil)
 	}
 
-	var TrafficShaping *tp_pb.TrafficShapingInfo
-	if TrafficShaping, err = meters.GetTrafficShapingInfo(ctx, sq.flowMetadata.Meters[0]); err != nil {
-		return olterrors.NewErrInvalidValue(log.Fields{
-			"reason":    "invalid-meter-config",
-			"meter-id":  sq.meterID,
-			"device-id": f.deviceHandler.device.Id}, nil)
-	}
-
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
-	TrafficSched[0].TechProfileId = sq.tpID
-
 	if err := f.pushSchedulerQueuesToDevice(ctx, sq, TrafficSched); err != nil {
 		return olterrors.NewErrAdapter("failure-pushing-traffic-scheduler-and-queues-to-device",
 			log.Fields{"intf-id": sq.intfID,
@@ -497,6 +534,32 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 			"meter-info": meterInfo,
 			"device-id":  f.deviceHandler.device.Id})
 	return nil
+}
+
+func (f *OpenOltFlowMgr) pushTrafficQueues(ctx context.Context, sq schedQueue, TrafficSched []*tp_pb.TrafficScheduler) error {
+	trafficQueues, err := f.techprofile.GetTrafficQueues(ctx, sq.tpInst.(*tp_pb.TechProfileInstance), sq.direction)
+	if err != nil {
+		return olterrors.NewErrAdapter("unable-to-construct-traffic-queue-configuration",
+			log.Fields{"intf-id": sq.intfID,
+				"direction": sq.direction,
+				"device-id": f.deviceHandler.device.Id}, err)
+	}
+	logger.Debugw(ctx, "sending-traffic-queues-create-to-device",
+		log.Fields{"direction": sq.direction,
+			"traffic-queues": trafficQueues,
+			"device-id":      f.deviceHandler.device.Id})
+	queues := &tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+		UniId: sq.uniID, PortNo: sq.uniPort,
+		TrafficQueues: trafficQueues,
+		TechProfileId: TrafficSched[0].TechProfileId}
+	if _, err := f.deviceHandler.Client.CreateTrafficQueues(ctx, queues); err != nil {
+		if len(queues.TrafficQueues) > 1 {
+			logger.Debug(ctx, "removing-queues-for-1tcont-multi-gem", log.Fields{"intfID": sq.intfID, "onuID": sq.onuID, "dir": sq.direction})
+			_, _ = f.deviceHandler.Client.RemoveTrafficQueues(ctx, queues)
+		}
+		return olterrors.NewErrAdapter("failed-to-create-traffic-queues-in-device", log.Fields{"traffic-queues": trafficQueues}, err)
+	}
+	return err
 }
 
 func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq schedQueue, TrafficSched []*tp_pb.TrafficScheduler) error {
@@ -579,13 +642,49 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 	return nil
 }
 
-// RemoveSchedulerQueues removes the traffic schedulers from the device based on the given scheduler configuration and traffic shaping info
-func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueue) error {
+// RemoveQueues removes the traffic queues from the device based on the given schedQueue info
+func (f *OpenOltFlowMgr) RemoveQueues(ctx context.Context, sq schedQueue) error {
+	var err error
+	logger.Infow(ctx, "removing-queue-in-olt",
+		log.Fields{
+			"direction": sq.direction,
+			"intf-id":   sq.intfID,
+			"onu-id":    sq.onuID,
+			"uni-id":    sq.uniID,
+			"uni-port":  sq.uniPort,
+			"device-id": f.deviceHandler.device.Id})
 
+	TrafficQueues, err := f.techprofile.GetTrafficQueues(ctx, sq.tpInst.(*tp_pb.TechProfileInstance), sq.direction)
+	if err != nil {
+		return olterrors.NewErrAdapter("unable-to-construct-traffic-queue-configuration",
+			log.Fields{
+				"intf-id":   sq.intfID,
+				"direction": sq.direction,
+				"device-id": f.deviceHandler.device.Id}, err)
+	}
+
+	if _, err = f.deviceHandler.Client.RemoveTrafficQueues(ctx,
+		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
+			UniId: sq.uniID, PortNo: sq.uniPort,
+			TrafficQueues: TrafficQueues,
+			TechProfileId: sq.tpID}); err != nil {
+		return olterrors.NewErrAdapter("unable-to-remove-traffic-queues-from-device",
+			log.Fields{
+				"intf-id":        sq.intfID,
+				"traffic-queues": TrafficQueues,
+				"device-id":      f.deviceHandler.device.Id}, err)
+	}
+	logger.Infow(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id, "trafficQueues": TrafficQueues})
+
+	return err
+}
+
+// RemoveScheduler removes the traffic scheduler from the device based on the given schedQueue info
+func (f *OpenOltFlowMgr) RemoveScheduler(ctx context.Context, sq schedQueue) error {
 	var Direction string
 	var SchedCfg *tp_pb.SchedulerConfig
 	var err error
-	logger.Infow(ctx, "removing-schedulers-and-queues-in-olt",
+	logger.Infow(ctx, "removing-scheduler-in-olt",
 		log.Fields{
 			"direction": sq.direction,
 			"intf-id":   sq.intfID,
@@ -606,88 +705,46 @@ func (f *OpenOltFlowMgr) RemoveSchedulerQueues(ctx context.Context, sq schedQueu
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
 	TrafficSched[0].TechProfileId = sq.tpID
 
-	TrafficQueues, err := f.techprofile.GetTrafficQueues(ctx, sq.tpInst.(*tp_pb.TechProfileInstance), sq.direction)
-	if err != nil {
-		return olterrors.NewErrAdapter("unable-to-construct-traffic-queue-configuration",
+	if _, err = f.deviceHandler.Client.RemoveTrafficSchedulers(ctx, &tp_pb.TrafficSchedulers{
+		IntfId: sq.intfID, OnuId: sq.onuID,
+		UniId: sq.uniID, PortNo: sq.uniPort,
+		TrafficScheds: TrafficSched}); err != nil {
+		return olterrors.NewErrAdapter("unable-to-remove-traffic-schedulers-from-device",
 			log.Fields{
-				"intf-id":   sq.intfID,
-				"direction": sq.direction,
-				"device-id": f.deviceHandler.device.Id}, err)
+				"intf-id":            sq.intfID,
+				"traffic-schedulers": TrafficSched,
+				"onu-id":             sq.onuID,
+				"uni-id":             sq.uniID,
+				"uni-port":           sq.uniPort}, err)
 	}
 
-	if _, err = f.deviceHandler.Client.RemoveTrafficQueues(ctx,
-		&tp_pb.TrafficQueues{IntfId: sq.intfID, OnuId: sq.onuID,
-			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficQueues: TrafficQueues,
-			TechProfileId: TrafficSched[0].TechProfileId}); err != nil {
-		return olterrors.NewErrAdapter("unable-to-remove-traffic-queues-from-device",
-			log.Fields{
-				"intf-id":        sq.intfID,
-				"traffic-queues": TrafficQueues,
-				"device-id":      f.deviceHandler.device.Id}, err)
-	}
-	logger.Infow(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id, "trafficQueues": TrafficQueues})
+	logger.Infow(ctx, "removed-traffic-schedulers-successfully",
+		log.Fields{"device-id": f.deviceHandler.device.Id,
+			"intf-id":  sq.intfID,
+			"onu-id":   sq.onuID,
+			"uni-id":   sq.uniID,
+			"uni-port": sq.uniPort})
 
-	if allocExists := f.isAllocUsedByAnotherUNI(ctx, sq); !allocExists {
-		if _, err = f.deviceHandler.Client.RemoveTrafficSchedulers(ctx, &tp_pb.TrafficSchedulers{
-			IntfId: sq.intfID, OnuId: sq.onuID,
-			UniId: sq.uniID, PortNo: sq.uniPort,
-			TrafficScheds: TrafficSched}); err != nil {
-			return olterrors.NewErrAdapter("unable-to-remove-traffic-schedulers-from-device",
+	if sq.direction == tp_pb.Direction_UPSTREAM {
+		allocID := sq.tpInst.(*tp_pb.TechProfileInstance).UsScheduler.AllocId
+		// Delete the TCONT on the ONU.
+		uni := getUniPortPath(f.deviceHandler.device.Id, sq.intfID, int32(sq.onuID), int32(sq.uniID))
+		tpPath := f.getTPpath(ctx, sq.intfID, uni, sq.tpID)
+		if err := f.sendDeleteTcontToChild(ctx, sq.intfID, sq.onuID, sq.uniID, allocID, tpPath); err != nil {
+			logger.Errorw(ctx, "error-processing-delete-tcont-towards-onu",
 				log.Fields{
-					"intf-id":            sq.intfID,
-					"traffic-schedulers": TrafficSched,
-					"onu-id":             sq.onuID,
-					"uni-id":             sq.uniID,
-					"uni-port":           sq.uniPort}, err)
-		}
-
-		logger.Infow(ctx, "removed-traffic-schedulers-successfully",
-			log.Fields{"device-id": f.deviceHandler.device.Id,
-				"intf-id":  sq.intfID,
-				"onu-id":   sq.onuID,
-				"uni-id":   sq.uniID,
-				"uni-port": sq.uniPort})
-
-		if sq.direction == tp_pb.Direction_UPSTREAM {
-			allocID := sq.tpInst.(*tp_pb.TechProfileInstance).UsScheduler.AllocId
-			// Delete the TCONT on the ONU.
-			uni := getUniPortPath(f.deviceHandler.device.Id, sq.intfID, int32(sq.onuID), int32(sq.uniID))
-			tpPath := f.getTPpath(ctx, sq.intfID, uni, sq.tpID)
-			if err := f.sendDeleteTcontToChild(ctx, sq.intfID, sq.onuID, sq.uniID, allocID, tpPath); err != nil {
-				logger.Errorw(ctx, "error-processing-delete-tcont-towards-onu",
-					log.Fields{
-						"intf":      sq.intfID,
-						"onu-id":    sq.onuID,
-						"uni-id":    sq.uniID,
-						"device-id": f.deviceHandler.device.Id,
-						"alloc-id":  allocID})
-			}
+					"intf":      sq.intfID,
+					"onu-id":    sq.onuID,
+					"uni-id":    sq.uniID,
+					"device-id": f.deviceHandler.device.Id,
+					"alloc-id":  allocID})
 		}
 	}
 
 	/* After we successfully remove the scheduler configuration on the OLT device,
 	 * delete the meter id on the KV store.
 	 */
-	err = f.resourceMgr.RemoveMeterInfoForOnu(ctx, Direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
-	if err != nil {
-		return olterrors.NewErrAdapter("unable-to-remove-meter",
-			log.Fields{
-				"onu":       sq.onuID,
-				"device-id": f.deviceHandler.device.Id,
-				"intf-id":   sq.intfID,
-				"onu-id":    sq.onuID,
-				"uni-id":    sq.uniID,
-				"uni-port":  sq.uniPort}, err)
-	}
-	logger.Infow(ctx, "removed-meter-from-KV-store-successfully",
-		log.Fields{
-			"dir":       Direction,
-			"device-id": f.deviceHandler.device.Id,
-			"intf-id":   sq.intfID,
-			"onu-id":    sq.onuID,
-			"uni-id":    sq.uniID,
-			"uni-port":  sq.uniPort})
+	err = f.removeMeterReference(ctx, Direction, sq)
 	return err
 }
 
@@ -1966,69 +2023,81 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	}
 
 	logger.Debugw(ctx, "all-gem-ports-are-free-to-be-deleted", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "tpID": tpID})
+
+	// Free TPInstance, TPID, GemPorts and Traffic Queues. AllocID and Schedulers will be cleared later only if they are not shared across all the UNIs
 	switch techprofileInst := techprofileInst.(type) {
 	case *tp_pb.TechProfileInstance:
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+
+		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
+			gemPortID := gemPort.GemportId
+			f.deleteGemPortFromLocalCache(ctx, intfID, uint32(onuID), gemPortID)
+			_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, intfID, uint32(onuID), gemPortID) // ignore error and proceed.
+
+			if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err == nil {
+				//everytime an entry is deleted from gemToFlowIDs cache, the same should be updated in kv as well
+				// by calling DeleteFlowIDsForGem
+				f.gemToFlowIDsKey.Lock()
+				delete(f.gemToFlowIDs, gemPortID)
+				f.gemToFlowIDsKey.Unlock()
+			} else {
+				logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
+					log.Fields{
+						"err":        err,
+						"intf":       intfID,
+						"onu-id":     onuID,
+						"uni-id":     uniID,
+						"device-id":  f.deviceHandler.device.Id,
+						"gemport-id": gemPortID})
+			}
+
+		}
+		// Remove queues at OLT in upstream and downstream direction
+		schedQueue := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst}
+		if err := f.RemoveQueues(ctx, schedQueue); err != nil {
+			logger.Warn(ctx, err)
+		}
+		schedQueue.direction = tp_pb.Direction_DOWNSTREAM
+		if err := f.RemoveQueues(ctx, schedQueue); err != nil {
+			logger.Warn(ctx, err)
+		}
+	}
+
+	switch techprofileInst := techprofileInst.(type) {
+	case *tp_pb.TechProfileInstance:
+		// Proceed to free allocid and cleanup schedulers (US/DS) if no other references are found for this TP across all the UNIs on the ONU
 		schedQueue := schedQueue{direction: tp_pb.Direction_UPSTREAM, intfID: intfID, onuID: uint32(onuID), uniID: uint32(uniID), tpID: tpID, uniPort: portNum, tpInst: techprofileInst}
 		allocExists := f.isAllocUsedByAnotherUNI(ctx, schedQueue)
 		if !allocExists {
-			if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
-				logger.Warn(ctx, err)
-			}
-			if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
-				logger.Warn(ctx, err)
-			}
-
+			// all alloc object references removed, remove upstream scheduler
 			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "upstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
-				if err := f.RemoveSchedulerQueues(ctx, schedQueue); err != nil {
+				if err := f.RemoveScheduler(ctx, schedQueue); err != nil {
 					logger.Warn(ctx, err)
 				}
 			}
-			f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId)
-
-			schedQueue.direction = tp_pb.Direction_DOWNSTREAM
-			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "downstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
-				if err := f.RemoveSchedulerQueues(ctx, schedQueue); err != nil {
-					logger.Warn(ctx, err)
-				}
+			// remove alloc id from resource pool by setting the 'freeFromResourcePool' to true
+			f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, true)
+		} else {
+			// just remove meter reference for the upstream direction for the current pon/onu/uni
+			// The upstream scheduler, alloc id and meter-reference for the last remaining pon/onu/uni will be removed when no other alloc references that TP
+			if err := f.removeMeterReference(ctx, "upstream", schedQueue); err != nil {
+				return err
 			}
+			// setting 'freeFromResourcePool' to false in resourceMgr.FreeAllocID will only remove alloc-id data for the given pon/onu/uni
+			// but still preserve it on the resource pool.
+			f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, false)
+		}
 
-			for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
-				gemPortID := gemPort.GemportId
-				f.deleteGemPortFromLocalCache(ctx, intfID, uint32(onuID), gemPortID)
-				_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, intfID, uint32(onuID), gemPortID) // ignore error and proceed.
-
-				if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err == nil {
-					//everytime an entry is deleted from gemToFlowIDs cache, the same should be updated in kv as well
-					// by calling DeleteFlowIDsForGem
-					f.gemToFlowIDsKey.Lock()
-					delete(f.gemToFlowIDs, gemPortID)
-					f.gemToFlowIDsKey.Unlock()
-				} else {
-					logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
-						log.Fields{
-							"err":        err,
-							"intf":       intfID,
-							"onu-id":     onuID,
-							"uni-id":     uniID,
-							"device-id":  f.deviceHandler.device.Id,
-							"gemport-id": gemPortID})
-				}
-
-				f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID)
-
-				// Delete the gem port on the ONU.
-				if sendDeleteGemRequest {
-					if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPortID, tpPath); err != nil {
-						logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
-							log.Fields{
-								"err":        err,
-								"intfID":     intfID,
-								"onu-id":     onuID,
-								"uni-id":     uniID,
-								"device-id":  f.deviceHandler.device.Id,
-								"gemport-id": gemPortID})
-					}
-				}
+		// Downstream scheduler removal is simple, just invoke RemoveScheduler without all the complex handling we do for the alloc object.
+		schedQueue.direction = tp_pb.Direction_DOWNSTREAM
+		if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "downstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
+			if err := f.RemoveScheduler(ctx, schedQueue); err != nil {
+				logger.Warn(ctx, err)
 			}
 		}
 	case *tp_pb.EponTechProfileInstance:
@@ -2038,7 +2107,6 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
 			logger.Warn(ctx, err)
 		}
-		f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.AllocId)
 		// Delete the TCONT on the ONU.
 		if err := f.sendDeleteTcontToChild(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.AllocId, tpPath); err != nil {
 			logger.Errorw(ctx, "error-processing-delete-tcont-towards-onu",
@@ -2050,11 +2118,34 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 					"alloc-id":  techprofileInst.AllocId,
 					"error":     err})
 		}
+		f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.AllocId, true)
 	default:
 		logger.Errorw(ctx, "error-unknown-tech",
 			log.Fields{
 				"techprofileInst": techprofileInst})
 	}
+
+	// Free TPInstance, TPID, GemPorts and Traffic Queues. AllocID and Schedulers will be cleared later only if they are not shared across all the UNIs
+	switch techprofileInst := techprofileInst.(type) {
+	case *tp_pb.TechProfileInstance:
+		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
+			// Delete the gem port on the ONU.
+			if sendDeleteGemRequest {
+				if err := f.sendDeleteGemPortToChild(ctx, intfID, uint32(onuID), uint32(uniID), gemPort.GemportId, tpPath); err != nil {
+					logger.Errorw(ctx, "error-processing-delete-gem-port-towards-onu",
+						log.Fields{
+							"err":        err,
+							"intfID":     intfID,
+							"onu-id":     onuID,
+							"uni-id":     uniID,
+							"device-id":  f.deviceHandler.device.Id,
+							"gemport-id": gemPort.GemportId})
+				}
+				f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPort.GemportId)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -3055,12 +3146,11 @@ func (f *OpenOltFlowMgr) isAllocUsedByAnotherUNI(ctx context.Context, sq schedQu
 	tpInst := sq.tpInst.(*tp_pb.TechProfileInstance)
 	if tpInst.InstanceControl.Onu == "single-instance" && sq.direction == tp_pb.Direction_UPSTREAM {
 		tpInstances := f.techprofile.FindAllTpInstances(ctx, f.deviceHandler.device.Id, sq.tpID, sq.intfID, sq.onuID).([]tp_pb.TechProfileInstance)
-		logger.Debugw(ctx, "got-single-instance-tp-instances", log.Fields{"tp-instances": tpInstances})
 		for i := 0; i < len(tpInstances); i++ {
 			tpI := tpInstances[i]
 			if tpI.SubscriberIdentifier != tpInst.SubscriberIdentifier &&
 				tpI.UsScheduler.AllocId == tpInst.UsScheduler.AllocId {
-				logger.Debugw(ctx, "alloc-is-in-use",
+				logger.Debugw(ctx, "alloc-is-in-use-on-another-uni",
 					log.Fields{
 						"device-id": f.deviceHandler.device.Id,
 						"intfID":    sq.intfID,
@@ -3500,7 +3590,7 @@ func (f *OpenOltFlowMgr) revertTechProfileInstance(ctx context.Context, sq sched
 		for _, gem := range techprofileInst.UpstreamGemPortAttributeList {
 			f.resourceMgr.FreeGemPortID(ctx, intfID, onuID, uniID, gem.GemportId)
 		}
-		f.resourceMgr.FreeAllocID(ctx, intfID, onuID, uniID, techprofileInst.UsScheduler.AllocId)
+		f.resourceMgr.FreeAllocID(ctx, intfID, onuID, uniID, techprofileInst.UsScheduler.AllocId, true)
 	}
 }
 
@@ -3545,4 +3635,30 @@ func (f *OpenOltFlowMgr) validateMeter(ctx context.Context, direction string, me
 		}
 	}
 	return nil
+}
+
+func (f *OpenOltFlowMgr) removeMeterReference(ctx context.Context, direction string, sq schedQueue) error {
+	/* After we successfully remove the scheduler configuration on the OLT device,
+	 * delete the meter id on the KV store.
+	 */
+	err := f.resourceMgr.RemoveMeterInfoForOnu(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
+	if err != nil {
+		return olterrors.NewErrAdapter("unable-to-remove-meter",
+			log.Fields{
+				"onu":       sq.onuID,
+				"device-id": f.deviceHandler.device.Id,
+				"intf-id":   sq.intfID,
+				"onu-id":    sq.onuID,
+				"uni-id":    sq.uniID,
+				"uni-port":  sq.uniPort}, err)
+	}
+	logger.Debugw(ctx, "removed-meter-from-KV-store-successfully",
+		log.Fields{
+			"dir":       direction,
+			"device-id": f.deviceHandler.device.Id,
+			"intf-id":   sq.intfID,
+			"onu-id":    sq.onuID,
+			"uni-id":    sq.uniID,
+			"uni-port":  sq.uniPort})
+	return err
 }
