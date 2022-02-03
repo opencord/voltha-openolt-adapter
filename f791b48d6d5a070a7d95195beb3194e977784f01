@@ -24,6 +24,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4036a42c_403a5e4b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-03T20:51:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff101600_bbe2f344",
+      "range": {
+        "startLine": 274,
+        "startChar": 62,
+        "endLine": 274,
+        "endChar": 74
+      },
+      "revId": "f791b48d6d5a070a7d95195beb3194e977784f01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fc4cb803_91228530",
@@ -37,6 +61,30 @@
       "writtenOn": "2022-02-03T19:31:40Z",
       "side": 1,
       "message": "nit: same comment here",
+      "range": {
+        "startLine": 310,
+        "startChar": 63,
+        "endLine": 310,
+        "endChar": 75
+      },
+      "revId": "f791b48d6d5a070a7d95195beb3194e977784f01",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a9488e2_8eaf103b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-03T20:51:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc4cb803_91228530",
       "range": {
         "startLine": 310,
         "startChar": 63,
