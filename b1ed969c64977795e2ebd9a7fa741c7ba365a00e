@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "09e37be3_520f270c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T06:08:07Z",
+      "side": 1,
+      "message": "This looks good. ",
+      "revId": "b1ed969c64977795e2ebd9a7fa741c7ba365a00e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "14784a4c_4ca094fe",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T06:08:07Z",
+      "side": 1,
+      "message": "I do not recall when Indication_IntfInd is generated and when Indication_IntfOperInd is generated. Do you know? In any case this will be evident during testing.",
+      "range": {
+        "startLine": 587,
+        "startChar": 11,
+        "endLine": 587,
+        "endChar": 29
+      },
+      "revId": "b1ed969c64977795e2ebd9a7fa741c7ba365a00e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
