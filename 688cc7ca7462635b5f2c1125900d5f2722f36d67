@@ -16,6 +16,63 @@
       "message": "hardware test\nfunctional tests",
       "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5eb50c14_74e79a98",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T02:44:13Z",
+      "side": 1,
+      "message": "This seems like a huge load on the kv store on startup for unwanted ONU IDs. Asking for ONU gem info for ONU IDs that haven\u0027t been assigned?\nA better way could be to use the List API on the KVClient with path prefix OnuGemInfoPathPathPrefix that returns all the valid Keys with that prefix and then you could only fetch OnuGemInfo for such keys. Hope that makes sense.",
+      "range": {
+        "startLine": 269,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 56
+      },
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "423e0c3a_1c64034b",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T02:44:13Z",
+      "side": 1,
+      "message": "nit: could be in the same line",
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "78520ff1_cc7475e1",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T02:44:13Z",
+      "side": 1,
+      "message": "This is unnecessary. The \"range\" keyword will not loop over a nil slice.",
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
