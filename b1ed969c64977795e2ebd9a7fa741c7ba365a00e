@@ -39,6 +39,30 @@
       },
       "revId": "b1ed969c64977795e2ebd9a7fa741c7ba365a00e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3a568f7_4f2b02be",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000894
+      },
+      "writtenOn": "2022-02-03T10:29:27Z",
+      "side": 1,
+      "message": "In BBSIM it is only generated for PONs, before the IntfOperInd (https://github.com/opencord/bbsim/blob/master/internal/bbsim/devices/olt.go#L655-L664).\nIn the OpenOLT Agent it looks like it was only used for PONs too, but is commented out at the moment (https://github.com/opencord/openolt/blob/master/agent/common/server.cc#L210-L217).\n\nOnly IntfOperInd is used for NNIs in both cases.",
+      "parentUuid": "14784a4c_4ca094fe",
+      "range": {
+        "startLine": 587,
+        "startChar": 11,
+        "endLine": 587,
+        "endChar": 29
+      },
+      "revId": "b1ed969c64977795e2ebd9a7fa741c7ba365a00e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
