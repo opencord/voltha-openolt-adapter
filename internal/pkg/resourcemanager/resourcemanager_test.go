@@ -864,6 +864,23 @@ func TestOpenOltResourceMgr_AddMcastQueueForIntf(t *testing.T) {
 	}
 }
 
+func TestOpenOltResourceMgr_DeleteMcastQueueForIntf(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields *fields
+	}{
+		{"DeleteMcastQueueForIntf-1", getResMgr()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			RsrcMgr := testResMgrObject(tt.fields)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			RsrcMgr.DeleteMcastQueueForIntf(ctx)
+		})
+	}
+}
+
 func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
 	groupDesc := ofp.OfpGroupDesc{
 		Type:    ofp.OfpGroupType_OFPGT_ALL,
