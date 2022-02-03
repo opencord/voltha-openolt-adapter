@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3a552d95_ed76d541",
+        "filename": "VERSION",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-02-03T07:21:10Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "7d07b64c_63a2c386",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "06dcd4bb_7392763a",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 7
@@ -54,6 +78,30 @@
       "writtenOn": "2022-02-01T14:36:48Z",
       "side": 1,
       "message": "minor nit, these are actually messages, so I\u0027d rename with omciMsgs",
+      "range": {
+        "startLine": 1152,
+        "startChar": 64,
+        "endLine": 1152,
+        "endChar": 71
+      },
+      "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cfc7c79f_caec635c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1152,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-02-03T07:21:10Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "06dcd4bb_7392763a",
       "range": {
         "startLine": 1152,
         "startChar": 64,
@@ -89,6 +137,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "09606750_2c295540",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1191,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-02-03T07:21:10Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "1cc47283_bfcdbd14",
+      "range": {
+        "startLine": 1191,
+        "startChar": 40,
+        "endLine": 1191,
+        "endChar": 41
+      },
+      "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9de5eb70_29471e60",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 7
@@ -100,6 +172,24 @@
       "writtenOn": "2022-02-01T14:36:48Z",
       "side": 1,
       "message": "please open a jira for this and add to this comment",
+      "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e32943b5_b44500f2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-02-03T07:21:10Z",
+      "side": 1,
+      "message": "addressed",
+      "parentUuid": "9de5eb70_29471e60",
       "revId": "c9b0e596c133a9aa7d983d90a7183933c2e38a14",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
