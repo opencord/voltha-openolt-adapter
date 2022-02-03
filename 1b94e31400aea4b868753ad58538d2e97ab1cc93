@@ -16,6 +16,23 @@
       "message": "hardware test\nfunctional tests",
       "revId": "1b94e31400aea4b868753ad58538d2e97ab1cc93",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a64d7730_3e2d8cc4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T06:10:32Z",
+      "side": 1,
+      "message": "You might want to check the hardware test failures. If you think not then we can re-trigger the hardware tests",
+      "revId": "1b94e31400aea4b868753ad58538d2e97ab1cc93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
