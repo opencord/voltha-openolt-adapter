@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "70443582_13f74974",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "73abf6c1_bde05cdc",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "590b03f5_43b40fe1",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -31,6 +49,24 @@
       "writtenOn": "2022-02-03T08:19:12Z",
       "side": 1,
       "message": "same",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9976128a_2d77e0ec",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "590b03f5_43b40fe1",
       "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c10ba2b8_d71cf06e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "f2f071ad_347aec6e",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1d272b6c_08335af8",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -65,6 +119,24 @@
       "writtenOn": "2022-02-03T08:19:12Z",
       "side": 1,
       "message": "same. maybe this is warn ?",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea8b26d6_cbf421b5",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "this should be info.",
+      "parentUuid": "1d272b6c_08335af8",
       "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -88,6 +160,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "383d001a_5a55709a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 721,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "this is useful to be in info.",
+      "parentUuid": "4153b301_7a296fa9",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "256842fb_0aee7da8",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -105,6 +195,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "532118e9_1f685e4e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2040,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "The called function logs the errors. I created jira VOL-4563 few days to look into handling of errors during resource cleanup. There is no clear strategy on how this is to be handled and seems quite complex. This needs to be investigated further, of course not in this patch.",
+      "parentUuid": "256842fb_0aee7da8",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5ee9edfc_51655b3e",
         "filename": "internal/pkg/core/openolt_flowmgr.go",
         "patchSetId": 1
@@ -116,6 +224,24 @@
       "writtenOn": "2022-02-03T08:19:12Z",
       "side": 1,
       "message": "same",
+      "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b857859c_ed111912",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 3655,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-03T19:14:32Z",
+      "side": 1,
+      "message": "Let me change this to debug",
+      "parentUuid": "5ee9edfc_51655b3e",
       "revId": "124f5981f2327e80acf52518faa528f02879d4c8",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
