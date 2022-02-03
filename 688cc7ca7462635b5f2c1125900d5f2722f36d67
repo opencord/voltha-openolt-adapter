@@ -41,6 +41,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7aa59277_4d6e4e19",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-03T12:55:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5eb50c14_74e79a98",
+      "range": {
+        "startLine": 269,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 56
+      },
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "423e0c3a_1c64034b",
@@ -58,6 +82,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ba719f6d_0ed8e165",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-03T12:55:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "423e0c3a_1c64034b",
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "78520ff1_cc7475e1",
@@ -71,6 +113,24 @@
       "writtenOn": "2022-02-03T02:44:13Z",
       "side": 1,
       "message": "This is unnecessary. The \"range\" keyword will not loop over a nil slice.",
+      "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b35589fa_4c8ea6df",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-03T12:55:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "78520ff1_cc7475e1",
       "revId": "688cc7ca7462635b5f2c1125900d5f2722f36d67",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
