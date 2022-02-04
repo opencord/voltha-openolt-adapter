@@ -16,6 +16,23 @@
       "message": "hardware test\nfunctional tests",
       "revId": "76976a5e8babe14956a989128a87c905387c0ed0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10ab47b0_b2186fce",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-04T19:44:52Z",
+      "side": 1,
+      "message": "We are again seeing the hardware test failure at the same location on re-testing. I believe it is something in this patch that is breaking the test and should be investigated.",
+      "revId": "76976a5e8babe14956a989128a87c905387c0ed0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
