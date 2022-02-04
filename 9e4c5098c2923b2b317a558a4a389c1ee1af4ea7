@@ -33,6 +33,23 @@
       "message": "hardware test\nfunctional tests",
       "revId": "9e4c5098c2923b2b317a558a4a389c1ee1af4ea7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d77713f7_e16b393c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-04T21:58:38Z",
+      "side": 1,
+      "message": "one more review and this is good to merge.",
+      "revId": "9e4c5098c2923b2b317a558a4a389c1ee1af4ea7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
