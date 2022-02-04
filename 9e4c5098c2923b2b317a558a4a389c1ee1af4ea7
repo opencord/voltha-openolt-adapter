@@ -16,6 +16,23 @@
       "message": "I rebased the patch as a result of my another patch merge.",
       "revId": "9e4c5098c2923b2b317a558a4a389c1ee1af4ea7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6694f2f_16da1bf9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-04T19:58:14Z",
+      "side": 1,
+      "message": "hardware test\nfunctional tests",
+      "revId": "9e4c5098c2923b2b317a558a4a389c1ee1af4ea7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
