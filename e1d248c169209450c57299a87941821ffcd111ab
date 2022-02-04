@@ -16,6 +16,23 @@
       "message": "voltha test openonu multiolt",
       "revId": "e1d248c169209450c57299a87941821ffcd111ab",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "51941b14_ea039daa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-02-04T14:54:32Z",
+      "side": 1,
+      "message": "Girish, the test timeout (probably due to ONOS ssh length) but there were failures:\n12:59:11  Reconcile For Disabled Onu Device :: Validates the Reconcile for d... | FAIL |\n12:59:11  Keyword \u0027Validate Tech Profiles and Flows in ETCD Data Per Onu\u0027 failed after retrying for 1 minute. The last error was: \u0027None\u0027 cannot be converted to a floating point number: TypeError: float() argument must be a string or a number, not \u0027NoneType\u0027\nand \n14:34:53  Reconcile In Omci-Flows-Pushed :: Validates the Reconcile in omci-... | FAIL |\n14:34:53  -1 !\u003d 0\n\ncan you please check ? ",
+      "revId": "e1d248c169209450c57299a87941821ffcd111ab",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
