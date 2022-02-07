@@ -1745,7 +1745,17 @@ func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device,
 				err = dh.flowMgr[intfID].RouteFlowToOnuChannel(ctx, flow, false, nil)
 			}
 			if err != nil {
-				errorsList = append(errorsList, err)
+				if werr, ok := err.(olterrors.WrappedError); ok && status.Code(werr.Unwrap()) == codes.NotFound {
+					//The flow we want to remove is not there, there is no need to throw an error
+					logger.Warnw(ctx, "flow-to-remove-not-found",
+						log.Fields{
+							"ponIf":        intfID,
+							"flowToRemove": flow,
+							"error":        err,
+						})
+				} else {
+					errorsList = append(errorsList, err)
+				}
 			}
 		}
 

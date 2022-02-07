@@ -1915,10 +1915,12 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			logger.Warnw(ctx, "child device and its associated resources are already cleared", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID})
 			return nil
 		}
-		return olterrors.NewErrNotFound("tech-profile-in-kv-store",
+		// If the tech profile is not found, since we want to delete it, there is no need to throw an error
+		_ = olterrors.NewErrNotFound("tech-profile-in-kv-store",
 			log.Fields{
 				"tp-id": tpID,
-				"path":  tpPath}, err)
+				"path":  tpPath}, err).Log()
+		return nil
 	}
 
 	var allGemPortsFree = true
