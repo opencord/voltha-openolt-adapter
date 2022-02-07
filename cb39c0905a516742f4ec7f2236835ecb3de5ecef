@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "734affeb_bc816707",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-07T22:45:47Z",
+      "side": 1,
+      "message": "I did not get the reasoning for this. Wouldn\u0027t one variable do?",
+      "range": {
+        "startLine": 454,
+        "startChar": 2,
+        "endLine": 454,
+        "endChar": 27
+      },
+      "revId": "cb39c0905a516742f4ec7f2236835ecb3de5ecef",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
