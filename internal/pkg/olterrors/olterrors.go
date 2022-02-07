@@ -56,6 +56,11 @@ type LoggableError interface {
 	LogAt(log.LogLevel) error
 }
 
+// WrappedError can be used to extract the wrapped errors of structs that include ErrAdapter
+type WrappedError interface {
+	Unwrap() error
+}
+
 // ErrAdapter represents a basic adapter error that combines an name, field set
 // and wrapped error
 type ErrAdapter struct {
