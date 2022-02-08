@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c19bc7e_771592b7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-08T22:16:08Z",
+      "side": 1,
+      "message": "Yes, I am still working on tests but I wanted to show you the new design",
+      "parentUuid": "43df6b7a_80b53985",
+      "revId": "4c11f27c8ece21368f531aacc0679da3049b9b8e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ff0f3b6_6a3d3e65",
@@ -31,6 +49,30 @@
       "writtenOn": "2022-02-08T19:17:34Z",
       "side": 1,
       "message": "What if we want to use more than 1 NNI ports - although not supported now but that is a possibility? I think we should rather use the device reported number of NNI ports. Unfortunately the https://github.com/opencord/voltha-protos/blob/master/protos/voltha_protos/openolt.proto#L375 (DeviceInfo) does not reported nni_ports (like pon_ports). Anyway I will work on those changes needed. For now, what you could do is just define a constant for number of nni ports as 4 (for ex) and use that here. Then use port index lesser than dh.totalPonPorts as PON port and greater to be NNI port.",
+      "range": {
+        "startLine": 948,
+        "startChar": 70,
+        "endLine": 948,
+        "endChar": 72
+      },
+      "revId": "4c11f27c8ece21368f531aacc0679da3049b9b8e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4610fca0_eedfd0b3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 948,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-08T22:16:08Z",
+      "side": 1,
+      "message": "I thought about multiple NNI but since we don\u0027t support for now, I think it is okay to go on like this. In order to forward the nni trap flow to correct resource manager, we need to know the the choosen NNI port. That means we should be able to extract the nni port numbers from flows. But it is going to be the same since we don\u0027t support it right now.\n\nOn the other hand, if nni trap flows are going to apply for all NNI ports why do we need resourceManagers for each NNI. Just one manager can manage for all nni ports.\n\nSo if I create multiple resourceManagers for number of a constant nni port number, as you suggested, how should I forward the nni trap flows to the correct nni manager ?",
+      "parentUuid": "8ff0f3b6_6a3d3e65",
       "range": {
         "startLine": 948,
         "startChar": 70,
@@ -58,6 +100,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c85f3e4_f060fed9",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2054,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-08T22:16:08Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1873984d_87135953",
+      "revId": "4c11f27c8ece21368f531aacc0679da3049b9b8e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e8fb0bf6_f7d2c060",
@@ -71,6 +131,30 @@
       "writtenOn": "2022-02-08T19:17:34Z",
       "side": 1,
       "message": "can you remove this?",
+      "range": {
+        "startLine": 2620,
+        "startChar": 20,
+        "endLine": 2620,
+        "endChar": 44
+      },
+      "revId": "4c11f27c8ece21368f531aacc0679da3049b9b8e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a712dc85_9d3d62c4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2620,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-08T22:16:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8fb0bf6_f7d2c060",
       "range": {
         "startLine": 2620,
         "startChar": 20,
