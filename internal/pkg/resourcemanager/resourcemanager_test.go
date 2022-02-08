@@ -351,7 +351,7 @@ func TestOpenOltResourceMgr_FreePONResourcesForONU(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			RsrcMgr.FreePONResourcesForONU(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID)
+			RsrcMgr.FreePONResourcesForONU(ctx, tt.args.onuID, tt.args.uniID)
 		})
 	}
 }
@@ -373,7 +373,7 @@ func TestOpenOltResourceMgr_FreeonuID(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			RsrcMgr.FreeonuID(ctx, tt.args.intfID, tt.args.onuID)
+			RsrcMgr.FreeonuID(ctx, tt.args.onuID)
 		})
 	}
 }
@@ -397,7 +397,7 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			got := RsrcMgr.GetCurrentAllocIDsForOnu(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID)
+			got := RsrcMgr.GetCurrentAllocIDsForOnu(ctx, tt.args.onuID, tt.args.uniID)
 			if len(got) != len(tt.want) {
 				t.Errorf("GetCurrentAllocIDsForOnu() = %v, want %v", got, tt.want)
 			} else {
@@ -430,7 +430,7 @@ func TestOpenOltResourceMgr_DeleteAllFlowIDsForGemForIntf(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			err := RsrcMgr.DeleteAllFlowIDsForGemForIntf(ctx, tt.args.PONIntfID)
+			err := RsrcMgr.DeleteAllFlowIDsForGemForIntf(ctx)
 			if err != nil {
 				t.Errorf("DeleteAllFlowIDsForGemForIntf() returned error")
 			}
@@ -456,7 +456,7 @@ func TestOpenOltResourceMgr_DeleteAllOnuGemInfoForIntf(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			err := RsrcMgr.DeleteAllOnuGemInfoForIntf(ctx, tt.args.PONIntfID)
+			err := RsrcMgr.DeleteAllOnuGemInfoForIntf(ctx)
 			if err != nil {
 				t.Errorf("DeleteAllOnuGemInfoForIntf() returned error")
 			}
@@ -496,24 +496,24 @@ func TestOpenOltResourceMgr_deleteGemPort(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID); err != nil {
+			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.onuID); err != nil {
 				t.Errorf("failed to remove onu")
 			}
-			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.onuID, tt.args.serialNum); err != nil {
 				t.Errorf("failed to add onu")
 			}
 			for _, gemPort := range tt.args.gemPortIDs {
-				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPort); err != nil {
+				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, gemPort); err != nil {
 					t.Errorf("failed to add gem to onu")
 				}
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
-				if err := RsrcMgr.RemoveGemFromOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPortDeleted); err != nil {
+				if err := RsrcMgr.RemoveGemFromOnuGemInfo(ctx, tt.args.onuID, gemPortDeleted); err != nil {
 					t.Errorf("failed to remove gem from onu")
 				}
 			}
 			lenofGemPorts := 0
-			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID)
+			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.onuID)
 			if err != nil || gP == nil {
 				t.Errorf("failed to get onuGemInfo")
 			}
@@ -555,7 +555,7 @@ func TestOpenOltResourceMgr_AddNewOnuGemInfo(t *testing.T) {
 			for j := 1; j <= int(tt.args.OnuCount); j++ {
 				go func(i uint32, j uint32) {
 					// TODO: actually verify success
-					_ = RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, i, i, fmt.Sprintf("onu-%d", i))
+					_ = RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, i, fmt.Sprintf("onu-%d", i))
 				}(tt.args.PONIntfID, uint32(j))
 			}
 		})
@@ -589,20 +589,20 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
-			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID); err != nil {
+			if err := RsrcMgr.DelOnuGemInfo(ctx, tt.args.onuID); err != nil {
 				t.Errorf("failed to remove onu")
 			}
-			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum); err != nil {
+			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.onuID, tt.args.serialNum); err != nil {
 				t.Errorf("failed to add onu")
 			}
 			for _, gemPort := range tt.args.gemPortIDs {
-				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID, gemPort); err != nil {
+				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, gemPort); err != nil {
 					t.Errorf("failed to add gem to onu")
 				}
 			}
 
 			lenofGemPorts := 0
-			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.intfID, tt.args.onuID)
+			gP, err := RsrcMgr.GetOnuGemInfo(ctx, tt.args.onuID)
 
 			var gemPorts []uint32
 			if err == nil && gP != nil {
@@ -639,7 +639,7 @@ func TestOpenOltResourceMgr_GetCurrentGEMPortIDsForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if got := RsrcMgr.GetCurrentGEMPortIDsForOnu(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := RsrcMgr.GetCurrentGEMPortIDsForOnu(ctx, tt.args.onuID, tt.args.uniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetCurrentGEMPortIDsForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -671,7 +671,7 @@ func TestOpenOltResourceMgr_GetMeterInfoForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			got, err := RsrcMgr.GetMeterInfoForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.tpID)
+			got, err := RsrcMgr.GetMeterInfoForOnu(ctx, tt.args.Direction, tt.args.OnuID, tt.args.UniID, tt.args.tpID)
 			if reflect.TypeOf(got) != reflect.TypeOf(tt.want) && err != nil {
 				t.Errorf("GetMeterInfoForOnu() got = %v, want %v", got, tt.want)
 			}
@@ -697,7 +697,7 @@ func TestOpenOltResourceMgr_GetONUID(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			got, err := RsrcMgr.GetONUID(ctx, tt.args.ponIntfID)
+			got, err := RsrcMgr.GetONUID(ctx)
 			if got != tt.want && err != nil {
 				t.Errorf("GetONUID() got = %v, want %v", got, tt.want)
 			}
@@ -726,7 +726,7 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if got := RsrcMgr.GetTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			if got := RsrcMgr.GetTechProfileIDForOnu(ctx, tt.args.OnuID, tt.args.UniID); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("GetTechProfileIDForOnu() = %v, want %v", got, tt.want)
 			}
 		})
@@ -756,7 +756,7 @@ func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.RemoveMeterInfoForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			if err := RsrcMgr.RemoveMeterInfoForOnu(ctx, tt.args.Direction, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveMeterIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -785,7 +785,7 @@ func TestOpenOltResourceMgr_RemoveTechProfileIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.RemoveTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			if err := RsrcMgr.RemoveTechProfileIDForOnu(ctx, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("RemoveTechProfileIDForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -814,7 +814,7 @@ func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.UpdateAllocIdsForOnu(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.allocID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			if err := RsrcMgr.UpdateAllocIdsForOnu(ctx, tt.args.onuID, tt.args.uniID, tt.args.allocID); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateAllocIdsForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -843,7 +843,7 @@ func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.UpdateGEMPortIDsForOnu(ctx, tt.args.ponPort, tt.args.onuID, tt.args.uniID, tt.args.GEMPortList); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
+			if err := RsrcMgr.UpdateGEMPortIDsForOnu(ctx, tt.args.onuID, tt.args.uniID, tt.args.GEMPortList); err != nil && reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) {
 				t.Errorf("UpdateGEMPortIDsForOnu() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -873,7 +873,7 @@ func TestOpenOltResourceMgr_UpdateMeterIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.StoreMeterInfoForOnu(ctx, tt.args.Direction, tt.args.IntfID, tt.args.OnuID, tt.args.UniID,
+			if err := RsrcMgr.StoreMeterInfoForOnu(ctx, tt.args.Direction, tt.args.OnuID, tt.args.UniID,
 				tt.args.tpID, tt.args.MeterInfo); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateMeterIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
@@ -902,7 +902,7 @@ func TestOpenOltResourceMgr_UpdateTechProfileIDForOnu(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if err := RsrcMgr.UpdateTechProfileIDForOnu(ctx, tt.args.IntfID, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
+			if err := RsrcMgr.UpdateTechProfileIDForOnu(ctx, tt.args.OnuID, tt.args.UniID, tt.args.TpID); reflect.TypeOf(err) != reflect.TypeOf(tt.wantErr) && err != nil {
 				t.Errorf("UpdateTechProfileIDForOnu() got = %v, want %v", err, tt.wantErr)
 			}
 		})
@@ -982,7 +982,7 @@ func TestOpenOltResourceMgr_AddMcastQueueForIntf(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			err := RsrcMgr.AddMcastQueueForIntf(ctx, tt.args.intf, tt.args.gem, tt.args.servicePriority)
+			err := RsrcMgr.AddMcastQueueForIntf(ctx, tt.args.gem, tt.args.servicePriority)
 			if err != nil {
 				t.Errorf("%s got err= %s wants nil", tt.name, err)
 				return
