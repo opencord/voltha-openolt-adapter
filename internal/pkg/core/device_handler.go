@@ -1336,7 +1336,7 @@ func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *volt
 
 func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id, "OmccEncryption": dh.openOLT.config.OmccEncryption})
-	if err := dh.resourceMgr[intfID].AddNewOnuGemInfoToCacheAndKvStore(ctx, intfID, uint32(onuID), serialNumber); err != nil {
+	if err := dh.resourceMgr[intfID].AddNewOnuGemInfoToCacheAndKvStore(ctx, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
 	}
 	var pir uint32 = 1000000
@@ -1425,7 +1425,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		logger.Debugw(ctx, "creating-new-onu", log.Fields{"sn": sn})
 		// we need to create a new ChildDevice
 		ponintfid := onuDiscInd.GetIntfId()
-		onuID, err = dh.resourceMgr[ponintfid].GetONUID(ctx, ponintfid)
+		onuID, err = dh.resourceMgr[ponintfid].GetONUID(ctx)
 
 		logger.Infow(ctx, "creating-new-onu-got-onu-id", log.Fields{"sn": sn, "onuId": onuID})
 
@@ -1447,7 +1447,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			OnuId:        onuID,
 		}); err != nil {
 			dh.discOnus.Delete(sn)
-			dh.resourceMgr[ponintfid].FreeonuID(ctx, ponintfid, []uint32{onuID}) // NOTE I'm not sure this method is actually cleaning up the right thing
+			dh.resourceMgr[ponintfid].FreeonuID(ctx, []uint32{onuID}) // NOTE I'm not sure this method is actually cleaning up the right thing
 			return olterrors.NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
 				"pon-intf-id":   ponintfid,
 				"serial-number": sn}, err)
@@ -1971,23 +1971,23 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
-		tpIDList := dh.resourceMgr[onu.IntfID].GetTechProfileIDForOnu(ctx, onu.IntfID, onu.OnuID, uniID)
+		tpIDList := dh.resourceMgr[onu.IntfID].GetTechProfileIDForOnu(ctx, onu.OnuID, uniID)
 		for _, tpID := range tpIDList {
-			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "upstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
+			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "upstream", onu.OnuID, uniID, tpID); err != nil {
 				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
 			}
 			logger.Debugw(ctx, "removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
-			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "downstream", onu.IntfID, onu.OnuID, uniID, tpID); err != nil {
+			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "downstream", onu.OnuID, uniID, tpID); err != nil {
 				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
 			}
 			logger.Debugw(ctx, "removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
 		}
-		dh.resourceMgr[onu.IntfID].FreePONResourcesForONU(ctx, onu.IntfID, onu.OnuID, uniID)
-		if err = dh.resourceMgr[onu.IntfID].RemoveTechProfileIDsForOnu(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
+		dh.resourceMgr[onu.IntfID].FreePONResourcesForONU(ctx, onu.OnuID, uniID)
+		if err = dh.resourceMgr[onu.IntfID].RemoveTechProfileIDsForOnu(ctx, onu.OnuID, uniID); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
 		}
 		logger.Debugw(ctx, "removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
-		if err = dh.resourceMgr[onu.IntfID].DeletePacketInGemPortForOnu(ctx, onu.IntfID, onu.OnuID, port); err != nil {
+		if err = dh.resourceMgr[onu.IntfID].DeletePacketInGemPortForOnu(ctx, onu.OnuID, port); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
 		}
 	}
@@ -2057,14 +2057,15 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
 				}
 			}
-			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx, ponPort)
-			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx, ponPort)
+			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx)
+			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx)
 			dh.resourceMgr[ponPort].DeleteMcastQueueForIntf(ctx)
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
 				logger.Debug(ctx, err)
 			}
 		}
-		_ = dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx, dh.totalPonPorts)
+		// Clean up NNI manager's data
+		_ = dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx)
 	}
 
 	/*Delete ONU map for the device*/
@@ -2482,7 +2483,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 
 	onu := &oop.Onu{IntfId: intfID, OnuId: onuID, SerialNumber: sn}
 	//clear PON resources associated with ONU
-	onuGem, err := dh.resourceMgr[intfID].GetOnuGemInfo(ctx, intfID, onuID)
+	onuGem, err := dh.resourceMgr[intfID].GetOnuGemInfo(ctx, onuID)
 	if err != nil || onuGem == nil || onuGem.OnuID != onuID {
 		logger.Warnw(ctx, "failed-to-get-onu-info-for-pon-port", log.Fields{
 			"device-id": dh.device.Id,
@@ -2499,9 +2500,9 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		}
 		// Clear flowids for gem cache.
 		for _, gem := range onuGem.GemPorts {
-			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, intfID, gem)
+			_ = dh.resourceMgr[intfID].DeleteFlowIDsForGem(ctx, gem)
 		}
-		if err := dh.resourceMgr[intfID].DelOnuGemInfo(ctx, intfID, onuID); err != nil {
+		if err := dh.resourceMgr[intfID].DelOnuGemInfo(ctx, onuID); err != nil {
 			logger.Warnw(ctx, "persistence-update-onu-gem-info-failed", log.Fields{
 				"intf-id":    intfID,
 				"onu-device": onu,
@@ -2512,7 +2513,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		logger.Debugw(ctx, "removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGem})
 
 	}
-	dh.resourceMgr[intfID].FreeonuID(ctx, intfID, []uint32{onuID})
+	dh.resourceMgr[intfID].FreeonuID(ctx, []uint32{onuID})
 	dh.onus.Delete(onuKey)
 	dh.discOnus.Delete(onuSn)
 

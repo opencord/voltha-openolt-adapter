@@ -257,15 +257,15 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 func (f *OpenOltFlowMgr) registerFlow(ctx context.Context, flowFromCore *ofp.OfpFlowStats, deviceFlow *openoltpb2.Flow) error {
 	// In case of nni trap flow
 	if deviceFlow.AccessIntfId == -1 {
-		return f.resourceMgr.RegisterFlowIDForGem(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.AccessIntfId), flowFromCore)
+		return f.resourceMgr.RegisterFlowIDForGem(ctx, uint32(deviceFlow.AccessIntfId), flowFromCore)
 	}
 	if !deviceFlow.ReplicateFlow && deviceFlow.GemportId > 0 {
 		// Flow is not replicated in this case, we need to register the flow for a single gem-port
-		return f.resourceMgr.RegisterFlowIDForGem(ctx, uint32(deviceFlow.AccessIntfId), uint32(deviceFlow.GemportId), flowFromCore)
+		return f.resourceMgr.RegisterFlowIDForGem(ctx, uint32(deviceFlow.GemportId), flowFromCore)
 	} else if deviceFlow.ReplicateFlow && len(deviceFlow.PbitToGemport) > 0 {
 		// Flow is replicated in this case. We need to register the flow for all the gem-ports it is replicated to.
 		for _, gemPort := range deviceFlow.PbitToGemport {
-			if err := f.resourceMgr.RegisterFlowIDForGem(ctx, uint32(deviceFlow.AccessIntfId), gemPort, flowFromCore); err != nil {
+			if err := f.resourceMgr.RegisterFlowIDForGem(ctx, gemPort, flowFromCore); err != nil {
 				return err
 			}
 		}
@@ -390,7 +390,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	 * then the scheduler and queues configuration is applied on the OLT device
 	 * in the given direction.
 	 */
-	meterInfo, err := f.resourceMgr.GetMeterInfoForOnu(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
+	meterInfo, err := f.resourceMgr.GetMeterInfoForOnu(ctx, direction, sq.onuID, sq.uniID, sq.tpID)
 	if err != nil {
 		return olterrors.NewErrNotFound("meter",
 			log.Fields{"intf-id": sq.intfID,
@@ -403,7 +403,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	if meterInfo != nil && meterInfo.MeterID == sq.meterID {
 		logger.Infow(ctx, "scheduler-already-created-for-direction",
 			log.Fields{"device-id": f.deviceHandler.device.Id, "direction": direction, "meter-id": sq.meterID})
-		if err = f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID, true); err != nil {
+		if err = f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, sq.onuID, sq.uniID, sq.tpID, true); err != nil {
 			return err
 		}
 
@@ -478,7 +478,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	/* After we successfully applied the scheduler configuration on the OLT device,
 	 * store the meter id on the KV store, for further reference.
 	 */
-	if err := f.resourceMgr.StoreMeterInfoForOnu(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID, meterInfo); err != nil {
+	if err := f.resourceMgr.StoreMeterInfoForOnu(ctx, direction, sq.onuID, sq.uniID, sq.tpID, meterInfo); err != nil {
 		return olterrors.NewErrAdapter("failed-updating-meter-id",
 			log.Fields{"onu-id": sq.onuID,
 				"meter-id":  sq.meterID,
@@ -585,7 +585,7 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 				}
 				f.grpMgr.UpdateInterfaceToMcastQueueMap(sq.intfID, val)
 				//also store the queue info in kv store
-				if err := f.resourceMgr.AddMcastQueueForIntf(ctx, sq.intfID, multicastQueuePerPonPort.GemportId, multicastQueuePerPonPort.Priority); err != nil {
+				if err := f.resourceMgr.AddMcastQueueForIntf(ctx, multicastQueuePerPonPort.GemportId, multicastQueuePerPonPort.Priority); err != nil {
 					logger.Errorw(ctx, "failed-to-add-mcast-queue", log.Fields{"err": err})
 					return err
 				}
@@ -684,7 +684,7 @@ func (f *OpenOltFlowMgr) RemoveScheduler(ctx context.Context, sq schedQueue) err
 		allocID := sq.tpInst.(*tp_pb.TechProfileInstance).UsScheduler.AllocId
 		// Delete the TCONT on the ONU.
 		uni := getUniPortPath(f.deviceHandler.device.Id, sq.intfID, int32(sq.onuID), int32(sq.uniID))
-		tpPath := f.getTPpath(ctx, sq.intfID, uni, sq.tpID)
+		tpPath := f.getTPpath(ctx, uni, sq.tpID)
 		if err := f.sendDeleteTcontToChild(ctx, sq.intfID, sq.onuID, sq.uniID, allocID, tpPath); err != nil {
 			logger.Errorw(ctx, "error-processing-delete-tcont-towards-onu",
 				log.Fields{
@@ -799,9 +799,9 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 	var gemPortIDs []uint32
 	tpInstanceExists := false
 	var err error
-	allocIDs = f.resourceMgr.GetCurrentAllocIDsForOnu(ctx, intfID, onuID, uniID)
-	allgemPortIDs = f.resourceMgr.GetCurrentGEMPortIDsForOnu(ctx, intfID, onuID, uniID)
-	tpPath := f.getTPpath(ctx, intfID, uni, TpID)
+	allocIDs = f.resourceMgr.GetCurrentAllocIDsForOnu(ctx, onuID, uniID)
+	allgemPortIDs = f.resourceMgr.GetCurrentGEMPortIDsForOnu(ctx, onuID, uniID)
+	tpPath := f.getTPpath(ctx, uni, TpID)
 
 	logger.Debugw(ctx, "creating-new-tcont-and-gem", log.Fields{
 		"intf-id":   intfID,
@@ -827,7 +827,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 					"device-id": f.deviceHandler.device.Id})
 			return 0, nil, nil
 		}
-		if err := f.resourceMgr.UpdateTechProfileIDForOnu(ctx, intfID, onuID, uniID, TpID); err != nil {
+		if err := f.resourceMgr.UpdateTechProfileIDForOnu(ctx, onuID, uniID, TpID); err != nil {
 			logger.Warnw(ctx, "failed-to-update-tech-profile-id", log.Fields{"err": err})
 		}
 	} else {
@@ -939,16 +939,16 @@ func (f *OpenOltFlowMgr) storeTcontsGEMPortsIntoKVStore(ctx context.Context, int
 			"gemport-ids": gemPortIDs,
 			"device-id":   f.deviceHandler.device.Id})
 	/* Update the allocated alloc_id and gem_port_id for the ONU/UNI to KV store  */
-	if err := f.resourceMgr.UpdateAllocIdsForOnu(ctx, intfID, onuID, uniID, allocID); err != nil {
+	if err := f.resourceMgr.UpdateAllocIdsForOnu(ctx, onuID, uniID, allocID); err != nil {
 		logger.Errorw(ctx, "error-while-uploading-allocid-to-kv-store", log.Fields{"device-id": f.deviceHandler.device.Id, "onuID": onuID, "allocID": allocID})
 	}
-	if err := f.resourceMgr.UpdateGEMPortIDsForOnu(ctx, intfID, onuID, uniID, gemPortIDs); err != nil {
+	if err := f.resourceMgr.UpdateGEMPortIDsForOnu(ctx, onuID, uniID, gemPortIDs); err != nil {
 		logger.Errorw(ctx, "error-while-uploading-gemports-to-kv-store", log.Fields{"device-id": f.deviceHandler.device.Id, "onuID": onuID, "gemPort": gemPortIDs})
 	}
 
 	logger.Infow(ctx, "stored-tconts-and-gem-into-kv-store-successfully", log.Fields{"device-id": f.deviceHandler.device.Id})
 	for _, gemPort := range gemPortIDs {
-		if err := f.resourceMgr.AddGemToOnuGemInfo(ctx, intfID, onuID, gemPort); err != nil {
+		if err := f.resourceMgr.AddGemToOnuGemInfo(ctx, onuID, gemPort); err != nil {
 			logger.Errorw(ctx, "error-while-uploading-onugeminfos-to-kv-store", log.Fields{"device-id": f.deviceHandler.device.Id, "onuID": onuID, "gemPort": gemPort})
 		}
 	}
@@ -1055,7 +1055,7 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 			"gemport-id":  gemPortID,
 			"logicalflow": *logicalFlow})
 
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Infow(ctx, "flow-already-exists",
 			log.Fields{
@@ -1154,7 +1154,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 	classifier[UDPDst] = uint32(67)
 	classifier[PacketTagType] = SingleTag
 
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Infow(ctx, "flow-exists--not-re-adding",
 			log.Fields{
@@ -1252,7 +1252,7 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *f
 	action[TrapToHost] = true
 	classifier[PacketTagType] = SingleTag
 
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkIntfID, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{"device-id": f.deviceHandler.device.Id})
 		return nil
@@ -1343,7 +1343,7 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *f
 	uplinkClassifier[VlanPcp] = classifier[VlanPcp]
 	// Fill action
 	uplinkAction[TrapToHost] = true
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, intfID, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Infow(ctx, "flow-exists-not-re-adding", log.Fields{
 			"device-id": f.deviceHandler.device.Id,
@@ -1516,7 +1516,7 @@ func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo ma
 }
 
 // getTPpath return the ETCD path for a given UNI port
-func (f *OpenOltFlowMgr) getTPpath(ctx context.Context, intfID uint32, uniPath string, TpID uint32) string {
+func (f *OpenOltFlowMgr) getTPpath(ctx context.Context, uniPath string, TpID uint32) string {
 	return f.techprofile.GetTechProfileInstanceKey(ctx, TpID, uniPath)
 }
 
@@ -1531,7 +1531,7 @@ func (f *OpenOltFlowMgr) getTPpath(ctx context.Context, intfID uint32, uniPath s
 // uncleaned on the OLT. So we force clean up here and ignore any error that OLT returns during the
 // force cleanup (possible if the OLT has already cleared those resources).
 func (f *OpenOltFlowMgr) DeleteTechProfileInstances(ctx context.Context, intfID uint32, onuID uint32, uniID uint32) error {
-	tpIDList := f.resourceMgr.GetTechProfileIDForOnu(ctx, intfID, onuID, uniID)
+	tpIDList := f.resourceMgr.GetTechProfileIDForOnu(ctx, onuID, uniID)
 	uniPortName := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
 
 	for _, tpID := range tpIDList {
@@ -1539,7 +1539,7 @@ func (f *OpenOltFlowMgr) DeleteTechProfileInstances(ctx context.Context, intfID 
 		// Force cleanup scheduler/queues -- start
 		uniPortNum := plt.MkUniPortNum(ctx, intfID, onuID, uniID)
 		uni := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
-		tpPath := f.getTPpath(ctx, intfID, uni, tpID)
+		tpPath := f.getTPpath(ctx, uni, tpID)
 		tpInst, err := f.techprofile.GetTPInstance(ctx, tpPath)
 		if err != nil || tpInst == nil { // This should not happen, something wrong in KV backend transaction
 			logger.Warnw(ctx, "tech-profile-not-in-kv-store",
@@ -1687,8 +1687,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"nni-port-number": portNo}, err).Log()
 	}
-
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, f.ponPortIdx, int32(onuID), flow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), flow.Id)
 	if present {
 		logger.Infow(ctx, "flow-exists--not-re-adding", log.Fields{"device-id": f.deviceHandler.device.Id})
 		return nil
@@ -1899,7 +1898,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	logger.Debugw(ctx, "clearing-resources", log.Fields{"intfID": intfID, "onuID": onuID, "uniID": uniID, "tpID": tpID})
 
 	uni := getUniPortPath(f.deviceHandler.device.Id, intfID, onuID, uniID)
-	tpPath := f.getTPpath(ctx, intfID, uni, tpID)
+	tpPath := f.getTPpath(ctx, uni, tpID)
 	logger.Debugw(ctx, "getting-techprofile-instance-for-subscriber",
 		log.Fields{
 			"tpPath":    tpPath,
@@ -1930,14 +1929,14 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			gemPortID := gemPort.GemportId
 			used := f.resourceMgr.IsGemPortUsedByAnotherFlow(gemPortID, flowID)
 			if used {
-				flowIDs, err := f.resourceMgr.GetFlowIDsForGem(ctx, intfID, gemPortID)
+				flowIDs, err := f.resourceMgr.GetFlowIDsForGem(ctx, gemPortID)
 				if err != nil {
 					return err
 				}
 				for i, flowIDinMap := range flowIDs {
 					if flowIDinMap == flowID {
 						flowIDs = append(flowIDs[:i], flowIDs[i+1:]...)
-						if err := f.resourceMgr.UpdateFlowIDsForGem(ctx, intfID, gemPortID, flowIDs); err != nil {
+						if err := f.resourceMgr.UpdateFlowIDsForGem(ctx, gemPortID, flowIDs); err != nil {
 							return err
 						}
 						break
@@ -1962,7 +1961,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	// Free TPInstance, TPID, GemPorts and Traffic Queues. AllocID and Schedulers will be cleared later only if they are not shared across all the UNIs
 	switch techprofileInst := techprofileInst.(type) {
 	case *tp_pb.TechProfileInstance:
-		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
 			logger.Warn(ctx, err)
 		}
 		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
@@ -1971,9 +1970,9 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 
 		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
 			gemPortID := gemPort.GemportId
-			_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, intfID, uint32(onuID), gemPortID) // ignore error and proceed.
+			_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, uint32(onuID), gemPortID) // ignore error and proceed.
 
-			if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, intfID, gemPortID); err != nil {
+			if err := f.resourceMgr.DeleteFlowIDsForGem(ctx, gemPortID); err != nil {
 				logger.Errorw(ctx, "error-removing-flow-ids-of-gem-port",
 					log.Fields{
 						"err":        err,
@@ -2003,13 +2002,13 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 		allocExists := f.isAllocUsedByAnotherUNI(ctx, schedQueue)
 		if !allocExists {
 			// all alloc object references removed, remove upstream scheduler
-			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "upstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
+			if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "upstream", uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
 				if err := f.RemoveScheduler(ctx, schedQueue); err != nil {
 					logger.Warn(ctx, err)
 				}
 			}
 			// remove alloc id from resource pool by setting the 'freeFromResourcePool' to true
-			f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, true)
+			f.resourceMgr.FreeAllocID(ctx, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, true)
 		} else {
 			// just remove meter reference for the upstream direction for the current pon/onu/uni
 			// The upstream scheduler, alloc id and meter-reference for the last remaining pon/onu/uni will be removed when no other alloc references that TP
@@ -2018,18 +2017,18 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			}
 			// setting 'freeFromResourcePool' to false in resourceMgr.FreeAllocID will only remove alloc-id data for the given pon/onu/uni
 			// but still preserve it on the resource pool.
-			f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, false)
+			f.resourceMgr.FreeAllocID(ctx, uint32(onuID), uint32(uniID), techprofileInst.UsScheduler.AllocId, false)
 		}
 
 		// Downstream scheduler removal is simple, just invoke RemoveScheduler without all the complex handling we do for the alloc object.
 		schedQueue.direction = tp_pb.Direction_DOWNSTREAM
-		if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "downstream", intfID, uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
+		if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, "downstream", uint32(onuID), uint32(uniID), tpID); KvStoreMeter != nil {
 			if err := f.RemoveScheduler(ctx, schedQueue); err != nil {
 				logger.Warn(ctx, err)
 			}
 		}
 	case *tp_pb.EponTechProfileInstance:
-		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, uint32(onuID), uint32(uniID), tpID); err != nil {
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
 			logger.Warn(ctx, err)
 		}
 		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
@@ -2046,7 +2045,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 					"alloc-id":  techprofileInst.AllocId,
 					"error":     err})
 		}
-		f.resourceMgr.FreeAllocID(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.AllocId, true)
+		f.resourceMgr.FreeAllocID(ctx, uint32(onuID), uint32(uniID), techprofileInst.AllocId, true)
 	default:
 		logger.Errorw(ctx, "error-unknown-tech",
 			log.Fields{
@@ -2069,7 +2068,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 							"device-id":  f.deviceHandler.device.Id,
 							"gemport-id": gemPort.GemportId})
 				}
-				f.resourceMgr.FreeGemPortID(ctx, intfID, uint32(onuID), uint32(uniID), gemPort.GemportId)
+				f.resourceMgr.FreeGemPortID(ctx, uint32(onuID), uint32(uniID), gemPort.GemportId)
 			}
 		}
 	}
@@ -2154,7 +2153,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 	}
 
 	// Decrement reference count for the meter associated with the given <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
-	if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, flowDirection, Intf, uint32(onuID), uint32(uniID), tpID, false); err != nil {
+	if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, flowDirection, uint32(onuID), uint32(uniID), tpID, false); err != nil {
 		return err
 	}
 	return nil
@@ -2362,7 +2361,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 		return f.addIgmpTrapFlowOnNNI(ctx, flow, classifierInfo, portNo)
 	}
 
-	f.resourceMgr.AddUniPortToOnuInfo(ctx, intfID, onuID, portNo)
+	f.resourceMgr.AddUniPortToOnuInfo(ctx, onuID, portNo)
 
 	tpID, err := getTpIDFromFlow(ctx, flow)
 	if err != nil {
@@ -2413,7 +2412,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 
 	onuID := NoneOnuID
 
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, networkInterfaceID, int32(onuID), flow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), flow.Id)
 	if present {
 		logger.Infow(ctx, "multicast-flow-exists-not-re-adding", log.Fields{"classifier-info": classifierInfo})
 		return nil
@@ -2484,7 +2483,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	}
 	logger.Debugw(ctx, "got-child-device-from-olt-device-handler", log.Fields{"onu-id": onuDev.deviceID})
 
-	tpPath := f.getTPpath(ctx, intfID, uni, TpID)
+	tpPath := f.getTPpath(ctx, uni, TpID)
 	tpDownloadMsg := &ia.TechProfileDownloadMessage{
 		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
@@ -2610,7 +2609,7 @@ func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.
 			err)
 	}
 
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, f.ponPortIdx, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Info(ctx, "flow-exists-not-re-adding")
 		return nil
@@ -2711,8 +2710,7 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 			"action":     action},
 			err)
 	}
-
-	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, f.ponPortIdx, int32(onuID), logicalFlow.Id)
+	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
 		logger.Info(ctx, "igmp-flow-exists-not-re-adding")
 		return nil
@@ -3324,7 +3322,7 @@ func (f *OpenOltFlowMgr) revertTechProfileInstance(ctx context.Context, sq sched
 	}
 
 	// check reverse direction - if reverse meter exists, tech profile instance is in use - do not delete
-	if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, reverseDirection, intfID, onuID, uniID, tpID); KvStoreMeter != nil {
+	if KvStoreMeter, _ := f.resourceMgr.GetMeterInfoForOnu(ctx, reverseDirection, onuID, uniID, tpID); KvStoreMeter != nil {
 		return
 	}
 
@@ -3332,15 +3330,15 @@ func (f *OpenOltFlowMgr) revertTechProfileInstance(ctx context.Context, sq sched
 	logger.Warnw(ctx, "reverting-tech-profile-instance-and-tech-profile-id-for-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "uni-id": uniID, "tp-id": tpID})
 	uniPortName := getUniPortPath(f.deviceHandler.device.Id, intfID, int32(onuID), int32(uniID))
 	_ = f.DeleteTechProfileInstance(ctx, intfID, onuID, uniID, uniPortName, tpID)
-	_ = f.resourceMgr.RemoveTechProfileIDForOnu(ctx, intfID, onuID, uniID, tpID)
+	_ = f.resourceMgr.RemoveTechProfileIDForOnu(ctx, onuID, uniID, tpID)
 
 	// free gem/alloc
 	switch techprofileInst := sq.tpInst.(type) {
 	case *tp_pb.TechProfileInstance:
 		for _, gem := range techprofileInst.UpstreamGemPortAttributeList {
-			f.resourceMgr.FreeGemPortID(ctx, intfID, onuID, uniID, gem.GemportId)
+			f.resourceMgr.FreeGemPortID(ctx, onuID, uniID, gem.GemportId)
 		}
-		f.resourceMgr.FreeAllocID(ctx, intfID, onuID, uniID, techprofileInst.UsScheduler.AllocId, true)
+		f.resourceMgr.FreeAllocID(ctx, onuID, uniID, techprofileInst.UsScheduler.AllocId, true)
 	}
 }
 
@@ -3356,7 +3354,7 @@ func (f *OpenOltFlowMgr) revertScheduler(ctx context.Context, sq schedQueue, Tra
 
 // validateMeter validates if there is a meter mismatch for the given direction. It also clears the stale meter if the reference count is zero
 func (f *OpenOltFlowMgr) validateMeter(ctx context.Context, direction string, meterID uint32, intfID uint32, onuID uint32, uniID uint32, tpID uint32) error {
-	meterInfo, err := f.resourceMgr.GetMeterInfoForOnu(ctx, direction, intfID, onuID, uniID, tpID)
+	meterInfo, err := f.resourceMgr.GetMeterInfoForOnu(ctx, direction, onuID, uniID, tpID)
 	if err != nil {
 		return olterrors.NewErrNotFound("meter",
 			log.Fields{"intf-id": intfID,
@@ -3368,7 +3366,7 @@ func (f *OpenOltFlowMgr) validateMeter(ctx context.Context, direction string, me
 	if meterInfo != nil {
 		// If RefCnt become 0 clear the meter information from the DB.
 		if meterInfo.MeterID != meterID && meterInfo.RefCnt == 0 {
-			if err := f.resourceMgr.RemoveMeterInfoForOnu(ctx, direction, intfID, onuID, uniID, tpID); err != nil {
+			if err := f.resourceMgr.RemoveMeterInfoForOnu(ctx, direction, onuID, uniID, tpID); err != nil {
 				return err
 			}
 		} else if meterInfo.MeterID != meterID {
@@ -3391,7 +3389,7 @@ func (f *OpenOltFlowMgr) removeMeterReference(ctx context.Context, direction str
 	/* After we successfully remove the scheduler configuration on the OLT device,
 	 * delete the meter id on the KV store.
 	 */
-	err := f.resourceMgr.RemoveMeterInfoForOnu(ctx, direction, sq.intfID, sq.onuID, sq.uniID, sq.tpID)
+	err := f.resourceMgr.RemoveMeterInfoForOnu(ctx, direction, sq.onuID, sq.uniID, sq.tpID)
 	if err != nil {
 		return olterrors.NewErrAdapter("unable-to-remove-meter",
 			log.Fields{
