@@ -85,6 +85,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "52e26f0a_dcbdb7f0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 948,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-08T22:32:34Z",
+      "side": 1,
+      "message": "Ok, for single NNI port what you have done should work and we do not support multiple NNI now. But since you were fixing some issues and doing some enhancements i thought we could have a cleaner solution. Anyway, not the most important thing for now, you can assume single NNI. Do not worry about multiple NNI, but make sure to put some comments that when multiple NNI support is introduced the developer needs to make changes at places where you assumed single NNI.",
+      "parentUuid": "4610fca0_eedfd0b3",
+      "range": {
+        "startLine": 948,
+        "startChar": 70,
+        "endLine": 948,
+        "endChar": 72
+      },
+      "revId": "4c11f27c8ece21368f531aacc0679da3049b9b8e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1873984d_87135953",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 6
