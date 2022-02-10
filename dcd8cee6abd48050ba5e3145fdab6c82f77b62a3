@@ -16,6 +16,24 @@
       "message": "Yasin, can you please rebase this patch.",
       "revId": "dcd8cee6abd48050ba5e3145fdab6c82f77b62a3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81310620_53c72fcc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000816
+      },
+      "writtenOn": "2022-02-10T22:00:44Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "f9bc00c5_08551782",
+      "revId": "dcd8cee6abd48050ba5e3145fdab6c82f77b62a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
