@@ -33,6 +33,29 @@
       "message": "Elia, can you check this build failure\n\n[2022-02-10T20:08:15.632Z] internal/pkg/core/device_handler.go:1752:24: undefined: ponIf\n",
       "revId": "740882df28f5c9cdffdef36d5534c0ed3a9a369e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa197dd1_cbf4ea43",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1752,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-10T21:13:26Z",
+      "side": 1,
+      "message": "i think this should be intfID",
+      "range": {
+        "startLine": 1752,
+        "startChar": 23,
+        "endLine": 1752,
+        "endChar": 28
+      },
+      "revId": "740882df28f5c9cdffdef36d5534c0ed3a9a369e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
