@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7b6af1dc_e16bbae3",
+        "filename": "internal/pkg/core/openoltInterAdapter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-02-10T18:56:57Z",
+      "side": 1,
+      "message": "updated",
+      "parentUuid": "6bf67f97_7813b1ab",
+      "revId": "fc96e0fa7fc1744c9ebd6f224045fd5b47d0fd47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f5ae348_0c952e60",
@@ -55,6 +73,30 @@
       "side": 1,
       "message": "Will open a Jira - existing code.",
       "parentUuid": "5f5ae348_0c952e60",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 12
+      },
+      "revId": "fc96e0fa7fc1744c9ebd6f224045fd5b47d0fd47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20a99376_e5389937",
+        "filename": "internal/pkg/core/openolt_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-02-10T18:56:57Z",
+      "side": 1,
+      "message": "It\u0027s white box testing, so can\u0027t change the package name.",
+      "parentUuid": "ff88d7fc_da5daf79",
       "range": {
         "startLine": 23,
         "startChar": 8,

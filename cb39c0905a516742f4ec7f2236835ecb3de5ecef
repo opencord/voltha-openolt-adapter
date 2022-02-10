@@ -22,6 +22,30 @@
       },
       "revId": "cb39c0905a516742f4ec7f2236835ecb3de5ecef",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "91f04ee7_9125e513",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-02-10T18:56:57Z",
+      "side": 1,
+      "message": "This is used to keep the previous valid client in the case where stream.Recv() returns an error and reset the client to nil.  Used for logging purposes.",
+      "parentUuid": "734affeb_bc816707",
+      "range": {
+        "startLine": 454,
+        "startChar": 2,
+        "endLine": 454,
+        "endChar": 27
+      },
+      "revId": "cb39c0905a516742f4ec7f2236835ecb3de5ecef",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
