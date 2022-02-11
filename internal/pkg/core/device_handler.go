@@ -23,6 +23,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"io"
 	"net"
 	"strconv"
@@ -2066,6 +2068,19 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 		}
 		// Clean up NNI manager's data
 		_ = dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx)
+	}
+
+	// Take one final sweep at cleaning up KV store for the OLT device
+	// Clean everything at <base-path-prefix>/openolt/<device-id>
+	kvClient, err := kvstore.NewEtcdClient(ctx, dh.openOLT.KVStoreAddress, rsrcMgr.KvstoreTimeout, log.FatalLevel)
+	if err == nil {
+		kvBackend := &db.Backend{
+			Client:     kvClient,
+			StoreType:  dh.openOLT.KVStoreType,
+			Address:    dh.openOLT.KVStoreAddress,
+			Timeout:    rsrcMgr.KvstoreTimeout,
+			PathPrefix: fmt.Sprintf(rsrcMgr.BasePathKvStore, dh.cm.Backend.PathPrefix, dh.device.Id)}
+		_ = kvBackend.DeleteWithPrefix(ctx, "")
 	}
 
 	/*Delete ONU map for the device*/
