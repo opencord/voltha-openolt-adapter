@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3556d3d1_1b9eada5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-02-14T19:22:02Z",
+      "side": 1,
+      "message": "Overriding as these has dependencies with rw-core and openonu adapter changes which are yet to merge.",
+      "revId": "efff76eab6179baf5979e46e5ad85b06dd0b943c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
