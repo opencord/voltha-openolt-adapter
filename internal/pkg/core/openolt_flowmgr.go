@@ -91,6 +91,8 @@ const (
 	EthType = "eth_type"
 	//EthDst constant
 	EthDst = "eth_dst"
+	//EthSrc constant
+	EthSrc = "eth_src"
 	//TPID constant
 	TPID = "tpid"
 	//IPProto constant
@@ -1152,6 +1154,11 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 	action[TrapToHost] = true
 	classifier[UDPSrc] = uint32(68)
 	classifier[UDPDst] = uint32(67)
+	// FIXME: The below tagType hardcoding does not work for DPU DHCP upstream packet as it is double tagged.
+	// However it is not possible to detect the tag type from the classifier fields.
+	// One way to solve this is encode the inner vlan in the most significant two bytes of the write metadata field.
+	// Given that inner vlan is transparent (ANY), the field should be encoded as 0x1000 or 4096.
+	// This can be used to detect there is an inner vlan and hence it is a double tagged packet.
 	classifier[PacketTagType] = SingleTag
 
 	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
@@ -1464,6 +1471,7 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 	classifier.DstIp, _ = classifierInfo[Ipv4Dst].(uint32)
 	classifier.SrcIp, _ = classifierInfo[Ipv4Src].(uint32)
 	classifier.DstMac, _ = classifierInfo[EthDst].([]uint8)
+	classifier.SrcMac, _ = classifierInfo[EthSrc].([]uint8)
 	if pktTagType, ok := classifierInfo[PacketTagType].(string); ok {
 		classifier.PktTagType = pktTagType
 
@@ -2965,7 +2973,10 @@ func formulateClassifierInfoFromFlow(ctx context.Context, classifierInfo map[str
 			logger.Debug(ctx, "field-type-eth-type", log.Fields{"classifierInfo[ETH_TYPE]": classifierInfo[EthType].(uint32)})
 		} else if field.Type == flows.ETH_DST {
 			classifierInfo[EthDst] = field.GetEthDst()
-			logger.Debug(ctx, "field-type-eth-type", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
+			logger.Debug(ctx, "field-type-eth-dst", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
+		} else if field.Type == flows.ETH_SRC {
+			classifierInfo[EthSrc] = field.GetEthSrc()
+			logger.Debug(ctx, "field-type-eth-src", log.Fields{"classifierInfo[ETH_SRC]": classifierInfo[EthSrc].([]uint8)})
 		} else if field.Type == flows.IP_PROTO {
 			classifierInfo[IPProto] = field.GetIpProto()
 			logger.Debug(ctx, "field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
