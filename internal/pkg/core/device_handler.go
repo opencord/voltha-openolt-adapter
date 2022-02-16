@@ -23,14 +23,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/opencord/voltha-lib-go/v7/pkg/db"
-	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
-	"io"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 
@@ -466,16 +466,25 @@ Loop:
 			break Loop
 		default:
 			indication, err := indications.Recv()
-			if err == io.EOF {
-				logger.Infow(ctx, "eof-for-indications",
-					log.Fields{"err": err,
-						"device-id": dh.device.Id})
+
+			select {
+			case <-indications.Context().Done():
+				if err != nil {
+					logger.Warnw(ctx, "error-during-enable-indications",
+						log.Fields{"err": err,
+							"device-id": dh.device.Id})
+				}
+
 				// Use an exponential back off to prevent getting into a tight loop
 				duration := indicationBackoff.NextBackOff()
+				logger.Infow(ctx, "backing-off-enable-indication", log.Fields{
+					"device-id": dh.device.Id,
+					"duration":  duration,
+				})
 				if duration == backoff.Stop {
 					// If we reach a maximum then warn and reset the backoff
 					// timer and keep attempting.
-					logger.Warnw(ctx, "maximum-indication-backoff-reached--resetting-backoff-timer",
+					logger.Warnw(ctx, "maximum-indication-backoff-reached-resetting-backoff-timer",
 						log.Fields{"max-indication-backoff": indicationBackoff.MaxElapsedTime,
 							"device-id": dh.device.Id})
 					indicationBackoff.Reset()
@@ -498,35 +507,36 @@ Loop:
 					return err
 				}
 				continue
-			}
-			if err != nil {
-				logger.Errorw(ctx, "read-indication-error",
-					log.Fields{"err": err,
-						"device-id": dh.device.Id})
-				// Close the stream, and re-initialize it
-				if err = indications.CloseSend(); err != nil {
-					// Ok to ignore here, because we landed here due to a problem on the stream
-					// In all probability, the closeSend call may fail
-					logger.Debugw(ctx, "error-closing-send stream--error-ignored",
+			default:
+				if err != nil {
+					logger.Errorw(ctx, "read-indication-error",
 						log.Fields{"err": err,
 							"device-id": dh.device.Id})
+					// Close the stream, and re-initialize it
+					if err = indications.CloseSend(); err != nil {
+						// Ok to ignore here, because we landed here due to a problem on the stream
+						// In all probability, the closeSend call may fail
+						logger.Debugw(ctx, "error-closing-send stream--error-ignored",
+							log.Fields{"err": err,
+								"device-id": dh.device.Id})
+					}
+					if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
+						return err
+					}
+					// once we re-initialized the indication stream, continue to read indications
+					continue
 				}
-				if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
-					return err
+				// Reset backoff if we have a successful receive
+				indicationBackoff.Reset()
+				// When OLT is admin down, ignore all indications.
+				if dh.device.AdminState == voltha.AdminState_DISABLED && !isIndicationAllowedDuringOltAdminDown(indication) {
+					logger.Debugw(ctx, "olt-is-admin-down, ignore indication",
+						log.Fields{"indication": indication,
+							"device-id": dh.device.Id})
+					continue
 				}
-				// once we re-initialized the indication stream, continue to read indications
-				continue
+				dh.handleIndication(ctx, indication)
 			}
-			// Reset backoff if we have a successful receive
-			indicationBackoff.Reset()
-			// When OLT is admin down, ignore all indications.
-			if dh.device.AdminState == voltha.AdminState_DISABLED && !isIndicationAllowedDuringOltAdminDown(indication) {
-				logger.Debugw(ctx, "olt-is-admin-down, ignore indication",
-					log.Fields{"indication": indication,
-						"device-id": dh.device.Id})
-				continue
-			}
-			dh.handleIndication(ctx, indication)
 		}
 	}
 	// Close the send stream
