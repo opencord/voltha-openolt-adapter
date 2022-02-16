@@ -91,6 +91,8 @@ const (
 	EthType = "eth_type"
 	//EthDst constant
 	EthDst = "eth_dst"
+	//EthSrc constant
+	EthSrc = "eth_src"
 	//TPID constant
 	TPID = "tpid"
 	//IPProto constant
@@ -978,7 +980,18 @@ func (f *OpenOltFlowMgr) populateTechProfileForCurrentPonPort(ctx context.Contex
 }
 
 func (f *OpenOltFlowMgr) addUpstreamDataPathFlow(ctx context.Context, flowContext *flowContext) error {
-	flowContext.classifier[PacketTagType] = SingleTag // FIXME: This hardcoding needs to be removed.
+	flowContext.classifier[PacketTagType] = SingleTag
+	// extract the cvid/inner-vid from the write metadata
+	writeMetadata := flows.GetMetadataFromWriteMetadataAction(ctx, flowContext.logicalFlow)
+	if writeMetadata != 0 {
+		// Writemetadata field is 8 bytes
+		// cvid is on the outer most two bytes of the write metadata
+		cvid := (writeMetadata & 0xffff000000000000) >> 6
+		// if the cvid does not match the classifier vlan, then this indicates it is a double tagged packet
+		if cvid != flowContext.classifier[VlanVid] && cvid != 0 {
+			flowContext.classifier[PacketTagType] = DoubleTag
+		}
+	}
 	logger.Debugw(ctx, "adding-upstream-data-flow",
 		log.Fields{
 			"uplinkClassifier": flowContext.classifier,
@@ -990,7 +1003,6 @@ func (f *OpenOltFlowMgr) addUpstreamDataPathFlow(ctx context.Context, flowContex
 func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowContext *flowContext) error {
 	downlinkClassifier := flowContext.classifier
 	downlinkAction := flowContext.action
-
 	// TODO: For now mark the PacketTagType as SingleTag when OLT is transparent to VLAN
 	// Per some deployment models, it is also possible that ONU operates on double tagged packets,
 	// so this hardcoding of SingeTag packet-tag-type may be problem for such deployment models.
@@ -999,7 +1011,6 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowCont
 		downlinkClassifier[PacketTagType] = SingleTag
 	} else {
 		downlinkClassifier[PacketTagType] = DoubleTag
-		downlinkAction[PopVlan] = true
 	}
 	logger.Debugw(ctx, "adding-downstream-data-flow",
 		log.Fields{
@@ -1464,6 +1475,7 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 	classifier.DstIp, _ = classifierInfo[Ipv4Dst].(uint32)
 	classifier.SrcIp, _ = classifierInfo[Ipv4Src].(uint32)
 	classifier.DstMac, _ = classifierInfo[EthDst].([]uint8)
+	classifier.SrcMac, _ = classifierInfo[EthSrc].([]uint8)
 	if pktTagType, ok := classifierInfo[PacketTagType].(string); ok {
 		classifier.PktTagType = pktTagType
 
@@ -1483,28 +1495,38 @@ func makeOpenOltActionField(actionInfo map[string]interface{}, classifierInfo ma
 	var action openoltpb2.Action
 	action.Cmd = &actionCmd
 	if _, ok := actionInfo[PopVlan]; ok {
+		// Pop outer vid
 		action.Cmd.RemoveOuterTag = true
 		if _, ok := actionInfo[VlanPcp]; ok {
+			// Remark inner pbit
 			action.Cmd.RemarkInnerPbits = true
 			action.IPbits = actionInfo[VlanPcp].(uint32)
 			if _, ok := actionInfo[VlanVid]; ok {
+				// Remark inner vid
 				action.Cmd.TranslateInnerTag = true
 				action.IVid = actionInfo[VlanVid].(uint32)
 			}
 		}
 	} else if _, ok := actionInfo[PushVlan]; ok {
+		// push outer vid
 		action.OVid = actionInfo[VlanVid].(uint32)
 		action.Cmd.AddOuterTag = true
 		if _, ok := actionInfo[VlanPcp]; ok {
+			// translate outer pbit
 			action.OPbits = actionInfo[VlanPcp].(uint32)
 			action.Cmd.RemarkOuterPbits = true
 			if _, ok := classifierInfo[VlanVid]; ok {
+				// translate inner vid
 				action.IVid = classifierInfo[VlanVid].(uint32)
 				action.Cmd.TranslateInnerTag = true
 			}
 		}
 	} else if _, ok := actionInfo[TrapToHost]; ok {
 		action.Cmd.TrapToHost = actionInfo[TrapToHost].(bool)
+	} else if _, ok := actionInfo[VlanVid]; ok {
+		// Translate outer vid
+		action.Cmd.TranslateOuterTag = true
+		action.OVid = actionInfo[VlanVid].(uint32)
 	}
 	// When OLT is transparent to vlans no-action is valid.
 	/*
@@ -2965,7 +2987,10 @@ func formulateClassifierInfoFromFlow(ctx context.Context, classifierInfo map[str
 			logger.Debug(ctx, "field-type-eth-type", log.Fields{"classifierInfo[ETH_TYPE]": classifierInfo[EthType].(uint32)})
 		} else if field.Type == flows.ETH_DST {
 			classifierInfo[EthDst] = field.GetEthDst()
-			logger.Debug(ctx, "field-type-eth-type", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
+			logger.Debug(ctx, "field-type-eth-dst", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
+		} else if field.Type == flows.ETH_SRC {
+			classifierInfo[EthSrc] = field.GetEthSrc()
+			logger.Debug(ctx, "field-type-eth-src", log.Fields{"classifierInfo[ETH_SRC]": classifierInfo[EthSrc].([]uint8)})
 		} else if field.Type == flows.IP_PROTO {
 			classifierInfo[IPProto] = field.GetIpProto()
 			logger.Debug(ctx, "field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
