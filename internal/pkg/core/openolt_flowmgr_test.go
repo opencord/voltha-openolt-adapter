@@ -1203,6 +1203,16 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	kwTable0Meter1["meter_id"] = 1
 	kwTable0Meter1["write_metadata"] = 0x4000000000 // Tech-Profile-ID 64
 
+	kwTable0Meter1WithCvid := make(map[string]uint64)
+	kwTable0Meter1WithCvid["table_id"] = 0
+	kwTable0Meter1WithCvid["meter_id"] = 1
+	kwTable0Meter1WithCvid["write_metadata"] = 0x3c004000000000 // Tech-Profile-ID 64, cvid 60 in write metadata
+
+	kwTable1Meter1WithCvid := make(map[string]uint64)
+	kwTable1Meter1WithCvid["table_id"] = 1
+	kwTable1Meter1WithCvid["meter_id"] = 1
+	kwTable1Meter1WithCvid["write_metadata"] = 0x3c004000000000 // Tech-Profile-ID 64, cvid 60 in write metadata
+
 	flowMetadata1 := ofp.FlowMetadata{Meters: []*ofp.OfpMeterConfig{
 		{
 			Flags:   5,
@@ -1388,6 +1398,37 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 		},
 		KV: kwTable1Meter1,
 	}
+
+	// Downstream FTTB Subscriber flow - ONU1 UNI0 PON0, write metadata with cvid
+	// match outer vid 100, with inner cvid 60 -> modify outer vid to 200 and output on pon port
+	fa9 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(16777216),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT | 100)),
+			fu.TunnelId(256),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT | 200))),
+			fu.Output(536870912),
+		},
+		KV: kwTable0Meter1WithCvid,
+	}
+
+	// Upstream FTTB Subscriber flow - ONU1 UNI0 PON0, write metadata with cvid
+	// match outer vid 200, with inner cvid 60 -> modify outer vid to 100 and output on nni port
+	fa10 := &fu.FlowArgs{
+		MatchFields: []*ofp.OfpOxmOfbField{
+			fu.InPort(536870912),
+			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT | 200)),
+			fu.TunnelId(256),
+		},
+		Actions: []*ofp.OfpAction{
+			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT | 100))),
+			fu.Output(2147483645),
+		},
+		KV: kwTable1Meter1WithCvid,
+	}
+
 	flow0, _ := fu.MkFlowStat(fa0)
 	flow1, _ := fu.MkFlowStat(fa1)
 	flow2, _ := fu.MkFlowStat(fa2)
@@ -1398,6 +1439,9 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 	flow6, _ := fu.MkFlowStat(fa6)
 	flow7, _ := fu.MkFlowStat(fa7)
 	flow8, _ := fu.MkFlowStat(fa8)
+
+	flow9, _ := fu.MkFlowStat(fa9)
+	flow10, _ := fu.MkFlowStat(fa10)
 
 	type args struct {
 		ctx          context.Context
@@ -1540,6 +1584,28 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 				intfID:       NumPonPorts,
 				flow:         flow0,
 				addFlow:      false,
+				flowMetadata: &flowMetadata1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "RouteFlowToOnuChannel-fttb-subscriber-downstream-12",
+			args: args{
+				ctx:          ctx,
+				intfID:       0,
+				flow:         flow9,
+				addFlow:      true,
+				flowMetadata: &flowMetadata1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "RouteFlowToOnuChannel-fttb-subscriber-upstream-13",
+			args: args{
+				ctx:          ctx,
+				intfID:       0,
+				flow:         flow10,
+				addFlow:      true,
 				flowMetadata: &flowMetadata1,
 			},
 			wantErr: false,
