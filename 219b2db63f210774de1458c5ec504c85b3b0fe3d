@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25a1583d_8943aa6a",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1161,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-02-18T05:05:27Z",
+      "side": 1,
+      "message": "DHCP traps as of now are coming single tagged to the OLT",
+      "revId": "219b2db63f210774de1458c5ec504c85b3b0fe3d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
