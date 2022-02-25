@@ -16,6 +16,29 @@
       "message": "this seems correct to me. ",
       "revId": "271eb6ecbbcda2ee457c357eee1a11d9b5871c51",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e3d8479_2aeab656",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 1000894
+      },
+      "writtenOn": "2022-02-25T09:12:28Z",
+      "side": 1,
+      "message": "Since the shift is expressed in bits, shouldn\u0027t this be 48?",
+      "range": {
+        "startLine": 989,
+        "startChar": 50,
+        "endLine": 989,
+        "endChar": 51
+      },
+      "revId": "271eb6ecbbcda2ee457c357eee1a11d9b5871c51",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
