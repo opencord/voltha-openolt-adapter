@@ -33,6 +33,23 @@
       "message": "recheck",
       "revId": "ffa52e55fb7d626a6b7619624da1a7d9b1278eca",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9bd9631b_aa6d385b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-03-07T16:25:08Z",
+      "side": 1,
+      "message": "failure on hw tests not related to patch, passed",
+      "revId": "ffa52e55fb7d626a6b7619624da1a7d9b1278eca",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
