@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "adbfc015_119c42bf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-03-12T00:59:20Z",
+      "side": 1,
+      "message": "https://gerrit.opencord.org/c/voltha-lib-go/+/31718 should merge first.\n",
+      "revId": "c4ad0618de704d410ae3bca1c818e6fc41a50cba",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
