@@ -16,6 +16,24 @@
       "message": "looks good but please rebase and make sure all the tests pass. ",
       "revId": "32c6ca5a7897c2e1b5c7257dabaa9d67c7a8a9d1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e4051696_bb2c0bde",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-03-16T11:08:54Z",
+      "side": 1,
+      "message": "voltha-lib-go patch needs to be merged first and then this patch needs to be updated to use the latest voltha-lib-go",
+      "parentUuid": "cf2184e0_bf41f35b",
+      "revId": "32c6ca5a7897c2e1b5c7257dabaa9d67c7a8a9d1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
