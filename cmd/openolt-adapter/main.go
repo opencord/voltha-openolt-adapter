@@ -119,6 +119,18 @@ func (a *adapter) start(ctx context.Context) {
 		logger.Fatal(ctx, "unable-to-connect-to-kafka")
 	}
 
+	// check if voltha.events topic exists
+	topics, err := a.kafkaClient.ListTopics(ctx)
+	if err != nil {
+		logger.Fatal(ctx, "fail-to-get-topics", log.Fields{"topic": a.config.EventTopic, "error": err})
+	}
+
+	if !topicExits(ctx, topics, a.config.EventTopic) {
+		logger.Fatal(ctx, "event-topic-does-not-exists", log.Fields{"topic": a.config.EventTopic, "error": err})
+	}
+
+	logger.Debugw(ctx, "event topic created in kafka", log.Fields{"topics": a.config.EventTopic})
+
 	// Create the event proxy to post events to KAFKA
 	a.eventProxy = events.NewEventProxy(events.MsgClient(a.kafkaClient), events.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 	go func() {
@@ -539,4 +551,14 @@ func main() {
 
 	elapsed := time.Since(start)
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
+}
+
+func topicExits(ctx context.Context, topics []string, v string) bool {
+	logger.Debugw(ctx, "topics present in kafka", log.Fields{"topics": topics})
+	for _, topic := range topics {
+		if topic == v {
+			return true
+		}
+	}
+	return false
 }
