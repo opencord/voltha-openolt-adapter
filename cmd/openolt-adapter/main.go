@@ -540,3 +540,13 @@ func main() {
 	elapsed := time.Since(start)
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
 }
+
+func topicExits(ctx context.Context, topics []string, v string) bool {
+	logger.Debugw(ctx, "topics present in kafka", log.Fields{"topics": topics})
+	for _, topic := range topics {
+		if topic == v {
+			return true
+		}
+	}
+	return false
+}

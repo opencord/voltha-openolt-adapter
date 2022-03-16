@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
 
@@ -72,4 +73,10 @@ func (me *MockEventProxy) Start() error {
 
 // Stop stops the proxy
 func (me *MockEventProxy) Stop() {
+}
+
+//SendDeviceEventWithKey
+func (me *MockEventProxy) SendDeviceEventWithKey(ctx context.Context, deviceEvent *voltha.DeviceEvent, category eventif.EventCategory,
+	subCategory eventif.EventSubCategory, raisedTs int64, key string) error {
+	return nil
 }
