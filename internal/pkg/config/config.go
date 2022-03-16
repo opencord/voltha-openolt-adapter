@@ -36,6 +36,8 @@ const (
 	defaultBanner               = false
 	defaultDisplayVersionOnly   = false
 	defaultEventtopic           = "voltha.events"
+	defaultEventTopicPartitions = 3
+	defaultEventTopicReplicas   = 2
 	defaultOnunumber            = 1
 	defaultProbeAddress         = ":8080"
 	defaultLiveProbeInterval    = 60 * time.Second
@@ -72,6 +74,8 @@ type AdapterFlags struct {
 	KVStoreAddress              string
 	RPCTimeout                  time.Duration
 	EventTopic                  string
+	EventTopicPartitions        int
+	EventTopicReplicas          int
 	LogLevel                    string
 	OnuNumber                   int
 	Banner                      bool
@@ -106,6 +110,8 @@ func NewAdapterFlags() *AdapterFlags {
 		KVStoreTimeout:              defaultKvstoretimeout,
 		KVStoreAddress:              defaultKvstoreaddress,
 		EventTopic:                  defaultEventtopic,
+		EventTopicPartitions:        defaultEventTopicPartitions,
+		EventTopicReplicas:          defaultEventTopicReplicas,
 		LogLevel:                    defaultLoglevel,
 		OnuNumber:                   defaultOnunumber,
 		Banner:                      defaultBanner,
@@ -143,6 +149,16 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"event_topic",
 		defaultEventtopic,
 		"Event topic")
+
+	flag.IntVar(&so.EventTopicPartitions,
+		"EventTopicPartitions",
+		3,
+		"RW Core Event topic partitions")
+
+	flag.IntVar(&so.EventTopicReplicas,
+		"EventTopicReplicas",
+		2,
+		"RW Core Event topic replicas")
 
 	flag.StringVar(&(so.KVStoreType),
 		"kv_store_type",
