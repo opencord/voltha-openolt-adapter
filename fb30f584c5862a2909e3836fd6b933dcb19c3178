@@ -16,6 +16,24 @@
       "message": "Why RW Core, this is openolt adapter code. Lets not call it RW Core, this topic is being written to by multiple components so I guess it should be only Event topic partitions or \"Voltha Events topic partitions\"",
       "revId": "fb30f584c5862a2909e3836fd6b933dcb19c3178",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8a7ed5e8_a041d550",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1000056
+      },
+      "writtenOn": "2022-03-17T13:31:43Z",
+      "side": 1,
+      "message": "Since this kafka topic is being used by multiple components, would it make sense to have this configuration inside the voltha-lib-go, using environment variables (e.g. KAFKA_EVENT_TOPIC_NAME, KAFKA_EVENT_NUM_PARTITIONS, etc.,)?  This way the helm charts will be using the same env variables for all components and we don\u0027t end up having the same topic being configured differently from multiple components.",
+      "parentUuid": "b95a6f2b_c7bc47e3",
+      "revId": "fb30f584c5862a2909e3836fd6b933dcb19c3178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
