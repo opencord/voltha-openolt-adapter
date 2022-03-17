@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b95a6f2b_c7bc47e3",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2022-03-17T09:47:21Z",
+      "side": 1,
+      "message": "Why RW Core, this is openolt adapter code. Lets not call it RW Core, this topic is being written to by multiple components so I guess it should be only Event topic partitions or \"Voltha Events topic partitions\"",
+      "revId": "fb30f584c5862a2909e3836fd6b933dcb19c3178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
