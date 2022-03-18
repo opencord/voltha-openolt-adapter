@@ -2495,6 +2495,13 @@ func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*volth
 // ChildDeviceLost deletes ONU and clears pon resources related to it.
 func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, onuID uint32, onuSn string) error {
 	logger.Debugw(ctx, "child-device-lost", log.Fields{"parent-device-id": dh.device.Id})
+	if dh.getDeviceDeletionInProgressFlag() {
+		// Given that the OLT device itself is getting deleted, everything will be cleaned up in the DB and the OLT
+		// will reboot, so everything will be reset on the pOLT too.
+		logger.Infow(ctx, "olt-device-delete-in-progress-not-handling-child-device-lost",
+			log.Fields{"parent-device-id": dh.device.Id, "pon-port": pPortNo, "onuID": onuID, "onuSN": onuSn})
+		return nil
+	}
 	intfID := plt.PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
 	onuKey := dh.formOnuKey(intfID, onuID)
 
