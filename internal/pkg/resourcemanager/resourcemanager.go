@@ -1236,29 +1236,27 @@ func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, gem uin
 }
 
 // IsGemPortUsedByAnotherFlow returns true if given gem is used by another flow
-func (rsrcMgr *OpenOltResourceMgr) IsGemPortUsedByAnotherFlow(gemPortID uint32, flowID uint64) bool {
-	rsrcMgr.flowIDsForGemLock.RLock()
-	flowIDList := rsrcMgr.flowIDsForGem[gemPortID]
-	rsrcMgr.flowIDsForGemLock.RUnlock()
+func (rsrcMgr *OpenOltResourceMgr) IsGemPortUsedByAnotherFlow(ctx context.Context, gemPortID uint32, flowID uint64) (bool, error) {
+	flowIDList, err := rsrcMgr.GetFlowIDsForGem(ctx, gemPortID)
+	if err != nil {
+		return false, err
+	}
 	for _, id := range flowIDList {
 		if flowID != id {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
 // RegisterFlowIDForGem updates both cache and KV store for flowIDsForGem map
 func (rsrcMgr *OpenOltResourceMgr) RegisterFlowIDForGem(ctx context.Context, gemPortID uint32, flowFromCore *ofp.OfpFlowStats) error {
-	// get from cache
-	rsrcMgr.flowIDsForGemLock.RLock()
-	flowIDs, ok := rsrcMgr.flowIDsForGem[gemPortID]
-	rsrcMgr.flowIDsForGemLock.RUnlock()
-	if !ok {
-		flowIDs = []uint64{flowFromCore.Id}
-	} else {
-		flowIDs = appendUnique64bit(flowIDs, flowFromCore.Id)
+	flowIDs, err := rsrcMgr.GetFlowIDsForGem(ctx, gemPortID)
+	if err != nil {
+		return err
 	}
+
+	flowIDs = appendUnique64bit(flowIDs, flowFromCore.Id)
 	// update the flowids for a gem to the KVstore
 	return rsrcMgr.UpdateFlowIDsForGem(ctx, gemPortID, flowIDs)
 }

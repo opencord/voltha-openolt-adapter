@@ -1954,7 +1954,10 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	case *tp_pb.TechProfileInstance:
 		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
 			gemPortID := gemPort.GemportId
-			used := f.resourceMgr.IsGemPortUsedByAnotherFlow(gemPortID, flowID)
+			used, err := f.resourceMgr.IsGemPortUsedByAnotherFlow(ctx, gemPortID, flowID)
+			if err != nil {
+				return err
+			}
 			if used {
 				flowIDs, err := f.resourceMgr.GetFlowIDsForGem(ctx, gemPortID)
 				if err != nil {
