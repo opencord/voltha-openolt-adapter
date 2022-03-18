@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0571ed5a_608a4fca",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1961,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-03-18T23:52:05Z",
+      "side": 1,
+      "message": "I guess no need to do this check.  IsGemPortUsedByAnotherFlow calls the function GetFlowIDsForGem, which is already called below. You can directli call  GetFlowIDsForGem and if there is any flow using this GEM you can get it in response, if there isn\u0027t, then the response will be empty.",
+      "range": {
+        "startLine": 1957,
+        "startChar": 0,
+        "endLine": 1961,
+        "endChar": 0
+      },
+      "revId": "79e19edfe95053eefca4915021040fc0d6493b3f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
