@@ -22,6 +22,30 @@
       },
       "revId": "79e19edfe95053eefca4915021040fc0d6493b3f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db3ee521_2d12fb7e",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1961,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-03-19T06:20:23Z",
+      "side": 1,
+      "message": "Not sure what you meant. IsGemPortUsedByAnotherFlow does not check if the current flowID is used by gem. It checks if there is any other flow other than the current flowID that references the gem.\nHowever if you meant that GetFlowIDsForGem is getting called twice - once in IsGemPortUsedByAnotherFlow and then again below in the \"if used\" condition, yes that can be optimized.\nPlease clarify and I can submit a subsequent patch. Thanks.",
+      "parentUuid": "0571ed5a_608a4fca",
+      "range": {
+        "startLine": 1957,
+        "startChar": 0,
+        "endLine": 1961,
+        "endChar": 0
+      },
+      "revId": "79e19edfe95053eefca4915021040fc0d6493b3f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
