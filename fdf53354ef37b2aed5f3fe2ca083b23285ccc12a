@@ -67,6 +67,23 @@
       "message": "We still have some trouble on the cluster. ONOS pods did not come up. Trigger the job one more time.",
       "revId": "fdf53354ef37b2aed5f3fe2ca083b23285ccc12a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b8d182d_c4e67ec9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-03-21T18:49:36Z",
+      "side": 1,
+      "message": "hardware test\nfunctional tests",
+      "revId": "fdf53354ef37b2aed5f3fe2ca083b23285ccc12a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
