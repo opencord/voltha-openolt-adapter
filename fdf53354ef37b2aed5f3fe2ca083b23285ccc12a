@@ -33,6 +33,23 @@
       "message": "hw test failed due to lack of space on the physical pods. Re-running the tests again.\n",
       "revId": "fdf53354ef37b2aed5f3fe2ca083b23285ccc12a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "82ab0b6c_800905ec",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-03-21T18:11:03Z",
+      "side": 1,
+      "message": "hardware test\nfunctional tests",
+      "revId": "fdf53354ef37b2aed5f3fe2ca083b23285ccc12a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
