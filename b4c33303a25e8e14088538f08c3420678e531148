@@ -33,6 +33,23 @@
       "message": "The tests have passed, but there was an issue during log collection (not sure why). \nAnyway, for completeness sake I will re-run the hw tests.",
       "revId": "b4c33303a25e8e14088538f08c3420678e531148",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a213000_131ea8e6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-03-22T21:50:50Z",
+      "side": 1,
+      "message": "hardware test\nfunctional tests",
+      "revId": "b4c33303a25e8e14088538f08c3420678e531148",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
