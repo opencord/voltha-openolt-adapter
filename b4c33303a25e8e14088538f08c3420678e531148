@@ -84,6 +84,23 @@
       "message": "hardware test actually passed but timed out on last test. \nhttps://jenkins.opencord.org/job/verify_physical_voltha_patchset_manual/1061/console\n",
       "revId": "b4c33303a25e8e14088538f08c3420678e531148",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33c9c102_584ccf64",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-03-24T09:55:49Z",
+      "side": 1,
+      "message": "recheck",
+      "revId": "b4c33303a25e8e14088538f08c3420678e531148",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
