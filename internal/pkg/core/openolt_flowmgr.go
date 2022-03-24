@@ -1017,22 +1017,6 @@ func (f *OpenOltFlowMgr) addDownstreamDataPathFlow(ctx context.Context, flowCont
 		log.Fields{
 			"downlinkClassifier": downlinkClassifier,
 			"downlinkAction":     downlinkAction})
-	// Ignore Downlink trap flow given by core, cannot do anything with this flow */
-	if vlan, exists := downlinkClassifier[VlanVid]; exists {
-		if vlan.(uint32) == (uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 4000) { //private VLAN given by core
-			if metadata, exists := downlinkClassifier[Metadata]; exists { // inport is filled in metadata by core
-				if uint32(metadata.(uint64)) == plt.MkUniPortNum(ctx, flowContext.intfID, flowContext.onuID, flowContext.uniID) {
-					logger.Infow(ctx, "ignoring-dl-trap-device-flow-from-core",
-						log.Fields{
-							"flow":      flowContext.logicalFlow,
-							"device-id": f.deviceHandler.device.Id,
-							"onu-id":    flowContext.onuID,
-							"intf-id":   flowContext.intfID})
-					return nil
-				}
-			}
-		}
-	}
 
 	// If Pop Vlan action is specified, set the vlan to be popped from the classifier vlan match field.
 	// The matched vlan is the one that is getting popped.
@@ -1452,7 +1436,13 @@ func makeOpenOltClassifierField(classifierInfo map[string]interface{}) (*openolt
 			classifier.OVid = vid
 		}
 	}
-	// The classifierInfo[Metadata] carries the vlan that the OLT see when it receives packet from the ONU
+	// The classifierInfo[Metadata] is set for the following flows
+	// - In the Downstream datapath flow table0 and table1. From the OLT perspective, only  table0 downstream flow is relevant.
+	// - Mcast flow that points to a group in the treatment
+	// This value, when present and valid (not 0 and not 4096), is interpreted as below
+	// - inner vid for a double tagged packet in the datapath flow
+	// - outer vid for a single tagged packet in the datapath flow
+	// - inner vid in the mcast flow that points to a group
 	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
 		vid := uint32(metadata)
 		// Set the OVid or IVid classifier based on the whether OLT is using a transparent tag or not
@@ -2699,6 +2689,19 @@ func getPacketTypeFromClassifiers(classifierInfo map[string]interface{}) string 
 			ovid = true
 		}
 	}
+
+	// The classifierInfo[Metadata] is set for the following flows
+	// - In the Downstream datapath flow table0 and table1. From the OLT perspective, only  table0 downstream flow is relevant.
+	// - Mcast flow that points to a group in the action/treatment
+	// This value, when present and valid (not 0 and not 4096), is interpreted as below
+	// - inner vid for a double tagged packet in the datapath flow
+	// - outer vid for a single tagged packet in the datapath flow
+	// - inner vid in the mcast flow that points to a group
+
+	// It is to be noted though that for DT FTTH downstream table0 flow, the classifierInfo[Metadata] is absent.
+	// And consequently the ivid is not set to true. This will result in packetType being set to singleTag which is not true
+	// Interestingly enough, this function `getPacketTypeFromClassifiers` is called only by Mcast flow handlers and
+	// it is to be used with caution elsewhere as it could result in wrong packetType to be returned to the caller.
 	if metadata, ok := classifierInfo[Metadata].(uint64); ok {
 		vid := uint32(metadata)
 		if vid != ReservedVlan {
