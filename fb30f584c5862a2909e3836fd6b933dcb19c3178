@@ -34,6 +34,24 @@
       "parentUuid": "b95a6f2b_c7bc47e3",
       "revId": "fb30f584c5862a2909e3836fd6b933dcb19c3178",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "85c2eb08_5573602a",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1000635
+      },
+      "writtenOn": "2022-03-25T13:28:41Z",
+      "side": 1,
+      "message": "removed the topic creation from voltha-openolt-adapter and voltha-openonu-adapter , only the voltha-rw-core creates the topic",
+      "parentUuid": "8a7ed5e8_a041d550",
+      "revId": "fb30f584c5862a2909e3836fd6b933dcb19c3178",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
