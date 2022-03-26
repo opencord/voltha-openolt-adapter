@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8c1d326a_46b74343",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2022-03-26T09:03:25Z",
+      "side": 1,
+      "message": "Any specific reason as to why this check should not be done while starting the EventProxy and should be done here? If the check is done in the EventProxy library then each of the users of the library need not perform this check individually.",
+      "revId": "f9f30338d2d7e78c15516791944e460a81bf7e47",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
