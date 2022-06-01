@@ -1984,13 +1984,6 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 	// Free TPInstance, TPID, GemPorts and Traffic Queues. AllocID and Schedulers will be cleared later only if they are not shared across all the UNIs
 	switch techprofileInst := techprofileInst.(type) {
 	case *tp_pb.TechProfileInstance:
-		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
-			logger.Warn(ctx, err)
-		}
-		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
-			logger.Warn(ctx, err)
-		}
-
 		for _, gemPort := range techprofileInst.UpstreamGemPortAttributeList {
 			gemPortID := gemPort.GemportId
 			_ = f.resourceMgr.RemoveGemFromOnuGemInfo(ctx, uint32(onuID), gemPortID) // ignore error and proceed.
@@ -2051,12 +2044,6 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			}
 		}
 	case *tp_pb.EponTechProfileInstance:
-		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
-			logger.Warn(ctx, err)
-		}
-		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
-			logger.Warn(ctx, err)
-		}
 		// Delete the TCONT on the ONU.
 		if err := f.sendDeleteTcontToChild(ctx, intfID, uint32(onuID), uint32(uniID), techprofileInst.AllocId, tpPath); err != nil {
 			logger.Errorw(ctx, "error-processing-delete-tcont-towards-onu",
@@ -2069,6 +2056,12 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 					"error":     err})
 		}
 		f.resourceMgr.FreeAllocID(ctx, uint32(onuID), uint32(uniID), techprofileInst.AllocId, true)
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
 	default:
 		logger.Errorw(ctx, "error-unknown-tech",
 			log.Fields{
@@ -2093,6 +2086,13 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 				}
 				f.resourceMgr.FreeGemPortID(ctx, uint32(onuID), uint32(uniID), gemPort.GemportId)
 			}
+		}
+		//Delete the tp instance and the techprofileid for onu at the end
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
+			logger.Warn(ctx, err)
+		}
+		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+			logger.Warn(ctx, err)
 		}
 	}
 
