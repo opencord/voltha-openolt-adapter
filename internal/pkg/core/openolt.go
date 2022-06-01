@@ -43,22 +43,23 @@ import (
 
 //OpenOLT structure holds the OLT information
 type OpenOLT struct {
-	configManager               *conf.ConfigManager
-	deviceHandlers              map[string]*DeviceHandler
-	coreClient                  *vgrpc.Client
-	eventProxy                  eventif.EventProxy
-	config                      *config.AdapterFlags
-	numOnus                     int
-	KVStoreAddress              string
-	KVStoreType                 string
-	exitChannel                 chan struct{}
-	HeartbeatCheckInterval      time.Duration
-	HeartbeatFailReportInterval time.Duration
-	GrpcTimeoutInterval         time.Duration
-	lockDeviceHandlersMap       sync.RWMutex
-	enableONUStats              bool
-	enableGemStats              bool
-	rpcTimeout                  time.Duration
+	configManager                      *conf.ConfigManager
+	deviceHandlers                     map[string]*DeviceHandler
+	coreClient                         *vgrpc.Client
+	eventProxy                         eventif.EventProxy
+	config                             *config.AdapterFlags
+	numOnus                            int
+	KVStoreAddress                     string
+	KVStoreType                        string
+	exitChannel                        chan struct{}
+	HeartbeatCheckInterval             time.Duration
+	HeartbeatFailReportInterval        time.Duration
+	GrpcTimeoutInterval                time.Duration
+	lockDeviceHandlersMap              sync.RWMutex
+	enableONUStats                     bool
+	enableGemStats                     bool
+	rpcTimeout                         time.Duration
+	CheckOnuDevExistenceAtOnuDiscovery bool
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
@@ -82,6 +83,7 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.enableONUStats = cfg.EnableONUStats
 	openOLT.enableGemStats = cfg.EnableGEMStats
 	openOLT.rpcTimeout = cfg.RPCTimeout
+	openOLT.CheckOnuDevExistenceAtOnuDiscovery = cfg.CheckOnuDevExistenceAtOnuDiscovery
 	return &openOLT
 }
 
