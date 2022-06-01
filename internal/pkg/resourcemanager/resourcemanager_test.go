@@ -290,13 +290,26 @@ func TestNewResourceMgr(t *testing.T) {
 		devInfo        *openolt.DeviceInfo
 		kvStorePrefix  string
 	}
+	/* As of not the current NewResourceMgr test is not doing anything as there was no resourceranges passed.
+	      passing the resource ranges would mean passing a mock and changes in all around including device handler and other places.
+	      For now , removed the older version of proto which used ONUIDSTart and ONUIDENd which is not valid.
+	      This test needs to be updated once the kv store mock is fixed all around. Use the below resource ranges in the Ranges of deviceinfo once the kv store is fixed.
+	   intfids := []uint32{0, 1, 2, 3, 4, 5}
+	   devOnuRsrcPools := &openolt.DeviceInfo_DeviceResourceRanges_Pool{Type: openolt.DeviceInfo_DeviceResourceRanges_Pool_ONU_ID, Sharing: openolt.DeviceInfo_DeviceResourceRanges_Pool_DEDICATED_PER_INTF, Start: 1, End: 60}
+	   devGemRsrcPools := &openolt.DeviceInfo_DeviceResourceRanges_Pool{Type: openolt.DeviceInfo_DeviceResourceRanges_Pool_GEMPORT_ID, Sharing: openolt.DeviceInfo_DeviceResourceRanges_Pool_DEDICATED_PER_INTF, Start: 1, End: 10000}
+	   devAllocRsrcPools := &openolt.DeviceInfo_DeviceResourceRanges_Pool{Type: openolt.DeviceInfo_DeviceResourceRanges_Pool_ALLOC_ID, Sharing: openolt.DeviceInfo_DeviceResourceRanges_Pool_DEDICATED_PER_INTF, Start: 1, End: 256}
+	   devFlowRsrcPools := &openolt.DeviceInfo_DeviceResourceRanges_Pool{Type: openolt.DeviceInfo_DeviceResourceRanges_Pool_FLOW_ID, Sharing: openolt.DeviceInfo_DeviceResourceRanges_Pool_SHARED_BY_ALL_INTF_SAME_TECH, Start: 1, End: 20000}
+	   pool := []*openolt.DeviceInfo_DeviceResourceRanges_Pool{devOnuRsrcPools, devGemRsrcPools, devAllocRsrcPools, devFlowRsrcPools}
+	   devRsrc := &openolt.DeviceInfo_DeviceResourceRanges{IntfIds: intfids, Technology: "GPON", Pools: pool}
+	   devRsrcPool := []*openolt.DeviceInfo_DeviceResourceRanges{devRsrc}
+	*/
 	tests := []struct {
 		name string
 		args args
 		want *OpenOltResourceMgr
 	}{
 		{"NewResourceMgr-2", args{"olt1", 0, "1:2", "etcd",
-			"onu", &openolt.DeviceInfo{OnuIdStart: 1, OnuIdEnd: 1}, "service/voltha"}, &OpenOltResourceMgr{}},
+			"olt", &openolt.DeviceInfo{}, "service/voltha"}, &OpenOltResourceMgr{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

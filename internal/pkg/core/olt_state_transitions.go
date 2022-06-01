@@ -91,7 +91,7 @@ func NewTransitionMap(dh *DeviceHandler) *TransitionMap {
 	// In doInit establish the grpc session
 	transitionMap.transitions[DeviceInit] =
 		Transition{
-			previousState: []DeviceState{deviceStateNull, deviceStateUp, deviceStateDown},
+			previousState: []DeviceState{deviceStateNull, deviceStateConnected, deviceStateUp, deviceStateDown},
 			currentState:  deviceStateInit,
 			before:        []TransitionHandler{dh.doStateInit},
 			after:         []TransitionHandler{dh.postInit}}
