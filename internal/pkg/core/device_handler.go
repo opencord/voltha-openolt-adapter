@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -72,6 +73,7 @@ const (
 	oltPortInfoTimeout     = 3
 
 	defaultPortSpeedMbps = 1000
+	heartbeatPath        = "heartbeat"
 )
 
 //DeviceHandler will interact with the OLT device.
@@ -93,6 +95,7 @@ type DeviceHandler struct {
 	groupMgr                *OpenOltGroupMgr
 	eventMgr                *OpenOltEventMgr
 	resourceMgr             []*rsrcMgr.OpenOltResourceMgr
+	kvStore                 *db.Backend // backend kv store connection handle
 
 	deviceInfo *oop.DeviceInfo
 
@@ -120,6 +123,7 @@ type DeviceHandler struct {
 	agentPreviouslyConnected   bool
 
 	isDeviceDeletionInProgress bool
+	heartbeatSignature         uint32
 }
 
 //OnuDevice represents ONU related info
@@ -185,6 +189,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 //NewDeviceHandler creates a new device handler
 func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.Device, adapter *OpenOLT, cm *config.ConfigManager, cfg *conf.AdapterFlags) *DeviceHandler {
 	var dh DeviceHandler
+	ctx := context.Background()
 	dh.cm = cm
 	dh.coreClient = cc
 	dh.EventProxy = ep
@@ -201,6 +206,13 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	dh.perPonOnuIndicationChannel = make(map[uint32]onuIndicationChannels)
 	dh.childAdapterClients = make(map[string]*vgrpc.Client)
 	dh.cfg = cfg
+	kvStoreDevicePath := fmt.Sprintf(dh.cm.Backend.PathPrefix, "/%s/", dh.device.Id)
+	dh.kvStore = SetKVClient(ctx, dh.openOLT.KVStoreType, dh.openOLT.KVStoreAddress, dh.device.Id, kvStoreDevicePath)
+	if dh.kvStore == nil {
+		logger.Error(ctx, "Failed to setup KV store")
+		return nil
+	}
+
 	// Create a slice of buffered channels for handling concurrent mcast flow/group.
 	dh.incomingMcastFlowOrGroup = make([]chan McastFlowOrGroupControlBlock, MaxNumOfGroupHandlerChannels)
 	dh.stopMcastHandlerRoutine = make([]chan bool, MaxNumOfGroupHandlerChannels)
@@ -215,8 +227,36 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 		dh.mcastHandlerRoutineActive[i] = true
 		go dh.mcastFlowOrGroupChannelHandlerRoutine(i, dh.incomingMcastFlowOrGroup[i], dh.stopMcastHandlerRoutine[i])
 	}
+	dh.heartbeatSignature = dh.GetHeartbeatSignature(ctx)
 	//TODO initialize the support classes.
 	return &dh
+}
+
+func newKVClient(ctx context.Context, storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
+	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
+	switch storeType {
+	case "etcd":
+		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
+	}
+	return nil, errors.New("unsupported-kv-store")
+}
+
+// SetKVClient sets the KV client and return a kv backend
+func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string, basePathKvStore string) *db.Backend {
+	kvClient, err := newKVClient(ctx, backend, addr, rsrcMgr.KvstoreTimeout)
+	if err != nil {
+		logger.Fatalw(ctx, "Failed to init KV client\n", log.Fields{"err": err})
+		return nil
+	}
+
+	kvbackend := &db.Backend{
+		Client:     kvClient,
+		StoreType:  backend,
+		Address:    addr,
+		Timeout:    rsrcMgr.KvstoreTimeout,
+		PathPrefix: fmt.Sprintf(rsrcMgr.BasePathKvStore, basePathKvStore, DeviceID)}
+
+	return kvbackend
 }
 
 // start save the device to the data model
@@ -744,18 +784,6 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	raisedTs := time.Now().Unix()
 	go dh.eventMgr.oltCommunicationEvent(ctx, dh.device, raisedTs)
 
-	//check adapter and agent reconcile status
-	//reboot olt if needed (olt disconnection case)
-	if dh.adapterPreviouslyConnected != dh.agentPreviouslyConnected {
-		logger.Warnw(ctx, "different-reconcile-status-between-adapter-and-agent-rebooting-device",
-			log.Fields{
-				"device-id":      dh.device.Id,
-				"adapter-status": dh.adapterPreviouslyConnected,
-				"agent-status":   dh.agentPreviouslyConnected,
-			})
-		_ = dh.RebootDevice(ctx, dh.device)
-	}
-
 	return nil
 }
 
@@ -839,6 +867,7 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		}
 	}
 
+	logger.Debugw(ctx, "Dailing grpc", log.Fields{"device-id": dh.device.Id})
 	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
@@ -905,13 +934,6 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 			return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
-		// Start reading indications
-		go func() {
-			if err = dh.readIndications(ctx); err != nil {
-				_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-			}
-		}()
-
 		go startHeartbeatCheck(ctx, dh)
 
 		return nil
@@ -931,12 +953,6 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 	}
 
-	// Start reading indications
-	go func() {
-		if err := dh.readIndications(ctx); err != nil {
-			_ = olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
-		}
-	}()
 	go dh.updateLocalDevice(ctx)
 
 	if device.PmConfigs != nil {
@@ -1368,6 +1384,41 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 	return nil
 }
 
+//getChildDevice function can be used in general to get child device, if not found in cache the fucntion will
+//get from core and update the cache and return the child device.
+func (dh *DeviceHandler) getChildDevice(ctx context.Context, sn string, parentPortNo uint32) *OnuDevice {
+	var InCacheOnuDev *OnuDevice
+	dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
+		if onuInCache.(*OnuDevice).serialNumber == sn {
+			InCacheOnuDev = onuInCache.(*OnuDevice)
+			return false
+		}
+		return true
+	})
+	//Got the onu device from cache return
+	if InCacheOnuDev != nil {
+		logger.Infow(ctx, "Got child device from cache", log.Fields{"onudev": InCacheOnuDev.serialNumber})
+		return InCacheOnuDev
+	}
+	onuDevice, _ := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
+		ParentId:     dh.device.Id,
+		SerialNumber: sn,
+		ParentPortNo: parentPortNo,
+	})
+	//No device found in core return nil
+	if onuDevice == nil {
+		return nil
+	}
+	onuID := onuDevice.ProxyAddress.OnuId
+	intfID := plt.PortNoToIntfID(parentPortNo, voltha.Port_PON_OLT)
+	onuKey := dh.formOnuKey(intfID, onuID)
+
+	onuDev := NewOnuDevice(onuDevice.Id, onuDevice.Type, onuDevice.SerialNumber, onuDevice.ProxyAddress.OnuId, intfID, onuDevice.ProxyAddress.DeviceId, false, onuDevice.AdapterEndpoint)
+	dh.onus.Store(onuKey, onuDev)
+	logger.Infow(ctx, "got child device from core", log.Fields{"onudev": onuDevice})
+	return onuDev
+}
+
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
@@ -1377,6 +1428,48 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	var alarmInd oop.OnuAlarmIndication
 	raisedTs := time.Now().Unix()
+	tpInstExists := false
+	//CheckOnuDevExistenceAtOnuDiscovery if true , a check will be made for the existance of the onu device. If the onu device
+	// still exists , the onu discovery will be ignored, else a check for active techprofiles for ONU is checked.
+	if !dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {
+		onuDev := dh.getChildDevice(ctx, sn, parentPortNo)
+		if onuDev != nil {
+			var onuGemInfo *rsrcMgr.OnuGemInfo
+			var err error
+			if onuGemInfo, err = dh.resourceMgr[channelID].GetOnuGemInfo(ctx, onuDev.onuID); err != nil {
+				logger.Warnw(ctx, "Unable to find onuGemInfo", log.Fields{"onuID": onuDev.onuID})
+				return err
+			}
+			if onuGemInfo != nil {
+				for _, uni := range onuGemInfo.UniPorts {
+					uniID := plt.UniIDFromPortNum(uni)
+					tpIDs := dh.resourceMgr[channelID].GetTechProfileIDForOnu(ctx, onuDev.onuID, uniID)
+					if len(tpIDs) != 0 {
+						logger.Warnw(ctx, "Techprofile present for ONU, ignoring onu discovery", log.Fields{"onuID": onuDev.onuID})
+						tpInstExists = true
+						break
+					}
+				}
+			}
+		}
+		//ignore the discovery if tpinstance is present.
+		if tpInstExists == true {
+			return nil
+		}
+	} else {
+
+		onuDevice, _ := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
+			ParentId:     dh.device.Id,
+			SerialNumber: sn,
+			ParentPortNo: parentPortNo,
+		})
+		if onuDevice != nil {
+			logger.Infow(ctx, "Child device still present ignoring discovery indication", log.Fields{"sn": sn})
+			return nil
+		}
+		logger.Infow(ctx, "No device present in core , continuing with discovery", log.Fields{"sn": sn})
+
+	}
 	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
 
 		/* When PON cable disconnected and connected back from OLT, it was expected OnuAlarmIndication
@@ -2302,9 +2395,36 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 					}
 					timerCheck = nil
 				}
-				logger.Debugw(ctx, "heartbeat",
-					log.Fields{"signature": heartBeat,
-						"device-id": dh.device.Id})
+				if dh.heartbeatSignature == 0 || dh.heartbeatSignature == heartBeat.HeartbeatSignature {
+					if dh.heartbeatSignature == 0 {
+						// First time the signature will be 0, update the signture to DB when not found.
+						dh.UpdateHeartbeatSignature(ctx, heartBeat.HeartbeatSignature)
+						dh.heartbeatSignature = heartBeat.HeartbeatSignature
+					}
+					logger.Infow(ctx, "heartbeat signature", log.Fields{"sign": dh.heartbeatSignature})
+
+					dh.lockDevice.RLock()
+					// Stop the read indication only if it the routine is active
+					// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+					// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+					// on next execution of the readIndication routine.
+					if !dh.isReadIndicationRoutineActive {
+						// Start reading indications
+						go func() {
+							if err = dh.readIndications(ctx); err != nil {
+								_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+							}
+						}()
+					}
+					dh.lockDevice.RUnlock()
+
+				} else {
+					logger.Warn(ctx, "Heartbeat signature changed, OLT is rebooted. Cleaningup resources.")
+					dh.UpdateHeartbeatSignature(ctx, heartBeat.HeartbeatSignature)
+					dh.heartbeatSignature = heartBeat.HeartbeatSignature
+					go dh.updateStateRebooted(ctx)
+				}
+
 			}
 			cancel()
 		case <-dh.stopHeartbeatCheck:
@@ -2327,7 +2447,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		return
 	}
 
-	logger.Debugw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
+	logger.Warnw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
 		"admin-state": device.AdminState, "oper-status": device.OperStatus})
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
 		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
@@ -2337,14 +2457,75 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		}); err != nil {
 			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
+		/*
+			if err = dh.updatePortsStateInCore(ctx, &ca.PortStateFilter{
+				DeviceId:       dh.device.Id,
+				PortTypeFilter: 0,
+				OperStatus:     voltha.OperStatus_UNKNOWN,
+			}); err != nil {
+				_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+			}
+		*/
 
-		if err = dh.updatePortsStateInCore(ctx, &ca.PortStateFilter{
-			DeviceId:       dh.device.Id,
-			PortTypeFilter: 0,
-			OperStatus:     voltha.OperStatus_UNKNOWN,
-		}); err != nil {
-			_ = olterrors.NewErrAdapter("port-update-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+		//raise olt communication failure event
+		raisedTs := time.Now().Unix()
+		cloned := proto.Clone(device).(*voltha.Device)
+		cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+		cloned.OperStatus = voltha.OperStatus_UNKNOWN
+		dh.device = cloned // update local copy of the device
+		go dh.eventMgr.oltCommunicationEvent(ctx, cloned, raisedTs)
+
+		// Stop the Stats collector
+		dh.stopCollector <- true
+		// stop the heartbeat check routine
+		dh.stopHeartbeatCheck <- true
+		dh.lockDevice.RLock()
+		// Stop the read indication only if it the routine is active
+		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+		// on next execution of the readIndication routine.
+		if dh.isReadIndicationRoutineActive {
+			dh.stopIndications <- true
 		}
+		dh.lockDevice.RUnlock()
+		dh.transitionMap.Handle(ctx, DeviceInit)
+
+	}
+}
+
+func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
+	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
+	if err != nil || device == nil {
+		// One case where we have seen core returning an error for GetDevice call is after OLT device delete.
+		// After OLT delete, the adapter asks for OLT to reboot. When OLT is rebooted, shortly we loose heartbeat.
+		// The 'startHeartbeatCheck' then asks the device to be marked unreachable towards the core, but the core
+		// has already deleted the device and returns error. In this particular scenario, it is Ok because any necessary
+		// cleanup in the adapter was already done during DeleteDevice API handler routine.
+		_ = olterrors.NewErrNotFound("device", log.Fields{"device-id": dh.device.Id}, err).Log()
+		// Immediately return, otherwise accessing a null 'device' struct would cause panic
+		return
+	}
+
+	logger.Warnw(ctx, "update-state-rebooted", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
+		"admin-state": device.AdminState, "oper-status": device.OperStatus, "conn-status": voltha.ConnectStatus_UNREACHABLE})
+	if device.ConnectStatus == device.ConnectStatus {
+		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
+			DeviceId:   dh.device.Id,
+			OperStatus: voltha.OperStatus_REBOOTED,
+			ConnStatus: voltha.ConnectStatus_REACHABLE,
+		}); err != nil {
+			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+
+		dh.lockDevice.RLock()
+		// Stop the read indication only if it the routine is active
+		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+		// on next execution of the readIndication routine.
+		if dh.isReadIndicationRoutineActive {
+			dh.stopIndications <- true
+		}
+		dh.lockDevice.RUnlock()
 
 		//raise olt communication failure event
 		raisedTs := time.Now().Unix()
@@ -2359,16 +2540,6 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		dh.stopCollector <- true
 		// stop the heartbeat check routine
 		dh.stopHeartbeatCheck <- true
-
-		dh.lockDevice.RLock()
-		// Stop the read indication only if it the routine is active
-		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
-		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
-		// on next execution of the readIndication routine.
-		if dh.isReadIndicationRoutineActive {
-			dh.stopIndications <- true
-		}
-		dh.lockDevice.RUnlock()
 
 		var wg sync.WaitGroup
 		wg.Add(1) // for the multicast handler routine
@@ -2385,7 +2556,23 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 
 		//reset adapter reconcile flag
 		dh.adapterPreviouslyConnected = false
+		for {
 
+			childDevices, err := dh.getChildDevicesFromCore(ctx, dh.device.Id)
+			if err != nil || childDevices == nil {
+				logger.Errorw(ctx, "Failed to get child devices from core", log.Fields{"deviceID": dh.device.Id})
+				continue
+			}
+			if len(childDevices.Items) == 0 {
+				logger.Infow(ctx, "All childDevices cleared from core, proceed with device init", log.Fields{"deviceID": dh.device.Id})
+				break
+			} else {
+				logger.Warn(ctx, "Not all child devices are cleared, continuing to wait")
+				time.Sleep(5 * time.Second)
+			}
+
+		}
+		logger.Infow(ctx, "cleanup complete after reboot , moving to init", log.Fields{"deviceID": device.Id})
 		dh.transitionMap.Handle(ctx, DeviceInit)
 
 	}
@@ -3367,4 +3554,35 @@ func (dh *DeviceHandler) waitForTimeoutOrCompletion(wg *sync.WaitGroup, timeout 
 	case <-time.After(timeout):
 		return false // timed out
 	}
+}
+
+func (dh *DeviceHandler) UpdateHeartbeatSignature(ctx context.Context, signature uint32) {
+	val, err := json.Marshal(signature)
+	if err != nil {
+		logger.Error(ctx, "failed-to-marshal")
+		return
+	}
+	if err = dh.kvStore.Put(ctx, heartbeatPath, val); err != nil {
+		logger.Error(ctx, "failed-to-store-hearbeat-signature")
+	}
+}
+
+func (dh *DeviceHandler) GetHeartbeatSignature(ctx context.Context) uint32 {
+	var signature uint32
+
+	Value, er := dh.kvStore.Get(ctx, heartbeatPath)
+	if er == nil {
+		if Value != nil {
+			Val, er := kvstore.ToByte(Value.Value)
+			if er != nil {
+				logger.Errorw(ctx, "Failed to convert into byte array", log.Fields{"err": er})
+				return signature
+			}
+			if er = json.Unmarshal(Val, &signature); er != nil {
+				logger.Error(ctx, "Failed to unmarshal signature", log.Fields{"err": er})
+				return signature
+			}
+		}
+	}
+	return signature
 }
