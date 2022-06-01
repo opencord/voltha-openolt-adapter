@@ -47,86 +47,89 @@ const (
 	defaultGrpcAddress                 = ":50060"
 	defaultCoreEndpoint                = ":55555"
 	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
-	defaultGrpcTimeoutInterval   = 2 * time.Second
-	defaultCurrentReplica        = 1
-	defaultTotalReplicas         = 1
-	defaultTraceEnabled          = false
-	defaultTraceAgentAddress     = "127.0.0.1:6831"
-	defaultLogCorrelationEnabled = true
-	defaultOmccEncryption        = false
-	defaultEnableONUStats        = false
-	defaultEnableGEMStats        = false
-	defaultMinBackoffRetryDelay  = 500 * time.Millisecond
-	defaultMaxBackoffRetryDelay  = 10 * time.Second
-	defaultAdapterEndpoint       = "adapter-open-olt"
+	defaultGrpcTimeoutInterval                = 2 * time.Second
+	defaultCurrentReplica                     = 1
+	defaultTotalReplicas                      = 1
+	defaultTraceEnabled                       = false
+	defaultTraceAgentAddress                  = "127.0.0.1:6831"
+	defaultLogCorrelationEnabled              = true
+	defaultOmccEncryption                     = false
+	defaultEnableONUStats                     = false
+	defaultEnableGEMStats                     = false
+	defaultMinBackoffRetryDelay               = 500 * time.Millisecond
+	defaultMaxBackoffRetryDelay               = 10 * time.Second
+	defaultAdapterEndpoint                    = "adapter-open-olt"
+	defaultCheckOnuDevExistenceAtOnuDiscovery = false
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	AdapterName                 string
-	InstanceID                  string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
-	KafkaClusterAddress         string
-	KVStoreType                 string
-	KVStoreTimeout              time.Duration
-	KVStoreAddress              string
-	RPCTimeout                  time.Duration
-	EventTopic                  string
-	LogLevel                    string
-	OnuNumber                   int
-	Banner                      bool
-	DisplayVersionOnly          bool
-	ProbeAddress                string
-	LiveProbeInterval           time.Duration
-	NotLiveProbeInterval        time.Duration
-	HeartbeatCheckInterval      time.Duration
-	HeartbeatFailReportInterval time.Duration
-	GrpcTimeoutInterval         time.Duration
-	GrpcAddress                 string
-	CoreEndpoint                string
-	CurrentReplica              int
-	TotalReplicas               int
-	TraceEnabled                bool
-	TraceAgentAddress           string
-	LogCorrelationEnabled       bool
-	OmccEncryption              bool
-	EnableONUStats              bool
-	EnableGEMStats              bool
-	MinBackoffRetryDelay        time.Duration
-	MaxBackoffRetryDelay        time.Duration
-	AdapterEndpoint             string
+	AdapterName                        string
+	InstanceID                         string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
+	KafkaClusterAddress                string
+	KVStoreType                        string
+	KVStoreTimeout                     time.Duration
+	KVStoreAddress                     string
+	RPCTimeout                         time.Duration
+	EventTopic                         string
+	LogLevel                           string
+	OnuNumber                          int
+	Banner                             bool
+	DisplayVersionOnly                 bool
+	ProbeAddress                       string
+	LiveProbeInterval                  time.Duration
+	NotLiveProbeInterval               time.Duration
+	HeartbeatCheckInterval             time.Duration
+	HeartbeatFailReportInterval        time.Duration
+	GrpcTimeoutInterval                time.Duration
+	GrpcAddress                        string
+	CoreEndpoint                       string
+	CurrentReplica                     int
+	TotalReplicas                      int
+	TraceEnabled                       bool
+	TraceAgentAddress                  string
+	LogCorrelationEnabled              bool
+	OmccEncryption                     bool
+	EnableONUStats                     bool
+	EnableGEMStats                     bool
+	MinBackoffRetryDelay               time.Duration
+	MaxBackoffRetryDelay               time.Duration
+	AdapterEndpoint                    string
+	CheckOnuDevExistenceAtOnuDiscovery bool
 }
 
 // NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:                  defaultInstanceid,
-		KafkaClusterAddress:         defaultKafkaclusteraddress,
-		KVStoreType:                 defaultKvstoretype,
-		KVStoreTimeout:              defaultKvstoretimeout,
-		KVStoreAddress:              defaultKvstoreaddress,
-		EventTopic:                  defaultEventtopic,
-		LogLevel:                    defaultLoglevel,
-		OnuNumber:                   defaultOnunumber,
-		Banner:                      defaultBanner,
-		DisplayVersionOnly:          defaultDisplayVersionOnly,
-		ProbeAddress:                defaultProbeAddress,
-		LiveProbeInterval:           defaultLiveProbeInterval,
-		NotLiveProbeInterval:        defaultNotLiveProbeInterval,
-		HeartbeatCheckInterval:      defaultHeartbeatCheckInterval,
-		HeartbeatFailReportInterval: defaultHeartbeatFailReportInterval,
-		GrpcAddress:                 defaultGrpcAddress,
-		CoreEndpoint:                defaultCoreEndpoint,
-		GrpcTimeoutInterval:         defaultGrpcTimeoutInterval,
-		TraceEnabled:                defaultTraceEnabled,
-		TraceAgentAddress:           defaultTraceAgentAddress,
-		LogCorrelationEnabled:       defaultLogCorrelationEnabled,
-		OmccEncryption:              defaultOmccEncryption,
-		EnableONUStats:              defaultEnableONUStats,
-		EnableGEMStats:              defaultEnableGEMStats,
-		RPCTimeout:                  defaultRPCTimeout,
-		MinBackoffRetryDelay:        defaultMinBackoffRetryDelay,
-		MaxBackoffRetryDelay:        defaultMaxBackoffRetryDelay,
+		InstanceID:                         defaultInstanceid,
+		KafkaClusterAddress:                defaultKafkaclusteraddress,
+		KVStoreType:                        defaultKvstoretype,
+		KVStoreTimeout:                     defaultKvstoretimeout,
+		KVStoreAddress:                     defaultKvstoreaddress,
+		EventTopic:                         defaultEventtopic,
+		LogLevel:                           defaultLoglevel,
+		OnuNumber:                          defaultOnunumber,
+		Banner:                             defaultBanner,
+		DisplayVersionOnly:                 defaultDisplayVersionOnly,
+		ProbeAddress:                       defaultProbeAddress,
+		LiveProbeInterval:                  defaultLiveProbeInterval,
+		NotLiveProbeInterval:               defaultNotLiveProbeInterval,
+		HeartbeatCheckInterval:             defaultHeartbeatCheckInterval,
+		HeartbeatFailReportInterval:        defaultHeartbeatFailReportInterval,
+		GrpcAddress:                        defaultGrpcAddress,
+		CoreEndpoint:                       defaultCoreEndpoint,
+		GrpcTimeoutInterval:                defaultGrpcTimeoutInterval,
+		TraceEnabled:                       defaultTraceEnabled,
+		TraceAgentAddress:                  defaultTraceAgentAddress,
+		LogCorrelationEnabled:              defaultLogCorrelationEnabled,
+		OmccEncryption:                     defaultOmccEncryption,
+		EnableONUStats:                     defaultEnableONUStats,
+		EnableGEMStats:                     defaultEnableGEMStats,
+		RPCTimeout:                         defaultRPCTimeout,
+		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
+		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
+		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
 	}
 	return &adapterFlags
 }
@@ -278,6 +281,11 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"max_retry_delay",
 		defaultMaxBackoffRetryDelay,
 		"The maximum number of milliseconds to delay before a connection retry attempt")
+
+	flag.BoolVar(&(so.CheckOnuDevExistenceAtOnuDiscovery),
+		"check_onu_exist_on_discovery",
+		defaultCheckOnuDevExistenceAtOnuDiscovery,
+		"Whether to check for flows only or child device before honoring discovery?")
 
 	flag.Parse()
 	containerName := getContainerInfo()
