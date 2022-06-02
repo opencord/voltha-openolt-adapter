@@ -205,8 +205,10 @@ func (a *adapter) checkKvStoreReadiness(ctx context.Context) {
 	timeout := a.config.LiveProbeInterval / 2
 	kvStoreChannel := make(chan bool, 1)
 
-	// Default false to check the liveliness.
-	kvStoreChannel <- false
+	timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
+	kvStoreChannel <- a.kvClient.IsConnectionUp(timeoutCtx)
+	cancelFunc()
+
 	for {
 		timeoutTimer := time.NewTimer(timeout)
 		select {
@@ -220,10 +222,12 @@ func (a *adapter) checkKvStoreReadiness(ctx context.Context) {
 				probe.UpdateStatusFromContext(ctx, kvService, probe.ServiceStatusRunning)
 				timeout = a.config.LiveProbeInterval / 2
 			}
+
 			// Check if the timer has expired or not
 			if !timeoutTimer.Stop() {
 				<-timeoutTimer.C
 			}
+
 		case <-timeoutTimer.C:
 			// Check the status of the kv-store. Use timeout of 2 seconds to avoid forever blocking
 			logger.Info(ctx, "kv-store liveliness-recheck")
@@ -258,7 +262,7 @@ func (a *adapter) stop(ctx context.Context) {
 			logger.Infow(ctx, "fail-to-release-all-reservations", log.Fields{"error": err})
 		}
 		// Close the DB connection
-		a.kvClient.Close(ctx)
+		go a.kvClient.Close(ctx)
 	}
 
 	if a.eventProxy != nil {
@@ -273,6 +277,8 @@ func (a *adapter) stop(ctx context.Context) {
 	if a.coreClient != nil {
 		a.coreClient.Stop(ctx)
 	}
+
+	logger.Info(ctx, "main-stop-processing-complete")
 
 	// TODO: Stop child devices connections
 
@@ -534,8 +540,12 @@ func main() {
 	code := waitForExit(ctx)
 	logger.Infow(ctx, "received-a-closing-signal", log.Fields{"code": code})
 
+	// Use context with cancel as etcd-client stop could take more time sometimes to stop slowing down container shutdown.
+	ctxWithCancel, cancelFunc := context.WithCancel(ctx)
 	// Cleanup before leaving
-	ad.stop(ctx)
+	ad.stop(ctxWithCancel)
+	// Will halt any long-running stop routine gracefully
+	cancelFunc()
 
 	elapsed := time.Since(start)
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
