@@ -841,6 +841,7 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		}
 	}
 
+	logger.Errorw(ctx, " ABHI Dailing grpc", log.Fields{"device-id": dh.device.Id})
 	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
@@ -870,7 +871,7 @@ func (dh *DeviceHandler) postInit(ctx context.Context) error {
 // doStateConnected get the device info and update to voltha core
 func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	var err error
-	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
+	logger.Errorw(ctx, "ABHI olt-device-connected", log.Fields{"device-id": dh.device.Id})
 
 	// Case where OLT is disabled and then rebooted.
 	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
@@ -927,11 +928,11 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	}
 
 	// Start reading indications
-	go func() {
+/*	go func() {
 		if err := dh.readIndications(ctx); err != nil {
 			_ = olterrors.NewErrAdapter("read-indications-failure", log.Fields{"device-id": dh.device.Id}, err).Log()
 		}
-	}()
+	}()*/
 	go dh.updateLocalDevice(ctx)
 
 	if device.PmConfigs != nil {
@@ -1385,7 +1386,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				for _, uni := range onuGemInfo.UniPorts {
 					tpIDs := dh.resourceMgr[channelID].GetTechProfileIDForOnu(ctx, onuInCache.(*OnuDevice).onuID, uni)
 					if len(tpIDs) != 0 {
-						logger.Infow(ctx, "Techprofile present for ONU, ignoring onu discovery", log.Fields{"onuID": onuInCache.(*OnuDevice).onuID})
+						logger.Warnw(ctx, "Techprofile present for ONU, ignoring onu discovery", log.Fields{"onuID": onuInCache.(*OnuDevice).onuID})
 						tpInstExists = true
 						break
 					}
@@ -2318,6 +2319,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 	// start the heartbeat check towards the OLT.
 	var timerCheck *time.Timer
 
+	logger.Warnw(ctx, " ABHI heartbeat thread started", log.Fields{"device-id": dh.device.Id})
 	for {
 		heartbeatTimer := time.NewTimer(dh.openOLT.HeartbeatCheckInterval)
 		select {
@@ -2336,31 +2338,32 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 					}
 					timerCheck = nil
 				}
-				//if dh.heartbeatSignature == heartBeat.HeartbeatSignature {
-				logger.Debugw(ctx, "heartbeat",
-					log.Fields{"ABHI signature": heartBeat,
-						"device-id": dh.device.Id})
-				dh.heartbeatSignature = heartBeat.HeartbeatSignature
+				if dh.heartbeatSignature == 0 || dh.heartbeatSignature == heartBeat.HeartbeatSignature {
+					logger.Warnw(ctx, "heartbeat",
+						log.Fields{"ABHI signature": heartBeat,
+							"device-id": dh.device.Id})
+					dh.heartbeatSignature = heartBeat.HeartbeatSignature
 
-				dh.lockDevice.RLock()
-				// Stop the read indication only if it the routine is active
-				// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
-				// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
-				// on next execution of the readIndication routine.
-				if !dh.isReadIndicationRoutineActive {
-					// Start reading indications
-					go func() {
-						if err = dh.readIndications(ctx); err != nil {
-							_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-						}
-					}()
+					dh.lockDevice.RLock()
+					// Stop the read indication only if it the routine is active
+					// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+					// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+					// on next execution of the readIndication routine.
+					if !dh.isReadIndicationRoutineActive {
+						// Start reading indications
+						go func() {
+							if err = dh.readIndications(ctx); err != nil {
+								_ = olterrors.NewErrAdapter("indication-read-failure", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+							}
+						}()
+					}
+					dh.lockDevice.RUnlock()
+
+				} else {
+					logger.Warn(ctx, "Heartbeat signature changed, OLT is rebooted. Cleaningup resources.")
+					dh.heartbeatSignature = heartBeat.HeartbeatSignature
+					go dh.updateStateRebooted(ctx)
 				}
-				dh.lockDevice.RUnlock()
-
-				//} else {
-				//	logger.Warn(ctx, "Heartbeat signature changed, OLT is rebooted. Cleaningup resources.")
-				//go dh.updateStateRebooted(ctx)
-				//}
 
 			}
 			cancel()
@@ -2384,7 +2387,7 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		return
 	}
 
-	logger.Debugw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
+	logger.Warnw(ctx, "ABHI update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
 		"admin-state": device.AdminState, "oper-status": device.OperStatus})
 	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
 		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
@@ -2424,6 +2427,8 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 			dh.stopIndications <- true
 		}
 		dh.lockDevice.RUnlock()
+		logger.Warnw(ctx, "ABHI moving state to init after unreacable , moving to init", log.Fields{"deviceID": device.Id})
+		dh.transitionMap.Handle(ctx, DeviceInit)
 
 	}
 }
@@ -2441,9 +2446,9 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		return
 	}
 
-	logger.Debugw(ctx, "update-state-unreachable", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
-		"admin-state": device.AdminState, "oper-status": device.OperStatus})
-	if device.ConnectStatus == voltha.ConnectStatus_REACHABLE {
+	logger.Warnw(ctx, "ABHI update-state-rebooted", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
+		"admin-state": device.AdminState, "oper-status": device.OperStatus, "conn-status":  voltha.ConnectStatus_UNREACHABLE})
+	if device.ConnectStatus == device.ConnectStatus {
 		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 			DeviceId:   dh.device.Id,
 			OperStatus: voltha.OperStatus_REBOOTED,
@@ -2452,6 +2457,7 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 			_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
 		}
 
+			logger.Warnw(ctx, "ABHI After device state update", log.Fields{"deviceID": device.Id})
 		dh.lockDevice.RLock()
 		// Stop the read indication only if it the routine is active
 		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
@@ -2470,22 +2476,14 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		dh.device = cloned // update local copy of the device
 		go dh.eventMgr.oltCommunicationEvent(ctx, cloned, raisedTs)
 
+			logger.Warnw(ctx, "ABHI olt down event sent", log.Fields{"deviceID": device.Id})
 		dh.cleanupDeviceResources(ctx)
 		// Stop the Stats collector
 		dh.stopCollector <- true
 		// stop the heartbeat check routine
 		dh.stopHeartbeatCheck <- true
 
-		dh.lockDevice.RLock()
-		// Stop the read indication only if it the routine is active
-		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
-		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
-		// on next execution of the readIndication routine.
-		if dh.isReadIndicationRoutineActive {
-			dh.stopIndications <- true
-		}
-		dh.lockDevice.RUnlock()
-
+			logger.Warnw(ctx, "ABHI after clenup and collector stop", log.Fields{"deviceID": device.Id})
 		var wg sync.WaitGroup
 		wg.Add(1) // for the multicast handler routine
 		go dh.StopAllMcastHandlerRoutines(ctx, &wg)
@@ -2503,20 +2501,22 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		dh.adapterPreviouslyConnected = false
 		for {
 
+			logger.Warnw(ctx, "ABHI started cleanup on reboot", log.Fields{"deviceID": device.Id})
 			childDevices, err := dh.getChildDevicesFromCore(ctx, dh.device.Id)
-			if err != nil {
+			if err != nil || childDevices == nil {
 				logger.Errorw(ctx, "Failed to get child devices from core", log.Fields{"deviceID": dh.device.Id})
 				continue
 			}
-			if childDevices == nil {
+			if len(childDevices.Items) == 0 {
 				logger.Infow(ctx, "All childDevices cleared from core, proceed with device init", log.Fields{"deviceID": dh.device.Id})
 				break
 			} else {
-				logger.Info(ctx, "Not all child devices are cleared, continuing to wait")
+				logger.Warn(ctx, "Not all child devices are cleared, continuing to wait")
 				time.Sleep(5 * time.Second)
 			}
 
 		}
+		logger.Warnw(ctx, "ABHI cleanup complete after reboot , moving to init", log.Fields{"deviceID": device.Id})
 		dh.transitionMap.Handle(ctx, DeviceInit)
 
 	}
