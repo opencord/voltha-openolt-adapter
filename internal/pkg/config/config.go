@@ -59,6 +59,7 @@ const (
 	defaultMinBackoffRetryDelay  = 500 * time.Millisecond
 	defaultMaxBackoffRetryDelay  = 10 * time.Second
 	defaultAdapterEndpoint       = "adapter-open-olt"
+	defaultCheckDeviceOnDown     = false
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -95,6 +96,7 @@ type AdapterFlags struct {
 	MinBackoffRetryDelay        time.Duration
 	MaxBackoffRetryDelay        time.Duration
 	AdapterEndpoint             string
+	CheckDeviceOnDown           bool
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -127,6 +129,7 @@ func NewAdapterFlags() *AdapterFlags {
 		RPCTimeout:                  defaultRPCTimeout,
 		MinBackoffRetryDelay:        defaultMinBackoffRetryDelay,
 		MaxBackoffRetryDelay:        defaultMaxBackoffRetryDelay,
+		CheckDeviceOnDown:           defaultCheckDeviceOnDown,
 	}
 	return &adapterFlags
 }
@@ -278,6 +281,11 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"max_retry_delay",
 		defaultMaxBackoffRetryDelay,
 		"The maximum number of milliseconds to delay before a connection retry attempt")
+
+	flag.BoolVar(&(so.CheckDeviceOnDown),
+		"check_device_on_down",
+		defaultCheckDeviceOnDown,
+		"Whether to check for flows only or child device before honoring discovery?")
 
 	flag.Parse()
 	containerName := getContainerInfo()

@@ -59,6 +59,7 @@ type OpenOLT struct {
 	enableONUStats              bool
 	enableGemStats              bool
 	rpcTimeout                  time.Duration
+	CheckDeviceOnDown           bool
 }
 
 //NewOpenOLT returns a new instance of OpenOLT
@@ -82,6 +83,7 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.enableONUStats = cfg.EnableONUStats
 	openOLT.enableGemStats = cfg.EnableGEMStats
 	openOLT.rpcTimeout = cfg.RPCTimeout
+	openOLT.CheckDeviceOnDown = cfg.CheckDeviceOnDown
 	return &openOLT
 }
 

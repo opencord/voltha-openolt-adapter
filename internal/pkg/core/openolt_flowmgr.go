@@ -2088,10 +2088,10 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 			}
 		}
 		//Delete the tp instance and the techprofileid for onu at the end
-		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
+		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
 			logger.Warn(ctx, err)
 		}
-		if err := f.DeleteTechProfileInstance(ctx, intfID, uint32(onuID), uint32(uniID), "", tpID); err != nil {
+		if err := f.resourceMgr.RemoveTechProfileIDForOnu(ctx, uint32(onuID), uint32(uniID), tpID); err != nil {
 			logger.Warn(ctx, err)
 		}
 	}
