@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f71a401d_3e286e57",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-13T17:29:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bca11168_9ef49152",
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8b8474dd_3102547f",
@@ -41,6 +59,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d909a024_c9fadbb4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-13T17:29:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8b8474dd_3102547f",
+      "range": {
+        "startLine": 141,
+        "startChar": 1,
+        "endLine": 141,
+        "endChar": 6
+      },
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cecaf168_f276bb66",
@@ -54,6 +96,30 @@
       "writtenOn": "2022-06-13T15:30:08Z",
       "side": 1,
       "message": "Why is the return from this function when the childDevice is getting already deleted removed?",
+      "range": {
+        "startLine": 2665,
+        "startChar": 1,
+        "endLine": 2665,
+        "endChar": 7
+      },
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81b3ad01_ff553892",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2665,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-13T17:29:28Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cecaf168_f276bb66",
       "range": {
         "startLine": 2665,
         "startChar": 1,
