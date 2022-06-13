@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bca11168_9ef49152",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2022-06-13T15:30:08Z",
+      "side": 1,
+      "message": "Can we change this attribute name to something more informative like checkOnuDevExistenceAtOnuDiscovery",
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b8474dd_3102547f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2022-06-13T15:30:08Z",
+      "side": 1,
+      "message": "Is this really required? If not please remove this",
+      "range": {
+        "startLine": 141,
+        "startChar": 1,
+        "endLine": 141,
+        "endChar": 6
+      },
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cecaf168_f276bb66",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2665,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2022-06-13T15:30:08Z",
+      "side": 1,
+      "message": "Why is the return from this function when the childDevice is getting already deleted removed?",
+      "range": {
+        "startLine": 2665,
+        "startChar": 1,
+        "endLine": 2665,
+        "endChar": 7
+      },
+      "revId": "93d9ab095c5c9cd500c7f13837a80a6536919f93",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
