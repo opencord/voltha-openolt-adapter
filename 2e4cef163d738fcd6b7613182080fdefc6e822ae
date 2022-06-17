@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2a7a592f_6cd8c639",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "This should not be hardcoded, but rather come from config.ConfigManager.Backend.PathPrefix. Are you using this anywhere?",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fa982c94_341e403a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "May be return nil?",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "37a9c340_284b9e8f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1399,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "If the adapter were to restart, this cache would be empty I think. We may need to update this cache first. Is that correct?",
+      "range": {
+        "startLine": 1399,
+        "startChar": 2,
+        "endLine": 1399,
+        "endChar": 9
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3a505577_96a3414b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1406,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "onuGemInfo will be nil if there is error in previous check.",
+      "range": {
+        "startLine": 1406,
+        "startChar": 24,
+        "endLine": 1406,
+        "endChar": 34
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ddd1e74d_6312a40f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1419,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "If for any reason the cache is empty but the ONUs are actually present (adapter restart) then tpInstExists will become false. I think that is my understanding, please check.",
+      "range": {
+        "startLine": 1419,
+        "startChar": 5,
+        "endLine": 1419,
+        "endChar": 17
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e918123_415f97ff",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2366,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-06-17T17:38:03Z",
+      "side": 1,
+      "message": "This should move within \"if dh.heartbeatSignature \u003d\u003d 0 \" check? We may not want to keep updating the dh.heartbeatSignature if it is same as heartBeat.HeartbeatSignature?",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
