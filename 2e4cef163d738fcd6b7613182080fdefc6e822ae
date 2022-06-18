@@ -37,6 +37,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "38adedcb_1957db3e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "it slipped in by mistake, removed it.",
+      "parentUuid": "2a7a592f_6cd8c639",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fa982c94_341e403a",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -54,6 +72,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c7828754_995c6e20",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fa982c94_341e403a",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "37a9c340_284b9e8f",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -65,6 +101,30 @@
       "writtenOn": "2022-06-17T17:38:03Z",
       "side": 1,
       "message": "If the adapter were to restart, this cache would be empty I think. We may need to update this cache first. Is that correct?",
+      "range": {
+        "startLine": 1399,
+        "startChar": 2,
+        "endLine": 1399,
+        "endChar": 9
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be26c0fe_de10ac6f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1399,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "37a9c340_284b9e8f",
       "range": {
         "startLine": 1399,
         "startChar": 2,
@@ -100,6 +160,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1c99aa49_ed27d04f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1406,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "3a505577_96a3414b",
+      "range": {
+        "startLine": 1406,
+        "startChar": 24,
+        "endLine": 1406,
+        "endChar": 34
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ddd1e74d_6312a40f",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -123,6 +207,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "938d4aa2_66327dad",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1419,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "added a function to update the cache",
+      "parentUuid": "ddd1e74d_6312a40f",
+      "range": {
+        "startLine": 1419,
+        "startChar": 5,
+        "endLine": 1419,
+        "endChar": 17
+      },
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8e918123_415f97ff",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -134,6 +242,24 @@
       "writtenOn": "2022-06-17T17:38:03Z",
       "side": 1,
       "message": "This should move within \"if dh.heartbeatSignature \u003d\u003d 0 \" check? We may not want to keep updating the dh.heartbeatSignature if it is same as heartBeat.HeartbeatSignature?",
+      "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e672486_eebc7b3b",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2366,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-18T14:54:01Z",
+      "side": 1,
+      "message": "yup, moved it above",
+      "parentUuid": "8e918123_415f97ff",
       "revId": "2e4cef163d738fcd6b7613182080fdefc6e822ae",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
