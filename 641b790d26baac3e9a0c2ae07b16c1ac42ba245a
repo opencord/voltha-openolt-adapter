@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b2ffc38_6fb3ded1",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-21T15:16:33Z",
+      "side": 1,
+      "message": "Just a thought , To ensure that old pods do not recieve request, kubernetes will send a signal to old pod to kill, we can catch the signal and then close the grpc connections and unsubscribe from the kafka topics and close any other communications channels. This will ensure that the old pod does not get the requests.",
+      "revId": "641b790d26baac3e9a0c2ae07b16c1ac42ba245a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
