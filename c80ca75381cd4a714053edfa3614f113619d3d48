@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "613b3d12_2e44c7ad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000116
+      },
+      "writtenOn": "2022-06-22T09:18:36Z",
+      "side": 1,
+      "message": "overriding Jenkins due to Tucson pod being offline. ",
+      "revId": "c80ca75381cd4a714053edfa3614f113619d3d48",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
