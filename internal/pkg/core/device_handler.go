@@ -99,6 +99,11 @@ type DeviceHandler struct {
 
 	deviceInfo *oop.DeviceInfo
 
+	// discOnus (map[onuSn]bool) contains a list of ONUs that have been discovered, indexed by ONU SerialNumber.
+	// if the value is true that means the OnuDiscovery indication
+	// is currently being processed and thus we can ignore concurrent requests
+	// if it's false it means the processing has completed and we shouldn't be receiving a new indication
+	// if we do it means something went wrong and we need to retry
 	discOnus                      sync.Map
 	onus                          sync.Map
 	portStats                     *OpenOltStatisticsMgr
@@ -1464,40 +1469,37 @@ func (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscI
 
 }
 
-func (dh *DeviceHandler) processDiscONULOSClear(ctx context.Context, onuDiscInd *oop.OnuDiscIndication, sn string) bool {
+// processDiscONULOSClear clears the LOS Alarm if it's needed
+func (dh *DeviceHandler) processDiscONULOSClear(ctx context.Context, onuDiscInd *oop.OnuDiscIndication, sn string) {
 	var alarmInd oop.OnuAlarmIndication
 	raisedTs := time.Now().Unix()
-	if _, loaded := dh.discOnus.LoadOrStore(sn, true); loaded {
 
-		/* When PON cable disconnected and connected back from OLT, it was expected OnuAlarmIndication
-		   with "los_status: off" should be raised but BAL does not raise this Alarm hence manually sending
-		   OnuLosClear event on receiving OnuDiscoveryIndication for the Onu after checking whether
-		   OnuLosRaise event sent for it */
-		dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
-			if onuInCache.(*OnuDevice).serialNumber == sn && onuInCache.(*OnuDevice).losRaised {
-				if onuDiscInd.GetIntfId() != onuInCache.(*OnuDevice).intfID {
-					logger.Warnw(ctx, "onu-is-on-a-different-intf-id-now", log.Fields{
-						"previousIntfId": onuInCache.(*OnuDevice).intfID,
-						"currentIntfId":  onuDiscInd.GetIntfId()})
-					// TODO:: Should we need to ignore raising OnuLosClear event
-					// when onu connected to different PON?
-				}
-				alarmInd.IntfId = onuInCache.(*OnuDevice).intfID
-				alarmInd.OnuId = onuInCache.(*OnuDevice).onuID
-				alarmInd.LosStatus = statusCheckOff
-				go func() {
-					if err := dh.eventMgr.onuAlarmIndication(ctx, &alarmInd, onuInCache.(*OnuDevice).deviceID, raisedTs); err != nil {
-						logger.Debugw(ctx, "indication-failed", log.Fields{"err": err})
-					}
-				}()
+	/* When PON cable disconnected and connected back from OLT, it was expected OnuAlarmIndication
+	   with "los_status: off" should be raised but BAL does not raise this Alarm hence manually sending
+	   OnuLosClear event on receiving OnuDiscoveryIndication for the Onu after checking whether
+	   OnuLosRaise event sent for it */
+	dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
+		if onuInCache.(*OnuDevice).serialNumber == sn && onuInCache.(*OnuDevice).losRaised {
+			if onuDiscInd.GetIntfId() != onuInCache.(*OnuDevice).intfID {
+				logger.Warnw(ctx, "onu-is-on-a-different-intf-id-now", log.Fields{
+					"previousIntfId": onuInCache.(*OnuDevice).intfID,
+					"currentIntfId":  onuDiscInd.GetIntfId()})
+				// TODO:: Should we need to ignore raising OnuLosClear event
+				// when onu connected to different PON?
 			}
-			return true
-		})
-
-		logger.Warnw(ctx, "onu-sn-is-already-being-processed", log.Fields{"sn": sn})
+			alarmInd.IntfId = onuInCache.(*OnuDevice).intfID
+			alarmInd.OnuId = onuInCache.(*OnuDevice).onuID
+			alarmInd.LosStatus = statusCheckOff
+			go func() {
+				if err := dh.eventMgr.onuAlarmIndication(ctx, &alarmInd, onuInCache.(*OnuDevice).deviceID, raisedTs); err != nil {
+					logger.Errorw(ctx, "indication-failed", log.Fields{"err": err})
+				}
+			}()
+			// stop iterating
+			return false
+		}
 		return true
-	}
-	return false
+	})
 }
 
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
@@ -1513,11 +1515,35 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	}
 	if tpInstExists {
 		//ignore the discovery if tpinstance is present.
+		logger.Debugw(ctx, "ignoring-onu-indication-as-tp-already-exists", log.Fields{"sn": sn})
 		return nil
 	}
-	if onuBeingProcessed := dh.processDiscONULOSClear(ctx, onuDiscInd, sn); onuBeingProcessed {
-		return nil
+	inProcess, existing := dh.discOnus.LoadOrStore(sn, true)
+
+	// if the ONU existed, handle the LOS Alarm
+	if existing {
+
+		if inProcess.(bool) {
+			// if we're currently processing the ONU on a different thread, do nothing
+			logger.Warnw(ctx, "onu-sn-is-being-processed", log.Fields{"sn": sn})
+			return nil
+		}
+		// if we had dealt with this ONU before, but the process didn't complete (this happens in case of errors)
+		// then continue processing it
+		logger.Debugw(ctx, "onu-processing-had-completed-but-new-indication", log.Fields{"sn": sn})
+
+		dh.processDiscONULOSClear(ctx, onuDiscInd, sn)
 	}
+
+	defer func() {
+		// once the function completes set the value to false so that
+		// we know the processing has inProcess.
+		// Note that this is done after checking if we are already processing
+		// to avoid changing the value from a different thread
+		logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
+		dh.discOnus.Store(sn, false)
+	}()
+
 	var onuID uint32
 
 	// check the ONU is already know to the OLT
