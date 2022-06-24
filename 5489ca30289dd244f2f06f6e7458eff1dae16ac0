@@ -43,6 +43,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "1e2880a4_50374461",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1400,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-24T12:47:42Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "010d7a4e_9aed7891",
+      "range": {
+        "startLine": 1400,
+        "startChar": 9,
+        "endLine": 1400,
+        "endChar": 14
+      },
+      "revId": "5489ca30289dd244f2f06f6e7458eff1dae16ac0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "46b0f765_a02bfe96",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 7
@@ -54,6 +78,30 @@
       "writtenOn": "2022-06-21T05:06:29Z",
       "side": 1,
       "message": "Should this be at Debugw level?",
+      "range": {
+        "startLine": 1418,
+        "startChar": 8,
+        "endLine": 1418,
+        "endChar": 13
+      },
+      "revId": "5489ca30289dd244f2f06f6e7458eff1dae16ac0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b42ba71_7153df5d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1418,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2022-06-24T12:47:42Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "46b0f765_a02bfe96",
       "range": {
         "startLine": 1418,
         "startChar": 8,
