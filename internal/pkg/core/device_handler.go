@@ -109,7 +109,9 @@ type DeviceHandler struct {
 	portStats                     *OpenOltStatisticsMgr
 	metrics                       *pmmetrics.PmMetrics
 	stopCollector                 chan bool
+	isCollectorActive             bool
 	stopHeartbeatCheck            chan bool
+	isHeartbeatCheckActive        bool
 	activePorts                   sync.Map
 	stopIndications               chan bool
 	isReadIndicationRoutineActive bool
@@ -203,8 +205,8 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	dh.openOLT = adapter
 	dh.exitChannel = make(chan struct{})
 	dh.lockDevice = sync.RWMutex{}
-	dh.stopCollector = make(chan bool, 2)      // TODO: Why buffered?
-	dh.stopHeartbeatCheck = make(chan bool, 2) // TODO: Why buffered?
+	dh.stopCollector = make(chan bool, 1)      // TODO: Why buffered?
+	dh.stopHeartbeatCheck = make(chan bool, 1) // TODO: Why buffered?
 	dh.metrics = pmmetrics.NewPmMetrics(cloned.Id, pmmetrics.Frequency(150), pmmetrics.FrequencyOverride(false), pmmetrics.Grouped(false), pmmetrics.Metrics(pmNames))
 	dh.activePorts = sync.Map{}
 	dh.stopIndications = make(chan bool, 1) // TODO: Why buffered?
@@ -1057,6 +1059,17 @@ func (dh *DeviceHandler) populateDeviceInfo(ctx context.Context) (*oop.DeviceInf
 
 func startCollector(ctx context.Context, dh *DeviceHandler) {
 	logger.Debugw(ctx, "starting-collector", log.Fields{"device-id": dh.device.Id})
+
+	defer func() {
+		dh.lockDevice.Lock()
+		dh.isCollectorActive = false
+		dh.lockDevice.Unlock()
+	}()
+
+	dh.lockDevice.Lock()
+	dh.isCollectorActive = true
+	dh.lockDevice.Unlock()
+
 	for {
 		select {
 		case <-dh.stopCollector:
@@ -2015,8 +2028,12 @@ func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Devic
 	dh.discOnus = sync.Map{}
 	dh.onus = sync.Map{}
 
+	dh.lockDevice.RLock()
 	//stopping the stats collector
-	dh.stopCollector <- true
+	if dh.isCollectorActive {
+		dh.stopCollector <- true
+	}
+	dh.lockDevice.RUnlock()
 
 	go dh.notifyChildDevices(ctx, "unreachable")
 	cloned := proto.Clone(device).(*voltha.Device)
@@ -2167,11 +2184,16 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 
 	dh.cleanupDeviceResources(ctx)
 	logger.Debugw(ctx, "removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
-	// Stop the Stats collector
-	dh.stopCollector <- true
-	// stop the heartbeat check routine
-	dh.stopHeartbeatCheck <- true
+
 	dh.lockDevice.RLock()
+	// Stop the Stats collector
+	if dh.isCollectorActive {
+		dh.stopCollector <- true
+	}
+	// stop the heartbeat check routine
+	if dh.isHeartbeatCheckActive {
+		dh.stopHeartbeatCheck <- true
+	}
 	// Stop the read indication only if it the routine is active
 	if dh.isReadIndicationRoutineActive {
 		dh.stopIndications <- true
@@ -2417,6 +2439,16 @@ func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
 
 func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 
+	defer func() {
+		dh.lockDevice.Lock()
+		dh.isHeartbeatCheckActive = false
+		dh.lockDevice.Unlock()
+	}()
+
+	dh.lockDevice.Lock()
+	dh.isHeartbeatCheckActive = true
+	dh.lockDevice.Unlock()
+
 	// start the heartbeat check towards the OLT.
 	var timerCheck *time.Timer
 	dh.heartbeatSignature = dh.getHeartbeatSignature(ctx)
@@ -2519,11 +2551,15 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		dh.device = cloned // update local copy of the device
 		go dh.eventMgr.oltCommunicationEvent(ctx, cloned, raisedTs)
 
-		// Stop the Stats collector
-		dh.stopCollector <- true
-		// stop the heartbeat check routine
-		dh.stopHeartbeatCheck <- true
 		dh.lockDevice.RLock()
+		// Stop the Stats collector
+		if dh.isCollectorActive {
+			dh.stopCollector <- true
+		}
+		// stop the heartbeat check routine
+		if dh.isHeartbeatCheckActive {
+			dh.stopHeartbeatCheck <- true
+		}
 		// Stop the read indication only if it the routine is active
 		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
 		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
@@ -2579,10 +2615,17 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	go dh.eventMgr.oltCommunicationEvent(ctx, cloned, raisedTs)
 
 	dh.cleanupDeviceResources(ctx)
+
+	dh.lockDevice.RLock()
 	// Stop the Stats collector
-	dh.stopCollector <- true
+	if dh.isCollectorActive {
+		dh.stopCollector <- true
+	}
 	// stop the heartbeat check routine
-	dh.stopHeartbeatCheck <- true
+	if dh.isHeartbeatCheckActive {
+		dh.stopHeartbeatCheck <- true
+	}
+	dh.lockDevice.RUnlock()
 
 	var wg sync.WaitGroup
 	wg.Add(1) // for the multicast handler routine
