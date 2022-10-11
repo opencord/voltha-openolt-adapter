@@ -1546,6 +1546,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		logger.Debugw(ctx, "onu-processing-had-completed-but-new-indication", log.Fields{"sn": sn})
 
 		dh.processDiscONULOSClear(ctx, onuDiscInd, sn)
+		return nil
 	}
 
 	defer func() {
