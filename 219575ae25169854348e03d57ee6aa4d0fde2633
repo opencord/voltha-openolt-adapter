@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e84cc1df_250d7c97",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2246,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "Is there a specific reason you are creating a ned error here? instead of creating a new error, we may only append the error returned from the clearUNIData function",
+      "range": {
+        "startLine": 2246,
+        "startChar": 12,
+        "endLine": 2246,
+        "endChar": 48
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f442dc47_868e23b2",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2251,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 2251,
+        "startChar": 11,
+        "endLine": 2251,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ab66d8e_9333fd51",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2255,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 2255,
+        "startChar": 11,
+        "endLine": 2255,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9d4ecdec_783d1a8f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2259,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "same as above.",
+      "range": {
+        "startLine": 2259,
+        "startChar": 11,
+        "endLine": 2259,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "da9ffb0f_75f97ca8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2263,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 2263,
+        "startChar": 11,
+        "endLine": 2263,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ff2401a3_7b6631c1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2270,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:07:01Z",
+      "side": 1,
+      "message": "same here.",
+      "range": {
+        "startLine": 2270,
+        "startChar": 9,
+        "endLine": 2270,
+        "endChar": 15
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
