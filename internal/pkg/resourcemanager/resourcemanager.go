@@ -1393,14 +1393,15 @@ func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, gem
 }
 
 //DeleteMcastQueueForIntf deletes multicast queue info for the current pon interface from kvstore
-func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) {
+func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) error {
 	path := McastQueuesForIntf
 
 	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
 		logger.Errorw(ctx, "Failed to delete multicast queue info from kvstore", log.Fields{"err": err, "interfaceId": rsrcMgr.PonIntfID})
-		return
+		return err
 	}
 	logger.Debugw(ctx, "deleted multicast queue info from KV store successfully", log.Fields{"interfaceId": rsrcMgr.PonIntfID})
+	return nil
 }
 
 //AddFlowGroupToKVStore adds flow group into KV store
