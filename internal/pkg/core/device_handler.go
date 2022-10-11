@@ -213,8 +213,7 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	dh.perPonOnuIndicationChannel = make(map[uint32]onuIndicationChannels)
 	dh.childAdapterClients = make(map[string]*vgrpc.Client)
 	dh.cfg = cfg
-	kvStoreDevicePath := fmt.Sprintf(dh.cm.Backend.PathPrefix, "/%s/", dh.device.Id)
-	dh.kvStore = SetKVClient(ctx, dh.openOLT.KVStoreType, dh.openOLT.KVStoreAddress, dh.device.Id, kvStoreDevicePath)
+	dh.kvStore = SetKVClient(ctx, dh.openOLT.KVStoreType, dh.openOLT.KVStoreAddress, dh.device.Id, dh.cm.Backend.PathPrefix)
 	if dh.kvStore == nil {
 		logger.Error(ctx, "Failed to setup KV store")
 		return nil
@@ -254,7 +253,6 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 		logger.Fatalw(ctx, "Failed to init KV client\n", log.Fields{"err": err})
 		return nil
 	}
-
 	kvbackend := &db.Backend{
 		Client:     kvClient,
 		StoreType:  backend,
@@ -2146,6 +2144,7 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemInfo) error {
 	var uniID uint32
 	var err error
+	var errs []error
 	for _, port := range onu.UniPorts {
 		uniID = plt.UniIDFromPortNum(port)
 		logger.Debugw(ctx, "clearing-resource-data-for-uni-port", log.Fields{"port": port, "uni-id": uniID})
@@ -2155,6 +2154,7 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		} else {
 			if err = dh.flowMgr[onu.IntfID].DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
 				logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+				errs = append(errs, err)
 			}
 		}
 		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
@@ -2162,21 +2162,29 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		for _, tpID := range tpIDList {
 			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "upstream", onu.OnuID, uniID, tpID); err != nil {
 				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
+				errs = append(errs, err)
 			}
 			logger.Debugw(ctx, "removed-meter-id-for-onu-upstream", log.Fields{"onu-id": onu.OnuID})
 			if err = dh.resourceMgr[onu.IntfID].RemoveMeterInfoForOnu(ctx, "downstream", onu.OnuID, uniID, tpID); err != nil {
 				logger.Debugw(ctx, "failed-to-remove-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
+				errs = append(errs, err)
 			}
 			logger.Debugw(ctx, "removed-meter-id-for-onu-downstream", log.Fields{"onu-id": onu.OnuID})
 		}
 		dh.resourceMgr[onu.IntfID].FreePONResourcesForONU(ctx, onu.OnuID, uniID)
 		if err = dh.resourceMgr[onu.IntfID].RemoveTechProfileIDsForOnu(ctx, onu.OnuID, uniID); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
+			errs = append(errs, err)
 		}
 		logger.Debugw(ctx, "removed-tech-profile-id-for-onu", log.Fields{"onu-id": onu.OnuID})
 		if err = dh.resourceMgr[onu.IntfID].DeletePacketInGemPortForOnu(ctx, onu.OnuID, port); err != nil {
 			logger.Debugw(ctx, "failed-to-remove-gemport-pkt-in", log.Fields{"intfid": onu.IntfID, "onuid": onu.OnuID, "uniId": uniID})
+			errs = append(errs, err)
 		}
+	}
+	if len(errs) > 0 {
+		return olterrors.NewErrAdapter(fmt.Errorf("one-or-more-error-during-clear-uni-data, errors:%v",
+			errs).Error(), log.Fields{"device-id": dh.device.Id}, nil)
 	}
 	return nil
 }
@@ -2205,7 +2213,11 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 		logger.Infow(ctx, "all flow and group handlers shutdown gracefully", log.Fields{"deviceID": device.Id})
 	}
 
-	dh.cleanupDeviceResources(ctx)
+	if err := dh.cleanupDeviceResources(ctx); err != nil {
+		dh.setDeviceDeletionInProgressFlag(false)
+		return olterrors.NewErrAdapter("could-not-remove-device-from-KV-store",
+			log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+	}
 	logger.Debugw(ctx, "removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 
 	dh.lockDevice.RLock()
@@ -2226,7 +2238,13 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	//Reset the state
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(ctx, new(oop.Empty)); err != nil {
-			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
+			go func() {
+				failureReason := fmt.Sprintf("Failed to reboot during device delete request with error: %s", err.Error())
+				if err = dh.eventMgr.oltRebootFailedEvent(ctx, dh.device.Id, failureReason, time.Now().Unix()); err != nil {
+					logger.Errorw(ctx, "on-olt-reboot-failed", log.Fields{"device-id": dh.device.Id, "err": err})
+				}
+			}()
+			logger.Errorw(ctx, "olt-reboot-failed", log.Fields{"device-id": dh.device.Id, "err": err})
 		}
 	}
 	// There is no need to update the core about operation status and connection status of the OLT.
@@ -2238,41 +2256,42 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	dh.deleteAdapterClients(ctx)
 	return nil
 }
-func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 
+func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
+	var errs []error
 	if dh.resourceMgr != nil {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
-			var err error
 			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
-				if err = dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
-					logger.Errorw(ctx, "failed-to-clear-data-for-onu", log.Fields{"onu-device": onu})
+				if err := dh.clearUNIData(ctx, &onuGemData[i]); err != nil {
+					errs = append(errs, err)
 				}
 			}
-			_ = dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx)
-			_ = dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx)
-			dh.resourceMgr[ponPort].DeleteMcastQueueForIntf(ctx)
+			if err := dh.resourceMgr[ponPort].DeleteAllFlowIDsForGemForIntf(ctx); err != nil {
+				errs = append(errs, err)
+			}
+			if err := dh.resourceMgr[ponPort].DeleteAllOnuGemInfoForIntf(ctx); err != nil {
+				errs = append(errs, err)
+			}
+			if err := dh.resourceMgr[ponPort].DeleteMcastQueueForIntf(ctx); err != nil {
+				errs = append(errs, err)
+			}
 			if err := dh.resourceMgr[ponPort].Delete(ctx, ponPort); err != nil {
-				logger.Debug(ctx, err)
+				errs = append(errs, err)
 			}
 		}
-		// Clean up NNI manager's data
-		_ = dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx)
+	}
+	// Clean up NNI manager's data
+	if err := dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx); err != nil {
+		errs = append(errs, err)
 	}
 
 	// Take one final sweep at cleaning up KV store for the OLT device
 	// Clean everything at <base-path-prefix>/openolt/<device-id>
-	kvClient, err := kvstore.NewEtcdClient(ctx, dh.openOLT.KVStoreAddress, rsrcMgr.KvstoreTimeout, log.FatalLevel)
-	if err == nil {
-		kvBackend := &db.Backend{
-			Client:     kvClient,
-			StoreType:  dh.openOLT.KVStoreType,
-			Address:    dh.openOLT.KVStoreAddress,
-			Timeout:    rsrcMgr.KvstoreTimeout,
-			PathPrefix: fmt.Sprintf(rsrcMgr.BasePathKvStore, dh.cm.Backend.PathPrefix, dh.device.Id)}
-		_ = kvBackend.DeleteWithPrefix(ctx, "")
+	if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
+		errs = append(errs, err)
 	}
 
 	/*Delete ONU map for the device*/
@@ -2286,6 +2305,11 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 		dh.discOnus.Delete(key)
 		return true
 	})
+	if len(errs) > 0 {
+		return olterrors.NewErrAdapter(fmt.Errorf("one-or-more-error-during-device-delete, errors:%v",
+			errs).Error(), log.Fields{"device-id": dh.device.Id}, nil)
+	}
+	return nil
 }
 
 // RebootDevice reboots the given device
@@ -2657,7 +2681,9 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	dh.device = cloned // update local copy of the device
 	go dh.eventMgr.oltCommunicationEvent(ctx, cloned, raisedTs)
 
-	dh.cleanupDeviceResources(ctx)
+	if err := dh.cleanupDeviceResources(ctx); err != nil {
+		logger.Errorw(ctx, "failure-in-cleanup-device-resources", log.Fields{"device-id": dh.device.Id, "err": err})
+	}
 
 	dh.lockDevice.RLock()
 	// Stop the Stats collector
