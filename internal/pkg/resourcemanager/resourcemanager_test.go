@@ -1016,7 +1016,7 @@ func TestOpenOltResourceMgr_DeleteMcastQueueForIntf(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			RsrcMgr.DeleteMcastQueueForIntf(ctx)
+			_ = RsrcMgr.DeleteMcastQueueForIntf(ctx)
 		})
 	}
 }
