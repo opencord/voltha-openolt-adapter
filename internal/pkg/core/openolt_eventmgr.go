@@ -41,6 +41,7 @@ const (
 	onuLopcMissEvent                    = "ONU_LOPC_MISS"
 	onuLopcMicErrorEvent                = "ONU_LOPC_MIC_ERROR"
 	oltLosEvent                         = "OLT_LOSS_OF_SIGNAL"
+	oltRebootFailedEvent                = "OLT_REBOOT_FAILED"
 	oltCommFailure                      = "OLT_COMMUNICATION_FAILURE"
 	oltIndicationDown                   = "OLT_DOWN_INDICATION"
 	onuDyingGaspEvent                   = "ONU_DYING_GASP"
@@ -337,6 +338,20 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 		return err
 	}
 	logger.Debugw(ctx, "olt-los-event-sent-to-kafka", log.Fields{"intf-id": ponIntdID})
+	return nil
+}
+func (em *OpenOltEventMgr) oltRebootFailedEvent(ctx context.Context, deviceID string, raisedTs int64) error {
+	de := voltha.DeviceEvent{
+		Context:         map[string]string{ContextOltConnectState: "olt-reboot-failed"},
+		ResourceId:      deviceID,
+		DeviceEventName: fmt.Sprintf("%s_%s", oltRebootFailedEvent, "RAISE_EVENT")}
+	if err := em.eventProxy.SendDeviceEvent(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_OLT,
+		raisedTs); err != nil {
+		return olterrors.NewErrCommunication("send-olt-reboot-failed-event", log.Fields{
+			"device-id": deviceID, "raised-ts": raisedTs}, err)
+	}
+	logger.Debugw(ctx, "olt-reboot-failed-event-sent-to-kafka", log.Fields{
+		"device-id": deviceID, "raised-ts": raisedTs})
 	return nil
 }
 

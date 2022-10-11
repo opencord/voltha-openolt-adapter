@@ -243,7 +243,7 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 	logger.Infow(ctx, "delete-device", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.DeleteDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
-			logger.Errorw(ctx, "failed-to-handle-delete-device", log.Fields{"device-id": device.Id})
+			return nil, err
 		}
 		oo.deleteDeviceHandlerToMap(handler)
 		return &empty.Empty{}, nil

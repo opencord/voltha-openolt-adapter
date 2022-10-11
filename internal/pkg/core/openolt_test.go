@@ -30,6 +30,8 @@ import (
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
+	"github.com/opencord/voltha-protos/v5/go/openolt"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/events"
 	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
@@ -205,7 +207,18 @@ func TestOpenOLT_CancelImageDownload(t *testing.T) {
 }
 
 func TestOpenOLT_DeleteDevice(t *testing.T) {
+	oo1 := testOltObject(&fields{})
+	oo2 := testOltObject(&fields{})
+	oo2.deviceHandlers = make(map[string]*DeviceHandler)
+	oo2.deviceHandlers[mockDevice().Id] = newMockDeviceHandler()
+	oo3 := testOltObject(&fields{})
+	oo3.deviceHandlers = make(map[string]*DeviceHandler)
+	oo3.deviceHandlers[mockDevice().Id] = newMockDeviceHandler()
+	_, err := oo3.deviceHandlers[mockDevice().Id].Client.Reboot(context.Background(), &openolt.Empty{})
+	assert.Nil(t, err)
+
 	type args struct {
+		oo     *OpenOLT
 		device *voltha.Device
 	}
 	tests := []struct {
@@ -214,13 +227,16 @@ func TestOpenOLT_DeleteDevice(t *testing.T) {
 		args    args
 		wantErr error
 	}{
-		{"delete_device-1", &fields{}, args{mockDevice()},
+		{"delete_device-1", &fields{}, args{oo1, mockDevice()},
 			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
+		{"delete_device-2", &fields{}, args{oo2, mockDevice()}, nil},
+		{"delete_device-3", &fields{}, args{oo3, mockDevice()},
+			olterrors.NewErrAdapter("olt-reboot-failed-in-delete-device", log.Fields{"device-id": mockDevice().Id},
+				errors.New("reboot failed")).Log()},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			oo := testOltObject(tt.fields)
-			if _, err := oo.DeleteDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
+			if _, err := tt.args.oo.DeleteDevice(context.Background(), tt.args.device); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Delete_device() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
