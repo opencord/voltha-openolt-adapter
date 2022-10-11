@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "2386af76_523f51d7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2220,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-11T17:23:09Z",
+      "side": 1,
+      "message": "Yo may think to send this event in a separate go routine.",
+      "range": {
+        "startLine": 2220,
+        "startChar": 12,
+        "endLine": 2220,
+        "endChar": 23
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e84cc1df_250d7c97",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 1
