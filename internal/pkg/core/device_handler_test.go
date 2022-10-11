@@ -170,6 +170,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	openOLT := &OpenOLT{eventProxy: ep, config: cfg, KVStoreType: "etcd", KVStoreAddress: "1:2"}
 	dh := NewDeviceHandler(cc, ep, device, openOLT, cm, cfg)
 	dh.kvStore = cm.Backend
+
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{
 		IntfIds:    []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		Technology: "xgs-pon",
