@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f036c8c1_f0906d58",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:11:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7f43a7c_97113f60",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "acb63451_85fcef84",
@@ -31,6 +49,24 @@
       "writtenOn": "2022-10-20T20:09:24Z",
       "side": 1,
       "message": "It doesn\u0027t seem to make sense to instantiate a new kv-store instance to do this final cleanup.\n\nLet me know if I didn\u0027t consider something.",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ec5330d_08fdff67",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2272,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:11:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acb63451_85fcef84",
       "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
