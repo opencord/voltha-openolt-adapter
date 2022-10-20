@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7f43a7c_97113f60",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Just to make it clear, I changed this because it was generating weird etcd keys, e.g: \n\n\"service/voltha/voltha_voltha%!(EXTRA string\u003d/%s/, string\u003dac1c7a89-7ed6-46ea-abad-55c9d7c1bef6)/openolt/{ac1c7a89-7ed6-46ea-abad-55c9d7c1bef6}/heartbeat\"\n\nWith the new path the same key should look like this:\n\"service/voltha/voltha_voltha/openolt/{ac1c7a89-7ed6-46ea-abad-55c9d7c1bef6}/heartbeat\"",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "acb63451_85fcef84",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2272,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "It doesn\u0027t seem to make sense to instantiate a new kv-store instance to do this final cleanup.\n\nLet me know if I didn\u0027t consider something.",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}

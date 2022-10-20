@@ -24,6 +24,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7522f7f9_b9cc0fc6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2220,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2386af76_523f51d7",
+      "range": {
+        "startLine": 2220,
+        "startChar": 12,
+        "endLine": 2220,
+        "endChar": 23
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e84cc1df_250d7c97",
@@ -37,6 +61,30 @@
       "writtenOn": "2022-10-11T17:07:01Z",
       "side": 1,
       "message": "Is there a specific reason you are creating a ned error here? instead of creating a new error, we may only append the error returned from the clearUNIData function",
+      "range": {
+        "startLine": 2246,
+        "startChar": 12,
+        "endLine": 2246,
+        "endChar": 48
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "02a3cbe0_fd1ca262",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2246,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e84cc1df_250d7c97",
       "range": {
         "startLine": 2246,
         "startChar": 12,
@@ -70,6 +118,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc333fca_909f47f1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2251,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f442dc47_868e23b2",
+      "range": {
+        "startLine": 2251,
+        "startChar": 11,
+        "endLine": 2251,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8ab66d8e_9333fd51",
@@ -83,6 +155,30 @@
       "writtenOn": "2022-10-11T17:07:01Z",
       "side": 1,
       "message": "same as above",
+      "range": {
+        "startLine": 2255,
+        "startChar": 11,
+        "endLine": 2255,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d2ecda0_aba64185",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2255,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ab66d8e_9333fd51",
       "range": {
         "startLine": 2255,
         "startChar": 11,
@@ -116,6 +212,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "91c27e17_c212635a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2259,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9d4ecdec_783d1a8f",
+      "range": {
+        "startLine": 2259,
+        "startChar": 11,
+        "endLine": 2259,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "da9ffb0f_75f97ca8",
@@ -139,6 +259,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f908df04_69664b8f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2263,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9ffb0f_75f97ca8",
+      "range": {
+        "startLine": 2263,
+        "startChar": 11,
+        "endLine": 2263,
+        "endChar": 17
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ff2401a3_7b6631c1",
@@ -152,6 +296,30 @@
       "writtenOn": "2022-10-11T17:07:01Z",
       "side": 1,
       "message": "same here.",
+      "range": {
+        "startLine": 2270,
+        "startChar": 9,
+        "endLine": 2270,
+        "endChar": 15
+      },
+      "revId": "219575ae25169854348e03d57ee6aa4d0fde2633",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0e8deac1_c8418ee4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2270,
+      "author": {
+        "id": 1000740
+      },
+      "writtenOn": "2022-10-20T20:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff2401a3_7b6631c1",
       "range": {
         "startLine": 2270,
         "startChar": 9,
