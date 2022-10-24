@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac2c2eec_3c078c52",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-24T17:40:21Z",
+      "side": 1,
+      "message": "Remove kvStoreDevicePath variable. Use dh.cm.Backend.PathPrefix in the line below directly.",
+      "parentUuid": "f036c8c1_f0906d58",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "acb63451_85fcef84",
@@ -67,6 +85,52 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "acb63451_85fcef84",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2483cd5b_032cd005",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-24T17:40:21Z",
+      "side": 1,
+      "message": "I guess we need to remove the Map entry here before returning. (call oo.deleteDeviceHandlerToMap). Even some garbage data still remained in KV, we no more serve this device in volt-adapter.",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 18
+      },
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e171d429_f33cd040",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-10-24T17:40:21Z",
+      "side": 1,
+      "message": "adding a fake connect state here doesn\u0027t make sense. We may send the reason why device rebooted here, so indicate the user that the reboot operation done because of a deleteDevice request. You may add a reason string to function\u0027s signature and add it to context instead, like below.\n func (em *OpenOltEventMgr) oltRebootFailedEvent(ctx context.Context, deviceID string, reason string, raisedTs int64) error {\nde :\u003d voltha.DeviceEvent{\n\t\tContext:         map[string]string{ContextOltRebootReason: reason},",
+      "range": {
+        "startLine": 345,
+        "startChar": 61,
+        "endLine": 345,
+        "endChar": 79
+      },
       "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
