@@ -18,6 +18,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "451016a4_15da3912",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:35:29Z",
+      "side": 1,
+      "message": "No hardware targets exist right now to execute these jobs on hardware. Perhaps you might want to trigger some BBSIM jobs.",
+      "parentUuid": "9d7dc7e6_cfaf3391",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f7f43a7c_97113f60",
