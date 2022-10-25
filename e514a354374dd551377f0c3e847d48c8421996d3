@@ -71,6 +71,87 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "020c0461_33a963ea",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:34:45Z",
+      "side": 1,
+      "message": "Just to be clear, is the `dh.cm.Backend.PathPrefix` having the device-id? So is it basically this -\u003e `service/voltha/voltha_voltha/openolt/{ac1c7a89-7ed6-46ea-abad-55c9d7c1bef6}`",
+      "parentUuid": "ac2c2eec_3c078c52",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "67470683_fe34e484",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2218,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:34:45Z",
+      "side": 1,
+      "message": "Basically we just generate the error on kafka if olt reboot fails and not really return error to vcore - is that the case? I think this fails only when the OLT can\u0027t be reached. Otherwise the operation is pretty straighforward. At the olt (at least the openolt) it just issues the reboot system command which never fails.",
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "154eef9f_7ec658b0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2222,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:34:45Z",
+      "side": 1,
+      "message": "What are we trying to do here? A new error object is created, but not assigned to anything. Perhaps, if you only need to generate an event on kafka with oltRebootFailedEvent (ignore any error in the process) and not do anything else?",
+      "range": {
+        "startLine": 2221,
+        "startChar": 0,
+        "endLine": 2222,
+        "endChar": 71
+      },
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f98588a_63d00747",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2226,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:34:45Z",
+      "side": 1,
+      "message": "Same comment here. Nothing is being done with the error object. You may need this line at all in that case.",
+      "range": {
+        "startLine": 2225,
+        "startChar": 0,
+        "endLine": 2226,
+        "endChar": 25
+      },
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "acb63451_85fcef84",
@@ -119,6 +200,30 @@
       "writtenOn": "2022-10-24T17:40:21Z",
       "side": 1,
       "message": "I guess we need to remove the Map entry here before returning. (call oo.deleteDeviceHandlerToMap). Even some garbage data still remained in KV, we no more serve this device in volt-adapter.",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 18
+      },
+      "revId": "e514a354374dd551377f0c3e847d48c8421996d3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "07907060_d6422130",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1000127
+      },
+      "writtenOn": "2022-10-25T03:34:45Z",
+      "side": 1,
+      "message": "Deleting the device no matter what may be the right thing to do - but not 100% sure. We may need to manually delete or have some DB eviction policy at system level (outside voltha) that manually scavenges stale date and removes them in these cases where the delete device fails (often very rarely though).\nThe DB eviction policy for stale data could be as simple as removing DB entries for any device-id that do no exist in the system. Just periodically run this (like a cron job).",
+      "parentUuid": "2483cd5b_032cd005",
       "range": {
         "startLine": 246,
         "startChar": 0,
