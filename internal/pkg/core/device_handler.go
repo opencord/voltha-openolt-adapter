@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (
@@ -76,7 +76,7 @@ const (
 	heartbeatPath        = "heartbeat"
 )
 
-//DeviceHandler will interact with the OLT device.
+// DeviceHandler will interact with the OLT device.
 type DeviceHandler struct {
 	cm                      *config.ConfigManager
 	device                  *voltha.Device
@@ -133,7 +133,7 @@ type DeviceHandler struct {
 	heartbeatSignature         uint32
 }
 
-//OnuDevice represents ONU related info
+// OnuDevice represents ONU related info
 type OnuDevice struct {
 	deviceID        string
 	deviceType      string
@@ -156,10 +156,10 @@ type onuIndicationChannels struct {
 	stopChannel       chan struct{}
 }
 
-//McastFlowOrGroupControlBlock is created per mcast flow/group add/modify/remove and pushed on the incomingMcastFlowOrGroup channel slice
-//The McastFlowOrGroupControlBlock is then picked by the mcastFlowOrGroupChannelHandlerRoutine for further processing.
-//There are MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine routines which monitor for any incoming mcast flow/group messages
-//and process them serially. The mcast flow/group are assigned these routines based on formula (group-id modulo MaxNumOfGroupHandlerChannels)
+// McastFlowOrGroupControlBlock is created per mcast flow/group add/modify/remove and pushed on the incomingMcastFlowOrGroup channel slice
+// The McastFlowOrGroupControlBlock is then picked by the mcastFlowOrGroupChannelHandlerRoutine for further processing.
+// There are MaxNumOfGroupHandlerChannels number of mcastFlowOrGroupChannelHandlerRoutine routines which monitor for any incoming mcast flow/group messages
+// and process them serially. The mcast flow/group are assigned these routines based on formula (group-id modulo MaxNumOfGroupHandlerChannels)
 type McastFlowOrGroupControlBlock struct {
 	ctx               context.Context   // Flow/group handler context
 	flowOrGroupAction string            // one of McastFlowOrGroupAdd, McastFlowOrGroupModify or McastFlowOrGroupDelete
@@ -179,7 +179,7 @@ var pmNames = []string{
 	"tx_bcast_packets",
 }
 
-//NewOnuDevice creates a new Onu Device
+// NewOnuDevice creates a new Onu Device
 func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxyDevID string, losRaised bool, adapterEndpoint string) *OnuDevice {
 	var device OnuDevice
 	device.deviceID = devID
@@ -193,7 +193,7 @@ func NewOnuDevice(devID, deviceTp, serialNum string, onuID, intfID uint32, proxy
 	return &device
 }
 
-//NewDeviceHandler creates a new device handler
+// NewDeviceHandler creates a new device handler
 func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.Device, adapter *OpenOLT, cm *config.ConfigManager, cfg *conf.AdapterFlags) *DeviceHandler {
 	var dh DeviceHandler
 	ctx := context.Background()
@@ -354,7 +354,7 @@ func macAddressToUint32Array(mac string) []uint32 {
 	return result
 }
 
-//GetportLabel returns the label for the NNI and the PON port based on port number and port type
+// GetportLabel returns the label for the NNI and the PON port based on port number and port type
 func GetportLabel(portNum uint32, portType voltha.Port_PortType) (string, error) {
 
 	switch portType {
@@ -1000,9 +1000,12 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	for i = 0; i < dh.totalPonPorts+1; i++ {
 		// Instantiate flow manager
 		if dh.flowMgr[i] = NewFlowManager(ctx, dh, dh.resourceMgr[i], dh.groupMgr, i); dh.flowMgr[i] == nil {
-			return olterrors.ErrFlowManagerInstantiating
+			//Do we need to return here or continue for other PON ports?
+			//It may succeed for some PON ports but not for some others.
+			logger.Errorw(ctx, "error-initializing-flow-manager-for-intf", log.Fields{"intfID": i, "device-id": dh.device.Id})
+		} else {
+			dh.resourceMgr[i].TechprofileRef = dh.flowMgr[i].techprofile
 		}
-		dh.resourceMgr[i].TechprofileRef = dh.flowMgr[i].techprofile
 	}
 	/* TODO: Instantiate Alarm , stats , BW managers */
 	/* Instantiating Event Manager to handle Alarms and KPIs */
@@ -1111,7 +1114,7 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 	}
 }
 
-//AdoptDevice adopts the OLT device
+// AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
 	dh.transitionMap = NewTransitionMap(dh)
 	logger.Infow(ctx, "adopt-device", log.Fields{"device-id": device.Id, "Address": device.GetHostAndPort()})
@@ -1130,7 +1133,7 @@ func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device)
 	}
 }
 
-//GetOfpDeviceInfo Gets the Ofp information of the given device
+// GetOfpDeviceInfo Gets the Ofp information of the given device
 func (dh *DeviceHandler) GetOfpDeviceInfo(device *voltha.Device) (*ca.SwitchCapability, error) {
 	return &ca.SwitchCapability{
 		Desc: &of.OfpDesc{
@@ -1156,7 +1159,11 @@ func (dh *DeviceHandler) GetTechProfileDownloadMessage(ctx context.Context, requ
 	if err != nil {
 		return nil, err
 	}
+	if dh.flowMgr == nil || dh.flowMgr[ifID] == nil {
+		return nil, olterrors.NewErrNotFound("no-flow-manager-found", log.Fields{"intf-id": ifID, "parent-device-id": request.ParentDeviceId, "child-device-id": request.DeviceId}, nil).Log()
+	}
 	return dh.flowMgr[ifID].getTechProfileDownloadMessage(ctx, request.TpInstancePath, request.OnuId, request.DeviceId)
+
 }
 
 func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIndication) error {
@@ -1401,8 +1408,8 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 	return nil
 }
 
-//getChildDevice function can be used in general to get child device, if not found in cache the function will
-//get from core and update the cache and return the child device.
+// getChildDevice function can be used in general to get child device, if not found in cache the function will
+// get from core and update the cache and return the child device.
 func (dh *DeviceHandler) getChildDevice(ctx context.Context, sn string, parentPortNo uint32) *OnuDevice {
 	var InCacheOnuDev *OnuDevice
 	dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
@@ -1806,12 +1813,12 @@ func (dh *DeviceHandler) stringifyVendorSpecific(vendorSpecific []byte) string {
 	return ""
 }
 
-//UpdateFlowsBulk upates the bulk flow
+// UpdateFlowsBulk upates the bulk flow
 func (dh *DeviceHandler) UpdateFlowsBulk() error {
 	return olterrors.ErrNotImplemented
 }
 
-//GetChildDevice returns the child device for given parent port and onu id
+// GetChildDevice returns the child device for given parent port and onu id
 func (dh *DeviceHandler) GetChildDevice(ctx context.Context, parentPort, onuID uint32) (*voltha.Device, error) {
 	logger.Debugw(ctx, "getchilddevice",
 		log.Fields{"pon-port": parentPort,
@@ -1905,7 +1912,11 @@ func (dh *DeviceHandler) handleFlows(ctx context.Context, device *voltha.Device,
 			if flow_utils.HasGroup(flow) {
 				err = dh.RouteMcastFlowOrGroupMsgToChannel(ctx, flow, nil, McastFlowOrGroupRemove)
 			} else {
-				err = dh.flowMgr[intfID].RouteFlowToOnuChannel(ctx, flow, false, nil)
+				if dh.flowMgr == nil || dh.flowMgr[intfID] == nil {
+					err = fmt.Errorf("flow-manager-uninitialized-%v", device.Id)
+				} else {
+					err = dh.flowMgr[intfID].RouteFlowToOnuChannel(ctx, flow, false, nil)
+				}
 			}
 			if err != nil {
 				if werr, ok := err.(olterrors.WrappedError); ok && status.Code(werr.Unwrap()) == codes.NotFound {
@@ -1986,7 +1997,7 @@ func (dh *DeviceHandler) handleGroups(ctx context.Context, groups *of.FlowGroupC
 	return errorsList
 }
 
-//UpdateFlowsIncrementally updates the device flow
+// UpdateFlowsIncrementally updates the device flow
 func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *voltha.Device, flows *of.FlowChanges, groups *of.FlowGroupChanges, flowMetadata *of.FlowMetadata) error {
 
 	var errorsList []error
@@ -2007,11 +2018,11 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 	return nil
 }
 
-//DisableDevice disables the given device
-//It marks the following for the given device:
-//Device-Handler Admin-State : down
-//Device Port-State: UNKNOWN
-//Device Oper-State: UNKNOWN
+// DisableDevice disables the given device
+// It marks the following for the given device:
+// Device-Handler Admin-State : down
+// Device Port-State: UNKNOWN
+// Device Oper-State: UNKNOWN
 func (dh *DeviceHandler) DisableDevice(ctx context.Context, device *voltha.Device) error {
 	/* On device disable ,admin state update has to be done prior sending request to agent since
 	   the indication thread may processes invalid  indications of ONU and OLT*/
@@ -2079,11 +2090,11 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 
 }
 
-//ReenableDevice re-enables the olt device after disable
-//It marks the following for the given device:
-//Device-Handler Admin-State : up
-//Device Port-State: ACTIVE
-//Device Oper-State: ACTIVE
+// ReenableDevice re-enables the olt device after disable
+// It marks the following for the given device:
+// Device-Handler Admin-State : up
+// Device Port-State: ACTIVE
+// Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
 	if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
 		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
@@ -2134,8 +2145,12 @@ func (dh *DeviceHandler) clearUNIData(ctx context.Context, onu *rsrcMgr.OnuGemIn
 		uniID = plt.UniIDFromPortNum(port)
 		logger.Debugw(ctx, "clearing-resource-data-for-uni-port", log.Fields{"port": port, "uni-id": uniID})
 		/* Delete tech-profile instance from the KV store */
-		if err = dh.flowMgr[onu.IntfID].DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
-			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+		if dh.flowMgr == nil || dh.flowMgr[onu.IntfID] == nil {
+			logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu-no-flowmng", log.Fields{"onu-id": onu.OnuID})
+		} else {
+			if err = dh.flowMgr[onu.IntfID].DeleteTechProfileInstances(ctx, onu.IntfID, onu.OnuID, uniID); err != nil {
+				logger.Debugw(ctx, "failed-to-remove-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
+			}
 		}
 		logger.Debugw(ctx, "deleted-tech-profile-instance-for-onu", log.Fields{"onu-id": onu.OnuID})
 		tpIDList := dh.resourceMgr[onu.IntfID].GetTechProfileIDForOnu(ctx, onu.OnuID, uniID)
@@ -2174,8 +2189,10 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	wg.Add(1) // for the mcast routine below to finish
 	go dh.StopAllMcastHandlerRoutines(ctx, &wg)
 	for _, flMgr := range dh.flowMgr {
-		wg.Add(1) // for the flow handler routine below to finish
-		go flMgr.StopAllFlowHandlerRoutines(ctx, &wg)
+		if flMgr != nil {
+			wg.Add(1) // for the flow handler routine below to finish
+			go flMgr.StopAllFlowHandlerRoutines(ctx, &wg)
+		}
 	}
 	if !dh.waitForTimeoutOrCompletion(&wg, time.Second*30) {
 		logger.Warnw(ctx, "timed out waiting for stopping flow and group handlers", log.Fields{"deviceID": device.Id})
@@ -2266,7 +2283,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) {
 	})
 }
 
-//RebootDevice reboots the given device
+// RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(ctx context.Context, device *voltha.Device) error {
 	if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
 		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
@@ -2282,6 +2299,9 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 			"device-id":         dh.device.Id,
 			"packet":            hex.EncodeToString(packetIn.Pkt),
 		})
+	}
+	if dh.flowMgr == nil || dh.flowMgr[packetIn.IntfId] == nil {
+		return olterrors.NewErrNotFound("flow-manager", log.Fields{"intf-id": packetIn.IntfId, "packet": hex.EncodeToString(packetIn.Pkt)}, nil)
 	}
 	logicalPortNum, err := dh.flowMgr[packetIn.IntfId].GetLogicalPortFromPacketIn(ctx, packetIn)
 	if err != nil {
@@ -2317,6 +2337,112 @@ func (dh *DeviceHandler) handlePacketIndication(ctx context.Context, packetIn *o
 	return nil
 }
 
+// PacketOut sends packet-out from VOLTHA to OLT on the NNI provided
+func (dh *DeviceHandler) PacketOutNNI(ctx context.Context, egressPortNo uint32, packet *of.OfpPacketOut) error {
+	nniIntfID, err := plt.IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
+	if err != nil {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"egress-nni-port": egressPortNo,
+			"device-id":       dh.device.Id,
+		}, err)
+	}
+	uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
+
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "sending-packet-to-nni", log.Fields{
+			"uplink-pkt": uplinkPkt,
+			"packet":     hex.EncodeToString(packet.Data),
+			"device-id":  dh.device.Id,
+		})
+	}
+
+	if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
+		return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
+			"packet":    hex.EncodeToString(packet.Data),
+			"device-id": dh.device.Id,
+		}, err)
+	}
+	return nil
+}
+
+// PacketOut sends packet-out from VOLTHA to OLT on the UNI provided
+func (dh *DeviceHandler) PacketOutUNI(ctx context.Context, egressPortNo uint32, packet *of.OfpPacketOut) error {
+	outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
+	innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
+	if outerEthType == 0x8942 || outerEthType == 0x88cc {
+		// Do not packet-out lldp packets on uni port.
+		// ONOS has no clue about uni/nni ports, it just packets out on all
+		// available ports on the Logical Switch. It should not be interested
+		// in the UNI links.
+		logger.Debugw(ctx, "dropping-lldp-packet-out-on-uni", log.Fields{
+			"device-id": dh.device.Id,
+		})
+		return nil
+	}
+	if outerEthType == 0x88a8 || outerEthType == 0x8100 {
+		if innerEthType == 0x8100 {
+			// q-in-q 802.1ad or 802.1q double tagged packet.
+			// slice out the outer tag.
+			packet.Data = append(packet.Data[:12], packet.Data[16:]...)
+			if logger.V(log.DebugLevel) {
+				logger.Debugw(ctx, "packet-now-single-tagged", log.Fields{
+					"packet-data": hex.EncodeToString(packet.Data),
+					"device-id":   dh.device.Id,
+				})
+			}
+		}
+	}
+	intfID := plt.IntfIDFromUniPortNum(uint32(egressPortNo))
+	onuID := plt.OnuIDFromPortNum(uint32(egressPortNo))
+	uniID := plt.UniIDFromPortNum(uint32(egressPortNo))
+	var gemPortID uint32
+	err := olterrors.NewErrNotFound("no-flow-manager-found-for-packet-out", log.Fields{"device-id": dh.device.Id}, nil).(error)
+	if dh.flowMgr != nil && dh.flowMgr[intfID] != nil {
+		gemPortID, err = dh.flowMgr[intfID].GetPacketOutGemPortID(ctx, intfID, onuID, uint32(egressPortNo), packet.Data)
+	}
+	if err != nil {
+		// In this case the openolt agent will receive the gemPortID as 0.
+		// The agent tries to retrieve the gemPortID in this case.
+		// This may not always succeed at the agent and packetOut may fail.
+		logger.Errorw(ctx, "failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
+			"intf-id":   intfID,
+			"onu-id":    onuID,
+			"uni-id":    uniID,
+			"packet":    hex.EncodeToString(packet.Data),
+			"device-id": dh.device.Id,
+			"error":     err,
+		})
+	}
+
+	onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
+	if logger.V(log.DebugLevel) {
+		logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
+			"egress-port-no": egressPortNo,
+			"intf-id":        intfID,
+			"onu-id":         onuID,
+			"uni-id":         uniID,
+			"gem-port-id":    gemPortID,
+			"packet":         hex.EncodeToString(packet.Data),
+			"device-id":      dh.device.Id,
+		})
+	}
+
+	if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
+		return olterrors.NewErrCommunication("packet-out-send", log.Fields{
+			"source":             "adapter",
+			"destination":        "onu",
+			"egress-port-number": egressPortNo,
+			"intf-id":            intfID,
+			"oni-id":             onuID,
+			"uni-id":             uniID,
+			"gem-port-id":        gemPortID,
+			"packet":             hex.EncodeToString(packet.Data),
+			"device-id":          dh.device.Id,
+		}, err)
+	}
+	return nil
+}
+
 // PacketOut sends packet-out from VOLTHA to OLT on the egress port provided
 func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, packet *of.OfpPacketOut) error {
 	if logger.V(log.DebugLevel) {
@@ -2329,100 +2455,11 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 	}
 
 	egressPortType := plt.IntfIDToPortTypeName(uint32(egressPortNo))
+	var err error
 	if egressPortType == voltha.Port_ETHERNET_UNI {
-		outerEthType := (uint16(packet.Data[12]) << 8) | uint16(packet.Data[13])
-		innerEthType := (uint16(packet.Data[16]) << 8) | uint16(packet.Data[17])
-		if outerEthType == 0x8942 || outerEthType == 0x88cc {
-			// Do not packet-out lldp packets on uni port.
-			// ONOS has no clue about uni/nni ports, it just packets out on all
-			// available ports on the Logical Switch. It should not be interested
-			// in the UNI links.
-			logger.Debugw(ctx, "dropping-lldp-packet-out-on-uni", log.Fields{
-				"device-id": dh.device.Id,
-			})
-			return nil
-		}
-		if outerEthType == 0x88a8 || outerEthType == 0x8100 {
-			if innerEthType == 0x8100 {
-				// q-in-q 802.1ad or 802.1q double tagged packet.
-				// slice out the outer tag.
-				packet.Data = append(packet.Data[:12], packet.Data[16:]...)
-				if logger.V(log.DebugLevel) {
-					logger.Debugw(ctx, "packet-now-single-tagged", log.Fields{
-						"packet-data": hex.EncodeToString(packet.Data),
-						"device-id":   dh.device.Id,
-					})
-				}
-			}
-		}
-		intfID := plt.IntfIDFromUniPortNum(uint32(egressPortNo))
-		onuID := plt.OnuIDFromPortNum(uint32(egressPortNo))
-		uniID := plt.UniIDFromPortNum(uint32(egressPortNo))
-
-		gemPortID, err := dh.flowMgr[intfID].GetPacketOutGemPortID(ctx, intfID, onuID, uint32(egressPortNo), packet.Data)
-		if err != nil {
-			// In this case the openolt agent will receive the gemPortID as 0.
-			// The agent tries to retrieve the gemPortID in this case.
-			// This may not always succeed at the agent and packetOut may fail.
-			logger.Errorw(ctx, "failed-to-retrieve-gemport-id-for-packet-out", log.Fields{
-				"intf-id":   intfID,
-				"onu-id":    onuID,
-				"uni-id":    uniID,
-				"packet":    hex.EncodeToString(packet.Data),
-				"device-id": dh.device.Id,
-			})
-		}
-
-		onuPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, PortNo: uint32(egressPortNo), GemportId: gemPortID, Pkt: packet.Data}
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-onu", log.Fields{
-				"egress-port-no": egressPortNo,
-				"intf-id":        intfID,
-				"onu-id":         onuID,
-				"uni-id":         uniID,
-				"gem-port-id":    gemPortID,
-				"packet":         hex.EncodeToString(packet.Data),
-				"device-id":      dh.device.Id,
-			})
-		}
-
-		if _, err := dh.Client.OnuPacketOut(ctx, &onuPkt); err != nil {
-			return olterrors.NewErrCommunication("packet-out-send", log.Fields{
-				"source":             "adapter",
-				"destination":        "onu",
-				"egress-port-number": egressPortNo,
-				"intf-id":            intfID,
-				"oni-id":             onuID,
-				"uni-id":             uniID,
-				"gem-port-id":        gemPortID,
-				"packet":             hex.EncodeToString(packet.Data),
-				"device-id":          dh.device.Id,
-			}, err)
-		}
+		err = dh.PacketOutUNI(ctx, egressPortNo, packet)
 	} else if egressPortType == voltha.Port_ETHERNET_NNI {
-		nniIntfID, err := plt.IntfIDFromNniPortNum(ctx, uint32(egressPortNo))
-		if err != nil {
-			return olterrors.NewErrInvalidValue(log.Fields{
-				"egress-nni-port": egressPortNo,
-				"device-id":       dh.device.Id,
-			}, err)
-		}
-		uplinkPkt := oop.UplinkPacket{IntfId: nniIntfID, Pkt: packet.Data}
-
-		if logger.V(log.DebugLevel) {
-			logger.Debugw(ctx, "sending-packet-to-nni", log.Fields{
-				"uplink-pkt": uplinkPkt,
-				"packet":     hex.EncodeToString(packet.Data),
-				"device-id":  dh.device.Id,
-			})
-		}
-
-		if _, err := dh.Client.UplinkPacketOut(ctx, &uplinkPkt); err != nil {
-			return olterrors.NewErrCommunication("packet-out-to-nni", log.Fields{
-				"packet":    hex.EncodeToString(packet.Data),
-				"device-id": dh.device.Id,
-			}, err)
-		}
+		err = dh.PacketOutNNI(ctx, egressPortNo, packet)
 	} else {
 		logger.Warnw(ctx, "packet-out-to-this-interface-type-not-implemented", log.Fields{
 			"egress-port-no": egressPortNo,
@@ -2431,7 +2468,7 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 			"device-id":      dh.device.Id,
 		})
 	}
-	return nil
+	return err
 }
 
 func (dh *DeviceHandler) formOnuKey(intfID, onuID uint32) string {
@@ -2632,8 +2669,10 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	wg.Add(1) // for the multicast handler routine
 	go dh.StopAllMcastHandlerRoutines(ctx, &wg)
 	for _, flMgr := range dh.flowMgr {
-		wg.Add(1) // for the flow handler routine
-		go flMgr.StopAllFlowHandlerRoutines(ctx, &wg)
+		if flMgr != nil {
+			wg.Add(1) // for the flow handler routine
+			go flMgr.StopAllFlowHandlerRoutines(ctx, &wg)
+		}
 	}
 	if !dh.waitForTimeoutOrCompletion(&wg, time.Second*30) {
 		logger.Warnw(ctx, "timed out waiting for stopping flow and group handlers", log.Fields{"deviceID": device.Id})
@@ -2676,7 +2715,7 @@ func (dh *DeviceHandler) DisablePort(ctx context.Context, port *voltha.Port) err
 	return dh.modifyPhyPort(ctx, port, false)
 }
 
-//modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
+// modifyPhyPort is common function to enable and disable the port. parm :enablePort, true to enablePort and false to disablePort.
 func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, enablePort bool) error {
 	logger.Infow(ctx, "modifyPhyPort", log.Fields{"port": port, "Enable": enablePort, "device-id": dh.device.Id})
 	if port.GetType() == voltha.Port_ETHERNET_NNI {
@@ -2728,7 +2767,7 @@ func (dh *DeviceHandler) modifyPhyPort(ctx context.Context, port *voltha.Port, e
 	return nil
 }
 
-//disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
+// disableAdminDownPorts disables the ports, if the corresponding port Adminstate is disabled on reboot and Renable device.
 func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, ports []*voltha.Port) error {
 	// Disable the port and update the oper_port_status to core
 	// if the Admin state of the port is disabled on reboot and re-enable device.
@@ -2744,7 +2783,7 @@ func (dh *DeviceHandler) disableAdminDownPorts(ctx context.Context, ports []*vol
 	return nil
 }
 
-//populateActivePorts to populate activePorts map
+// populateActivePorts to populate activePorts map
 func (dh *DeviceHandler) populateActivePorts(ctx context.Context, ports []*voltha.Port) {
 	logger.Infow(ctx, "populateActivePorts", log.Fields{"device-id": dh.device.Id})
 	for _, port := range ports {
@@ -2815,13 +2854,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 						}
 					}
 					if !alreadyRemoved {
-						flow := &oop.Flow{FlowId: flowID}
-						if err := dh.flowMgr[intfID].removeFlowFromDevice(ctx, flow, flowID); err != nil {
-							logger.Warnw(ctx, "failed-to-remove-flow-from-device", log.Fields{
-								"device-id":  dh.device.Id,
-								"onu-device": onu,
-								"err":        err})
-						}
+						dh.removeFlowFromDevice(ctx, flowID, intfID)
 						removedFlows = appendUnique64bit(removedFlows, flowID)
 					}
 				}
@@ -2857,6 +2890,19 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 	}
 
 	return nil
+}
+func (dh *DeviceHandler) removeFlowFromDevice(ctx context.Context, flowID uint64, intfID uint32) {
+	flow := &oop.Flow{FlowId: flowID}
+	if dh.flowMgr == nil || dh.flowMgr[intfID] == nil {
+		logger.Warnw(ctx, "failed-to-get-flow-mgr-to-remove-flow-from-device", log.Fields{
+			"device-id": dh.device.Id})
+	} else {
+		if err := dh.flowMgr[intfID].removeFlowFromDevice(ctx, flow, flowID); err != nil {
+			logger.Warnw(ctx, "failed-to-remove-flow-from-device", log.Fields{
+				"device-id": dh.device.Id,
+				"err":       err})
+		}
+	}
 }
 
 func getInPortFromFlow(flow *of.OfpFlowStats) uint32 {
@@ -3096,16 +3142,28 @@ func (dh *DeviceHandler) mcastFlowOrGroupChannelHandlerRoutine(routineIndex int,
 					logger.Debugw(mcastFlowOrGroupCb.ctx, "adding-mcast-flow",
 						log.Fields{"device-id": dh.device.Id,
 							"flowToAdd": mcastFlowOrGroupCb.flow})
-					// The mcast flow is not unique to any particular PON port, so it is OK to default to PON0
-					err := dh.flowMgr[0].AddFlow(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.flow, nil)
+					err := olterrors.NewErrNotFound("no-flow-manager-found-to-add-mcast-flow", log.Fields{"device-id": dh.device.Id}, nil).(error)
+					// The mcast flow is not unique to any particular PON port, so it is OK to default to first non nil PON
+					for _, flMgr := range dh.flowMgr {
+						if flMgr != nil {
+							err = flMgr.AddFlow(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.flow, nil)
+							break
+						}
+					}
 					// Pass the return value over the return channel
 					*mcastFlowOrGroupCb.errChan <- err
 				} else { // flow remove
 					logger.Debugw(mcastFlowOrGroupCb.ctx, "removing-mcast-flow",
 						log.Fields{"device-id": dh.device.Id,
 							"flowToRemove": mcastFlowOrGroupCb.flow})
-					// The mcast flow is not unique to any particular PON port, so it is OK to default to PON0
-					err := dh.flowMgr[0].RemoveFlow(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.flow)
+					// The mcast flow is not unique to any particular PON port, so it is OK to default to first non nil PON
+					err := olterrors.NewErrNotFound("no-flow-manager-found-to-remove-mcast-flow", log.Fields{"device-id": dh.device.Id}, nil).(error)
+					for _, flMgr := range dh.flowMgr {
+						if flMgr != nil {
+							err = flMgr.RemoveFlow(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.flow)
+							break
+						}
+					}
 					// Pass the return value over the return channel
 					*mcastFlowOrGroupCb.errChan <- err
 				}
