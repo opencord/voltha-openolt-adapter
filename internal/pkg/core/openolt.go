@@ -19,7 +19,6 @@ package core
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -393,7 +392,7 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 func (oo *OpenOLT) ProxyOmciRequests(ctx context.Context, request *ia.OmciMessages) (*empty.Empty, error) {
 	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
 		if err := handler.ProxyOmciRequests(ctx, request); err != nil {
-			return nil, errors.New(err.Error())
+			return nil, err
 		}
 		return &empty.Empty{}, nil
 	}
@@ -406,7 +405,7 @@ func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage
 
 	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
 		if err := handler.ProxyOmciMessage(ctx, request); err != nil {
-			return nil, errors.New(err.Error())
+			return nil, err
 		}
 		return &empty.Empty{}, nil
 	}

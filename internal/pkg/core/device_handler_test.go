@@ -159,7 +159,7 @@ func newMockDeviceHandler() *DeviceHandler {
 			ChannelId:      1,
 			ChannelGroupId: 1,
 		},
-		ConnectStatus: 1,
+		ConnectStatus: 2,
 	}
 	mcs := newMockCoreService()
 	cc := mocks.NewMockCoreClient(mcs)
