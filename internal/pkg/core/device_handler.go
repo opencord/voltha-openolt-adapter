@@ -1232,6 +1232,9 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 
 // ProxyOmciRequests sends the proxied OMCI message to the target device
 func (dh *DeviceHandler) ProxyOmciRequests(ctx context.Context, omciMsgs *ia.OmciMessages) error {
+	if DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE) {
+		return status.Error(codes.Unavailable, "OLT unreachable")
+	}
 	if omciMsgs.GetProxyAddress() == nil {
 		onuDevice, err := dh.getDeviceFromCore(ctx, omciMsgs.ChildDeviceId)
 		if err != nil {
@@ -1311,6 +1314,9 @@ func (dh *DeviceHandler) sendProxyOmciRequests(ctx context.Context, onuDevice *v
 func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ia.OmciMessage) error {
 	logger.Debugw(ctx, "proxy-omci-message", log.Fields{"parent-device-id": omciMsg.ParentDeviceId, "child-device-id": omciMsg.ChildDeviceId, "proxy-address": omciMsg.ProxyAddress, "connect-status": omciMsg.ConnectStatus})
 
+	if DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE) {
+		return status.Error(codes.Unavailable, "OLT unreachable")
+	}
 	if omciMsg.GetProxyAddress() == nil {
 		onuDevice, err := dh.getDeviceFromCore(ctx, omciMsg.ChildDeviceId)
 		if err != nil {
