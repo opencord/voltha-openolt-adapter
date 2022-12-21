@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4bc86ca6_44d61da0",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2022-12-21T22:38:55Z",
+      "side": 1,
+      "message": "If we couldn\u0027t delete the device, then we don\u0027t need to delete the handler in map. User may try a force delete later.",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 245,
+        "endChar": 39
+      },
+      "revId": "1784f59b19956d4d17750894a532e2b27801524f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
