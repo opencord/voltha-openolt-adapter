@@ -34,6 +34,7 @@ todo ::
 	@echo "  o Review handling of targets clean and distclean:"
 	@echo "    - clean removes generated targets"
 	@echo "    - distclean/sterile should revert to a pristine checkout state"
+	@echo "  o move target sca, paths and cleanup into a named library makefile."
 
 $(if $(DEBUG),$(warning LEAVE))
 

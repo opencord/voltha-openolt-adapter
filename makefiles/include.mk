@@ -22,13 +22,8 @@ $(if $(DEBUG),$(warning ENTER))
 
 MAKEDIR ?= $(error MAKEDIR= is required)
 
-## -----------------------------------------------------------------------
-## -----------------------------------------------------------------------
-help::
-	@echo "USAGE: $(MAKE) [options] [target] ..."
-        # @echo "  test                          Sanity check chart versions"
-
 include $(MAKEDIR)/consts.mk
+include $(MAKEDIR)/help.mk
 include $(MAKEDIR)/todo.mk
 include $(MAKEDIR)/lint/include.mk
 
