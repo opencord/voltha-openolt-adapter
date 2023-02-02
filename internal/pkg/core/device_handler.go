@@ -3355,6 +3355,91 @@ func (dh *DeviceHandler) getRxPower(ctx context.Context, rxPowerRequest *extensi
 	}
 }
 
+func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *extension.GetOltRxPowerRequest) *extension.SingleGetValueResponse {
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	resp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_OltRxPower{
+				OltRxPower: &extension.GetOltRxPowerResponse{},
+			},
+		},
+	}
+
+	portLabel := OltRxPowerRequest.PortLabel
+	serialNumber := OltRxPowerRequest.OnuSn
+
+	portType := strings.Split(portLabel, "-")[0]
+	portNum := strings.Split(portLabel, "-")[1]
+
+	portNumber, err := strconv.ParseUint(portNum, 10, 32)
+
+	if err != nil {
+		logger.Debugw(ctx, "getPONRxPower invalid portNumber ", log.Fields{"oltPortNumber": portNum})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_REQ_TYPE)
+	}
+
+	if portType != "pon" {
+		logger.Debugw(ctx, "getPONRxPower invalid portType", log.Fields{"oltPortType": portType})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_PORT_TYPE)
+	}
+	ponIntdID := plt.PortNoToIntfID((uint32)(portNumber), voltha.Port_PON_OLT)
+
+	ponRxPwrRequest := oop.PonRxPowerRequest{}
+
+	if serialNumber != "" {
+		onuDev := dh.getChildDevice(ctx, serialNumber, (uint32)(portNumber))
+		if onuDev != nil {
+			ponRxPwrRequest.IntId = ponIntdID
+			ponRxPwrRequest.OnuId = onuDev.onuID
+
+		} else {
+
+			logger.Debugw(ctx, "getPONRxPower invalid Device", log.Fields{"portLabel": portLabel, "serialNumber": serialNumber})
+			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+		}
+
+	} else {
+		ponRxPwrRequest.IntId = ponIntdID
+		//zero is an indication to the OLT agent that it has to retreive the power for all the ONUs on the Interface.
+		ponRxPwrRequest.OnuId = 0
+	}
+
+	rxPower, err := dh.Client.GetOltPonRxPower(ctx, &ponRxPwrRequest)
+	if err != nil {
+		logger.Errorw(ctx, "error-while-getting-rx-power", log.Fields{"portLabel": portLabel, "err": err})
+		return generateSingleGetValueErrorResponse(err)
+	}
+
+	resp.Response.GetOltRxPower().PortLabel = portLabel
+	for _, onuRxPowerValue := range rxPower.GetRxPowerValues() {
+
+		rxPowerValue := extension.RxPower{}
+		onuKey := dh.formOnuKey(onuRxPowerValue.IntfId, onuRxPowerValue.OnuId)
+		onu, _ := dh.onus.Load(onuKey)
+
+		rxPowerValue.OnuSn = onu.(*OnuDevice).serialNumber
+		rxPowerValue.Status = onuRxPowerValue.GetStatus()
+		rxPowerValue.RxPower = onuRxPowerValue.GetRxPowerMeanDbm()
+		rxPowerValue.FailReason = onuRxPowerValue.GetFailReason().String()
+
+		resp.Response.GetOltRxPower().RxPower = append(resp.Response.GetOltRxPower().RxPower, &rxPowerValue)
+
+	}
+
+	return &resp
+}
+
 func generateSingleGetValueErrorResponse(err error) *extension.SingleGetValueResponse {
 	errResp := func(status extension.GetValueResponse_Status,
 		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
