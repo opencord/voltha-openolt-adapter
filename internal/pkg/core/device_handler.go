@@ -3376,6 +3376,7 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 		},
 	}
 
+	logger.Infow(ctx, "getPONRxPower", log.Fields{"portLabel": OltRxPowerRequest.PortLabel, "OnuSerialNumber": OltRxPowerRequest.OnuSn, "device-id": dh.device.Id})
 	portLabel := OltRxPowerRequest.PortLabel
 	serialNumber := OltRxPowerRequest.OnuSn
 
@@ -3385,12 +3386,12 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 	portNumber, err := strconv.ParseUint(portNum, 10, 32)
 
 	if err != nil {
-		logger.Debugw(ctx, "getPONRxPower invalid portNumber ", log.Fields{"oltPortNumber": portNum})
+		logger.Errorw(ctx, "getPONRxPower invalid portNumber ", log.Fields{"oltPortNumber": portNum})
 		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_REQ_TYPE)
 	}
 
 	if portType != "pon" {
-		logger.Debugw(ctx, "getPONRxPower invalid portType", log.Fields{"oltPortType": portType})
+		logger.Errorw(ctx, "getPONRxPower invalid portType", log.Fields{"oltPortType": portType})
 		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_PORT_TYPE)
 	}
 	ponIntdID := plt.PortNoToIntfID((uint32)(portNumber), voltha.Port_PON_OLT)
@@ -3407,20 +3408,19 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 				logger.Errorw(ctx, "error-while-getting-rx-power", log.Fields{"Onu": Onu, "err": err})
 				return generateSingleGetValueErrorResponse(err)
 
-			} else {
-
-				rxPowerValue := extension.RxPower{}
-				rxPowerValue.OnuSn = onuDev.serialNumber
-				rxPowerValue.Status = rxPower.GetStatus()
-				rxPowerValue.RxPower = rxPower.GetRxPowerMeanDbm()
-				rxPowerValue.FailReason = rxPower.GetFailReason().String()
-
-				resp.Response.GetOltRxPower().RxPower = append(resp.Response.GetOltRxPower().RxPower, &rxPowerValue)
 			}
+
+			rxPowerValue := extension.RxPower{}
+			rxPowerValue.OnuSn = onuDev.serialNumber
+			rxPowerValue.Status = rxPower.GetStatus()
+			rxPowerValue.RxPower = rxPower.GetRxPowerMeanDbm()
+			rxPowerValue.FailReason = rxPower.GetFailReason().String()
+
+			resp.Response.GetOltRxPower().RxPower = append(resp.Response.GetOltRxPower().RxPower, &rxPowerValue)
 
 		} else {
 
-			logger.Debugw(ctx, "getPONRxPower invalid Device", log.Fields{"portLabel": portLabel, "serialNumber": serialNumber})
+			logger.Errorw(ctx, "getPONRxPower invalid Device", log.Fields{"portLabel": portLabel, "serialNumber": serialNumber})
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
 		}
 
