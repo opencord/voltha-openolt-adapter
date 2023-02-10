@@ -34,6 +34,9 @@ func (m MockTechProfile) SetKVClient(ctx context.Context, pathPrefix string) *db
 	return &db.Backend{Client: &MockKVClient{}}
 }
 
+func (m MockTechProfile) CloseKVClient(ctx context.Context) {
+}
+
 // GetTPInstance to mock techprofile GetTPInstance method
 func (m MockTechProfile) GetTPInstance(ctx context.Context, path string) (interface{}, error) {
 	logger.Debug(ctx, "GetTPInstanceFromKVStore")

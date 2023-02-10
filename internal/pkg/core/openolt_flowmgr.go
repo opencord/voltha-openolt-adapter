@@ -216,6 +216,12 @@ type OpenOltFlowMgr struct {
 	flowHandlerRoutineActive []bool
 }
 
+func (f *OpenOltFlowMgr) CloseKVClient(ctx context.Context) {
+	if f.techprofile != nil {
+		f.techprofile.CloseKVClient(ctx)
+	}
+}
+
 //NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
 func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr, grpMgr *OpenOltGroupMgr, ponPortIdx uint32) *OpenOltFlowMgr {
 	logger.Infow(ctx, "initializing-flow-manager", log.Fields{"device-id": dh.device.Id})
@@ -2313,7 +2319,19 @@ func (f *OpenOltFlowMgr) StopAllFlowHandlerRoutines(ctx context.Context, wg *syn
 				logger.Warnw(ctx, "timeout stopping flow handler routine", log.Fields{"onuID": i, "deviceID": f.deviceHandler.device.Id})
 			}
 		}
+		f.stopFlowHandlerRoutine[i] = nil
 	}
+	f.stopFlowHandlerRoutine = nil
+
+	if f.incomingFlows != nil {
+		for _, entry := range f.incomingFlows {
+			if entry != nil {
+				entry = nil
+			}
+		}
+		f.incomingFlows = nil
+	}
+
 	wg.Done()
 	logger.Debugw(ctx, "stopped all flow handler routines", log.Fields{"ponPortIdx": f.ponPortIdx})
 }

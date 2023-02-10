@@ -198,6 +198,16 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 	return kvbackend
 }
 
+func (rsrcMgr *OpenOltResourceMgr) CloseKVClient(ctx context.Context) {
+	if rsrcMgr.KVStore != nil {
+		rsrcMgr.KVStore.Client.Close(ctx)
+		rsrcMgr.KVStore = nil
+	}
+	if rsrcMgr.PonRsrMgr != nil {
+		rsrcMgr.PonRsrMgr.CloseKVClient(ctx)
+	}
+}
+
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
