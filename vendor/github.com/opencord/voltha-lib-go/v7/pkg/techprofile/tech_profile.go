@@ -178,6 +178,21 @@ func (t *TechProfileMgr) SetKVClient(ctx context.Context, pathPrefix string) *db
 	*/
 }
 
+func (t *TechProfileMgr) CloseKVClient(ctx context.Context) {
+	if t.config.KVBackend != nil {
+		t.config.KVBackend.Client.Close(ctx)
+		t.config.KVBackend = nil
+	}
+	if t.config.DefaultTpKVBackend != nil {
+		t.config.DefaultTpKVBackend.Client.Close(ctx)
+		t.config.DefaultTpKVBackend = nil
+	}
+	if t.config.ResourceInstanceKVBacked != nil {
+		t.config.ResourceInstanceKVBacked.Client.Close(ctx)
+		t.config.ResourceInstanceKVBacked = nil
+	}
+}
+
 func NewTechProfile(ctx context.Context, resourceMgr iPonResourceMgr, kvStoreType string, kvStoreAddress string, basePathKvStore string) (*TechProfileMgr, error) {
 	var techprofileObj TechProfileMgr
 	logger.Debug(ctx, "initializing-techprofile-mananger")

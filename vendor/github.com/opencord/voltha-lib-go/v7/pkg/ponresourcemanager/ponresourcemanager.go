@@ -192,6 +192,17 @@ func SetKVClient(ctx context.Context, Technology string, Backend string, Addr st
 	return kvbackend
 }
 
+func (PONRMgr *PONResourceManager) CloseKVClient(ctx context.Context) {
+	if PONRMgr.KVStore != nil {
+		PONRMgr.KVStore.Client.Close(ctx)
+		PONRMgr.KVStore = nil
+	}
+	if PONRMgr.KVStoreForConfig != nil {
+		PONRMgr.KVStoreForConfig.Client.Close(ctx)
+		PONRMgr.KVStoreForConfig = nil
+	}
+}
+
 // NewPONResourceManager creates a new PON resource manager.
 func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string) (*PONResourceManager, error) {
 	var PONMgr PONResourceManager
