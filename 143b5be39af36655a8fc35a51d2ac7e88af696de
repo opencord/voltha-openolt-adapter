@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6c206247_251fa131",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2327,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-13T12:18:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21817fec_6a1735f9",
+      "revId": "143b5be39af36655a8fc35a51d2ac7e88af696de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "84ff4265_08c1da38",
@@ -67,6 +85,24 @@
       "side": 1,
       "message": "OpenOltResourceMgr::CloseKVClient() should only take care of the objects of the KV store access. Therefore PonRsrMgr is not set to nil here, but only its KV store specific parts by the function call PONResourceManager::CloseKVClient().",
       "parentUuid": "84ff4265_08c1da38",
+      "revId": "143b5be39af36655a8fc35a51d2ac7e88af696de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "24c65277_b0597ae6",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-13T12:18:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "341287e0_4769f26f",
       "revId": "143b5be39af36655a8fc35a51d2ac7e88af696de",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
