@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "82747221_d93e70d2",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2327,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-13T08:16:45Z",
+      "side": 1,
+      "message": "Wouldn\u0027t just making the slices nil (stopFlowHandlerRoutine \u003d nil nad incomingFlows \u003d nil) do it? Do we need to set each of the elements to nil so that the memory is GCed?",
+      "revId": "143b5be39af36655a8fc35a51d2ac7e88af696de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84ff4265_08c1da38",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-13T08:16:45Z",
+      "side": 1,
+      "message": "Do we need to set the PonRsrMgr to nil after this?",
+      "revId": "143b5be39af36655a8fc35a51d2ac7e88af696de",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
