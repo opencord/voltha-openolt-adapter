@@ -37,6 +37,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "88649ffe_f51e13f7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3411,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-02-21T12:17:14Z",
+      "side": 1,
+      "message": "Okay , will be modifying it accordingly.",
+      "parentUuid": "2b2b14ee_517ddbfc",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8fe29e66_c3d78f83",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
@@ -54,6 +72,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "018c7e64_e7b138b3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3449,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-02-21T12:17:14Z",
+      "side": 1,
+      "message": "Will make the changes to log the output as we send out the final response.",
+      "parentUuid": "8fe29e66_c3d78f83",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cbd964a2_8cb178ec",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
@@ -65,6 +101,24 @@
       "writtenOn": "2023-02-21T11:30:07Z",
       "side": 1,
       "message": "Might be worth having an Info level log here printing the entire response",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c91692e0_19146b85",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3483,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-02-21T12:17:14Z",
+      "side": 1,
+      "message": "Okay . Will incorporate the needed changes.",
+      "parentUuid": "cbd964a2_8cb178ec",
       "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
