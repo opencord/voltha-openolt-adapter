@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b2b14ee_517ddbfc",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3411,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-21T11:30:07Z",
+      "side": 1,
+      "message": "Should this be debug level log?",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8fe29e66_c3d78f83",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3449,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-21T11:30:07Z",
+      "side": 1,
+      "message": "These info level logs could be removed and a new one introduced (as suggested below)",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cbd964a2_8cb178ec",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3483,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-21T11:30:07Z",
+      "side": 1,
+      "message": "Might be worth having an Info level log here printing the entire response",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
