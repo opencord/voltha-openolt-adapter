@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c21ef9c9_9502dfd6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-02-21T11:31:50Z",
+      "side": 1,
+      "message": "Doesn\u0027t the VERSION file need an update?",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2b2b14ee_517ddbfc",
