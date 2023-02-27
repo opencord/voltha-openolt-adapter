@@ -2123,11 +2123,17 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 // Device Port-State: ACTIVE
 // Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
-	if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
-		if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
-			return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err)
-		}
-	}
+	if dh.Client != nil {
+		if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
+		   if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
+			   return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, err)
+		   }
+	  }
+   } else {
+	   return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id},  errors.New("OpenoltClient is nil pointer"))
+
+   }
+
 	logger.Debug(ctx, "olt-reenabled")
 
 	// Update the all ports state on that device to enable
@@ -2346,9 +2352,15 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 
 // RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(ctx context.Context, device *voltha.Device) error {
-	if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
-		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
+	if dh.Client != nil {
+		if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
+		   return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
+		  }
+	  } else {
+		  return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id},  errors.New("OpenoltClient is nil pointer"))
+  
+	  }
+  
 	logger.Debugw(ctx, "rebooted-device-successfully", log.Fields{"device-id": device.Id})
 	return nil
 }
