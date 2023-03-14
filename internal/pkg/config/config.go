@@ -31,6 +31,7 @@ const (
 	defaultKvstoretype          = EtcdStoreName
 	defaultKvstoretimeout       = 5 * time.Second
 	defaultRPCTimeout           = 10 * time.Second
+	defaultPerRPCRetryTimeout   = 2 * time.Second
 	defaultKvstoreaddress       = "127.0.0.1:2379" // Port: Consul = 8500; Etcd = 2379
 	defaultLoglevel             = "WARN"
 	defaultBanner               = false
@@ -60,6 +61,7 @@ const (
 	defaultMaxBackoffRetryDelay               = 10 * time.Second
 	defaultAdapterEndpoint                    = "adapter-open-olt"
 	defaultCheckOnuDevExistenceAtOnuDiscovery = false
+	defaultMaxRetries                         = 10
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -72,6 +74,7 @@ type AdapterFlags struct {
 	KVStoreTimeout                     time.Duration
 	KVStoreAddress                     string
 	RPCTimeout                         time.Duration
+	PerRPCRetryTimeout                 time.Duration
 	EventTopic                         string
 	LogLevel                           string
 	OnuNumber                          int
@@ -97,6 +100,7 @@ type AdapterFlags struct {
 	MaxBackoffRetryDelay               time.Duration
 	AdapterEndpoint                    string
 	CheckOnuDevExistenceAtOnuDiscovery bool
+	MaxRetries                         uint
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -127,9 +131,11 @@ func NewAdapterFlags() *AdapterFlags {
 		EnableONUStats:                     defaultEnableONUStats,
 		EnableGEMStats:                     defaultEnableGEMStats,
 		RPCTimeout:                         defaultRPCTimeout,
+		PerRPCRetryTimeout:                 defaultPerRPCRetryTimeout,
 		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
 		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
 		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
+		MaxRetries:                         defaultMaxRetries,
 	}
 	return &adapterFlags
 }
@@ -276,11 +282,21 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"min_retry_delay",
 		defaultMinBackoffRetryDelay,
 		"The minimum number of milliseconds to delay before a connection retry attempt")
-
+  
+	flag.DurationVar(&(so.PerRPCRetryTimeout),
+		"per_rpc_retry_timeout",
+		defaultPerRPCRetryTimeout,
+		"The default timeout per RPC retry")
+  
 	flag.DurationVar(&(so.MaxBackoffRetryDelay),
 		"max_retry_delay",
 		defaultMaxBackoffRetryDelay,
 		"The maximum number of milliseconds to delay before a connection retry attempt")
+
+	flag.UintVar(&(so.MaxRetries),
+		"max_grpc_client_retry",
+		defaultMaxRetries,
+		"The maximum number of times olt adaptor will retry in case grpc request timeouts")
 
 	flag.BoolVar(&(so.CheckOnuDevExistenceAtOnuDiscovery),
 		"check_onu_exist_on_discovery",

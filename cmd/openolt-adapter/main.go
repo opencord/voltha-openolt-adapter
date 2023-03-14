@@ -21,6 +21,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	codes "google.golang.org/grpc/codes"
 	"os"
 	"os/signal"
 	"syscall"
@@ -137,7 +139,14 @@ func (a *adapter) start(ctx context.Context) {
 		logger.Fatal(ctx, "grpc-client-not-created")
 	}
 	// Start the core grpc client
-	go a.coreClient.Start(ctx, getCoreServiceClientHandler)
+	retryCodes := []codes.Code{
+		codes.Unavailable,      // server is currently unavailable
+		codes.DeadlineExceeded, // deadline for the operation was exceeded
+	}
+	grpcRetryOptions := grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(a.config.MaxRetries), grpc_retry.WithPerRetryTimeout(a.config.PerRPCRetryTimeout), grpc_retry.WithCodes(retryCodes...))
+	logger.Errorw(ctx, "Configuration values", log.Fields{"RETRY": a.config.MaxRetries, "TIMEOUT": a.config.PerRPCRetryTimeout})
+	//dummy2
+	go a.coreClient.Start(ctx, getCoreServiceClientHandler, grpcRetryOptions)
 
 	// Create the open OLT adapter
 	if a.oltAdapter, err = a.startOpenOLT(ctx, a.coreClient, a.eventProxy, a.config, cm); err != nil {
