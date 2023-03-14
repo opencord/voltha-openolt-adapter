@@ -60,6 +60,7 @@ const (
 	defaultMaxBackoffRetryDelay               = 10 * time.Second
 	defaultAdapterEndpoint                    = "adapter-open-olt"
 	defaultCheckOnuDevExistenceAtOnuDiscovery = false
+	defaultmaxRetries                         = 10
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -97,6 +98,7 @@ type AdapterFlags struct {
 	MaxBackoffRetryDelay               time.Duration
 	AdapterEndpoint                    string
 	CheckOnuDevExistenceAtOnuDiscovery bool
+	MaxRetries                         uint
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -130,6 +132,7 @@ func NewAdapterFlags() *AdapterFlags {
 		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
 		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
 		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
+		MaxRetries:							defaultmaxRetries,
 	}
 	return &adapterFlags
 }
@@ -282,10 +285,16 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		defaultMaxBackoffRetryDelay,
 		"The maximum number of milliseconds to delay before a connection retry attempt")
 
+	flag.UintVar(&(so.MaxRetries),
+		"max_grpc_client_retry",
+		defaultmaxRetries,
+		"The maximum number of times olt adaptor will retry in case grpc request times out")
+
 	flag.BoolVar(&(so.CheckOnuDevExistenceAtOnuDiscovery),
 		"check_onu_exist_on_discovery",
 		defaultCheckOnuDevExistenceAtOnuDiscovery,
 		"Whether to check for flows only or child device before honoring discovery?")
+
 
 	flag.Parse()
 	containerName := getContainerInfo()

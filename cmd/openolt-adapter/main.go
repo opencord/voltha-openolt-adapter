@@ -25,6 +25,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	codes "google.golang.org/grpc/codes"
+
+
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
@@ -137,7 +141,14 @@ func (a *adapter) start(ctx context.Context) {
 		logger.Fatal(ctx, "grpc-client-not-created")
 	}
 	// Start the core grpc client
-	go a.coreClient.Start(ctx, getCoreServiceClientHandler)
+	retryCodes := []codes.Code{
+        codes.Unavailable, // server is currently unavailable
+        codes.DeadlineExceeded, // deadline for the operation was exceeded
+    }
+	grpc_retry_options:=grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(a.config.MaxRetries), grpc_retry.WithPerRetryTimeout(a.config.RPCTimeout), grpc_retry.WithCodes(retryCodes...))
+	logger.Errorw(ctx, "HELM PARAMS!!!!", log.Fields{"RETRY":a.config.MaxRetries,"TIMEOUT":a.config.RPCTimeout})
+    //dummy2
+	go a.coreClient.Start(ctx, getCoreServiceClientHandler,grpc_retry_options)
 
 	// Create the open OLT adapter
 	if a.oltAdapter, err = a.startOpenOLT(ctx, a.coreClient, a.eventProxy, a.config, cm); err != nil {
