@@ -16,6 +16,24 @@
       "message": "Instead of calling it HELM PARAMS.. can you change it to \"Configuration values\"",
       "revId": "8d855e6987f8445c1baebc4814845954a82cc240",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ff35b90_116d4dae",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-03-23T09:34:48Z",
+      "side": 1,
+      "message": "fixed in latest patch",
+      "parentUuid": "0b359226_71ba38af",
+      "revId": "8d855e6987f8445c1baebc4814845954a82cc240",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
