@@ -2123,6 +2123,11 @@ func (dh *DeviceHandler) notifyChildDevices(ctx context.Context, state string) {
 // Device Port-State: ACTIVE
 // Device Oper-State: ACTIVE
 func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Device) error {
+	var retError error
+	if dh.Client == nil {
+		return olterrors.NewErrAdapter("olt-reenable-failed", log.Fields{"device-id": dh.device.Id}, retError)
+	}
+
 	if dh.Client != nil {
 		if _, err := dh.Client.ReenableOlt(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
 			if e, ok := status.FromError(err); ok && e.Code() == codes.Internal {
@@ -2138,7 +2143,6 @@ func (dh *DeviceHandler) ReenableDevice(ctx context.Context, device *voltha.Devi
 
 	// Update the all ports state on that device to enable
 	ports, err := dh.listDevicePortsFromCore(ctx, device.Id)
-	var retError error
 	if err != nil {
 		retError = olterrors.NewErrAdapter("list-ports-failed", log.Fields{"device-id": device.Id}, err)
 	} else {
@@ -2352,6 +2356,11 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 
 // RebootDevice reboots the given device
 func (dh *DeviceHandler) RebootDevice(ctx context.Context, device *voltha.Device) error {
+	var retError error
+	if dh.Client == nil {
+		return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, retError)
+	}
+
 	if dh.Client != nil {
 		if _, err := dh.Client.Reboot(log.WithSpanFromContext(context.Background(), ctx), new(oop.Empty)); err != nil {
 			return olterrors.NewErrAdapter("olt-reboot-failed", log.Fields{"device-id": dh.device.Id}, err)
