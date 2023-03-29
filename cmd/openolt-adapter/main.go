@@ -112,7 +112,7 @@ func (a *adapter) start(ctx context.Context) {
 	go conf.StartLogFeaturesConfigProcessing(cm, ctx)
 
 	// Setup Kafka Client
-	if a.kafkaClient, err = newKafkaClient(ctx, "sarama", a.config.KafkaClusterAddress); err != nil {
+	if a.kafkaClient, err = newKafkaClient(ctx, "sarama", a.config); err != nil {
 		logger.Fatalw(ctx, "Unsupported-common-client", log.Fields{"error": err})
 	}
 
@@ -303,18 +303,18 @@ func newKVClient(ctx context.Context, storeType, address string, timeout time.Du
 	return nil, errors.New("unsupported-kv-store")
 }
 
-func newKafkaClient(ctx context.Context, clientType, address string) (kafka.Client, error) {
+func newKafkaClient(ctx context.Context, clientType string, config *config.AdapterFlags) (kafka.Client, error) {
 
 	logger.Infow(ctx, "common-client-type", log.Fields{"client": clientType})
 	switch clientType {
 	case "sarama":
 		return kafka.NewSaramaClient(
-			kafka.Address(address),
+			kafka.Address(config.KafkaClusterAddress),
 			kafka.ProducerReturnOnErrors(true),
 			kafka.ProducerReturnOnSuccess(true),
-			kafka.ProducerMaxRetries(6),
+			kafka.ProducerMaxRetries(config.ProducerRetryMax),
 			kafka.ProducerRetryBackoff(time.Millisecond*30),
-			kafka.MetadatMaxRetries(15)), nil
+			kafka.MetadatMaxRetries(config.MetadataRetryMax)), nil
 	}
 
 	return nil, errors.New("unsupported-client-type")

@@ -62,6 +62,8 @@ const (
 	defaultAdapterEndpoint                    = "adapter-open-olt"
 	defaultCheckOnuDevExistenceAtOnuDiscovery = false
 	defaultMaxRetries                         = 10
+	defaultProducerRetryMax                   = 10
+	defaultMetadataRetryMax                   = 15
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
@@ -101,6 +103,8 @@ type AdapterFlags struct {
 	AdapterEndpoint                    string
 	CheckOnuDevExistenceAtOnuDiscovery bool
 	MaxRetries                         uint
+	ProducerRetryMax                   int
+	MetadataRetryMax                   int
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -136,6 +140,8 @@ func NewAdapterFlags() *AdapterFlags {
 		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
 		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
 		MaxRetries:                         defaultMaxRetries,
+		ProducerRetryMax:                   defaultProducerRetryMax,
+		MetadataRetryMax:                   defaultMetadataRetryMax,
 	}
 	return &adapterFlags
 }
@@ -302,6 +308,16 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"check_onu_exist_on_discovery",
 		defaultCheckOnuDevExistenceAtOnuDiscovery,
 		"Whether to check for flows only or child device before honoring discovery?")
+
+	flag.IntVar(&(so.ProducerRetryMax),
+		"producer_retry_max",
+		defaultProducerRetryMax,
+		"This option specifies the maximum number of times the producer will retry sending messages before giving up")
+
+	flag.IntVar(&(so.MetadataRetryMax),
+		"metadata_retry_max",
+		defaultMetadataRetryMax,
+		"This option specifies the maximum number of times retry to receive messages before giving up")
 
 	flag.Parse()
 	containerName := getContainerInfo()
