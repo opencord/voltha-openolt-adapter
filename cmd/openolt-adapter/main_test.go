@@ -122,7 +122,7 @@ func Test_newKafkaClient(t *testing.T) {
 	adapter := newMockAdapter()
 	type args struct {
 		clientType string
-		address    string
+		config     *config.AdapterFlags
 	}
 	tests := []struct {
 		name    string
@@ -130,12 +130,12 @@ func Test_newKafkaClient(t *testing.T) {
 		wantErr bool
 	}{
 		// TODO: Add test cases.
-		{"newKafkaClient", args{clientType: "sarama", address: adapter.config.KafkaClusterAddress}, false},
-		{"newKafkaClient", args{clientType: "sarama", address: adapter.config.KafkaClusterAddress}, false},
+		{"newKafkaClient", args{clientType: "sarama", config: adapter.config}, false},
+		{"newKafkaClient", args{clientType: "sarama", config: adapter.config}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := newKafkaClient(context.Background(), tt.args.clientType, tt.args.address)
+			_, err := newKafkaClient(context.Background(), tt.args.clientType, tt.args.config)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("newKafkaClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
