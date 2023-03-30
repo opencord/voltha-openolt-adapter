@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "571aff43_883045a2",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-03-30T10:05:14Z",
+      "side": 1,
+      "message": "we have helm chart values for these right ?",
+      "revId": "f41fb8e6ddf5a36adb3c5dd16640e6b874d06825",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
