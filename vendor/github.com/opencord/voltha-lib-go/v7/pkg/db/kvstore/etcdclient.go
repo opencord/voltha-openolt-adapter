@@ -140,11 +140,10 @@ startLoop:
 			switch err {
 			case context.Canceled:
 				logger.Warnw(ctx, "context-cancelled", log.Fields{"error": err})
-			case context.DeadlineExceeded:
-				logger.Warnw(ctx, "context-deadline-exceeded", log.Fields{"error": err, "context": ctx})
 			case v3rpcTypes.ErrEmptyKey:
 				logger.Warnw(ctx, "etcd-client-error", log.Fields{"error": err})
-			case v3rpcTypes.ErrLeaderChanged,
+			case context.DeadlineExceeded,
+				v3rpcTypes.ErrLeaderChanged,
 				v3rpcTypes.ErrGRPCNoLeader,
 				v3rpcTypes.ErrTimeout,
 				v3rpcTypes.ErrTimeoutDueToLeaderFail,
@@ -197,11 +196,10 @@ startLoop:
 			switch err {
 			case context.Canceled:
 				logger.Warnw(ctx, "context-cancelled", log.Fields{"error": err})
-			case context.DeadlineExceeded:
-				logger.Warnw(ctx, "context-deadline-exceeded", log.Fields{"error": err, "context": ctx})
 			case v3rpcTypes.ErrEmptyKey:
 				logger.Warnw(ctx, "etcd-client-error", log.Fields{"error": err})
-			case v3rpcTypes.ErrLeaderChanged,
+			case context.DeadlineExceeded,
+				v3rpcTypes.ErrLeaderChanged,
 				v3rpcTypes.ErrGRPCNoLeader,
 				v3rpcTypes.ErrTimeout,
 				v3rpcTypes.ErrTimeoutDueToLeaderFail,
@@ -240,11 +238,10 @@ startLoop:
 			switch err {
 			case context.Canceled:
 				logger.Warnw(ctx, "context-cancelled", log.Fields{"error": err})
-			case context.DeadlineExceeded:
-				logger.Warnw(ctx, "context-deadline-exceeded", log.Fields{"error": err, "context": ctx})
 			case v3rpcTypes.ErrEmptyKey:
 				logger.Warnw(ctx, "etcd-client-error", log.Fields{"error": err})
-			case v3rpcTypes.ErrLeaderChanged,
+			case context.DeadlineExceeded,
+				v3rpcTypes.ErrLeaderChanged,
 				v3rpcTypes.ErrGRPCNoLeader,
 				v3rpcTypes.ErrTimeout,
 				v3rpcTypes.ErrTimeoutDueToLeaderFail,
