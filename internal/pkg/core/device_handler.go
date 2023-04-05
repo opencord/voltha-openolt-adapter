@@ -772,11 +772,89 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 	}
 }
 
+func generateOnuIndication(intfID, onuID uint32, operState, adminState string) *oop.Indication {
+	onuInd := &oop.OnuIndication{
+		IntfId:     intfID,
+		OnuId:      onuID,
+		OperState:  operState,
+		AdminState: adminState,
+	}
+	indication := &oop.Indication{
+		Data: &oop.Indication_OnuInd{
+			OnuInd: onuInd,
+		},
+	}
+	return indication
+}
+
+func generateOnuAlarmIndication(intfID uint32, onuID uint32, losStatus string) *oop.AlarmIndication {
+	onuAlarmInd := &oop.OnuAlarmIndication{
+		IntfId:    intfID,
+		OnuId:     onuID,
+		LosStatus: losStatus,
+	}
+	alarmInd := &oop.AlarmIndication{
+		Data: &oop.AlarmIndication_OnuAlarmInd{
+			OnuAlarmInd: onuAlarmInd,
+		},
+	}
+	return alarmInd
+}
+
+func (dh *DeviceHandler) reconcileOnus(ctx context.Context) error {
+	onuDevicesFromCore, err := dh.getChildDevicesFromCore(ctx, dh.device.Id)
+	if err != nil {
+		logger.Error(ctx, "unable to fetch child device", log.Fields{"error": err})
+		return err
+	}
+	for _, onuDeviceFromCore := range onuDevicesFromCore.Items {
+		intfID := plt.PortNoToIntfID(onuDeviceFromCore.ParentPortNo, voltha.Port_PON_OLT)
+		onuID := onuDeviceFromCore.ProxyAddress.OnuId
+		onuDeviceFromOlt, err := dh.getOnuInfo(ctx, intfID, &onuID)
+		if err != nil {
+			logger.Error(ctx, "Unable to get onu information from the OLT device", log.Fields{"error": err})
+
+		} else {
+			onuOperStatusFromOlt := onuDeviceFromOlt.GetState()
+			switch {
+			// if olt adaptor missed the oper state up event from olt device, the onu will be in either discovered or activating state at core
+			case onuOperStatusFromOlt.String() == "ACTIVE":
+				if onuDeviceFromCore.OperStatus.String() == "DISCOVERED" || onuDeviceFromCore.OperStatus.String() == "ACTIVATING" {
+					OnuIndication := generateOnuIndication(intfID, onuID, "up", "up")
+					dh.putOnuIndicationToChannel(ctx, OnuIndication, intfID)
+				}
+			//if onu down indication is missed, then the onu device in core must be in discovered state, if it is not and los alarm should be raised, and state should be set to discovered
+			case onuOperStatusFromOlt.String() == "INACTIVE":
+				if (onuDeviceFromCore.OperStatus.String() != "DISCOVERED") || (onuDeviceFromCore.ConnectStatus.String() != "UNREACHABLE") {
+					OnuIndication := generateOnuIndication(intfID, onuID, "down", "down")
+					dh.putOnuIndicationToChannel(ctx, OnuIndication, intfID)
+					alarmInd := generateOnuAlarmIndication(intfID, onuID, "on")
+					raisedTs := time.Now().Unix()
+					go dh.eventMgr.ProcessEvents(ctx, alarmInd, dh.device.Id, raisedTs)
+				}
+
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	//starting the stat collector
 	go startCollector(ctx, dh)
-
+	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
+	if err == nil {
+		if device.OperStatus == voltha.OperStatus_RECONCILING {
+			err = dh.reconcileOnus(ctx)
+			if err != nil {
+				logger.Error(ctx, "unable to reconcile onu", log.Fields{"eeror": err})
+			}
+		}
+	}
 	// instantiate the mcast handler routines.
 	for i := range dh.incomingMcastFlowOrGroup {
 		// We land inside the below "if" code path, after the OLT comes back from a reboot, otherwise the routines
@@ -3397,6 +3475,17 @@ func (dh *DeviceHandler) getOnuPonCounters(ctx context.Context, onuPonInfo *exte
 	}
 	dh.portStats.updateGetOnuPonCountersResponse(ctx, &singleValResp, cmnni)
 	return &singleValResp
+
+}
+
+func (dh *DeviceHandler) getOnuInfo(ctx context.Context, intfID uint32, onuID *uint32) (*oop.OnuInfo, error) {
+
+	Onu := oop.Onu{IntfId: intfID, OnuId: *onuID}
+	OnuInfo, err := dh.Client.GetOnuInfo(ctx, &Onu)
+	if err != nil {
+		return nil, err
+	}
+	return OnuInfo, nil
 
 }
 
