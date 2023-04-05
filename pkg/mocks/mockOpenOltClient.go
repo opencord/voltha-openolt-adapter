@@ -271,3 +271,13 @@ func (ooc *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *open
 func (ooc *MockOpenoltClient) GetPonRxPower(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.PonRxPowerData, error) {
 	return &openolt.PonRxPowerData{}, nil
 }
+
+//GetOnuInfo mocks the GetOnuInfo function of Openoltclient.
+func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuInfo, error) {
+	return &openolt.OnuInfo{}, nil
+}
+
+//GetPonInterfaceInfo mocks the GetPonInterfaceInfo function of Openoltclient.
+func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
+	return &openolt.PonIntfInfo{}, nil
+}
