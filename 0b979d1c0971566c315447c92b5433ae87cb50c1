@@ -33,6 +33,74 @@
       "message": "Could you please also change the VERSION file.",
       "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95859933_63f6f4c3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-07T18:21:56Z",
+      "side": 1,
+      "message": "I\u0027m also a bit confused since the other patch is about (VOL-4959) Introduce retry mechanism when read/write to KAFKA and this one is ",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1507d109_27591089",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-07T18:21:56Z",
+      "side": 1,
+      "message": "don\u0027t we need a different timeout here? The default RPCTimeout is 10s.",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fe0b8e19_4756eca7",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-07T18:21:56Z",
+      "side": 1,
+      "message": "Please use camel case.",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c2267012_13741679",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-07T18:21:56Z",
+      "side": 1,
+      "message": "should be:\n..grpc request timeouts",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
