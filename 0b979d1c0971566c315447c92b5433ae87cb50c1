@@ -52,6 +52,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6fe7fd86_f364cb8d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-07T18:23:00Z",
+      "side": 1,
+      "message": "\u003e I\u0027m also a bit confused since the other patch is about (VOL-4959) Introduce retry mechanism when read/write to KAFKA and this one is \nThis is incorrect, please ignore my comment.",
+      "parentUuid": "95859933_63f6f4c3",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1507d109_27591089",
