@@ -89,6 +89,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e22570e3_884ba1bc",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-09T10:48:18Z",
+      "side": 1,
+      "message": "according to grpc documentation \"WithPerRetryTimeout sets the RPC timeout per call (including initial call) on this call, or this interceptor\".As the retry is done towards core, shouldn\u0027t the timeout match the default RPCTimeout(which is also the initial call\u0027s time out, set as the context time outs of the rpc calls towards core )?",
+      "parentUuid": "1507d109_27591089",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fe0b8e19_4756eca7",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
@@ -106,6 +124,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8d202144_4c8c0d9d",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-09T10:48:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe0b8e19_4756eca7",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c2267012_13741679",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
@@ -117,6 +153,24 @@
       "writtenOn": "2023-04-07T18:21:56Z",
       "side": 1,
       "message": "should be:\n..grpc request timeouts",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be694630_b43468bf",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-09T10:48:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2267012_13741679",
       "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
