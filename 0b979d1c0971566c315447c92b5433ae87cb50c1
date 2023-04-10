@@ -107,6 +107,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9fddf5cc_e314be6b",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-10T09:25:48Z",
+      "side": 1,
+      "message": "I see. Your suggestion is to set the rpc_timeout to 2 seconds so a client calling the related RPC function would get context timeout in 10 seconds if the retry value is 5.\nIf that\u0027s the case we should also modify the helm-chart values accordingly.",
+      "parentUuid": "e22570e3_884ba1bc",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fe0b8e19_4756eca7",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
