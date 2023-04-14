@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b8ef04e7_d8f54bf2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2023-04-14T19:14:47Z",
+      "side": 1,
+      "message": "Please do not forget to bump up the version in VERSION file.",
+      "revId": "aaae9c8ee5a56f9447c4b728e3ad4ab97cebb9e6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
