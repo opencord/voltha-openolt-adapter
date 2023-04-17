@@ -161,6 +161,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "fd55edc9_4d0f4085",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-17T05:32:52Z",
+      "side": 1,
+      "message": "added this change in latest patch",
+      "parentUuid": "a2091711_0801b89d",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fe0b8e19_4756eca7",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
