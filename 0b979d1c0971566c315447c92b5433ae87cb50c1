@@ -143,6 +143,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a2091711_0801b89d",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-17T05:31:42Z",
+      "side": 1,
+      "message": "on further testing i found that we should use a separate variable for time out of each rpc call, this is because if we use the same variable the grpc librarie\u0027s retry logic will exit on time out of the parent context itself without caring for the retry codes. So we must use a separate variable to squeeze in the mentioned number of retries(5) with in the parent context timeout(10seconds). Thereby giving a per_rpc_retry_timeout of 2 seconds.",
+      "parentUuid": "61eff0ef_3ddfa75b",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fe0b8e19_4756eca7",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
@@ -178,6 +196,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "40145671_3fc32f53",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-17T05:31:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d202144_4c8c0d9d",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "c2267012_13741679",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 8
@@ -207,6 +243,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "c2267012_13741679",
+      "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84cad925_41a996ae",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-17T05:31:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be694630_b43468bf",
       "revId": "0b979d1c0971566c315447c92b5433ae87cb50c1",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
