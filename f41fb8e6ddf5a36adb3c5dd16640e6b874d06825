@@ -16,6 +16,24 @@
       "message": "we have helm chart values for these right ?",
       "revId": "f41fb8e6ddf5a36adb3c5dd16640e6b874d06825",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "779b00f1_8eba4386",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2023-04-19T06:27:41Z",
+      "side": 1,
+      "message": "No, we can include these options \u0027--producer_retry_max\u0027 \u0026 \u0027--metadata_max_retry\u0027 in voltha-helm-charts templates and use it.",
+      "parentUuid": "571aff43_883045a2",
+      "revId": "f41fb8e6ddf5a36adb3c5dd16640e6b874d06825",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }

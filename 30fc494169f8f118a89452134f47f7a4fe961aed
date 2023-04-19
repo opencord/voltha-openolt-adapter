@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ca130994_d522c6b4",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2023-04-19T06:27:41Z",
+      "side": 1,
+      "message": "changed from \u0027defaultMetadataMaxRetry\u0027 to \u0027defaultMetadataRetryMax\u0027.",
+      "parentUuid": "b6407487_e1f84b5b",
+      "range": {
+        "startLine": 64,
+        "startChar": 1,
+        "endLine": 64,
+        "endChar": 24
+      },
+      "revId": "30fc494169f8f118a89452134f47f7a4fe961aed",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3dff4869_d01fffb8",
         "filename": "internal/pkg/config/config.go",
         "patchSetId": 3
@@ -37,6 +61,30 @@
       "writtenOn": "2023-03-31T16:00:54Z",
       "side": 1,
       "message": "same as above.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 0
+      },
+      "revId": "30fc494169f8f118a89452134f47f7a4fe961aed",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92c5a443_1cacb2b8",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2023-04-19T06:27:41Z",
+      "side": 1,
+      "message": "changed from \u0027MetadataMaxRetry\u0027 to \u0027MetadataRetryMax\u0027.",
+      "parentUuid": "3dff4869_d01fffb8",
       "range": {
         "startLine": 102,
         "startChar": 0,
@@ -72,6 +120,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c5517dd3_635ef303",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2129,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2023-04-19T06:27:41Z",
+      "side": 1,
+      "message": "This changes is not needed.",
+      "parentUuid": "f00e47b8_1810994b",
+      "range": {
+        "startLine": 2127,
+        "startChar": 0,
+        "endLine": 2129,
+        "endChar": 2
+      },
+      "revId": "30fc494169f8f118a89452134f47f7a4fe961aed",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1f1351ab_1d1e0260",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -83,6 +155,30 @@
       "writtenOn": "2023-03-31T16:00:54Z",
       "side": 1,
       "message": "same as above.",
+      "range": {
+        "startLine": 2360,
+        "startChar": 1,
+        "endLine": 2362,
+        "endChar": 2
+      },
+      "revId": "30fc494169f8f118a89452134f47f7a4fe961aed",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e52ce84_9203ff99",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2362,
+      "author": {
+        "id": 1000971
+      },
+      "writtenOn": "2023-04-19T06:27:41Z",
+      "side": 1,
+      "message": "This changes is not needed.",
+      "parentUuid": "1f1351ab_1d1e0260",
       "range": {
         "startLine": 2360,
         "startChar": 1,
