@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "38041042_8f312e0b",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-23T13:26:15Z",
+      "side": 1,
+      "message": "I don\u0027t know how this mechnanism works but I believe we should keep only Unavailable, not the DeadlineExceeded. Let\u0027s say adapter sends a PacketIn to the core. If the core is busy and can not respond in 2 seconds, the adapter would retry and there is a chance the same packet sent device to the core.\nIf the service is Unavailable retry mechanism makes sense to me.",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 24
+      },
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d509d475_9db02d3e",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-23T13:26:15Z",
+      "side": 1,
+      "message": "Could you please set the log level to debug and remove the unnecessary comment?",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f31f29a0_2f5cb1ef",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-23T13:26:15Z",
+      "side": 1,
+      "message": "There is a retry mechanism here! Should we get rid of this?",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
