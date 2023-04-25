@@ -67,6 +67,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "52194160_1c11f2fe",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-25T06:06:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d509d475_9db02d3e",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f31f29a0_2f5cb1ef",
         "filename": "cmd/openolt-adapter/main.go",
         "patchSetId": 14
@@ -78,6 +96,24 @@
       "writtenOn": "2023-04-23T13:26:15Z",
       "side": 1,
       "message": "There is a retry mechanism here! Should we get rid of this?",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad650227_f6337e9e",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-25T06:06:49Z",
+      "side": 1,
+      "message": "this function is invoked as a.registerWithCore(ctx, coreService, -1), the -1 will result in an infinite retry, hence if we get rid of this the infinite retry will reduce to 10 retries in case of failure(due to deadline exceeded or core unavailable). Also this retry is independent of the error code, olt-adaptor will keep on trying this till it gets a positive response.",
+      "parentUuid": "f31f29a0_2f5cb1ef",
       "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
