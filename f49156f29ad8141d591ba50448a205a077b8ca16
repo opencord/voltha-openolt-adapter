@@ -50,6 +50,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "af0a0aa1_bb8c5102",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-25T12:38:17Z",
+      "side": 1,
+      "message": "Makes sense. \nThe only dangerous operation from the adapter to the core is the PortCreate API call. If we can make sure that subsequent PortCreate API calls do not result in any problems then it\u0027s fine. Is it possible for you to modify the unit test in rw-core to test it?",
+      "parentUuid": "fd4a65ce_39970bb5",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 24
+      },
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d509d475_9db02d3e",
         "filename": "cmd/openolt-adapter/main.go",
         "patchSetId": 14
@@ -79,6 +103,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "d509d475_9db02d3e",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e5dffef9_b9a841af",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-25T12:38:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "52194160_1c11f2fe",
       "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -114,6 +156,24 @@
       "side": 1,
       "message": "this function is invoked as a.registerWithCore(ctx, coreService, -1), the -1 will result in an infinite retry, hence if we get rid of this the infinite retry will reduce to 10 retries in case of failure(due to deadline exceeded or core unavailable). Also this retry is independent of the error code, olt-adaptor will keep on trying this till it gets a positive response.",
       "parentUuid": "f31f29a0_2f5cb1ef",
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0a99cd35_4e76bde2",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-04-25T12:38:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ad650227_f6337e9e",
       "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
