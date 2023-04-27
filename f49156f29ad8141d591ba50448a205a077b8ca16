@@ -74,6 +74,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b6edf21f_9138b96e",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-04-27T12:08:43Z",
+      "side": 1,
+      "message": "I have now tested the PortCreated api request(in the actual setup) by firing it 5 times from olt adapter instead of once (for the same port), in the function createPortInCore(). No issues were observed in core and setup is in normal operation.",
+      "parentUuid": "af0a0aa1_bb8c5102",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 24
+      },
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d509d475_9db02d3e",
         "filename": "cmd/openolt-adapter/main.go",
         "patchSetId": 14
