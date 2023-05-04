@@ -96,6 +96,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2aae9dc_2f1bd202",
+        "filename": "cmd/openolt-adapter/main.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2023-05-04T14:51:43Z",
+      "side": 1,
+      "message": "Great, thanks Nikesh.",
+      "parentUuid": "b6edf21f_9138b96e",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 24
+      },
+      "revId": "f49156f29ad8141d591ba50448a205a077b8ca16",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d509d475_9db02d3e",
