@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "739fca5e_5db6d581",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd1e0e19_31335bd8",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "5344a757_7a4130bf",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -31,6 +49,24 @@
       "writtenOn": "2023-04-11T10:25:11Z",
       "side": 1,
       "message": "we can directly use the status from onuDeviceFromCore object , why copy to another variable?",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "64169aa7_33a78796",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5344a757_7a4130bf",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c7ca0795_96e38d9d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a785adaa_625ed592",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d385aa13_186f2383",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -65,6 +119,24 @@
       "writtenOn": "2023-04-11T10:25:11Z",
       "side": 1,
       "message": "check for nil here !!?",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e4b3a5c9_0d0e51d7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "if error is not nil onuDeviceFromOlt will not be nil, also the get state will return default values configured from protos if no value is obtained from olt agent",
+      "parentUuid": "d385aa13_186f2383",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -88,6 +160,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8cb2af3f_eebbdf47",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 851,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "07c3578c_ad10e231",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6e7adaa9_045a8eb0",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -99,6 +189,24 @@
       "writtenOn": "2023-04-11T10:25:11Z",
       "side": 1,
       "message": "typ o eeror",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bae2147a_3d2b5ed8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 877,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "removed pon reconcile for now as per discussion",
+      "parentUuid": "6e7adaa9_045a8eb0",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -122,6 +230,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3f9e0758_4323a49f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 885,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "removed pon reconcile for now as per discussion",
+      "parentUuid": "362feb24_4dd467fc",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d164ead7_3701da52",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -139,6 +265,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a0e617e5_b9705d28",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "removed pon reconcile for now as per discussion",
+      "parentUuid": "d164ead7_3701da52",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d6acaeb3_d67136d2",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 5
@@ -150,6 +294,24 @@
       "writtenOn": "2023-04-11T10:25:11Z",
       "side": 1,
       "message": "if a oper down is missed, then the state of the pon will be in discoered state, can you please check these conditions, looks like they dont align well",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a285ad92_3bcd7dcd",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 905,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-05-08T10:06:23Z",
+      "side": 1,
+      "message": "removed pon reconcile for now as per discussion",
+      "parentUuid": "d6acaeb3_d67136d2",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
