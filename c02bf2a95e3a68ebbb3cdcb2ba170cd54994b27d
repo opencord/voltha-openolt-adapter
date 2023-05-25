@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f41b9b3_d1f02d16",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2023-05-25T20:31:55Z",
+      "side": 1,
+      "message": "please also bump up the version of voltha-openolt-adapter itself in the VERSION file.",
+      "revId": "c02bf2a95e3a68ebbb3cdcb2ba170cd54994b27d",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
