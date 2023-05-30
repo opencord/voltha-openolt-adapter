@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b09b4020_873b7a1c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 832,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "739fca5e_5db6d581",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5344a757_7a4130bf",
@@ -106,6 +124,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "36a153ee_6af36904",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7ca0795_96e38d9d",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d385aa13_186f2383",
@@ -137,6 +173,24 @@
       "side": 1,
       "message": "if error is not nil onuDeviceFromOlt will not be nil, also the get state will return default values configured from protos if no value is obtained from olt agent",
       "parentUuid": "d385aa13_186f2383",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78590bc0_4d0ccc12",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e4b3a5c9_0d0e51d7",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -176,6 +230,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e220e5c6_c4be8135",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 851,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8cb2af3f_eebbdf47",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6e7adaa9_045a8eb0",
@@ -207,6 +279,24 @@
       "side": 1,
       "message": "removed pon reconcile for now as per discussion",
       "parentUuid": "6e7adaa9_045a8eb0",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1e1330d_f199af98",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 877,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bae2147a_3d2b5ed8",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -246,6 +336,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "778ccd0f_f0afc6c5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 885,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f9e0758_4323a49f",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d164ead7_3701da52",
@@ -281,6 +389,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b365f0b9_df9cb259",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0e617e5_b9705d28",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d6acaeb3_d67136d2",
@@ -312,6 +438,24 @@
       "side": 1,
       "message": "removed pon reconcile for now as per discussion",
       "parentUuid": "d6acaeb3_d67136d2",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c684c02e_9b05c126",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 905,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-05-30T12:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a285ad92_3bcd7dcd",
       "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
