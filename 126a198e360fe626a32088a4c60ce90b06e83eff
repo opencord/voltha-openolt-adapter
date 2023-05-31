@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff8ac256_b58f1675",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2023-05-31T17:21:54Z",
+      "side": 1,
+      "message": "I guess you need to run \"go mod tidy / go mod vendor\" and update patch @Nikesh.",
+      "revId": "126a198e360fe626a32088a4c60ce90b06e83eff",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
