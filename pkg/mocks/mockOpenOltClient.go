@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package mocks provides the mocks for openolt-adapter.
+// Package mocks provides the mocks for openolt-adapter.
 package mocks
 
 import (
@@ -257,17 +257,27 @@ func (ooc *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *ope
 	return &openolt.Empty{}, nil
 }
 
-//GetOnuStatistics mocks the GetOnuStatistics function of Openoltclient.
+// GetOnuStatistics mocks the GetOnuStatistics function of Openoltclient.
 func (ooc *MockOpenoltClient) GetOnuStatistics(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuStatistics, error) {
 	return &openolt.OnuStatistics{}, nil
 }
 
-//GetGemPortStatistics mocks the GetGemPortStatistics function of Openoltclient.
+// GetGemPortStatistics mocks the GetGemPortStatistics function of Openoltclient.
 func (ooc *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.GemPortStatistics, error) {
 	return &openolt.GemPortStatistics{}, nil
 }
 
-//GetPonRxPower mocks the GetPonRxPower function of Openoltclient.
+// GetPonRxPower mocks the GetPonRxPower function of Openoltclient.
 func (ooc *MockOpenoltClient) GetPonRxPower(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.PonRxPowerData, error) {
 	return &openolt.PonRxPowerData{}, nil
+}
+
+// GetOnuInfo mocks the GetOnuInfo function of Openoltclient.
+func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuInfo, error) {
+	return &openolt.OnuInfo{}, nil
+}
+
+// GetPonInterfaceInfo mocks the GetPonInterfaceInfo function of Openoltclient.
+func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
+	return &openolt.PonIntfInfo{}, nil
 }
