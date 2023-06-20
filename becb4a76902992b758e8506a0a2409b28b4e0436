@@ -53,6 +53,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f551fd03_678e47d3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3411,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-20T17:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88649ffe_f51e13f7",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8fe29e66_c3d78f83",
@@ -119,6 +137,24 @@
       "side": 1,
       "message": "Okay . Will incorporate the needed changes.",
       "parentUuid": "cbd964a2_8cb178ec",
+      "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d9499a84_ebd6d1eb",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 3483,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-20T17:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c91692e0_19146b85",
       "revId": "becb4a76902992b758e8506a0a2409b28b4e0436",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
