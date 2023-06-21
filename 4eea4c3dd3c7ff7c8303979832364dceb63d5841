@@ -89,6 +89,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ffd3dc8_a45cf2c5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 838,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-06-21T09:23:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "64169aa7_33a78796",
+      "revId": "4eea4c3dd3c7ff7c8303979832364dceb63d5841",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a785adaa_625ed592",
