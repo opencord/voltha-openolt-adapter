@@ -16,6 +16,24 @@
       "message": "Was there a need to remove \u003cspace\u003e attached to the comment leader or might this have been something your editor transparently applied ?\n\n//\u003cspace\u003eComment\n\nSpace removal will no longer match existing file comments and I suspect the gofmt command may complain about it.",
       "revId": "2f8b5324c75f60c7faa7507ce52e23d6698dfc42",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fc3c3c8e_8b122294",
+        "filename": "pkg/mocks/mockOpenOltClient.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-06-22T17:51:32Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "6066e04d_4bbb72a4",
+      "revId": "2f8b5324c75f60c7faa7507ce52e23d6698dfc42",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
