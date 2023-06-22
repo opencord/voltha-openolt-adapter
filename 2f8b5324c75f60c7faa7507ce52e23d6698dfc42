@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6066e04d_4bbb72a4",
+        "filename": "pkg/mocks/mockOpenOltClient.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-06-22T14:37:41Z",
+      "side": 0,
+      "message": "Was there a need to remove \u003cspace\u003e attached to the comment leader or might this have been something your editor transparently applied ?\n\n//\u003cspace\u003eComment\n\nSpace removal will no longer match existing file comments and I suspect the gofmt command may complain about it.",
+      "revId": "2f8b5324c75f60c7faa7507ce52e23d6698dfc42",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
