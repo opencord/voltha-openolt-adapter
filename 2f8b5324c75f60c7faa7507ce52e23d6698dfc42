@@ -34,6 +34,24 @@
       "parentUuid": "6066e04d_4bbb72a4",
       "revId": "2f8b5324c75f60c7faa7507ce52e23d6698dfc42",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "27eb2e24_f6377720",
+        "filename": "pkg/mocks/mockOpenOltClient.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1000097
+      },
+      "writtenOn": "2023-06-23T06:37:21Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "fc3c3c8e_8b122294",
+      "revId": "2f8b5324c75f60c7faa7507ce52e23d6698dfc42",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
