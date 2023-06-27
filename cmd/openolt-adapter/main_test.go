@@ -144,3 +144,5 @@ func Test_newKafkaClient(t *testing.T) {
 		})
 	}
 }
+
+// [EOF]
