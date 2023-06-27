@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package olterrors Common Logger initialization
+// Package olterrors Common Logger initialization
 package olterrors
 
 import (
@@ -31,3 +31,5 @@ func init() {
 		panic(err)
 	}
 }
+
+// [EOF]

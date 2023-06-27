@@ -14,7 +14,7 @@
 * limitations under the License.
  */
 
-//Package main invokes the application
+// Package main invokes the application
 package main
 
 import (
@@ -194,7 +194,8 @@ func getCoreServiceClientHandler(ctx context.Context, conn *grpc.ClientConn) int
 	return core_service.NewCoreServiceClient(conn)
 }
 
-/**
+/*
+*
 This function checks the liveliness and readiness of the kakfa and kv-client services
 and update the status in the probe.
 */
@@ -206,7 +207,8 @@ func (a *adapter) checkServicesReadiness(ctx context.Context) {
 	go a.checkKvStoreReadiness(ctx)
 }
 
-/**
+/*
+*
 This function checks the liveliness and readiness of the kv-store service
 and update the status in the probe.
 */
@@ -560,3 +562,5 @@ func main() {
 	elapsed := time.Since(start)
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
 }
+
+// [EOF]
