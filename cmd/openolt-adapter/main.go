@@ -560,3 +560,5 @@ func main() {
 	elapsed := time.Since(start)
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
 }
+
+// [EOF]
