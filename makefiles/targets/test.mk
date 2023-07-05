@@ -17,46 +17,24 @@
 # SPDX-FileCopyrightText: 2022-2023 Open Networking Foundation (ONF) and the ONF Contributors
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------
-# https://gerrit.opencord.org/plugins/gitiles/onf-make
-# ONF.makefile.version = 1.0
-# -----------------------------------------------------------------------
 
 $(if $(DEBUG),$(warning ENTER))
 
-# include makefiles/constants.mk
-export dot          :=.
-export null         :=#
-export space        := $(null) $(null)
-export quote-single := $(null)'$(null)#'
-export quote-double := $(null)"$(null)#"
-
-# [DEBUG] make {target} HIDE=
-HIDE           ?= @
-
-env-clean      ?= /usr/bin/env --ignore-environment
-xargs-n1       := xargs -0 -t -n1 --no-run-if-empty
-xargs-n1-clean := $(env-clean) $(xargs-n1)
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+.PHONY: test
+test: $(venv-activate-script) $(JOBCONFIG_DIR)
+	$(activate) \
+	&& pipdeptree \
+	&& jenkins-jobs -l DEBUG test --recursive --config-xml -o "$(JOBCONFIG_DIR)" jjb/ ;
 
 ## -----------------------------------------------------------------------
-## Intent: NOP command for targets whose dependencies do all heavy lifting
 ## -----------------------------------------------------------------------
-## usage: foo bar tans
-## <tab>$(nop-command)
-## -----------------------------------------------------------------------
-nop-cmd        := :
-
-## -----------------------------------------------------------------------
-## Default shell:
-##   o set -e            enable error checking
-##   o set -u            report undefined errors
-##   o set -o pipefail   propogate shell pipeline failures.
-## -----------------------------------------------------------------------
-SHELL ?= /bin/bash
-have-shell-bash := $(filter bash,$(subst /,$(space),$(SHELL)))
-$(if $(have-shell-bash),$(null),\
-  $(eval export SHELL := bash -euo pipefail))
-
-export SHELL ?= bash -euo pipefail
+help-verbose += help-test
+help-test ::
+	@echo
+	@echo '[MAKE: test]'
+	@echo '  test                Perform testing that a jenkins job pull request will invoke'
 
 $(if $(DEBUG),$(warning LEAVE))
 

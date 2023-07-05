@@ -27,7 +27,9 @@ $(if $(VERBOSE),$(eval export VERBOSE=$(VERBOSE))) # visible to include(s)
 ##--------------------##
 ##---]  INCLUDES  [---##
 ##--------------------##
-include $(MAKEDIR)/include.mk
+include config.mk#               # configure
+include makefiles/include.mk     # top level include
+
 ifdef LOCAL_LINT
   include $(MAKEDIR)/lint/golang/sca.mk
 endif
@@ -66,11 +68,11 @@ DOCKER_BUILD_ARGS ?= \
 # tool containers
 VOLTHA_TOOLS_VERSION ?= 2.4.0
 
-GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
-GO_JUNIT_REPORT   = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-go-junit-report go-junit-report
-GOCOVER_COBERTURA = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app/src/github.com/opencord/voltha-openolt-adapter -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-gocover-cobertura gocover-cobertura
-GOLANGCI_LINT     = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golangci-lint golangci-lint
-HADOLINT          = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-hadolint hadolint
+# GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
+# GO_JUNIT_REPORT   = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-go-junit-report go-junit-report
+# GOCOVER_COBERTURA = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app/src/github.com/opencord/voltha-openolt-adapter -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-gocover-cobertura gocover-cobertura
+# GOLANGCI_LINT     = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golangci-lint golangci-lint
+# HADOLINT          = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-hadolint hadolint
 
 .PHONY: docker-build local-protos local-lib-go help
 
@@ -133,14 +135,19 @@ lint-dockerfile: ## Perform static analysis on Dockerfile
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
 lint-mod: ## Verify the Go dependencies
+
 	@echo "Running dependency check..."
 	@${GO} mod verify
+
 	@echo "Dependency check OK. Running vendor check..."
 	@git status > /dev/null
 	@git diff-index --quiet HEAD -- go.mod go.sum vendor || (echo "ERROR: Staged or modified files must be committed before running this test" && git status -- go.mod go.sum vendor && exit 1)
 	@[[ `git ls-files --exclude-standard --others go.mod go.sum vendor` == "" ]] || (echo "ERROR: Untracked files must be cleaned up before running this test" && git status -- go.mod go.sum vendor && exit 1)
-	${GO} mod tidy
-	${GO} mod vendor
+
+	$(MAKE) mod-update
+#	${GO} mod tidy
+#	${GO} mod vendor
+
 	@git status > /dev/null
 	@git diff-index --quiet HEAD -- go.mod go.sum vendor || (echo "ERROR: Modified files detected after running go mod tidy / go mod vendor" && git status -- go.mod go.sum vendor && git checkout -- go.mod go.sum vendor && exit 1)
 	@[[ `git ls-files --exclude-standard --others go.mod go.sum vendor` == "" ]] || (echo "ERROR: Untracked files detected after running go mod tidy / go mod vendor" && git status -- go.mod go.sum vendor && git checkout -- go.mod go.sum vendor && exit 1)
@@ -152,17 +159,71 @@ lint: local-lib-go lint-mod lint-dockerfile
 
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
+coverage-out := ./tests/results/go-test-coverage.out
+coverage-res := ./tests/results/go-test-results.out
 test: ## Run unit tests
+
+	$(call banner-enter,$@)
+
+	$(RM) -r tests/results
 	@mkdir -p ./tests/results
-	@${GO} test -mod=vendor -v -coverprofile ./tests/results/go-test-coverage.out -covermode count ./... 2>&1 | tee ./tests/results/go-test-results.out ;\
-	RETURN=$$? ;\
-	${GO_JUNIT_REPORT} < ./tests/results/go-test-results.out > ./tests/results/go-test-results.xml ;\
-	${GOCOVER_COBERTURA} < ./tests/results/go-test-coverage.out > ./tests/results/go-test-coverage.xml ;\
-	exit $$RETURN
+
+	@$(if $(LOCAL_FIX_PERMS),chmod 777 tests/results)
+
+	$(HIDE) $(MAKE) --no-print-directory test-go-coverage
+	$(HIDE) $(MAKE) --no-print-directory test-junit
+	$(HIDE) $(MAKE) --no-print-directory test-cobertura
+
+#	${GOCOVER_COBERTURA} < $(coverage-out) \
+#	    > ./tests/results/go-test-coverage.xml
+
+	@$(if $(LOCAL_FIX_PERMS),chmod 775 tests/results) # yes this may not run
+
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+test-go-coverage:
+	$(call banner-enter,$@)
+	@$(if $(LOCAL_FIX_PERMS),chmod 777 tests/results)
+	( ${GO} test -mod=vendor -v -coverprofile $(coverage-out) -covermode count ./... 2>&1 ) \
+	  | tee $(coverage-res)
+	@$(if $(LOCAL_FIX_PERMS),chmod 775 tests/results)
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+test-junit:
+	$(call banner-enter,$@)
+	@$(if $(LOCAL_FIX_PERMS),chmod 777 tests/results)
+	${GO_JUNIT_REPORT} < $(coverage-res) \
+	    > ./tests/results/go-test-results.xml
+	@$(if $(LOCAL_FIX_PERMS),chmod 775 tests/results)
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+test-cobertura:
+	$(call banner-enter,$@)
+	@$(if $(LOCAL_FIX_PERMS),chmod 777 tests/results)
+	${GOCOVER_COBERTURA} < $(coverage-out) \
+	    > ./tests/results/go-test-coverage.xml
+	@$(if $(LOCAL_FIX_PERMS),chmod 775 tests/results)
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+help ::
+	@echo '[TEST: Coverage report]'
+	@echo '  test-go-coverage       Generate a coverage report for vendor/'
+	@echo '  test-junit             Digest go coverage, generate junit'
+	@echo '  test-cobertura         Digest coverage and junit reports'
 
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
 sca:
+	$(call banner-enter,$@)
+
 	@$(RM) -r ./sca-report
 	@mkdir -p ./sca-report
 	@echo "Running static code analysis..."
@@ -171,9 +232,12 @@ sca:
 	@echo ""
 	@echo "Static code analysis OK"
 
+	$(call banner-leave,$@)
+
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
-clean: distclean
+clean :: distclean
+sterile :: clean distclean
 
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
@@ -182,8 +246,34 @@ distclean:
 
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
-mod-update:
+.PHONY: mod-update
+mod-update: mod-tidy mod-vendor
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+.PHONY: mod-tidy
+mod-tidy:
+	$(call banner-enter,$@)
 	${GO} mod tidy
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+.PHONY: mod-vendor
+mod-vendor:
+	$(call banner-enter,$@)
+	@$(if $(LOCAL_FIX_PERMS),chmod 777 .)
 	${GO} mod vendor
+	@$(if $(LOCAL_FIX_PERMS),chmod 755 .)
+	$(call banner-leave,$@)
+
+## -----------------------------------------------------------------------
+## -----------------------------------------------------------------------
+help ::
+	@echo '[MOD UPDATE]'
+	@echo '  mod-update'
+	@echo '    LOCAL_FIX_PERMS=1    Hack to fix docker access problems'
+	@echo '  mod-tidy'
+	@echo '  mod-vendor'
 
 # [EOF]

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (
@@ -30,23 +30,23 @@ import (
 	oltia "github.com/opencord/voltha-protos/v5/go/olt_inter_adapter_service"
 )
 
-//OpenOLTInterAdapter structure holds a reference to the oltAdapter
+// OpenOLTInterAdapter structure holds a reference to the oltAdapter
 type OpenOLTInterAdapter struct {
 	oltAdapter  *OpenOLT
 	exitChannel chan struct{}
 }
 
-//NewOpenOLTInterAdapter returns a new instance of OpenOLTInterAdapter
+// NewOpenOLTInterAdapter returns a new instance of OpenOLTInterAdapter
 func NewOpenOLTInterAdapter(oltAdapter *OpenOLT) *OpenOLTInterAdapter {
 	return &OpenOLTInterAdapter{oltAdapter: oltAdapter, exitChannel: make(chan struct{})}
 }
 
-//Start starts (logs) the device manager
+// Start starts (logs) the device manager
 func (oo *OpenOLTInterAdapter) Start(ctx context.Context) error {
 	return nil
 }
 
-//Stop terminates the session
+// Stop terminates the session
 func (oo *OpenOLTInterAdapter) Stop(ctx context.Context) error {
 	close(oo.exitChannel)
 	return nil

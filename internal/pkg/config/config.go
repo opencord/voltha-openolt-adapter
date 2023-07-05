@@ -14,7 +14,7 @@
 * limitations under the License.
  */
 
-//Package config provides the Log, kvstore, Kafka configuration
+// Package config provides the Log, kvstore, Kafka configuration
 package config
 
 import (

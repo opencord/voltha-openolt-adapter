@@ -19,7 +19,7 @@ This file contains unit test cases for functions in the file openolt.go.
 This file also implements the fields struct to mock the Openolt and few utility functions.
 */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (

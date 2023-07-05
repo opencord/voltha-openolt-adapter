@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (

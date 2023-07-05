@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (
@@ -99,8 +99,8 @@ var mutex = &sync.Mutex{}
 var onuStats = make(chan *openolt.OnuStatistics, 100)
 var gemStats = make(chan *openolt.GemPortStatistics, 100)
 
-//statRegInfo is used to register for notifications
-//on receiving port stats and flow stats indication
+// statRegInfo is used to register for notifications
+// on receiving port stats and flow stats indication
 type statRegInfo struct {
 	chn      chan bool
 	portNo   uint32
@@ -256,7 +256,7 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 	return &NNI
 }
 
-//StatType defines portStatsType and flowStatsType types
+// StatType defines portStatsType and flowStatsType types
 type StatType int
 
 const (
@@ -741,7 +741,7 @@ func (StatMgr *OpenOltStatisticsMgr) updateGetOltPortCountersResponse(ctx contex
 	logger.Debugw(ctx, "updateGetOltPortCountersResponse", log.Fields{"resp": singleValResp})
 }
 
-//RegisterForStatIndication registers ch as a channel on which indication is sent when statistics of type t is received
+// RegisterForStatIndication registers ch as a channel on which indication is sent when statistics of type t is received
 func (StatMgr *OpenOltStatisticsMgr) RegisterForStatIndication(ctx context.Context, t StatType, ch chan bool, portNo uint32, portType extension.GetOltPortCounters_PortType) {
 	statInd := statRegInfo{
 		chn:      ch,
@@ -756,7 +756,7 @@ func (StatMgr *OpenOltStatisticsMgr) RegisterForStatIndication(ctx context.Conte
 
 }
 
-//DeRegisterFromStatIndication removes the previously registered channel ch for type t of statistics
+// DeRegisterFromStatIndication removes the previously registered channel ch for type t of statistics
 func (StatMgr *OpenOltStatisticsMgr) DeRegisterFromStatIndication(ctx context.Context, t StatType, ch chan bool) {
 	StatMgr.statIndListnerMu.Lock()
 	defer StatMgr.statIndListnerMu.Unlock()

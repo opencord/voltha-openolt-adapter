@@ -393,7 +393,7 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(ctx context.Context, dgi *oop.
 	return nil
 }
 
-//wasLosRaised checks whether los raised already. If already raised returns true else false
+// wasLosRaised checks whether los raised already. If already raised returns true else false
 func (em *OpenOltEventMgr) wasLosRaised(ctx context.Context, onuAlarm *oop.OnuAlarmIndication) bool {
 	onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
 	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {
@@ -411,7 +411,7 @@ func (em *OpenOltEventMgr) wasLosRaised(ctx context.Context, onuAlarm *oop.OnuAl
 	return true
 }
 
-//wasLosCleared checks whether los cleared already. If already cleared returns true else false
+// wasLosCleared checks whether los cleared already. If already cleared returns true else false
 func (em *OpenOltEventMgr) wasLosCleared(ctx context.Context, onuAlarm *oop.OnuAlarmIndication) bool {
 	onuKey := em.handler.formOnuKey(onuAlarm.IntfId, onuAlarm.OnuId)
 	if onuInCache, ok := em.handler.onus.Load(onuKey); ok {

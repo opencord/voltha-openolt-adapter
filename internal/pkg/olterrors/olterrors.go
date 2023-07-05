@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package olterrors implements functions to manipulate OLT errors
+// Package olterrors implements functions to manipulate OLT errors
 package olterrors
 
 import (

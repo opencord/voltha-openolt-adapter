@@ -1,3 +1,4 @@
+//go:build !profile
 // +build !profile
 
 /*
@@ -16,7 +17,7 @@
  * limitations under the License.
  */
 
-//Package main invokes the application
+// Package main invokes the application
 package main
 
 import "context"

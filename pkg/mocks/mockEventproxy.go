@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package mocks provides the mocks for openolt-adapter.
+// Package mocks provides the mocks for openolt-adapter.
 package mocks
 
 import (
@@ -75,7 +75,7 @@ func (me *MockEventProxy) Start() error {
 func (me *MockEventProxy) Stop() {
 }
 
-//SendDeviceEventWithKey mocks SendDeviceEventWithKey
+// SendDeviceEventWithKey mocks SendDeviceEventWithKey
 func (me *MockEventProxy) SendDeviceEventWithKey(ctx context.Context, deviceEvent *voltha.DeviceEvent, category eventif.EventCategory,
 	subCategory eventif.EventSubCategory, raisedTs int64, key string) error {
 	return nil

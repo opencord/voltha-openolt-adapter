@@ -24,7 +24,8 @@ import (
 	"time"
 )
 
-/**
+/*
+*
 Get's the transition Map with current state of the device.
 */
 func getTranisitions() map[Trigger]Transition {
@@ -37,7 +38,8 @@ func getTranisitions() map[Trigger]Transition {
 	return transitions
 }
 
-/**
+/*
+*
 Get's the transition Map with after Transition func added.
 */
 func getTranisitionsAfter() map[Trigger]Transition {
@@ -55,7 +57,8 @@ func getTranisitionsAfter() map[Trigger]Transition {
 	return transitions
 }
 
-/**
+/*
+*
 Get's the transition Map with before Transition func added.
 */
 func getTranisitionsBefore() map[Trigger]Transition {
@@ -73,7 +76,8 @@ func getTranisitionsBefore() map[Trigger]Transition {
 	return transitions
 }
 
-/**
+/*
+*
 Check's Creation of transition Map, return's NewTransitionMap.
 */
 func TestNewTransitionMap(t *testing.T) {
@@ -96,7 +100,8 @@ func TestNewTransitionMap(t *testing.T) {
 	}
 }
 
-/**
+/*
+*
 Checks the different transition of the device handled properly.
 */
 func TestTransitionMap_Handle(t *testing.T) {
@@ -130,7 +135,8 @@ func TestTransitionMap_Handle(t *testing.T) {
 	}
 }
 
-/**
+/*
+*
 Check's if the transition is valid or not.
 */
 func TestTransitionMap_isValidTransition(t *testing.T) {
@@ -167,7 +173,8 @@ func TestTransitionMap_isValidTransition(t *testing.T) {
 	}
 }
 
-/**
+/*
+*
 Get's the After/Before transition method's function name.
 */
 func Test_funcName(t *testing.T) {

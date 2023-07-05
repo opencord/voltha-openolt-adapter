@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package mocks provides the mocks for openolt-adapter.
+// Package mocks provides the mocks for openolt-adapter.
 package mocks
 
 import (
@@ -202,7 +202,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 	return nil, errors.New("key didn't find")
 }
 
-//getPacketInGemPort returns the GEM port associated with the given key
+// getPacketInGemPort returns the GEM port associated with the given key
 func getPacketInGemPort(key string) (*kvstore.KVPair, error) {
 	//parse interface, onu, uni, vlan, priority values
 	arr := getParamsFromPacketInKey(key)
@@ -225,7 +225,7 @@ func getPacketInGemPort(key string) (*kvstore.KVPair, error) {
 	return nil, errors.New("key didn't find")
 }
 
-//getParamsFromPacketInKey parse packetIn key that is in the format of "onu_packetin/{1,1,1,1,2}"
+// getParamsFromPacketInKey parse packetIn key that is in the format of "onu_packetin/{1,1,1,1,2}"
 func getParamsFromPacketInKey(key string) []string {
 	//return intfID, onuID, uniID, vlanID, priority
 	firstIndex := strings.Index(key, "{")

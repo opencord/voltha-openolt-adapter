@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows and statistics
+// Package core provides the utility for olt devices, flows and statistics
 package core
 
 import (
@@ -198,7 +198,7 @@ type flowControlBlock struct {
 	errChan      *chan error       // channel to report the Flow handling error
 }
 
-//OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
+// OpenOltFlowMgr creates the Structure of OpenOltFlowMgr obj
 type OpenOltFlowMgr struct {
 	ponPortIdx    uint32 // Pon Port this FlowManager is responsible for
 	techprofile   tp.TechProfileIf
@@ -223,7 +223,7 @@ func (f *OpenOltFlowMgr) CloseKVClient(ctx context.Context) {
 	}
 }
 
-//NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
+// NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
 func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr, grpMgr *OpenOltGroupMgr, ponPortIdx uint32) *OpenOltFlowMgr {
 	logger.Infow(ctx, "initializing-flow-manager", log.Fields{"device-id": dh.device.Id})
 	var flowMgr OpenOltFlowMgr
@@ -1225,13 +1225,13 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 	return nil
 }
 
-//addIGMPTrapFlow creates IGMP trap-to-host flow
+// addIGMPTrapFlow creates IGMP trap-to-host flow
 func (f *OpenOltFlowMgr) addIGMPTrapFlow(ctx context.Context, flowContext *flowContext) error {
 	delete(flowContext.classifier, VlanVid)
 	return f.addUpstreamTrapFlow(ctx, flowContext)
 }
 
-//addUpstreamTrapFlow creates a trap-to-host flow
+// addUpstreamTrapFlow creates a trap-to-host flow
 func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *flowContext) error {
 
 	intfID := flowContext.intfID
@@ -1775,7 +1775,7 @@ func getUniPortPath(oltID string, intfID uint32, onuID int32, uniID int32) strin
 	return fmt.Sprintf("olt-{%s}/pon-{%d}/onu-{%d}/uni-{%d}", oltID, intfID, onuID, uniID)
 }
 
-//getOnuDevice to fetch onu from cache or core.
+// getOnuDevice to fetch onu from cache or core.
 func (f *OpenOltFlowMgr) getOnuDevice(ctx context.Context, intfID uint32, onuID uint32) (*OnuDevice, error) {
 	onuKey := f.deviceHandler.formOnuKey(intfID, onuID)
 	onuDev, ok := f.deviceHandler.onus.Load(onuKey)
@@ -1807,7 +1807,7 @@ func (f *OpenOltFlowMgr) getOnuDevice(ctx context.Context, intfID uint32, onuID 
 	return onuDev.(*OnuDevice), nil
 }
 
-//getChildDevice to fetch onu
+// getChildDevice to fetch onu
 func (f *OpenOltFlowMgr) getChildDevice(ctx context.Context, intfID uint32, onuID uint32) (*voltha.Device, error) {
 	logger.Infow(ctx, "GetChildDevice",
 		log.Fields{
@@ -1914,7 +1914,7 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 	return nil
 }
 
-//clearResources clears pon resources in kv store and the device
+// clearResources clears pon resources in kv store and the device
 // nolint: gocyclo
 func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuID int32, uniID int32,
 	flowID uint64, portNum uint32, tpID uint32, sendDeleteGemRequest bool) error {
@@ -2189,7 +2189,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 	return nil
 }
 
-//RemoveFlow removes the flow from the device
+// RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
 
 	logger.Infow(ctx, "removing-flow", log.Fields{"flow": *flow})
@@ -2223,7 +2223,7 @@ func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats)
 	return err
 }
 
-//isIgmpTrapDownstreamFlow return true if the flow is a downsteam IGMP trap-to-host flow; false otherwise
+// isIgmpTrapDownstreamFlow return true if the flow is a downsteam IGMP trap-to-host flow; false otherwise
 func isIgmpTrapDownstreamFlow(classifierInfo map[string]interface{}) bool {
 	if portType := plt.IntfIDToPortTypeName(classifierInfo[InPort].(uint32)); portType == voltha.Port_ETHERNET_NNI {
 		if ethType, ok := classifierInfo[EthType]; ok {
@@ -2497,7 +2497,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 	return nil
 }
 
-//getNNIInterfaceIDOfMulticastFlow returns associated NNI interface id of the inPort criterion if exists; returns the first NNI interface of the device otherwise
+// getNNIInterfaceIDOfMulticastFlow returns associated NNI interface id of the inPort criterion if exists; returns the first NNI interface of the device otherwise
 func (f *OpenOltFlowMgr) getNNIInterfaceIDOfMulticastFlow(ctx context.Context, classifierInfo map[string]interface{}) (uint32, error) {
 	if inPort, ok := classifierInfo[InPort]; ok {
 		nniInterfaceID, err := plt.IntfIDFromNniPortNum(ctx, inPort.(uint32))
@@ -2511,7 +2511,7 @@ func (f *OpenOltFlowMgr) getNNIInterfaceIDOfMulticastFlow(ctx context.Context, c
 	return 0, nil
 }
 
-//sendTPDownloadMsgToChild send payload
+// sendTPDownloadMsgToChild send payload
 func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, TpID uint32, tpInst tp_pb.TechProfileInstance) error {
 
 	onuDev, err := f.getOnuDevice(ctx, intfID, onuID)
@@ -2547,7 +2547,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 	return nil
 }
 
-//GetLogicalPortFromPacketIn function computes logical port UNI/NNI port from packet-in indication and returns the same
+// GetLogicalPortFromPacketIn function computes logical port UNI/NNI port from packet-in indication and returns the same
 func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetIn *openoltpb2.PacketIndication) (uint32, error) {
 	var logicalPortNum uint32
 
@@ -2579,7 +2579,7 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 	return logicalPortNum, nil
 }
 
-//GetPacketOutGemPortID returns gemPortId
+// GetPacketOutGemPortID returns gemPortId
 func (f *OpenOltFlowMgr) GetPacketOutGemPortID(ctx context.Context, intfID uint32, onuID uint32, portNum uint32, packet []byte) (uint32, error) {
 	var gemPortID uint32
 
@@ -2698,7 +2698,7 @@ func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.
 	return nil
 }
 
-//getPacketTypeFromClassifiers finds and returns packet type of a flow by checking flow classifiers
+// getPacketTypeFromClassifiers finds and returns packet type of a flow by checking flow classifiers
 func getPacketTypeFromClassifiers(classifierInfo map[string]interface{}) string {
 	var packetType string
 	ovid, ivid := false, false
@@ -2737,7 +2737,7 @@ func getPacketTypeFromClassifiers(classifierInfo map[string]interface{}) string 
 	return packetType
 }
 
-//addIgmpTrapFlowOnNNI adds a trap-to-host flow on NNI
+// addIgmpTrapFlowOnNNI adds a trap-to-host flow on NNI
 func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.OfpFlowStats, classifier map[string]interface{}, portNo uint32) error {
 	logger.Infow(ctx, "adding-igmp-trap-of-nni-flow", log.Fields{"classifier-info": classifier})
 	action := make(map[string]interface{})
@@ -3290,7 +3290,7 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint3
 			"gem":      gemPort})
 }
 
-//getCTagFromPacket retrieves and returns c-tag and priority value from a packet.
+// getCTagFromPacket retrieves and returns c-tag and priority value from a packet.
 func getCTagFromPacket(ctx context.Context, packet []byte) (uint16, uint8, error) {
 	if packet == nil || len(packet) < 18 {
 		logger.Error(ctx, "unable-get-c-tag-from-the-packet--invalid-packet-length ")
@@ -3317,7 +3317,7 @@ func getCTagFromPacket(ctx context.Context, packet []byte) (uint16, uint8, error
 	return 0, 0, nil
 }
 
-//clearMulticastFlowFromResourceManager  removes a multicast flow from the KV store and
+// clearMulticastFlowFromResourceManager  removes a multicast flow from the KV store and
 // clears resources reserved for this multicast flow
 func (f *OpenOltFlowMgr) clearMulticastFlowFromResourceManager(ctx context.Context, flow *ofp.OfpFlowStats) error {
 	removeFlowMessage := openoltpb2.Flow{FlowId: flow.Id, FlowType: Multicast}

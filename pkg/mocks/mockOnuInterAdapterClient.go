@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package mocks provides the mocks for openolt-adapter.
+// Package mocks provides the mocks for openolt-adapter.
 package mocks
 
 import (

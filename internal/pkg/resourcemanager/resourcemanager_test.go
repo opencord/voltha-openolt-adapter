@@ -20,7 +20,7 @@ This file also implements the Client interface to mock the kv-client, fields str
 and few utility functions.
 */
 
-//Package adaptercore provides the utility for olt devices, flows and statistics
+// Package adaptercore provides the utility for olt devices, flows and statistics
 package resourcemanager
 
 import (

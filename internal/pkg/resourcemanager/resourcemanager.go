@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//Package resourcemanager provides the utility for managing resources
+// Package resourcemanager provides the utility for managing resources
 package resourcemanager
 
 import (
@@ -262,7 +262,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	return &ResourceMgr
 }
 
-//InitLocalCache initializes local maps used for write-through-cache
+// InitLocalCache initializes local maps used for write-through-cache
 func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
 	rsrcMgr.allocIDsForOnu = make(map[string][]uint32)
 	rsrcMgr.gemPortIDsForOnu = make(map[string][]uint32)
@@ -275,7 +275,7 @@ func (rsrcMgr *OpenOltResourceMgr) InitLocalCache() {
 	rsrcMgr.groupInfo = make(map[string]*GroupInfo)
 }
 
-//LoadLocalCacheFromKVStore loads local maps
+// LoadLocalCacheFromKVStore loads local maps
 func (rsrcMgr *OpenOltResourceMgr) LoadLocalCacheFromKVStore(ctx context.Context) error {
 
 	//List all the keys for OnuGemInfo
@@ -890,7 +890,7 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveMeterInfoForOnu(ctx context.Context, Di
 	return nil
 }
 
-//AddGemToOnuGemInfo adds gemport to onugem info kvstore and also local cache
+// AddGemToOnuGemInfo adds gemport to onugem info kvstore and also local cache
 func (rsrcMgr *OpenOltResourceMgr) AddGemToOnuGemInfo(ctx context.Context, onuID uint32, gemPort uint32) error {
 	onugem, err := rsrcMgr.GetOnuGemInfo(ctx, onuID)
 	if err != nil || onugem == nil || onugem.SerialNumber == "" {
@@ -919,7 +919,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddGemToOnuGemInfo(ctx context.Context, onuID
 	return err
 }
 
-//RemoveGemFromOnuGemInfo removes gemport from onugem info on kvstore and also local cache
+// RemoveGemFromOnuGemInfo removes gemport from onugem info on kvstore and also local cache
 func (rsrcMgr *OpenOltResourceMgr) RemoveGemFromOnuGemInfo(ctx context.Context, onuID uint32, gemPort uint32) error {
 	onugem, err := rsrcMgr.GetOnuGemInfo(ctx, onuID)
 	if err != nil || onugem == nil || onugem.SerialNumber == "" {
@@ -952,7 +952,7 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveGemFromOnuGemInfo(ctx context.Context, 
 	return nil
 }
 
-//GetOnuGemInfo gets onu gem info from the kvstore per interface
+// GetOnuGemInfo gets onu gem info from the kvstore per interface
 func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfo(ctx context.Context, onuID uint32) (*OnuGemInfo, error) {
 	var err error
 	var Val []byte
@@ -991,7 +991,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetOnuGemInfo(ctx context.Context, onuID uint
 	return &onugem, nil
 }
 
-//AddNewOnuGemInfoToCacheAndKvStore function adds a new  onu gem info to cache and kvstore
+// AddNewOnuGemInfoToCacheAndKvStore function adds a new  onu gem info to cache and kvstore
 func (rsrcMgr *OpenOltResourceMgr) AddNewOnuGemInfoToCacheAndKvStore(ctx context.Context, onuID uint32, serialNum string) error {
 
 	Path := fmt.Sprintf(OnuGemInfoPath, rsrcMgr.PonIntfID, onuID)
@@ -1064,7 +1064,7 @@ func (rsrcMgr *OpenOltResourceMgr) DelOnuGemInfo(ctx context.Context, onuID uint
 	return nil
 }
 
-//DeleteAllOnuGemInfoForIntf deletes all the all onu gem info on the given pon interface
+// DeleteAllOnuGemInfoForIntf deletes all the all onu gem info on the given pon interface
 func (rsrcMgr *OpenOltResourceMgr) DeleteAllOnuGemInfoForIntf(ctx context.Context) error {
 
 	path := fmt.Sprintf(OnuGemInfoPathPathPrefix, rsrcMgr.PonIntfID)
@@ -1110,7 +1110,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddUniPortToOnuInfo(ctx context.Context, onuI
 	}
 }
 
-//UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno, vlan id, priority bit
+// UpdateGemPortForPktIn updates gemport for pkt in path to kvstore, path being intfid, onuid, portno, vlan id, priority bit
 func (rsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pktIn PacketInInfoKey, gemPort uint32) {
 
 	path := fmt.Sprintf(OnuPacketInPath, pktIn.IntfID, pktIn.OnuID, pktIn.LogicalPort, pktIn.VlanID, pktIn.Priority)
@@ -1174,7 +1174,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetGemPortFromOnuPktIn(ctx context.Context, p
 	return gemPort, nil
 }
 
-//DeletePacketInGemPortForOnu deletes the packet-in gemport for ONU
+// DeletePacketInGemPortForOnu deletes the packet-in gemport for ONU
 func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Context, onuID uint32, logicalPort uint32) error {
 	path := fmt.Sprintf(OnuPacketInPathPrefix, rsrcMgr.PonIntfID, onuID, logicalPort)
 	value, err := rsrcMgr.KVStore.List(ctx, path)
@@ -1207,7 +1207,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 	return nil
 }
 
-//GetFlowIDsForGem gets the list of FlowIDs for the given gemport
+// GetFlowIDsForGem gets the list of FlowIDs for the given gemport
 func (rsrcMgr *OpenOltResourceMgr) GetFlowIDsForGem(ctx context.Context, gem uint32) ([]uint64, error) {
 	path := fmt.Sprintf(FlowIDsForGem, rsrcMgr.PonIntfID, gem)
 
@@ -1272,7 +1272,7 @@ func (rsrcMgr *OpenOltResourceMgr) RegisterFlowIDForGem(ctx context.Context, gem
 	return rsrcMgr.UpdateFlowIDsForGem(ctx, gemPortID, flowIDs)
 }
 
-//UpdateFlowIDsForGem updates flow id per gemport
+// UpdateFlowIDsForGem updates flow id per gemport
 func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, gem uint32, flowIDs []uint64) error {
 	var val []byte
 	path := fmt.Sprintf(FlowIDsForGem, rsrcMgr.PonIntfID, gem)
@@ -1302,7 +1302,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, gem 
 	return nil
 }
 
-//DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
+// DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
 func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, gem uint32) error {
 	path := fmt.Sprintf(FlowIDsForGem, rsrcMgr.PonIntfID, gem)
 	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
@@ -1316,7 +1316,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, gem 
 	return nil
 }
 
-//DeleteAllFlowIDsForGemForIntf deletes all the flow ids associated for all the gems on the given pon interface
+// DeleteAllFlowIDsForGemForIntf deletes all the flow ids associated for all the gems on the given pon interface
 func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Context) error {
 	path := fmt.Sprintf(FlowIDsForGemPathPrefix, rsrcMgr.PonIntfID)
 
@@ -1333,7 +1333,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Con
 	return nil
 }
 
-//GetMcastQueuePerInterfaceMap gets multicast queue info per pon interface
+// GetMcastQueuePerInterfaceMap gets multicast queue info per pon interface
 func (rsrcMgr *OpenOltResourceMgr) GetMcastQueuePerInterfaceMap(ctx context.Context) (map[uint32][]uint32, error) {
 	path := McastQueuesForIntf
 	var val []byte
@@ -1366,7 +1366,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetMcastQueuePerInterfaceMap(ctx context.Cont
 	return rsrcMgr.mcastQueueForIntf, nil
 }
 
-//AddMcastQueueForIntf adds multicast queue for pon interface
+// AddMcastQueueForIntf adds multicast queue for pon interface
 func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, gem uint32, servicePriority uint32) error {
 	var val []byte
 	path := McastQueuesForIntf
@@ -1403,7 +1403,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, gem
 	return nil
 }
 
-//DeleteMcastQueueForIntf deletes multicast queue info for the current pon interface from kvstore
+// DeleteMcastQueueForIntf deletes multicast queue info for the current pon interface from kvstore
 func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) error {
 	path := McastQueuesForIntf
 
@@ -1415,7 +1415,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) 
 	return nil
 }
 
-//AddFlowGroupToKVStore adds flow group into KV store
+// AddFlowGroupToKVStore adds flow group into KV store
 func (rsrcMgr *OpenOltResourceMgr) AddFlowGroupToKVStore(ctx context.Context, groupEntry *ofp.OfpGroupEntry, cached bool) error {
 	var Value []byte
 	var err error
@@ -1458,7 +1458,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddFlowGroupToKVStore(ctx context.Context, gr
 	return nil
 }
 
-//RemoveFlowGroupFromKVStore removes flow group from KV store
+// RemoveFlowGroupFromKVStore removes flow group from KV store
 func (rsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Context, groupID uint32, cached bool) error {
 	var path string
 	if cached {
@@ -1479,8 +1479,8 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Contex
 	return nil
 }
 
-//GetFlowGroupFromKVStore fetches flow group from the KV store. Returns (false, {} error) if any problem occurs during
-//fetching the data. Returns (true, groupInfo, nil) if the group is fetched successfully.
+// GetFlowGroupFromKVStore fetches flow group from the KV store. Returns (false, {} error) if any problem occurs during
+// fetching the data. Returns (true, groupInfo, nil) if the group is fetched successfully.
 // Returns (false, {}, nil) if the group does not exists in the KV store.
 func (rsrcMgr *OpenOltResourceMgr) GetFlowGroupFromKVStore(ctx context.Context, groupID uint32, cached bool) (bool, GroupInfo, error) {
 	var groupInfo GroupInfo

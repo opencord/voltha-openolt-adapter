@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-//Package core provides the utility for olt devices, flows, groups and statistics
+// Package core provides the utility for olt devices, flows, groups and statistics
 package core
 
 import (
@@ -29,13 +29,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//QueueInfoBrief has information about gemPortID and service priority associated with Mcast group
+// QueueInfoBrief has information about gemPortID and service priority associated with Mcast group
 type QueueInfoBrief struct {
 	gemPortID       uint32
 	servicePriority uint32
 }
 
-//OpenOltGroupMgr creates the Structure of OpenOltGroupMgr obj
+// OpenOltGroupMgr creates the Structure of OpenOltGroupMgr obj
 type OpenOltGroupMgr struct {
 	deviceHandler                *DeviceHandler
 	resourceMgr                  *rsrcMgr.OpenOltResourceMgr
@@ -47,7 +47,7 @@ type OpenOltGroupMgr struct {
 //            EXPORTED FUNCTIONS            //
 //////////////////////////////////////////////
 
-//NewGroupManager creates OpenOltGroupMgr object and initializes the parameters
+// NewGroupManager creates OpenOltGroupMgr object and initializes the parameters
 func NewGroupManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr) *OpenOltGroupMgr {
 	logger.Infow(ctx, "initializing-group-manager", log.Fields{"device-id": dh.device.Id})
 	var grpMgr OpenOltGroupMgr
@@ -178,8 +178,8 @@ func (g *OpenOltGroupMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEn
 	return nil
 }
 
-//LoadInterfaceToMulticastQueueMap reads multicast queues per interface from the KV store
-//and put them into interfaceToMcastQueueMap.
+// LoadInterfaceToMulticastQueueMap reads multicast queues per interface from the KV store
+// and put them into interfaceToMcastQueueMap.
 func (g *OpenOltGroupMgr) LoadInterfaceToMulticastQueueMap(ctx context.Context) {
 	storedMulticastQueueMap, err := g.resourceMgr.GetMcastQueuePerInterfaceMap(ctx)
 	if err != nil {
@@ -195,7 +195,7 @@ func (g *OpenOltGroupMgr) LoadInterfaceToMulticastQueueMap(ctx context.Context) 
 	}
 }
 
-//GetInterfaceToMcastQueueMap gets the mcast queue mapped to to the PON interface
+// GetInterfaceToMcastQueueMap gets the mcast queue mapped to to the PON interface
 func (g *OpenOltGroupMgr) GetInterfaceToMcastQueueMap(intfID uint32) (*QueueInfoBrief, bool) {
 	g.interfaceToMcastQueueMapLock.RLock()
 	defer g.interfaceToMcastQueueMapLock.RUnlock()
@@ -203,19 +203,21 @@ func (g *OpenOltGroupMgr) GetInterfaceToMcastQueueMap(intfID uint32) (*QueueInfo
 	return val, present
 }
 
-//UpdateInterfaceToMcastQueueMap updates the mcast queue information mapped to a given PON interface
+// UpdateInterfaceToMcastQueueMap updates the mcast queue information mapped to a given PON interface
 func (g *OpenOltGroupMgr) UpdateInterfaceToMcastQueueMap(intfID uint32, val *QueueInfoBrief) {
 	g.interfaceToMcastQueueMapLock.Lock()
 	defer g.interfaceToMcastQueueMapLock.Unlock()
 	g.interfaceToMcastQueueMap[intfID] = val
 }
 
-////////////////////////////////////////////////
-//      INTERNAL or UNEXPORTED FUNCTIONS      //
-////////////////////////////////////////////////
-//getFlowGroupFromKVStore fetches and returns flow group from the KV store. Returns (nil, false, error) if any problem occurs during
-//fetching the data. Returns (group, true, nil) if the group is fetched and returned successfully.
-//Returns (nil, false, nil) if the group does not exists in the KV store.
+// //////////////////////////////////////////////
+//
+//	INTERNAL or UNEXPORTED FUNCTIONS      //
+//
+// //////////////////////////////////////////////
+// getFlowGroupFromKVStore fetches and returns flow group from the KV store. Returns (nil, false, error) if any problem occurs during
+// fetching the data. Returns (group, true, nil) if the group is fetched and returned successfully.
+// Returns (nil, false, nil) if the group does not exists in the KV store.
 func (g *OpenOltGroupMgr) getFlowGroupFromKVStore(ctx context.Context, groupID uint32, cached bool) (*ofp.OfpGroupEntry, bool, error) {
 	exists, groupInfo, err := g.resourceMgr.GetFlowGroupFromKVStore(ctx, groupID, cached)
 	if err != nil {
@@ -245,7 +247,7 @@ func newGroup(groupID uint32, outPorts []uint32) *ofp.OfpGroupEntry {
 	return &groupEntry
 }
 
-//buildGroupAction creates and returns a group action
+// buildGroupAction creates and returns a group action
 func (g *OpenOltGroupMgr) buildGroupAction() *openoltpb2.Action {
 	var actionCmd openoltpb2.ActionCmd
 	var action openoltpb2.Action
@@ -255,7 +257,7 @@ func (g *OpenOltGroupMgr) buildGroupAction() *openoltpb2.Action {
 	return &action
 }
 
-//callGroupAddRemove performs add/remove buckets operation for the indicated group
+// callGroupAddRemove performs add/remove buckets operation for the indicated group
 func (g *OpenOltGroupMgr) callGroupAddRemove(ctx context.Context, group *openoltpb2.Group) error {
 	if err := g.performGroupOperation(ctx, group); err != nil {
 		st, _ := status.FromError(err)
@@ -267,7 +269,7 @@ func (g *OpenOltGroupMgr) callGroupAddRemove(ctx context.Context, group *openolt
 	return nil
 }
 
-//findDiff compares group members and finds members which only exists in groups2
+// findDiff compares group members and finds members which only exists in groups2
 func (g *OpenOltGroupMgr) findDiff(group1 *openoltpb2.Group, group2 *openoltpb2.Group) []*openoltpb2.GroupMember {
 	var members []*openoltpb2.GroupMember
 	for _, bucket := range group2.Members {
@@ -279,7 +281,7 @@ func (g *OpenOltGroupMgr) findDiff(group1 *openoltpb2.Group, group2 *openoltpb2.
 	return members
 }
 
-//contains returns true if the members list contains the given member; false otherwise
+// contains returns true if the members list contains the given member; false otherwise
 func (g *OpenOltGroupMgr) contains(members []*openoltpb2.GroupMember, member *openoltpb2.GroupMember) bool {
 	for _, groupMember := range members {
 		if groupMember.InterfaceId == member.InterfaceId {
@@ -289,7 +291,7 @@ func (g *OpenOltGroupMgr) contains(members []*openoltpb2.GroupMember, member *op
 	return false
 }
 
-//performGroupOperation call performGroupOperation operation of openolt proto
+// performGroupOperation call performGroupOperation operation of openolt proto
 func (g *OpenOltGroupMgr) performGroupOperation(ctx context.Context, group *openoltpb2.Group) error {
 	logger.Debugw(ctx, "sending-group-to-device",
 		log.Fields{
@@ -302,7 +304,7 @@ func (g *OpenOltGroupMgr) performGroupOperation(ctx context.Context, group *open
 	return nil
 }
 
-//buildGroup build openoltpb2.Group from given group id and bucket list
+// buildGroup build openoltpb2.Group from given group id and bucket list
 func (g *OpenOltGroupMgr) buildGroup(ctx context.Context, groupID uint32, buckets []*ofp.OfpBucket) *openoltpb2.Group {
 	group := openoltpb2.Group{
 		GroupId: groupID}
@@ -316,7 +318,7 @@ func (g *OpenOltGroupMgr) buildGroup(ctx context.Context, groupID uint32, bucket
 	return &group
 }
 
-//buildMember builds openoltpb2.GroupMember from an OpenFlow bucket
+// buildMember builds openoltpb2.GroupMember from an OpenFlow bucket
 func (g *OpenOltGroupMgr) buildMember(ctx context.Context, ofBucket *ofp.OfpBucket) *openoltpb2.GroupMember {
 	var outPort uint32
 	outPortFound := false
