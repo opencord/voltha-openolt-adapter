@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "59784df7_14e1c082",
+        "filename": "VERSION",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-07-24T13:50:43Z",
+      "side": 0,
+      "message": "A dev release was introduced to slow churn in the release version until fully deployed.  Not a big deal if we push a non-dev version string out, it will only prompt:\n   o updating versions in voltha-docs/release_notes\n   o we may need to update consumed versions in repositories higher up the food chain.",
+      "revId": "3f0e242d6606fc46110d90a2beeb7ad80c7c928c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
