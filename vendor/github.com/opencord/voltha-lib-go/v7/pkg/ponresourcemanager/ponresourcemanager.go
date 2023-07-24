@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present Open Networking Foundation
+ * Copyright 2019-2023 Open Networking Foundation (ONF) and the ONF Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1339,7 +1339,9 @@ func (PONRMgr *PONResourceManager) ReleaseID(ctx context.Context, Resource map[s
 	return true
 }
 
-/* Reserves a unique id in the specified resource pool.
+/*
+	Reserves a unique id in the specified resource pool.
+
 :param Resource: resource used to reserve ID
 :param Id: ID to be reserved
 */

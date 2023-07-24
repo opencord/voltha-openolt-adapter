@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present Open Networking Foundation
+ * Copyright 2019-2023 Open Networking Foundation (ONF) and the ONF Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1139,7 +1139,7 @@ func (t *TechProfileMgr) getDefaultEponProfile(ctx context.Context) *tp_pb.EponT
 		DownstreamQueueAttributeList: dsQueueAttributeList}
 }
 
-//isMulticastGem returns true if isMulticast attribute value of a GEM port is true; false otherwise
+// isMulticastGem returns true if isMulticast attribute value of a GEM port is true; false otherwise
 func isMulticastGem(isMulticastAttrValue string) bool {
 	return isMulticastAttrValue != "" &&
 		(isMulticastAttrValue == "True" || isMulticastAttrValue == "true" || isMulticastAttrValue == "TRUE")
