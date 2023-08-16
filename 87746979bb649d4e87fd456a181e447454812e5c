@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c21936a8_0c7dc669",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-08-16T20:50:57Z",
+      "side": 1,
+      "message": "recheck\n\nRe-try now that voltha-helm-charts and voltha-system-tests have a voltha-2.12 branch",
+      "revId": "87746979bb649d4e87fd456a181e447454812e5c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
