@@ -2211,7 +2211,10 @@ func (dh *DeviceHandler) UpdateFlowsIncrementally(ctx context.Context, device *v
 		logger.Infow(ctx, "device-deletion-in-progress--not-handling-flows-or-groups", log.Fields{"device-id": device.Id})
 		return nil
 	}
-
+	if(dh.transitionMap.currentDeviceState!=deviceStateUp) {
+		logger.Error(ctx, "device-is-not-up--not-handling-flows-or-groups", log.Fields{"device-id": device.Id,"current-device-state":dh.transitionMap.currentDeviceState})
+		return fmt.Errorf("device-is-not-up--not-handling-flows-or-groups")
+	}
 	logger.Debugw(ctx, "received-incremental-flowupdate-in-device-handler", log.Fields{"device-id": device.Id, "flows": flows, "groups": groups, "flowMetadata": flowMetadata})
 	errorsList = append(errorsList, dh.handleFlows(ctx, device, flows, flowMetadata)...)
 	errorsList = append(errorsList, dh.handleGroups(ctx, groups)...)
