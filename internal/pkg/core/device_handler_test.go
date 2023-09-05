@@ -257,7 +257,7 @@ func newMockDeviceHandler() *DeviceHandler {
 	dh.eventMgr = &OpenOltEventMgr{eventProxy: &mocks.MockEventProxy{}, handler: dh}
 	dh.transitionMap = &TransitionMap{}
 	dh.portStats = &OpenOltStatisticsMgr{}
-
+	dh.transitionMap.currentDeviceState=3
 	var pmNames = []string{
 		"rx_bytes",
 		"rx_packets",
