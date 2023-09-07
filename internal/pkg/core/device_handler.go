@@ -2873,6 +2873,8 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		// Immediately return, otherwise accessing a null 'device' struct would cause panic
 		return
 	}
+	//Starting the cleanup process
+	dh.setDeviceDeletionInProgressFlag(true)
 
 	logger.Warnw(ctx, "update-state-rebooted", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
 		"admin-state": device.AdminState, "oper-status": device.OperStatus, "conn-status": voltha.ConnectStatus_UNREACHABLE})
@@ -2939,6 +2941,8 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		}
 
 	}
+	//Cleanup completed , reset the flag
+	dh.setDeviceDeletionInProgressFlag(false)
 	logger.Infow(ctx, "cleanup complete after reboot , moving to init", log.Fields{"deviceID": device.Id})
 	dh.transitionMap.Handle(ctx, DeviceInit)
 
