@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea5628df_73f4d337",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2215,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-09-08T07:19:54Z",
+      "side": 1,
+      "message": "this should return an error, and the controller will retry again",
+      "revId": "d17d398db7ce3050a5419b94cbd2c48472456c32",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
