@@ -237,6 +237,23 @@
       "message": "recheck",
       "revId": "87746979bb649d4e87fd456a181e447454812e5c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d0b6d40_82f0b350",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-09-08T17:18:32Z",
+      "side": 1,
+      "message": "recheck\n\nUndef groovy variable fixed by g:34677:\n  https://gerrit.opencord.org/c/ci-management/+/34677\n\nNext triage iteration to check for lingering problems.",
+      "revId": "87746979bb649d4e87fd456a181e447454812e5c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
