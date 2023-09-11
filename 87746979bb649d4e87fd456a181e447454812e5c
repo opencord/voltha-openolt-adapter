@@ -305,6 +305,23 @@
       "message": "recheck\n\nLets see if Jan(S) patch will pull in edits from repository checkout VS static inclusion within re-generated jobs.",
       "revId": "87746979bb649d4e87fd456a181e447454812e5c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "56d8cdd9_036f58c4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-09-11T19:03:49Z",
+      "side": 1,
+      "message": "recheck\n\nDebugging in Voltha Deploy / voltaStack added to monitor onos startup",
+      "revId": "87746979bb649d4e87fd456a181e447454812e5c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
