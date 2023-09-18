@@ -441,6 +441,23 @@
       "message": "recheck",
       "revId": "87746979bb649d4e87fd456a181e447454812e5c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f61703c_0968ac14",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-09-18T19:00:51Z",
+      "side": 1,
+      "message": "recheck\n\nFixed timeout on Wait for ONOS launch",
+      "revId": "87746979bb649d4e87fd456a181e447454812e5c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
