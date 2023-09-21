@@ -33,6 +33,23 @@
       "message": "recheck\n\nRun with the latest version of bbsim-tests.groovy.\n",
       "revId": "701df862789f03cf0489071ec591530a2a5efed6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "68a25b56_2cd7a44a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-09-21T18:23:23Z",
+      "side": 1,
+      "message": "Patch/job is much farther along with the latest bbsim-test.groovy script.\n\nCurrent failure in #1901 is one of the bleeding edge problems I\u0027m looking into.",
+      "revId": "701df862789f03cf0489071ec591530a2a5efed6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
