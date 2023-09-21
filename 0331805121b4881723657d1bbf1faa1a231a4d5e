@@ -16,6 +16,24 @@
       "message": "Can you please also log the currentDeviceState field too here.",
       "revId": "0331805121b4881723657d1bbf1faa1a231a4d5e",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e471b621_73cc9c90",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2215,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-09-21T12:03:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f783424_214ff274",
+      "revId": "0331805121b4881723657d1bbf1faa1a231a4d5e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
