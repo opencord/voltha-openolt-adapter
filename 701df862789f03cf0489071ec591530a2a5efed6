@@ -16,6 +16,23 @@
       "message": "recheck",
       "revId": "701df862789f03cf0489071ec591530a2a5efed6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea778cd4_ee7e2497",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-09-21T18:05:22Z",
+      "side": 1,
+      "message": "recheck\n\nRun with the latest version of bbsim-tests.groovy.\n",
+      "revId": "701df862789f03cf0489071ec591530a2a5efed6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
