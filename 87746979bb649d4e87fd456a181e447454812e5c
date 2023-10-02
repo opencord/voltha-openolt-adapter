@@ -543,6 +543,23 @@
       "message": "recheck\n\nTry again with the latest pipeline fixes.",
       "revId": "87746979bb649d4e87fd456a181e447454812e5c",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f94c211_587eef23",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-10-02T19:47:10Z",
+      "side": 1,
+      "message": "recheck\n\nSo next run will be using the latest branch\u003dmaster scripts.\nIf all goes well we will refresh branch\u003dvoltha-2.12 from branch\u003dmaster sometime in the near future.",
+      "revId": "87746979bb649d4e87fd456a181e447454812e5c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
