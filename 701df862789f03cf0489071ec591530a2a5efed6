@@ -101,6 +101,23 @@
       "message": "recheck",
       "revId": "701df862789f03cf0489071ec591530a2a5efed6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bea7a629_996c1e68",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-10-02T13:01:50Z",
+      "side": 1,
+      "message": "LGTM\n\n% git clone ssh://gerrit.opencord.org:29418/voltha-openolt-adapter.git\n% cd voltha-openolt-adapter\n% git review -d I82cebbcef1e39da75a0606be137640d372ece1da\n\nmake build\nmake lint LOCAL_FIX_PERMS\u003d1",
+      "revId": "701df862789f03cf0489071ec591530a2a5efed6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
