@@ -50,6 +50,23 @@
       "message": "Patch/job is much farther along with the latest bbsim-test.groovy script.\n\nCurrent failure in #1901 is one of the bleeding edge problems I\u0027m looking into.",
       "revId": "701df862789f03cf0489071ec591530a2a5efed6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2bae204_3f9bb582",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000982
+      },
+      "writtenOn": "2023-10-02T08:16:40Z",
+      "side": 1,
+      "message": "recheck",
+      "revId": "701df862789f03cf0489071ec591530a2a5efed6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
