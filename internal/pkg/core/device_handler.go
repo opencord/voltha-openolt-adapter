@@ -1727,15 +1727,30 @@ func (dh *DeviceHandler) processDiscONULOSClear(ctx context.Context, onuDiscInd 
 }
 
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
+	var error error
+
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
+	defer func() {
+		if error != nil {
+			logger.Infow(ctx, "onu-processing-errored-out-not-adding-to-discovery-map", log.Fields{"sn": sn})
+		} else {
+			// once the function completes set the value to false so that
+			// we know the processing has inProcess.
+			// Note that this is done after checking if we are already processing
+			// to avoid changing the value from a different thread
+			logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
+			dh.discOnus.Store(sn, false)
+		}
+	}()
+
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
-	tpInstExists, errtp := dh.checkForResourceExistance(ctx, onuDiscInd, sn)
-	if errtp != nil {
-		return errtp
+	tpInstExists, error := dh.checkForResourceExistance(ctx, onuDiscInd, sn)
+	if error != nil {
+		return error
 	}
 	if tpInstExists {
 		//ignore the discovery if tpinstance is present.
@@ -1759,28 +1774,18 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		dh.processDiscONULOSClear(ctx, onuDiscInd, sn)
 		return nil
 	}
-
-	defer func() {
-		// once the function completes set the value to false so that
-		// we know the processing has inProcess.
-		// Note that this is done after checking if we are already processing
-		// to avoid changing the value from a different thread
-		logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
-		dh.discOnus.Store(sn, false)
-	}()
-
 	var onuID uint32
 
 	// check the ONU is already know to the OLT
 	// NOTE the second time the ONU is discovered this should return a device
-	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
+	onuDevice, error := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 		ParentId:     dh.device.Id,
 		SerialNumber: sn,
 	})
 
-	if err != nil {
-		logger.Debugw(ctx, "core-proxy-get-child-device-failed", log.Fields{"parentDevice": dh.device.Id, "err": err, "sn": sn})
-		if e, ok := status.FromError(err); ok {
+	if error != nil {
+		logger.Debugw(ctx, "core-proxy-get-child-device-failed", log.Fields{"parentDevice": dh.device.Id, "err": error, "sn": sn})
+		if e, ok := status.FromError(error); ok {
 			logger.Debugw(ctx, "core-proxy-get-child-device-failed-with-code", log.Fields{"errCode": e.Code(), "sn": sn})
 			switch e.Code() {
 			case codes.Internal:
@@ -1789,7 +1794,8 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			case codes.DeadlineExceeded:
 				// if the call times out, cleanup and exit
 				dh.discOnus.Delete(sn)
-				return olterrors.NewErrTimeout("get-child-device", log.Fields{"device-id": dh.device.Id}, err)
+				error = olterrors.NewErrTimeout("get-child-device", log.Fields{"device-id": dh.device.Id}, error)
+				return error
 			}
 		}
 	}
@@ -1799,35 +1805,44 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		logger.Debugw(ctx, "creating-new-onu", log.Fields{"sn": sn})
 		// we need to create a new ChildDevice
 		ponintfid := onuDiscInd.GetIntfId()
-		onuID, err = dh.resourceMgr[ponintfid].GetONUID(ctx)
+		onuID, error = dh.resourceMgr[ponintfid].GetONUID(ctx)
 
 		logger.Infow(ctx, "creating-new-onu-got-onu-id", log.Fields{"sn": sn, "onuId": onuID})
 
-		if err != nil {
+		if error != nil {
 			// if we can't create an ID in resource manager,
 			// cleanup and exit
 			dh.discOnus.Delete(sn)
-			return olterrors.NewErrAdapter("resource-manager-get-onu-id-failed", log.Fields{
+
+			error = olterrors.NewErrAdapter("resource-manager-get-onu-id-failed", log.Fields{
 				"pon-intf-id":   ponintfid,
-				"serial-number": sn}, err)
+				"serial-number": sn}, error)
+			return error
 		}
 
-		if onuDevice, err = dh.sendChildDeviceDetectedToCore(ctx, &ca.DeviceDiscovery{
+		if onuDevice, error = dh.sendChildDeviceDetectedToCore(ctx, &ca.DeviceDiscovery{
 			ParentId:     dh.device.Id,
 			ParentPortNo: parentPortNo,
 			ChannelId:    channelID,
 			VendorId:     string(onuDiscInd.SerialNumber.GetVendorId()),
 			SerialNumber: sn,
 			OnuId:        onuID,
-		}); err != nil {
+		}); error != nil {
 			dh.discOnus.Delete(sn)
 			dh.resourceMgr[ponintfid].FreeonuID(ctx, []uint32{onuID}) // NOTE I'm not sure this method is actually cleaning up the right thing
-			return olterrors.NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
+
+			error = olterrors.NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
 				"pon-intf-id":   ponintfid,
-				"serial-number": sn}, err)
+				"serial-number": sn}, error)
+			return error
 		}
-		if err := dh.eventMgr.OnuDiscoveryIndication(ctx, onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().Unix()); err != nil {
-			logger.Warnw(ctx, "discovery-indication-failed", log.Fields{"err": err})
+		if error := dh.eventMgr.OnuDiscoveryIndication(ctx, onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().Unix()); error != nil {
+			logger.Error(ctx, "discovery-indication-failed", log.Fields{"err": error})
+			error = olterrors.NewErrAdapter("discovery-indication-failed", log.Fields{
+				"onu-id":        onuID,
+				"device-id":     dh.device.Id,
+				"serial-number": sn}, error)
+			return error
 		}
 		logger.Infow(ctx, "onu-child-device-added",
 			log.Fields{"onuDevice": onuDevice,
@@ -1838,10 +1853,12 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	// Setup the gRPC connection to the adapter responsible for that onuDevice, if not setup yet
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.cfg.RPCTimeout)
-	err = dh.setupChildInterAdapterClient(subCtx, onuDevice.AdapterEndpoint)
+	error = dh.setupChildInterAdapterClient(subCtx, onuDevice.AdapterEndpoint)
 	cancel()
-	if err != nil {
-		return olterrors.NewErrCommunication("no-connection-to-child-adapter", log.Fields{"device-id": onuDevice.Id}, err)
+	if error != nil {
+
+		error = olterrors.NewErrCommunication("no-connection-to-child-adapter", log.Fields{"device-id": onuDevice.Id}, error)
+		return error
 	}
 
 	// we can now use the existing ONU Id
@@ -1860,22 +1877,26 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		log.Fields{"onu": onuDev,
 			"sn": sn})
 
-	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
+	if error = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 		DeviceId:       onuDevice.Id,
 		ParentDeviceId: dh.device.Id,
 		OperStatus:     common.OperStatus_DISCOVERED,
 		ConnStatus:     common.ConnectStatus_REACHABLE,
-	}); err != nil {
-		return olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
+	}); error != nil {
+
+		error = olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
 			"device-id":     onuDevice.Id,
-			"serial-number": sn}, err)
+			"serial-number": sn}, error)
+		return error
 	}
 
 	logger.Infow(ctx, "onu-discovered-reachable", log.Fields{"device-id": onuDevice.Id, "sn": sn})
-	if err := dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn); err != nil {
-		return olterrors.NewErrAdapter("onu-activation-failed", log.Fields{
+	if error = dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn); error != nil {
+
+		error = olterrors.NewErrAdapter("onu-activation-failed", log.Fields{
 			"device-id":     onuDevice.Id,
-			"serial-number": sn}, err)
+			"serial-number": sn}, error)
+		return error
 	}
 	return nil
 }
