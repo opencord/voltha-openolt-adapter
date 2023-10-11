@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e402bd1_0eaffa6f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1730,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-10-11T06:10:37Z",
+      "side": 1,
+      "message": "can we avoid this flag. we can check for errors instead",
+      "revId": "6958d2ef3fcd4127c4c3dc620581835aa66f486c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
