@@ -16,6 +16,23 @@
       "message": "more or less the same comments as here: https://gerrit.opencord.org/c/voltha-go/+/34782",
       "revId": "3c3a5710fcfb3d53f74eb42df51a6437303b653b",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c595779_50a178c2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2023-10-30T14:55:21Z",
+      "side": 1,
+      "message": "Needs version file update.",
+      "revId": "3c3a5710fcfb3d53f74eb42df51a6437303b653b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
