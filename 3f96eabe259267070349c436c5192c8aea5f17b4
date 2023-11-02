@@ -16,6 +16,29 @@
       "message": "\u003e Patch Set 4: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1922/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2417/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_licensed/2562/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2421/ : SUCCESS\n\nrecheck",
       "revId": "3f96eabe259267070349c436c5192c8aea5f17b4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c70da866_e5704743",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2546,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2023-11-02T05:40:52Z",
+      "side": 1,
+      "message": "The whole tpDownloadMsg might not be needed but having the tpId logged with info log level will help during debugging issues.",
+      "range": {
+        "startLine": 2546,
+        "startChar": 1,
+        "endLine": 2546,
+        "endChar": 129
+      },
+      "revId": "3f96eabe259267070349c436c5192c8aea5f17b4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
