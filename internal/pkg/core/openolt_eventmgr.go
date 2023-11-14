@@ -384,7 +384,13 @@ func (em *OpenOltEventMgr) onuDyingGaspIndication(ctx context.Context, dgi *oop.
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "EVENT")
+
+	if dgi.Status == statusCheckOn {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "RAISE_EVENT")
+	} else {
+		de.DeviceEventName = fmt.Sprintf("%s_%s", onuDyingGaspEvent, "CLEAR_EVENT")
+	}
+
 	/* Send event to KAFKA */
 	if err := em.eventProxy.SendDeviceEventWithKey(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_ONU, raisedTs, onuDeviceID); err != nil {
 		return err
