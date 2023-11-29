@@ -3688,7 +3688,6 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 		logger.Errorw(ctx, "getPONRxPower invalid portType", log.Fields{"oltPortType": portInfo[0]})
 		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_PORT_TYPE)
 	}
-	ponIntdID := plt.PortNoToIntfID((uint32)(portNumber), voltha.Port_PON_OLT)
 
 	if serialNumber != "" {
 
@@ -3721,9 +3720,9 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 	} else {
 
 		dh.onus.Range(func(Onukey interface{}, onuInCache interface{}) bool {
-			if onuInCache.(*OnuDevice).intfID == ponIntdID {
+			if onuInCache.(*OnuDevice).intfID == (uint32)(portNumber) {
 
-				Onu := oop.Onu{IntfId: ponIntdID, OnuId: onuInCache.(*OnuDevice).onuID}
+				Onu := oop.Onu{IntfId: (uint32)(portNumber), OnuId: onuInCache.(*OnuDevice).onuID}
 				rxPower, err := dh.Client.GetPonRxPower(ctx, &Onu)
 				if err != nil {
 					logger.Errorw(ctx, "error-while-getting-rx-power, however considering to proceed further with other ONUs on PON", log.Fields{"Onu": Onu, "err": err})
