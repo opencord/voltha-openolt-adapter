@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4cbb0bf1_ac7ad9d8",
+        "filename": "VERSION",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2023-12-11T23:03:02Z",
+      "side": 1,
+      "message": "Not an important comment for this patch, but as a reminder; if the previous version is 4.4.7, then the next dev would be 4.4.8-dev",
+      "range": {
+        "startLine": 1,
+        "startChar": 5,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "ed94f04d889103c32e051c64db948a5e936a7fa1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
