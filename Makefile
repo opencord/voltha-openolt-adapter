@@ -270,6 +270,7 @@ mod-vendor:
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
 help ::
+	@printf '  %-33.33s %s\n' 'sca' 'golang: static code analysis'
 	@echo '[MOD UPDATE]'
 	@echo '  mod-update'
 	@echo '    LOCAL_FIX_PERMS=1    Hack to fix docker access problems'

@@ -21,10 +21,6 @@
 # ONF.makefile.version = 1.0
 # -----------------------------------------------------------------------
 
-ifndef mk-include--onf-make # single-include guard macor
-
-$(if $(DEBUG),$(warning ENTER))
-
 ## -----------------------------------------------------------------------
 ## Define vars based on relative import (normalize symlinks)
 ## Usage: include makefiles/onf/include.mk
@@ -44,6 +40,7 @@ include $(ONF_MAKEDIR)/etc/include.mk        # banner macros
 include $(ONF_MAKEDIR)/virtualenv.mk#        # lint-{jjb,python} depends on venv
 # include $(ONF_MAKEDIR)/lint/include.mk
 # include $(ONF_MAKEDIR)/git-submodules.mk
+include $(ONF_MAKEDIR)/golang/include.mk
 # include $(ONF_MAKEDIR)/gerrit/include.mk
 
 include $(ONF_MAKEDIR)/todo.mk
@@ -63,17 +60,5 @@ include $(ONF_MAKEDIR)/targets/sterile.mk
 # include $(ONF_MAKEDIR)/targets/test.mk
 
 $(if $(DEBUG),$(warning LEAVE))
-
-## --------------------------------------------------------------------------
-## structure to support pre/post target handling w/o inlining in Makefile (?)
-## --------------------------------------------------------------------------
-##   include makefiles/include.mk
-##     include makefiles/main/enter.mk
-##     [... include *.mk ...]
-##     include makefiles/main/leave.mk
-
-mk-include--onf-make := true
-
-endif # mk-include--onf-make
 
 # [EOF]
