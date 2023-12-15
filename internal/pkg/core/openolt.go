@@ -20,9 +20,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
@@ -38,6 +35,10 @@ import (
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	"github.com/opencord/voltha-protos/v5/go/omci"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"sync"
+	"time"
 )
 
 // OpenOLT structure holds the OLT information
@@ -196,6 +197,8 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		handler.transitionMap = NewTransitionMap(handler)
 
 		handler.transitionMap.Handle(log.WithSpanFromContext(context.Background(), ctx), DeviceInit)
+	} else {
+		return &empty.Empty{}, status.Errorf(codes.AlreadyExists, "handler exists: %s", device.Id)
 	}
 	return &empty.Empty{}, nil
 }
