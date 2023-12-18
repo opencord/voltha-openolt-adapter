@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b5d74c99_a90ce2bc",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2023-12-18T13:25:11Z",
+      "side": 1,
+      "message": "log a warning here,",
+      "revId": "344d775174af8f0d186fa5c537a4624d7bbb3632",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
