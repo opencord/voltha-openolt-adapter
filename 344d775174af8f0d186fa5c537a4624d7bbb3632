@@ -16,6 +16,24 @@
       "message": "log a warning here,",
       "revId": "344d775174af8f0d186fa5c537a4624d7bbb3632",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "683147e6_b61486fb",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1000963
+      },
+      "writtenOn": "2023-12-18T17:30:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5d74c99_a90ce2bc",
+      "revId": "344d775174af8f0d186fa5c537a4624d7bbb3632",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
