@@ -281,3 +281,4 @@ func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, o
 func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
 	return &openolt.PonIntfInfo{}, nil
 }
+# [EOF] - delta:force

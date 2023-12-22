@@ -80,3 +80,4 @@ func (me *MockEventProxy) SendDeviceEventWithKey(ctx context.Context, deviceEven
 	subCategory eventif.EventSubCategory, raisedTs int64, key string) error {
 	return nil
 }
+# [EOF] - delta:force

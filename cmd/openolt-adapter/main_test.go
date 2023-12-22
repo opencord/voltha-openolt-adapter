@@ -145,4 +145,4 @@ func Test_newKafkaClient(t *testing.T) {
 	}
 }
 
-// [EOF]
+# [EOF] - delta:force

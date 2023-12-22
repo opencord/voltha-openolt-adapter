@@ -25,3 +25,4 @@ func TestAdapterFlags_ParseCommandArguments(t *testing.T) {
 	cf := &AdapterFlags{}
 	cf.ParseCommandArguments()
 }
+# [EOF] - delta:force

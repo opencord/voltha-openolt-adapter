@@ -563,4 +563,4 @@ func main() {
 	logger.Infow(ctx, "run-time", log.Fields{"instanceId": ad.config.InstanceID, "time": elapsed / time.Second})
 }
 
-// [EOF]
+# [EOF] - delta:force

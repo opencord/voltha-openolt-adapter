@@ -379,3 +379,4 @@ var (
 	// condition occcurs while instantiating the group manager
 	ErrGroupManagerInstantiating = NewErrAdapter("group-manager-instantiating", nil, nil)
 )
+# [EOF] - delta:force

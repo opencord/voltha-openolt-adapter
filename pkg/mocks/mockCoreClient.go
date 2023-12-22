@@ -258,3 +258,4 @@ func (mcs MockCoreService) ChildrenStateUpdate(ctx context.Context, in *ca.Devic
 func (mcs MockCoreService) UpdateImageDownload(ctx context.Context, in *voltha.ImageDownload, opts ...grpc.CallOption) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
 }
+# [EOF] - delta:force

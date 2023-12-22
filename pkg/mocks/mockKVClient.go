@@ -330,3 +330,4 @@ func (kvclient *MockKVClient) CloseWatch(ctx context.Context, key string, ch cha
 // Close mock function implementation for KVClient
 func (kvclient *MockKVClient) Close(ctx context.Context) {
 }
+# [EOF] - delta:force

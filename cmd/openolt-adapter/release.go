@@ -25,3 +25,4 @@ import "context"
 func realMain() {
 	logger.Infoln(context.Background(), "NOT PROFILING")
 }
+# [EOF] - delta:force

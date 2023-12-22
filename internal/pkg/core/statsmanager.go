@@ -884,3 +884,4 @@ func (StatMgr *OpenOltStatisticsMgr) updateGetOnuPonCountersResponse(ctx context
 	singleValResp.Response.Status = extension.GetValueResponse_OK
 	logger.Debugw(ctx, "updateGetOnuPonCountersResponse", log.Fields{"resp": singleValResp})
 }
+# [EOF] - delta:force

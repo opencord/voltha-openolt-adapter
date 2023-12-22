@@ -210,3 +210,4 @@ func (m MockTechProfile) FreeResourceID(ctx context.Context, IntfID uint32, Reso
 func (m MockTechProfile) GetTechProfileInstanceKey(ctx context.Context, tpID uint32, uniPortName string) string {
 	return ""
 }
+# [EOF] - delta:force

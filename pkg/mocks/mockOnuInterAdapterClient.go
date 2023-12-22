@@ -67,3 +67,4 @@ func (mos *MockOnuInterAdapterService) DeleteTCont(ctx context.Context, in *ia.D
 func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, opts ...grpc.CallOption) (onu_inter_adapter_service.OnuInterAdapterService_GetHealthStatusServer, error) {
 	return nil, nil
 }
+# [EOF] - delta:force

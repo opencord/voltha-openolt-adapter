@@ -4142,3 +4142,4 @@ func (dh *DeviceHandler) getHeartbeatSignature(ctx context.Context) uint32 {
 	}
 	return signature
 }
+# [EOF] - delta:force

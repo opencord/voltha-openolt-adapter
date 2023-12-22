@@ -188,3 +188,4 @@ func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 		}
 	}
 }
+# [EOF] - delta:force
