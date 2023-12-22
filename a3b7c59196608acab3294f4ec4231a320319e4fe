@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9e62cb9_6526eb11",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2023-12-22T05:21:49Z",
+      "side": 1,
+      "message": "Job passed on second attempt -- the \u0027bogus patch\u0027 uncovered 2 latent golang linting problems.",
+      "revId": "a3b7c59196608acab3294f4ec4231a320319e4fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
