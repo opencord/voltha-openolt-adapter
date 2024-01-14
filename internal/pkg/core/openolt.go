@@ -274,8 +274,29 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 		if err := handler.DeleteDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		oo.deleteDeviceHandlerToMap(handler)
-		return &empty.Empty{}, nil
+		// Initialize a ticker with a 2-second interval to periodically check the states
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
+
+		// Set a maximum timeout duration of 30 seconds for the loop
+		timeout := time.After(30 * time.Second)
+
+		for {
+			select {
+			case <-ticker.C:
+				// Check if all processes have stopped
+				if !handler.isHeartbeatCheckActive && !handler.isCollectorActive && !handler.isReadIndicationRoutineActive {
+					logger.Debugf(ctx, "delete-device-handler")
+					oo.deleteDeviceHandlerToMap(handler)
+					return &empty.Empty{}, nil
+				}
+			case <-timeout:
+				// Timeout exceeded
+				logger.Warnw(ctx, "delete-device-handler timeout exceeded", log.Fields{"device-id": device.Id})
+				oo.deleteDeviceHandlerToMap(handler) // Clean up anyway
+				return &empty.Empty{}, nil
+			}
+		}
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
