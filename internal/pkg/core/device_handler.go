@@ -2432,13 +2432,6 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 
 	dh.StopAllFlowRoutines(ctx)
 
-	err := dh.cleanupDeviceResources(ctx)
-	if err != nil {
-		logger.Errorw(ctx, "could-not-remove-device-from-KV-store", log.Fields{"device-id": dh.device.Id, "err": err})
-	} else {
-		logger.Debugw(ctx, "successfully-removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
-	}
-
 	dh.lockDevice.RLock()
 	// Stop the Stats collector
 	if dh.isCollectorActive {
@@ -2453,6 +2446,14 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 		dh.stopIndications <- true
 	}
 	dh.lockDevice.RUnlock()
+
+	err := dh.cleanupDeviceResources(ctx)
+	if err != nil {
+		logger.Errorw(ctx, "could-not-remove-device-from-KV-store", log.Fields{"device-id": dh.device.Id, "err": err})
+	} else {
+		logger.Debugw(ctx, "successfully-removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
+	}
+
 	dh.removeOnuIndicationChannels(ctx)
 	//Reset the state
 	if dh.Client != nil {
