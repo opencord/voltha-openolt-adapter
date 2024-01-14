@@ -20,6 +20,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
@@ -37,8 +40,6 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
-	"time"
 )
 
 // OpenOLT structure holds the OLT information
@@ -248,7 +249,19 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 		if err := handler.DeleteDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		oo.deleteDeviceHandlerToMap(handler)
+		//initialize ticker to check every interval of 1 sec for isHeartbeatCheckActive , isCollectorActive and isReadIndicationRoutineActive once all process is stoped clear the device handler map.
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			// Wait for the ticker to signal before checking the condition
+			<-ticker.C
+			if !handler.isHeartbeatCheckActive && !handler.isCollectorActive && !handler.isReadIndicationRoutineActive {
+				logger.Debugf(ctx, "delete-device-handler")
+				oo.deleteDeviceHandlerToMap(handler)
+				break
+			}
+		}
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
