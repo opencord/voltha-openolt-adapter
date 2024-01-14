@@ -274,7 +274,22 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 		if err := handler.DeleteDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		oo.deleteDeviceHandlerToMap(handler)
+		// Initialize a ticker with a 2-second interval to periodically check the states
+		// isHeartbeatCheckActive, isCollectorActive, and isReadIndicationRoutineActive.
+		// Once all processes have stopped (all states are false), clear the device handler map
+		// and exit the loop.
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			// Wait for the ticker to signal before checking the condition
+			<-ticker.C
+			if !handler.isHeartbeatCheckActive && !handler.isCollectorActive && !handler.isReadIndicationRoutineActive {
+				logger.Debugf(ctx, "delete-device-handler")
+				oo.deleteDeviceHandlerToMap(handler)
+				break
+			}
+		}
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
