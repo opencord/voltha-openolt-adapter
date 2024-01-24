@@ -285,7 +285,8 @@ func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatist
 	// Northbound and Southbound ports
 	// added to initialize the pm_metrics
 	var Ports interface{}
-	Ports, _ = InitPorts(ctx, "nni", Dev.device.Id, 1)
+	NumNniPorts := Dev.resourceMgr[0].DevInfo.GetNniPorts()
+	Ports, _ = InitPorts(ctx, "nni", Dev.device.Id, NumNniPorts)
 	StatMgr.NorthBoundPort, _ = Ports.(map[uint32]*NniPort)
 	NumPonPorts := Dev.resourceMgr[0].DevInfo.GetPonPorts()
 	Ports, _ = InitPorts(ctx, "pon", Dev.device.Id, NumPonPorts)
