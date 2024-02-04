@@ -2,4 +2,5 @@
 host=gerrit.opencord.org
 port=29418
 project=voltha-openolt-adapter.git
-defaultremote=voltha-2.12
+defaultremote=origin
+defaultbranch=master
