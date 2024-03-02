@@ -1,6 +1,6 @@
 # -*- makefile -*-
 # -----------------------------------------------------------------------
-# Copyright 2016-2024 Open Networking Foundation (ONF) and the ONF Contributors
+# Copyright 2016-2024 Open Networking Foundation Contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # -----------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2016-2024 Open Networking Foundation Contributors
+# SPDX-License-Identifier: Apache-2.0
+# -----------------------------------------------------------------------
 
 $(if $(DEBUG),$(warning ENTER))
 
 .DEFAULT_GOAL := help
+
+##-------------------##
+##---]  GLOBALS  [---##
+##-------------------##
+
+RSYNC        ?= rsync
+RSYNC-CMD    := $(RSYNC) -rv --checksum --archive
 
 TOP         ?= .
 MAKEDIR     ?= $(TOP)/makefiles
@@ -33,6 +43,10 @@ include makefiles/include.mk     # top level include
 ifdef LOCAL_LINT
   include $(MAKEDIR)/lint/golang/sca.mk
 endif
+
+##------------------##
+##---]  MACROS  [---##
+##------------------##
 
 # Variables
 VERSION                  ?= $(shell cat ./VERSION)
@@ -68,28 +82,56 @@ DOCKER_BUILD_ARGS ?= \
 # tool containers
 VOLTHA_TOOLS_VERSION ?= 2.4.0
 
+## TODO: Verify / migrate to repo:onf-make
 # GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
 # GO_JUNIT_REPORT   = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-go-junit-report go-junit-report
 # GOCOVER_COBERTURA = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app/src/github.com/opencord/voltha-openolt-adapter -i voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-gocover-cobertura gocover-cobertura
 # GOLANGCI_LINT     = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golangci-lint golangci-lint
 # HADOLINT          = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-hadolint hadolint
 
-.PHONY: docker-build local-protos local-lib-go help
+.PHONY: docker-build help
 
-## Local Development Helpers
-local-protos: ## Copies a local version of the voltha-protos dependency into the vendor directory
-ifdef LOCAL_PROTOS
-	$(RM) -r vendor/github.com/opencord/voltha-protos/v5/go
-	mkdir -p vendor/github.com/opencord/voltha-protos/v5/go
-	cp -r ${LOCAL_PROTOS}/go/* vendor/github.com/opencord/voltha-protos/v5/go
-	$(RM) -r vendor/github.com/opencord/voltha-protos/v5/go/vendor
-endif
+## -----------------------------------------------------------------------
+## Intent: Local Development Helpers.  When LOCAL_PROTOS= is defined
+##         copy in locally modified repo:voltha-protos for a building.
+## -----------------------------------------------------------------------
+## Usage : make build LOCAL_LIB_GO=/path/to/my/voltha-protos
+## -----------------------------------------------------------------------
+.PHONY: local-protos
+protos-v5 := vendor/github.com/opencord/voltha-protos/v5/go
 
-local-lib-go: ## Copies a local version of the voltha-lib-go dependency into the vendor directory
-ifdef LOCAL_LIB_GO
-	mkdir -p vendor/github.com/opencord/voltha-lib-go/v7/pkg
-	cp -r ${LOCAL_LIB_GO}/pkg/* vendor/github.com/opencord/voltha-lib-go/v7/pkg/
-endif
+local-protos:
+
+  ifdef LOCAL_PROTOS
+	$(call banner-enter,$@)
+
+	$(RM) -r "$(protos-v5)"
+	mkdir -p "$(protos-v5)"
+	$(RSYNC-CMD) "${LOCAL_PROTOS}/go/." "$(protos-v5)/."
+	$(RM) -r "$(protos-v5)/vendor"
+
+	$(call banner-leave,$@)
+  endif # LOCAL_PROTOS=
+
+## -----------------------------------------------------------------------
+## Intent: Local Development Helpers.  When LOCAL_LIB_GO= is defined
+##         copy in locally modified repo:voltha-protos for a building.
+## -----------------------------------------------------------------------
+## Usage : make build LOCAL_LIB_GO=/path/to/my/voltha-lib-go
+## -----------------------------------------------------------------------
+.PHONY: local-lib-go
+lib-go-v7 := vendor/github.com/opencord/voltha-lib-go/v7
+
+local-lib-go:
+
+  ifdef LOCAL_LIB_GO
+	$(call banner-enter,$@)
+
+	mkdir -p "$(lib-go-v7)/pkg"
+	$(RSYNC-CMD) "${LOCAL_LIB_GO}/pkg/." "$(lib-go-v7)/pkg/."
+
+	$(call banner-leave,$@)
+  endif # LOCAL_LIB_GO=
 
 ## -----------------------------------------------------------------------
 ## Docker targets
@@ -268,13 +310,43 @@ mod-vendor:
 	$(call banner-leave,$@)
 
 ## -----------------------------------------------------------------------
+## Intent: Render README.md for interactive viewing.
+## -----------------------------------------------------------------------
+view :
+	pandoc README.md | lynx -stdin
+
+## -----------------------------------------------------------------------
+## Intent: Display supported makefile targets
 ## -----------------------------------------------------------------------
 help ::
+	@printf '  %-33.33s %s\n' 'local-help' \
+	  'Show extended help for local build targets'
 	@printf '  %-33.33s %s\n' 'sca' 'golang: static code analysis'
+	@printf '  %-33.33s %s\n' 'view' \
+	  'Render markdown (.md) for interactive viewing'
+
+help ::
+	@echo
 	@echo '[MOD UPDATE]'
 	@echo '  mod-update'
 	@echo '    LOCAL_FIX_PERMS=1    Hack to fix docker access problems'
 	@echo '  mod-tidy'
 	@echo '  mod-vendor'
+
+local-help :
+	@echo
+	@echo '[LOCAL: dev]'
+
+	@printf '  %-33.33s %s\n' 'local-protos' \
+	  'Copy a local dev version of voltha-protos into vendor/'
+	@printf '    %s\n' '% $(MAKE) local-protos LOCAL_PROTOS={path}'
+
+	@echo
+	@printf '  %-33.33s %s\n' 'local-lib-go' \
+	  'Copy a local dev version of voltha-lib-go into vendor/'
+	@printf '    %s\n' '% $(MAKE) local-lib-go LOCAL_LIB_GO={path}'
+
+# Thought: Use "$(MAKE) LOCAL=1" to wrap
+#          "make local-protos local-lib-go build"
 
 # [EOF]
