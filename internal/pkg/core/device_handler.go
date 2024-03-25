@@ -57,6 +57,7 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/onu_inter_adapter_service"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
+	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -3603,6 +3604,131 @@ func (dh *DeviceHandler) getOnuPonCounters(ctx context.Context, onuPonInfo *exte
 	dh.portStats.updateGetOnuPonCountersResponse(ctx, &singleValResp, cmnni)
 	return &singleValResp
 
+}
+
+func (dh *DeviceHandler) CheckOnuGemInfo(ctx context.Context, intfID uint32, onuID uint32) (*rsrcMgr.OnuGemInfo, error) {
+	onuGemInfo, err := dh.resourceMgr[intfID].GetOnuGemInfo(ctx, onuID)
+	if err != nil {
+		logger.Errorw(ctx, "Unable to find onuGemInfo", log.Fields{"onuID": onuID})
+		return nil, err
+	}
+	if onuGemInfo != nil {
+		if len(onuGemInfo.UniPorts) == 0 {
+			logger.Errorw(ctx, "No uniports present for the ONU", log.Fields{"onuID": onuID})
+			return nil, err
+		}
+		logger.Debugw(ctx, "Received onuGemInfo", log.Fields{"onuID": onuID, "onuGemInfo": onuGemInfo})
+		return onuGemInfo, nil
+	}
+	logger.Errorw(ctx, "Received nil onuGemInfo", log.Fields{"onuID": onuID})
+	return nil, fmt.Errorf("onuGemInfo received as null, onuID : %d", onuID)
+}
+
+func (dh *DeviceHandler) getAllocGemStats(ctx context.Context, intfID uint32, onuID uint32, onuGemInfo *rsrcMgr.OnuGemInfo, singleValResp *extension.SingleGetValueResponse) error {
+	var err error
+	for _, uni := range onuGemInfo.UniPorts {
+		uniID := plt.UniIDFromPortNum(uni)
+		uniPath := getUniPortPath(dh.device.Id, intfID, int32(onuID), int32(uniID))
+		tpIDs := dh.resourceMgr[intfID].GetTechProfileIDForOnu(ctx, onuID, uniID)
+		if len(tpIDs) == 0 {
+			logger.Errorw(ctx, "No TPIDs present for the Uni", log.Fields{"onuID": onuID, "uniPort": uni})
+			continue
+		}
+		for _, tpId := range tpIDs {
+			tpPath := dh.flowMgr[intfID].getTPpath(ctx, uniPath, uint32(tpId))
+			techProfileInstance, _ := dh.flowMgr[intfID].techprofile.GetTPInstance(ctx, tpPath)
+			onuStatsFromOlt := extension.OnuAllocGemStatsFromOltResponse{}
+			if techProfileInstance != nil {
+				switch tpInst := techProfileInstance.(type) {
+				case *tp_pb.TechProfileInstance:
+					allocId := tpInst.UsScheduler.AllocId
+					onuAllocPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, AllocId: allocId}
+					allocStats, err := dh.Client.GetAllocIdStatistics(ctx, &onuAllocPkt)
+					if err != nil {
+						logger.Errorw(ctx, "Error received from openolt for GetAllocIdStatistics", log.Fields{"onuID": onuID, "AllodId": allocId, "Error": err})
+						return err
+					}
+					allocIdInfo := extension.OnuAllocIdInfoFromOlt{}
+					allocIdInfo.AllocId = allocStats.AllocId
+					allocIdInfo.RxBytes = allocStats.RxBytes
+
+					onuStatsFromOlt.AllocIdInfo = &allocIdInfo
+
+					gemPorts := tpInst.UpstreamGemPortAttributeList
+					for _, gem := range gemPorts {
+						onuGemPkt := oop.OnuPacket{IntfId: intfID, OnuId: onuID, GemportId: gem.GemportId}
+						onuGemStats, err := dh.Client.GetGemPortStatistics(ctx, &onuGemPkt)
+						if err != nil {
+							logger.Errorw(ctx, "Error received from openolt for GetGemPortStatistics", log.Fields{"onuID": onuID, "GemPortId": gem.GemportId, "Error": err})
+							return err
+						}
+						gemStatsInfo := extension.OnuGemPortInfoFromOlt{}
+						gemStatsInfo.GemId = onuGemStats.GemportId
+						gemStatsInfo.RxBytes = onuGemStats.RxBytes
+						gemStatsInfo.RxPackets = onuGemStats.RxPackets
+						gemStatsInfo.TxBytes = onuGemStats.TxBytes
+						gemStatsInfo.TxPackets = onuGemStats.TxPackets
+
+						onuStatsFromOlt.GemPortInfo = append(onuStatsFromOlt.GemPortInfo, &gemStatsInfo)
+					}
+					singleValResp.Response.GetOnuStatsFromOltResponse().AllocGemStatsInfo = append(singleValResp.Response.GetOnuStatsFromOltResponse().AllocGemStatsInfo, &onuStatsFromOlt)
+
+				default:
+					logger.Errorw(ctx, "Invalid Techprofile type received", log.Fields{"onuID": onuID, "TpId": tpId})
+					return err
+				}
+			} else {
+				logger.Errorw(ctx, "No TpInstance found for the TpID", log.Fields{"onuID": onuID, "TpId": tpId})
+				continue
+			}
+		}
+	}
+	return err
+}
+
+func (dh *DeviceHandler) getOnuStatsFromOlt(ctx context.Context, onuInfo *extension.GetOnuStatsFromOltRequest, onuDevice *voltha.Device) *extension.SingleGetValueResponse {
+
+	singleValResp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_OnuStatsFromOltResponse{
+				OnuStatsFromOltResponse: &extension.GetOnuStatsFromOltResponse{},
+			},
+		},
+	}
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	var intfID, onuID uint32
+	if onuDevice != nil {
+		onuID = onuDevice.ProxyAddress.OnuId
+		intfID = plt.PortNoToIntfID(onuDevice.ParentPortNo, voltha.Port_PON_OLT)
+	}
+
+	onuKey := dh.formOnuKey(intfID, onuID)
+	if _, ok := dh.onus.Load(onuKey); !ok {
+		logger.Errorw(ctx, "getOnuStatsFromOlt request received for invalid device", log.Fields{"deviceId": onuDevice.Id, "intfID": intfID, "onuID": onuID})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+	}
+	logger.Debugw(ctx, "getOnuStatsFromOlt request received", log.Fields{"intfID": intfID, "onuID": onuID})
+
+	onuGemInfo, err := dh.CheckOnuGemInfo(ctx, intfID, onuID)
+	if err == nil {
+		err = dh.getAllocGemStats(ctx, intfID, onuID, onuGemInfo, &singleValResp)
+		if err != nil {
+			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
+		}
+	} else {
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+	}
+	return &singleValResp
 }
 
 func (dh *DeviceHandler) getOnuInfo(ctx context.Context, intfID uint32, onuID *uint32) (*oop.OnuInfo, error) {
