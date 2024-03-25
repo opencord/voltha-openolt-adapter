@@ -3605,6 +3605,70 @@ func (dh *DeviceHandler) getOnuPonCounters(ctx context.Context, onuPonInfo *exte
 
 }
 
+func (dh *DeviceHandler) getOnuStatsFromOlt(ctx context.Context, onuInfo *extension.GetOnuStatsFromOltRequest, onuDevice *voltha.Device) *extension.SingleGetValueResponse {
+
+	singleValResp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Response: &extension.GetValueResponse_OnuStatsFromOltResponse{
+				OnuStatsFromOltResponse: &extension.GetOnuStatsFromOltResponse{},
+			},
+		},
+	}
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	var intfID, onuID uint32
+	if onuDevice != nil {
+		onuID = onuDevice.ProxyAddress.OnuId
+		intfID = plt.PortNoToIntfID(onuDevice.ParentPortNo, voltha.Port_PON_OLT)
+	} else {
+		intfID = onuInfo.IntfId
+		onuID = onuInfo.OnuId
+	}
+
+	onuKey := dh.formOnuKey(intfID, onuID)
+	if _, ok := dh.onus.Load(onuKey); !ok {
+		logger.Errorw(ctx, "getOnuStatsFromOlt request received for invalid device", log.Fields{"deviceId": onuDevice.Id, "intfID": intfID, "onuID": onuID})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE)
+	}
+
+	logger.Debugw(ctx, "getOnuStatsFromOlt request received", log.Fields{"intfID": intfID, "onuID": onuID})
+	Onu := oop.Onu{IntfId: intfID, OnuId: onuID}
+	onuAllocGemStats, err := dh.Client.GetOnuAllocGemStatistics(ctx, &Onu)
+	if err != nil {
+		logger.Errorw(ctx, "error-while-getting-onu-stats-from-olt", log.Fields{"Onu": Onu, "err": err})
+		return generateSingleGetValueErrorResponse(err)
+	}
+
+	for _, allocGemStatsFromOlt := range onuAllocGemStats.OnuStatsInfo {
+		onuStatsFromOlt := extension.OnuAllocGemStatsFromOltResponse{}
+		onuStatsFromOlt.AllocIdInfo.AllocId = allocGemStatsFromOlt.AllocIdInfo.AllocId
+		onuStatsFromOlt.AllocIdInfo.RxBytes = allocGemStatsFromOlt.AllocIdInfo.RxBytes
+		for _, onuGemStats := range allocGemStatsFromOlt.GemPortInfo {
+			gemStatsInfo := extension.OnuGemPortInfoFromOlt{}
+			gemStatsInfo.GemId = onuGemStats.GemId
+			gemStatsInfo.RxBytes = onuGemStats.RxBytes
+			gemStatsInfo.RxPackets = onuGemStats.RxPackets
+			gemStatsInfo.TxBytes = onuGemStats.TxBytes
+			gemStatsInfo.TxPackets = onuGemStats.TxPackets
+
+			onuStatsFromOlt.GemPortInfo = append(onuStatsFromOlt.GemPortInfo, &gemStatsInfo)
+		}
+		singleValResp.Response.GetOnuStatsFromOltResponse().AllocGemStatsInfo = append(singleValResp.Response.GetOnuStatsFromOltResponse().AllocGemStatsInfo, &onuStatsFromOlt)
+	}
+
+	return &singleValResp
+
+}
+
 func (dh *DeviceHandler) getOnuInfo(ctx context.Context, intfID uint32, onuID *uint32) (*oop.OnuInfo, error) {
 
 	Onu := oop.Onu{IntfId: intfID, OnuId: *onuID}
