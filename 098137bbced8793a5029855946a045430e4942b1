@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f300d33c_0d1e70ff",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-03-29T18:11:15Z",
+      "side": 1,
+      "message": "Jenkins +1 in history\nBenign changes, merge in stale patch from March 2nd.\n",
+      "revId": "098137bbced8793a5029855946a045430e4942b1",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
