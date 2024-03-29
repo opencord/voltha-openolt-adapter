@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2018-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -577,3 +577,5 @@ func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ca.BulkFlows) (*e
 func (oo *OpenOLT) SelfTestDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
+
+// [EOF]

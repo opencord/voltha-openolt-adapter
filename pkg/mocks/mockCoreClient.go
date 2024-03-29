@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2021-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -258,3 +258,5 @@ func (mcs MockCoreService) ChildrenStateUpdate(ctx context.Context, in *ca.Devic
 func (mcs MockCoreService) UpdateImageDownload(ctx context.Context, in *voltha.ImageDownload, opts ...grpc.CallOption) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
 }
+
+// [EOF]

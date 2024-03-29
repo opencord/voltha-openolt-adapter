@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2020-2024 Open Networking Foundation Contributors
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -352,3 +352,5 @@ func (g *OpenOltGroupMgr) buildMember(ctx context.Context, ofBucket *ofp.OfpBuck
 	logger.Warnf(ctx, "bucket-skipped-since-interface-2-gem-mapping-cannot-be-found", log.Fields{"ofBucket": ofBucket})
 	return nil
 }
+
+// [EOF]

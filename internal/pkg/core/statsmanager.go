@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2019-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -884,3 +884,5 @@ func (StatMgr *OpenOltStatisticsMgr) updateGetOnuPonCountersResponse(ctx context
 	singleValResp.Response.Status = extension.GetValueResponse_OK
 	logger.Debugw(ctx, "updateGetOnuPonCountersResponse", log.Fields{"resp": singleValResp})
 }
+
+// [EOF]

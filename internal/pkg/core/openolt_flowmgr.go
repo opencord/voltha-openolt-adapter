@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2018-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3477,3 +3477,5 @@ func (f *OpenOltFlowMgr) removeMeterReference(ctx context.Context, direction str
 			"uni-port":  sq.uniPort})
 	return err
 }
+
+// [EOF]

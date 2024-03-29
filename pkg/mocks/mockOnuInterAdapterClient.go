@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2021-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,3 +67,5 @@ func (mos *MockOnuInterAdapterService) DeleteTCont(ctx context.Context, in *ia.D
 func (mos MockOnuInterAdapterService) GetHealthStatus(ctx context.Context, opts ...grpc.CallOption) (onu_inter_adapter_service.OnuInterAdapterService_GetHealthStatusServer, error) {
 	return nil, nil
 }
+
+// [EOF]

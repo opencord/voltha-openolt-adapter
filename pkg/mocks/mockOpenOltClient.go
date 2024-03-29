@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2018-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,3 +281,5 @@ func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, o
 func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
 	return &openolt.PonIntfInfo{}, nil
 }
+
+// [EOF]

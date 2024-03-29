@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+ * Copyright 2018-2024 Open Networking Foundation Contributors
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,3 +330,5 @@ func (kvclient *MockKVClient) CloseWatch(ctx context.Context, key string, ch cha
 // Close mock function implementation for KVClient
 func (kvclient *MockKVClient) Close(ctx context.Context) {
 }
+
+// [EOF]
