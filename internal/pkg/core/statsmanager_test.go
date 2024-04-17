@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
@@ -45,14 +46,14 @@ func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 	StatMgr := NewOpenOltStatsMgr(context.Background(), dh)
 
 	type args struct {
-		PortStats *openolt.PortStatistics
+		PortStats *common.PortStatistics
 	}
 	tests := []struct {
 		name string
 		args args
 	}{
 		// TODO: Add test cases.
-		{"PortStatisticsIndication", args{PortStats: &openolt.PortStatistics{}}},
+		{"PortStatisticsIndication", args{PortStats: &common.PortStatistics{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

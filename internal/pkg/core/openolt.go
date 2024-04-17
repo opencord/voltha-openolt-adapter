@@ -428,6 +428,10 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			return handler.getPONRxPower(ctx, reqType.OltRxPower), nil
 		case *extension.GetValueRequest_OffloadedAppsStats:
 			return handler.getOltOffloadStats(ctx, reqType.OffloadedAppsStats), nil
+		case *extension.GetValueRequest_OltPonStats:
+			return handler.getPonPortStats(ctx, reqType.OltPonStats), nil
+		case *extension.GetValueRequest_OltNniStats:
+			return handler.getNniPortStats(ctx, reqType.OltNniStats), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}

@@ -37,6 +37,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
+	cmn "github.com/opencord/voltha-protos/v5/go/common"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
@@ -856,7 +857,7 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 		{"handleIndication-11", dh1, args{indication: &oop.Indication{Data: &oop.Indication_OnuInd{OnuInd: &oop.OnuIndication{IntfId: 1, OnuId: 1, OperState: "down", AdminState: "down"}}}}},
 		{"handleIndication-12", dh1, args{indication: &oop.Indication{Data: &oop.Indication_OmciInd{OmciInd: &oop.OmciIndication{IntfId: 1, OnuId: 1, Pkt: []byte("onu123-random value")}}}}},
 		{"handleIndication-13", dh1, args{indication: &oop.Indication{Data: &oop.Indication_PktInd{PktInd: &oop.PacketIndication{IntfType: "nni", IntfId: 1, GemportId: 1, FlowId: 1234, PortNo: 1}}}}},
-		{"handleIndication-14", dh1, args{indication: &oop.Indication{Data: &oop.Indication_PortStats{PortStats: &oop.PortStatistics{IntfId: 1, RxBytes: 100, RxPackets: 100, RxUcastPackets: 100, RxMcastPackets: 100, RxBcastPackets: 100, RxErrorPackets: 100, TxBytes: 100, TxPackets: 100, TxUcastPackets: 100, TxMcastPackets: 100, TxBcastPackets: 100, TxErrorPackets: 100, RxCrcErrors: 100, BipErrors: 100, Timestamp: 1000}}}}},
+		{"handleIndication-14", dh1, args{indication: &oop.Indication{Data: &oop.Indication_PortStats{PortStats: &cmn.PortStatistics{IntfId: 1, RxBytes: 100, RxPackets: 100, RxUcastPackets: 100, RxMcastPackets: 100, RxBcastPackets: 100, RxErrorPackets: 100, TxBytes: 100, TxPackets: 100, TxUcastPackets: 100, TxMcastPackets: 100, TxBcastPackets: 100, TxErrorPackets: 100, RxCrcErrors: 100, BipErrors: 100, Timestamp: 1000}}}}},
 		{"handleIndication-15", dh1, args{indication: &oop.Indication{Data: &oop.Indication_FlowStats{FlowStats: &oop.FlowStatistics{RxBytes: 100, RxPackets: 100, TxBytes: 100, TxPackets: 100, Timestamp: 1000}}}}},
 		{"handleIndication-16", dh1, args{indication: &oop.Indication{Data: &oop.Indication_AlarmInd{AlarmInd: &oop.AlarmIndication{}}}}},
 		{"handleIndication-17", dh1, args{indication: &oop.Indication{Data: &oop.Indication_PktInd{PktInd: &oop.PacketIndication{IntfType: "nni", FlowId: 1234, PortNo: 1}}}}},
@@ -876,7 +877,7 @@ func TestDeviceHandler_handleIndication(t *testing.T) {
 		{"handleIndication-29", dh2, args{indication: &oop.Indication{Data: &oop.Indication_OnuInd{OnuInd: &oop.OnuIndication{IntfId: 1, OnuId: 1, OperState: "down", AdminState: "down"}}}}},
 		{"handleIndication-30", dh2, args{indication: &oop.Indication{Data: &oop.Indication_OmciInd{OmciInd: &oop.OmciIndication{IntfId: 1, OnuId: 1, Pkt: []byte("onu123-random value")}}}}},
 		{"handleIndication-31", dh2, args{indication: &oop.Indication{Data: &oop.Indication_PktInd{PktInd: &oop.PacketIndication{IntfType: "nni", IntfId: 1, GemportId: 1, FlowId: 1234, PortNo: 1}}}}},
-		{"handleIndication-32", dh2, args{indication: &oop.Indication{Data: &oop.Indication_PortStats{PortStats: &oop.PortStatistics{IntfId: 1, RxBytes: 100, RxPackets: 100, RxUcastPackets: 100, RxMcastPackets: 100, RxBcastPackets: 100, RxErrorPackets: 100, TxBytes: 100, TxPackets: 100, TxUcastPackets: 100, TxMcastPackets: 100, TxBcastPackets: 100, TxErrorPackets: 100, RxCrcErrors: 100, BipErrors: 100, Timestamp: 1000}}}}},
+		{"handleIndication-32", dh2, args{indication: &oop.Indication{Data: &oop.Indication_PortStats{PortStats: &cmn.PortStatistics{IntfId: 1, RxBytes: 100, RxPackets: 100, RxUcastPackets: 100, RxMcastPackets: 100, RxBcastPackets: 100, RxErrorPackets: 100, TxBytes: 100, TxPackets: 100, TxUcastPackets: 100, TxMcastPackets: 100, TxBcastPackets: 100, TxErrorPackets: 100, RxCrcErrors: 100, BipErrors: 100, Timestamp: 1000}}}}},
 		{"handleIndication-33", dh2, args{indication: &oop.Indication{Data: &oop.Indication_FlowStats{FlowStats: &oop.FlowStatistics{RxBytes: 100, RxPackets: 100, TxBytes: 100, TxPackets: 100, Timestamp: 1000}}}}},
 		{"handleIndication-34", dh2, args{indication: &oop.Indication{Data: &oop.Indication_AlarmInd{AlarmInd: &oop.AlarmIndication{}}}}},
 		//
