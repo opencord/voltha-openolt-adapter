@@ -3802,6 +3802,110 @@ func (dh *DeviceHandler) getPONRxPower(ctx context.Context, OltRxPowerRequest *e
 	return &resp
 }
 
+func (dh *DeviceHandler) getPonPortStats(ctx context.Context, ponStatsRequest *extension.GetPonStatsRequest) *extension.SingleGetValueResponse {
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	resp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_OltPonStatsResponse{
+				OltPonStatsResponse: &extension.GetPonStatsResponse{},
+			},
+		},
+	}
+
+	portLabel := ponStatsRequest.GetPortLabel()
+	logger.Debugw(ctx, "getPonPortStats", log.Fields{"portLabel": portLabel, "device-id": dh.device.Id})
+
+	portInfo := strings.Split(portLabel, "-")
+	portNumber, err := strconv.ParseUint(portInfo[1], 10, 32)
+
+	if err != nil {
+		logger.Errorw(ctx, "getPonPortStats invalid portNumber ", log.Fields{"oltPortNumber": portInfo[1]})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_REQ_TYPE)
+	}
+
+	if portInfo[0] != "pon" {
+		logger.Errorw(ctx, "getPonPortStats invalid portType", log.Fields{"oltPortType": portInfo[0]})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_PORT_TYPE)
+	}
+
+	Interface := oop.Interface{IntfId: uint32(portNumber)}
+	ponStats, err := dh.Client.GetPonPortStatistics(ctx, &Interface)
+	if err != nil {
+		logger.Errorw(ctx, "error-while-getting-pon-port-stats", log.Fields{"IntfId": portNumber, "err": err})
+		return generateSingleGetValueErrorResponse(err)
+	}
+
+	ponPortStats := resp.Response.GetOltPonStatsResponse()
+	ponPortStats.PonPort = uint32(portNumber)
+	ponPortStats.PortStatistics = ponStats
+
+	logger.Infow(ctx, "getPonPortStats response ", log.Fields{"Response": resp})
+	return &resp
+}
+
+func (dh *DeviceHandler) getNniPortStats(ctx context.Context, nniStatsRequest *extension.GetNNIStatsRequest) *extension.SingleGetValueResponse {
+
+	errResp := func(status extension.GetValueResponse_Status,
+		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
+		return &extension.SingleGetValueResponse{
+			Response: &extension.GetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+
+	resp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_OltNniStatsResponse{
+				OltNniStatsResponse: &extension.GetNNIStatsResponse{},
+			},
+		},
+	}
+
+	portLabel := nniStatsRequest.GetPortLabel()
+	logger.Debugw(ctx, "getNniPortStats", log.Fields{"portLabel": portLabel, "device-id": dh.device.Id})
+
+	portInfo := strings.Split(portLabel, "-")
+	portNumber, err := strconv.ParseUint(portInfo[1], 10, 32)
+
+	if err != nil {
+		logger.Errorw(ctx, "getNniPortStats invalid portNumber ", log.Fields{"oltPortNumber": portInfo[1]})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_REQ_TYPE)
+	}
+
+	if portInfo[0] != "nni" {
+		logger.Errorw(ctx, "getNniPortStats invalid portType", log.Fields{"oltPortType": portInfo[0]})
+		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_PORT_TYPE)
+	}
+
+	Interface := oop.Interface{IntfId: uint32(portNumber)}
+	nniStats, err := dh.Client.GetNniPortStatistics(ctx, &Interface)
+	if err != nil {
+		logger.Errorw(ctx, "error-while-getting-nni-port-stats", log.Fields{"PortNo": portNumber, "err": err})
+		return generateSingleGetValueErrorResponse(err)
+	}
+
+	nniPortStats := resp.Response.GetOltNniStatsResponse()
+	nniPortStats.NniPort = uint32(portNumber)
+	nniPortStats.PortStatistics = nniStats
+
+	logger.Infow(ctx, "getNniPortStats response ", log.Fields{"Response": resp})
+	return &resp
+}
+
 // nolint: unparam
 func generateSingleGetValueErrorResponse(err error) *extension.SingleGetValueResponse {
 	errResp := func(status extension.GetValueResponse_Status, reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
