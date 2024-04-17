@@ -15,8 +15,9 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/opencord/voltha-lib-go/v7 v7.6.7
 	github.com/opencord/voltha-protos/v5 v5.6.2
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 	go.etcd.io/etcd v3.3.25+incompatible
+	go.uber.org/mock v0.5.2
 	google.golang.org/grpc v1.44.0
 )
 
@@ -64,5 +65,5 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20220208230804-65c12eb4c068 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
