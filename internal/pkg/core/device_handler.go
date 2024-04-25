@@ -1083,6 +1083,22 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 			"device-id":     dh.device.Id,
 			"host-and-port": dh.device.GetHostAndPort()}, err)
 	}
+	//Setting oper state to RECONCILING and conn state to reachable
+	cgClient, err := dh.coreClient.GetCoreServiceClient()
+	if err != nil {
+		return err
+	}
+	if dh.device.OperStatus == voltha.OperStatus_RECONCILING {
+		subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.rpcTimeout)
+		defer cancel()
+		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
+			DeviceId:   dh.device.Id,
+			OperStatus: voltha.OperStatus_RECONCILING,
+			ConnStatus: voltha.ConnectStatus_REACHABLE,
+		}); err != nil {
+			return olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": dh.device.Id}, err)
+		}
+	}
 	return nil
 }
 
