@@ -183,7 +183,7 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
 			DeviceId:   device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
-			ConnStatus: device.ConnectStatus,
+			ConnStatus: voltha.ConnectStatus_UNREACHABLE,
 		}); err != nil {
 			return nil, olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": device.Id}, err)
 		}
