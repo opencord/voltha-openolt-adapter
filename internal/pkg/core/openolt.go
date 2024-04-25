@@ -20,6 +20,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
@@ -37,8 +40,6 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
-	"time"
 )
 
 // OpenOLT structure holds the OLT information
@@ -183,14 +184,15 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
 			DeviceId:   device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
-			ConnStatus: device.ConnectStatus,
+			ConnStatus: voltha.ConnectStatus_UNREACHABLE,
 		}); err != nil {
 			return nil, olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": device.Id}, err)
 		}
 
-		// The OperState of the device is set to RECONCILING in the previous section. This also needs to be set on the
+		// The OperState and connection state of the device is set to RECONCILING and UNREACHABLE in the previous section. This also needs to be set on the
 		// locally cached copy of the device struct.
 		device.OperStatus = voltha.OperStatus_RECONCILING
+		device.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
 		handler := NewDeviceHandler(oo.coreClient, oo.eventProxy, device, oo, oo.configManager, oo.config)
 		handler.adapterPreviouslyConnected = true
 		oo.addDeviceHandlerToMap(handler)
