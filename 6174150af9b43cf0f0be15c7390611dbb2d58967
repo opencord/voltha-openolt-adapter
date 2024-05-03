@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef740d46_c99994e0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-03T18:05:53Z",
+      "side": 1,
+      "message": "Patch reported a job failure in test coverage:\n\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2461/console\n\n11:10:30 PASS\n11:10:30 coverage: 44.1% of statements\n11:10:30 ok  \tgithub.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager\t5.025s\tcoverage: 44.1% of statements\n11:10:30 ?   \tgithub.com/opencord/voltha-openolt-adapter/pkg/mocks\t[no test files]\n11:10:30 FAIL\n11:10:31 Makefile:229: recipe for target \u0027test-go-coverage\u0027 failed\n",
+      "revId": "6174150af9b43cf0f0be15c7390611dbb2d58967",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
