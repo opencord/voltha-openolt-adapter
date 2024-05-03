@@ -33,6 +33,23 @@
       "message": "Patch reported a job failure attempting to lint golang sources.\n\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2466/console\n    \n11:03:43 Digest: sha256:52cb00fba4846d28155a92df3848a6e5fb6268383c6007da9f431eec0087c74d\n11:03:43 Status: Downloaded newer image for voltha/voltha-ci-tools:2.4.0-golangci-lint\n11:04:48 \u001b[33mWARN\u001b[0m [runner] Can\u0027t run linter goanalysis_metalinter: assign: failed prerequisites: inspect@github.com/opencord/voltha-openolt-adapter/cmd/openolt-adapter [github.com/opencord/voltha-openolt-adapter/cmd/openolt-adapter.test] ",
       "revId": "6174150af9b43cf0f0be15c7390611dbb2d58967",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0aa55ec4_d152f916",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-03T18:08:35Z",
+      "side": 1,
+      "message": "\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1973/console\n\nPatch job failures reported due to undef.\n\n11:04:38  #12 18.57 internal/pkg/core/device_handler.go:3749:80: undefined: extension.GetPonStatsRequest\n11:04:38  #12 18.57 internal/pkg/core/device_handler.go:3764:15: undefined: extension.GetValueResponse_OltPonStatsResponse\n11:04:38  #12 18.57 internal/pkg/core/device_handler.go:3787:28: dh.Client.GetPonPortStatistics undefined (type openolt.OpenoltClient has no field or method GetPonPortStatistics)\n",
+      "revId": "6174150af9b43cf0f0be15c7390611dbb2d58967",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
