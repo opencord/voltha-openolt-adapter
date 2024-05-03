@@ -33,6 +33,23 @@
       "message": "https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1977/console\n\nJob failed due to an E2E ping test failure\n\n09:48:47  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n09:48:47  Voltha PODTests :: Test various end-to-end scenarios                          \n09:48:47  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n09:48:47  \n09:48:47  Sadis File:None\n09:51:25  Sanity E2E Test for OLT/ONU on POD :: Validates E2E Ping Connectiv... | FAIL |\n09:51:25  Keyword \u0027Validate Device\u0027 failed after retrying for 1 minute. The last error was: Device BBSM000a0001 mib_state incorrect (initial-mib-downloaded) values\u003dFalse: \u0027\u0027omci-flows-pushed\u0027\u0027 does not contain \u0027\u0027initial-mib-downloaded\u0027\u0027\n09:51:25  ------------------------------------------------------------------------------\n09:51:25  Voltha PODTests :: Test various end-to-end scenarios                  | FAIL |\n09:51:25  1 critical test, 0 passed, 1 failed\n09:51:25  1 test total, 0 passed, 1 failed\n09:51:25  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d",
       "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4441e4a4_ad6a2585",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-03T17:47:35Z",
+      "side": 1,
+      "message": "https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2470/console\n\n% make lint failure\n\nVendor files will need to be regenerated and checked in with this patch:\n   - \u0027make mod-update\u0027 was invoked by jenkins.\n   - Which regenerated files beneath the vendor/ subdir.\n   - Jenkins job failed due to locally modified files being created in batch.\n   - Regenerating locally and adding these files to the patch will resolve the failure.\n    \n09:40:23 ** make LEAVE: mod-vendor\n09:40:24 HEAD detached at b767ecc\n09:40:24 Changes not staged for commit:\n09:40:24 \tmodified:   vendor/github.com/opencord/voltha-protos/v5/go/openolt/openolt.pb.go\n09:40:24 \tmodified:   vendor/github.com/opencord/voltha-protos/v5/go/tech_profile/tech_profile.pb.go\n",
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
