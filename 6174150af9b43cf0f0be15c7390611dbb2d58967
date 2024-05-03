@@ -16,6 +16,23 @@
       "message": "Patch reported a job failure in test coverage:\n\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2461/console\n\n11:10:30 PASS\n11:10:30 coverage: 44.1% of statements\n11:10:30 ok  \tgithub.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager\t5.025s\tcoverage: 44.1% of statements\n11:10:30 ?   \tgithub.com/opencord/voltha-openolt-adapter/pkg/mocks\t[no test files]\n11:10:30 FAIL\n11:10:31 Makefile:229: recipe for target \u0027test-go-coverage\u0027 failed\n",
       "revId": "6174150af9b43cf0f0be15c7390611dbb2d58967",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d648ef71_0e93032c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-03T18:07:23Z",
+      "side": 1,
+      "message": "Patch reported a job failure attempting to lint golang sources.\n\nhttps://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2466/console\n    \n11:03:43 Digest: sha256:52cb00fba4846d28155a92df3848a6e5fb6268383c6007da9f431eec0087c74d\n11:03:43 Status: Downloaded newer image for voltha/voltha-ci-tools:2.4.0-golangci-lint\n11:04:48 \u001b[33mWARN\u001b[0m [runner] Can\u0027t run linter goanalysis_metalinter: assign: failed prerequisites: inspect@github.com/opencord/voltha-openolt-adapter/cmd/openolt-adapter [github.com/opencord/voltha-openolt-adapter/cmd/openolt-adapter.test] ",
+      "revId": "6174150af9b43cf0f0be15c7390611dbb2d58967",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
