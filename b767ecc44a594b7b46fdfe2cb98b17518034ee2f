@@ -16,6 +16,23 @@
       "message": "recheck\n\n3 job phases reported FAIL but jenkins logs have aged out and are no longer visible.\nRe-run patch job to refresh the logs, click [keep this build forever] from the jenkins UI to retain logs for review or reference within jira tickets.\n\nMOTE: Patch has merge conflicts",
       "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "36959d11_fba7454e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-03T17:43:01Z",
+      "side": 1,
+      "message": "https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1977/console\n\nJob failed due to an E2E ping test failure\n\n09:48:47  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n09:48:47  Voltha PODTests :: Test various end-to-end scenarios                          \n09:48:47  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n09:48:47  \n09:48:47  Sadis File:None\n09:51:25  Sanity E2E Test for OLT/ONU on POD :: Validates E2E Ping Connectiv... | FAIL |\n09:51:25  Keyword \u0027Validate Device\u0027 failed after retrying for 1 minute. The last error was: Device BBSM000a0001 mib_state incorrect (initial-mib-downloaded) values\u003dFalse: \u0027\u0027omci-flows-pushed\u0027\u0027 does not contain \u0027\u0027initial-mib-downloaded\u0027\u0027\n09:51:25  ------------------------------------------------------------------------------\n09:51:25  Voltha PODTests :: Test various end-to-end scenarios                  | FAIL |\n09:51:25  1 critical test, 0 passed, 1 failed\n09:51:25  1 test total, 0 passed, 1 failed\n09:51:25  \u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d",
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
