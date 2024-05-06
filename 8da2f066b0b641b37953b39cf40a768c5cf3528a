@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "739f0382_7fa863bd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-05-06T15:19:37Z",
+      "side": 1,
+      "message": "ERR\u003e Sanity E2E Test for OLT/ONU on POD for DT :: Validates E2E Ping Co... | FAIL |\n\nend-2-end ping test failure unrelated to pre-commit config file addition (unused, manually invoked).\n",
+      "revId": "8da2f066b0b641b37953b39cf40a768c5cf3528a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
