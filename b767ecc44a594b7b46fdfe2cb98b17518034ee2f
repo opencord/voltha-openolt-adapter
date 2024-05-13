@@ -50,6 +50,98 @@
       "message": "https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2470/console\n\n% make lint failure\n\nVendor files will need to be regenerated and checked in with this patch:\n   - \u0027make mod-update\u0027 was invoked by jenkins.\n   - Which regenerated files beneath the vendor/ subdir.\n   - Jenkins job failed due to locally modified files being created in batch.\n   - Regenerating locally and adding these files to the patch will resolve the failure.\n    \n09:40:23 ** make LEAVE: mod-vendor\n09:40:24 HEAD detached at b767ecc\n09:40:24 Changes not staged for commit:\n09:40:24 \tmodified:   vendor/github.com/opencord/voltha-protos/v5/go/openolt/openolt.pb.go\n09:40:24 \tmodified:   vendor/github.com/opencord/voltha-protos/v5/go/tech_profile/tech_profile.pb.go\n",
       "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dde9d2b2_eb1501ec",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2228,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T21:01:29Z",
+      "side": 1,
+      "message": "I don\u0027t think this line is needed. clearFlowFromDeviceAndResourceManager is allready called below in any case.",
+      "range": {
+        "startLine": 2228,
+        "startChar": 0,
+        "endLine": 2228,
+        "endChar": 6
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bc2ee2ea_8bf6bdfc",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2456,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T21:01:29Z",
+      "side": 1,
+      "message": "Controller Bound Flows are also upstream flows and need to be considered here.",
+      "range": {
+        "startLine": 2456,
+        "startChar": 2,
+        "endLine": 2456,
+        "endChar": 47
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50a52a74_0bb1d48c",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2903,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T21:01:29Z",
+      "side": 1,
+      "message": "Again Controller Bound Flows need to be considered.",
+      "range": {
+        "startLine": 2903,
+        "startChar": 2,
+        "endLine": 2903,
+        "endChar": 43
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "28afc709_3bffdf11",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3285,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T21:01:29Z",
+      "side": 1,
+      "message": "If this is same with portType \u003d\u003d voltha.Port_PON_OLT then we may just an an OR to the first if case.",
+      "range": {
+        "startLine": 3285,
+        "startChar": 0,
+        "endLine": 3285,
+        "endChar": 3
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
