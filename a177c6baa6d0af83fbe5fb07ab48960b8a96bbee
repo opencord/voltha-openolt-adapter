@@ -16,6 +16,69 @@
       "message": "recheck",
       "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ec4a5eb6_40f685a8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T20:06:35Z",
+      "side": 1,
+      "message": "Besides the other comments, please update the VERSION file as well.",
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d631129f_6c59a9c1",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T20:06:35Z",
+      "side": 1,
+      "message": "Please also update the device in the cache if this call does not return error.",
+      "range": {
+        "startLine": 1094,
+        "startChar": 24,
+        "endLine": 1094,
+        "endChar": 41
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4cde1982_36ac2fb3",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-13T20:06:35Z",
+      "side": 1,
+      "message": "If you change the ConnectStatus of the device here, then you need to update the cache properly as it is done to OperStatus below in line 193.",
+      "range": {
+        "startLine": 186,
+        "startChar": 22,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
