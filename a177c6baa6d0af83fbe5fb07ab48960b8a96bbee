@@ -60,6 +60,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "a276f36e_1271f262",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-05-17T03:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d631129f_6c59a9c1",
+      "range": {
+        "startLine": 1094,
+        "startChar": 24,
+        "endLine": 1094,
+        "endChar": 41
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4cde1982_36ac2fb3",
         "filename": "internal/pkg/core/openolt.go",
         "patchSetId": 8
@@ -71,6 +95,30 @@
       "writtenOn": "2024-05-13T20:06:35Z",
       "side": 1,
       "message": "If you change the ConnectStatus of the device here, then you need to update the cache properly as it is done to OperStatus below in line 193.",
+      "range": {
+        "startLine": 186,
+        "startChar": 22,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02f02aed_747ee7b1",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-05-17T03:29:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4cde1982_36ac2fb3",
       "range": {
         "startLine": 186,
         "startChar": 22,
