@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "12893426_d426580a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1103,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-20T15:42:44Z",
+      "side": 1,
+      "message": "REACHABLE",
+      "range": {
+        "startLine": 1103,
+        "startChar": 79,
+        "endLine": 1103,
+        "endChar": 89
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "267b8f4f_1f6c2a11",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1106,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-20T15:42:44Z",
+      "side": 1,
+      "message": "This state here should be \"REACHABLE\".",
+      "range": {
+        "startLine": 1106,
+        "startChar": 34,
+        "endLine": 1106,
+        "endChar": 59
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0e08883_c5c3d752",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1106,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-05-20T15:42:44Z",
+      "side": 1,
+      "message": "These lines should be in the if block above, in case the deviceStateUpdate is done successfully.",
+      "range": {
+        "startLine": 1105,
+        "startChar": 1,
+        "endLine": 1106,
+        "endChar": 59
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
