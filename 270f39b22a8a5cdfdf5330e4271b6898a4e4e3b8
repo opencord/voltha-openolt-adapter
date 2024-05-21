@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "81214d22_bf97cae0",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1103,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-05-21T03:35:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12893426_d426580a",
+      "range": {
+        "startLine": 1103,
+        "startChar": 79,
+        "endLine": 1103,
+        "endChar": 89
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "267b8f4f_1f6c2a11",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 9
@@ -63,6 +87,54 @@
       "range": {
         "startLine": 1105,
         "startChar": 1,
+        "endLine": 1106,
+        "endChar": 59
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51fc3be0_9d461d7d",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1106,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-05-21T03:35:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0e08883_c5c3d752",
+      "range": {
+        "startLine": 1105,
+        "startChar": 1,
+        "endLine": 1106,
+        "endChar": 59
+      },
+      "revId": "270f39b22a8a5cdfdf5330e4271b6898a4e4e3b8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "655ce4cb_2125998f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1106,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-05-21T03:35:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "267b8f4f_1f6c2a11",
+      "range": {
+        "startLine": 1106,
+        "startChar": 34,
         "endLine": 1106,
         "endChar": 59
       },
