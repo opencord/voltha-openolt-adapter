@@ -21,12 +21,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
-	codes "google.golang.org/grpc/codes"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	codes "google.golang.org/grpc/codes"
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
@@ -303,6 +304,10 @@ func newKVClient(ctx context.Context, storeType, address string, timeout time.Du
 	switch storeType {
 	case "etcd":
 		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
+	case "redis":
+		return kvstore.NewRedisClient(address, timeout, false)
+	case "redis-sentinel":
+		return kvstore.NewRedisClient(address, timeout, true)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
