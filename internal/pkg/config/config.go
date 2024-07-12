@@ -25,10 +25,10 @@ import (
 
 // Open OLT default constants
 const (
-	EtcdStoreName               = "etcd"
+	KVStoreName                 = "etcd"
 	defaultInstanceid           = "openOlt001"
 	defaultKafkaclusteraddress  = "127.0.0.1:9092"
-	defaultKvstoretype          = EtcdStoreName
+	defaultKvstoretype          = KVStoreName
 	defaultKvstoretimeout       = 5 * time.Second
 	defaultRPCTimeout           = 10 * time.Second
 	defaultPerRPCRetryTimeout   = 2 * time.Second
