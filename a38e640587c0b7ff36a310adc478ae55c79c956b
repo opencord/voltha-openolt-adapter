@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "02d9f8d7_e36d9522",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000948
+      },
+      "writtenOn": "2024-07-22T15:39:12Z",
+      "side": 1,
+      "message": "recheck\n\nIGNORE: Run repo:voltha-openolt-adapter on the recreated jenkins node/AMI image to triage if any tools are missing or problems are lingering.",
+      "revId": "a38e640587c0b7ff36a310adc478ae55c79c956b",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
