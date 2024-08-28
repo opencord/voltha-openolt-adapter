@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6e2aca9_1da55db4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-08-28T09:52:21Z",
+      "side": 1,
+      "message": "\u003e Patch Set 10: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1984/ : ABORTED\n\nrecheck",
+      "revId": "61b823b68e4c29974e5fcf52732325989451f1fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
