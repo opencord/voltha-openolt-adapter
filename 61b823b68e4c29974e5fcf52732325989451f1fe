@@ -16,6 +16,23 @@
       "message": "\u003e Patch Set 10: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/1984/ : ABORTED\n\nrecheck",
       "revId": "61b823b68e4c29974e5fcf52732325989451f1fe",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a363a081_323b23c4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-09-10T03:47:40Z",
+      "side": 1,
+      "message": "Please increase the version in VERSION file",
+      "revId": "61b823b68e4c29974e5fcf52732325989451f1fe",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
