@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b946cf8_5eaaa5f5",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-09-20T16:49:40Z",
+      "side": 1,
+      "message": "Comment and implementation mismatches.",
+      "range": {
+        "startLine": 252,
+        "startChar": 49,
+        "endLine": 252,
+        "endChar": 50
+      },
+      "revId": "06c4cb52853efa04fb184aed3d3e4bbdf2250328",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
