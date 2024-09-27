@@ -175,12 +175,35 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		//Setting state to RECONCILING
+		// Fetch previous state
+		//here we are fetching the previous operation states of the device,so to check which operation state it was previously for proper transition and proper clean up of the resources.
+		PrevOperStatus := device.OperStatus
+
+		// Log previous state
+		logger.Infow(ctx, "previous-device-state", log.Fields{
+			"device-id":           device.Id,
+			"previous-operStatus": PrevOperStatus,
+			"Device-connStatus":   device.ConnectStatus,
+		})
 		cgClient, err := oo.coreClient.GetCoreServiceClient()
 		if err != nil {
 			return nil, err
 		}
 		subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), oo.rpcTimeout)
 		defer cancel()
+		// Create DeviceStateFilter with new state
+		deviceStateFilter := &ca.DeviceStateFilter{
+			DeviceId:   device.Id,
+			OperStatus: voltha.OperStatus_RECONCILING,
+			ConnStatus: device.ConnectStatus,
+		}
+
+		// Log the new state being set
+		logger.Infow(ctx, "setting-new-device-state", log.Fields{
+			"device-id":      deviceStateFilter.DeviceId,
+			"new-operStatus": deviceStateFilter.OperStatus,
+			"new-connStatus": deviceStateFilter.ConnStatus,
+		})
 		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
 			DeviceId:   device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
@@ -195,10 +218,11 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		device.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
 		handler := NewDeviceHandler(oo.coreClient, oo.eventProxy, device, oo, oo.configManager, oo.config)
 		handler.adapterPreviouslyConnected = true
+		handler.prevOperStatus = PrevOperStatus
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
 
-		handler.transitionMap.Handle(log.WithSpanFromContext(context.Background(), ctx), DeviceInit)
+		go handler.transitionMap.Handle(log.WithSpanFromContext(context.Background(), ctx), DeviceInit)
 	} else {
 		logger.Warnf(ctx, "device-already-reconciled-or-active", log.Fields{"device-id": device.Id})
 		return &empty.Empty{}, status.Errorf(codes.AlreadyExists, "handler exists: %s", device.Id)
