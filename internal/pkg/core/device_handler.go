@@ -132,6 +132,7 @@ type DeviceHandler struct {
 
 	isDeviceDeletionInProgress bool
 	heartbeatSignature         uint32
+	prevOperStatus             common.OperStatus_Types
 }
 
 // OnuDevice represents ONU related info
@@ -502,6 +503,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 	defer func() {
 		dh.lockDevice.Lock()
 		dh.isReadIndicationRoutineActive = false
+		logger.Debugw(ctx, "isReadIndicationRoutineActive set to false", log.Fields{"device-id": dh.device.Id})
 		dh.lockDevice.Unlock()
 	}()
 	indications, err := dh.startOpenOltIndicationStream(ctx)
@@ -519,6 +521,7 @@ func (dh *DeviceHandler) readIndications(ctx context.Context) error {
 
 	dh.lockDevice.Lock()
 	dh.isReadIndicationRoutineActive = true
+	logger.Debugw(ctx, "isReadIndicationRoutineActive set to true", log.Fields{"device-id": dh.device.Id})
 	dh.lockDevice.Unlock()
 
 Loop:
@@ -940,18 +943,63 @@ func (dh *DeviceHandler) reconcilePonPorts(ctx context.Context) error { // need 
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	//starting the stat collector
+	// Declare deviceStateFilter to be used later
+	var deviceStateFilter *ca.DeviceStateFilter
 	go startCollector(ctx, dh)
 	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
-	if err == nil {
-		if device.OperStatus == voltha.OperStatus_RECONCILING {
-			err = dh.reconcileOnus(ctx)
-			if err != nil {
-				logger.Error(ctx, "unable to reconcile onu", log.Fields{"eeror": err})
-			}
-			err = dh.reconcilePonPorts(ctx)
-			if err != nil {
-				logger.Error(ctx, "unable to reconcile pon ports", log.Fields{"eeror": err})
-			}
+	if err != nil {
+		return fmt.Errorf("failed to get device from core: %w", err)
+	}
+	logger.Info(ctx, "Device state", log.Fields{
+		"device-id":      device.Id,
+		"CurrOperStatus": device.OperStatus,
+		"CurrConnStatus": device.ConnectStatus,
+	})
+	// Perform cleanup if the device's operational status is REBOOTED
+	if device.OperStatus == voltha.OperStatus_RECONCILING && dh.prevOperStatus == voltha.OperStatus_REBOOTED {
+		// Log the device's operational status if it's REBOOTED
+		logger.Info(ctx, "Device is transitioning from REBOOTED to RECONCILING", log.Fields{
+			"device-id":  device.Id,
+			"OperStatus": device.OperStatus,
+		})
+		dh.lockDevice.RLock()
+		// Stop the read indication only if it the routine is active
+		// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
+		// Sending message on the 'stopIndication' channel again will cause the readIndication routine to immediately stop
+		// on next execution of the readIndication routine.
+		if dh.isHeartbeatCheckActive {
+			dh.stopHeartbeatCheck <- true
+		}
+		if dh.isReadIndicationRoutineActive {
+			dh.stopIndications <- true
+		}
+		dh.lockDevice.RUnlock()
+		if err := dh.cleanupDeviceResources(ctx); err != nil {
+			logger.Error(ctx, "unable to clean up device resources", log.Fields{"error": err})
+			return fmt.Errorf("cleanup device resources failed: %w", err)
+		}
+		if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
+			return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		}
+		go startHeartbeatCheck(ctx, dh)
+
+		//dh.lockDevice.RUnlock()
+
+	} else if device.OperStatus == voltha.OperStatus_RECONCILING {
+		// Log the device's operational status if it's RECONCILING
+		logger.Info(ctx, "Device is being reconciled", log.Fields{
+			"device-id":  device.Id,
+			"OperStatus": device.OperStatus,
+		})
+
+		// Perform reconciliation steps
+		err = dh.reconcileOnus(ctx)
+		if err != nil {
+			logger.Error(ctx, "unable to reconcile onu", log.Fields{"error": err})
+		}
+		err = dh.reconcilePonPorts(ctx)
+		if err != nil {
+			logger.Error(ctx, "unable to reconcile pon ports", log.Fields{"error": err})
 		}
 	}
 	// instantiate the mcast handler routines.
@@ -965,15 +1013,23 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 			// for incoming mcast flow/group to be processed serially.
 			dh.mcastHandlerRoutineActive[i] = true
 			go dh.mcastFlowOrGroupChannelHandlerRoutine(i, dh.incomingMcastFlowOrGroup[i], dh.stopMcastHandlerRoutine[i])
+			// Create DeviceStateFilter with the desired operational and connection statuses
+			deviceStateFilter = &ca.DeviceStateFilter{
+				DeviceId:   dh.device.Id,
+				OperStatus: voltha.OperStatus_ACTIVE,
+				ConnStatus: voltha.ConnectStatus_REACHABLE,
+			}
+			// Log DeviceStateFilter for debugging purposes
+			logger.Info(ctx, "DeviceStateFilter", log.Fields{
+				"DeviceId":   deviceStateFilter.DeviceId,
+				"OperStatus": deviceStateFilter.OperStatus,
+				"ConnStatus": deviceStateFilter.ConnStatus,
+			})
 		}
 	}
 
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
-		DeviceId:   dh.device.Id,
-		OperStatus: voltha.OperStatus_ACTIVE,
-		ConnStatus: voltha.ConnectStatus_REACHABLE,
-	}); err != nil {
+	if err := dh.updateDeviceStateInCore(ctx, deviceStateFilter); err != nil {
 		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 
