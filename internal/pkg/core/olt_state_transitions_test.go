@@ -18,10 +18,11 @@ package core
 
 import (
 	"context"
-	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 )
 
 /*

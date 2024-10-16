@@ -56,7 +56,6 @@ func TestOpenOltStatisticsMgr_PortStatisticsIndication(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			StatMgr.PortStatisticsIndication(context.Background(), tt.args.PortStats, 16)
 		})
 	}

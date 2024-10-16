@@ -63,9 +63,9 @@ type TransitionHandler func(ctx context.Context) error
 // Transition to store state machine
 type Transition struct {
 	previousState []DeviceState
-	currentState  DeviceState
 	before        []TransitionHandler
 	after         []TransitionHandler
+	currentState  DeviceState
 }
 
 // TransitionMap to store all the states and current device state
@@ -146,7 +146,6 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 // Handle moves the state machine to next state based on the trigger and invokes the before and
 // after handlers if the transition is a valid transition
 func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
-
 	// Check whether the transtion is valid from current state
 	if !tMap.isValidTransition(trigger) {
 		logger.Errorw(ctx, "invalid-transition-triggered",

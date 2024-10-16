@@ -45,11 +45,11 @@ const (
 	GemportIDs = "gemport_ids"
 	// AllocIDs to extract alloc_ids
 	AllocIDs = "alloc_ids"
-	//FlowGroup flow_groups/<flow_group_id>
+	// FlowGroup flow_groups/<flow_group_id>
 	FlowGroup = "flow_groups"
-	//FlowGroupCached flow_groups_cached/<flow_group_id>
+	// FlowGroupCached flow_groups_cached/<flow_group_id>
 	FlowGroupCached = "flow_groups_cached"
-	//OnuPacketIn to extract gem port from packet-in
+	// OnuPacketIn to extract gem port from packet-in
 	OnuPacketIn = "onu_packetin"
 	// OnuGemInfoPath has path on the kvstore to store OnuGemInfo info per PON interface
 	OnuGemInfoPath = "onu_gem_info"
@@ -61,17 +61,17 @@ type MockKVClient struct {
 
 // OnuGemInfo holds onu information along with gem port list and uni port list
 type OnuGemInfo struct {
-	OnuID        uint32
 	SerialNumber string
-	IntfID       uint32
 	GemPorts     []uint32
 	UniPorts     []uint32
+	OnuID        uint32
+	IntfID       uint32
 }
 
 // GroupInfo holds group information
 type GroupInfo struct {
-	GroupID  uint32
 	OutPorts []uint32
+	GroupID  uint32
 }
 
 // List mock function implementation for KVClient
@@ -115,7 +115,6 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			}
 
 			if strings.Contains(key, "meter_id/{1,1,1}/{downstream}") {
-
 				band1 := &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 1000, BurstSize: 5000}
 				band2 := &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 2000, BurstSize: 5000}
 				bands := []*ofp.OfpMeterBandHeader{band1, band2}
@@ -180,16 +179,16 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
 
-		//Interface, GEM port path
+		// Interface, GEM port path
 		if strings.Contains(key, "0,255") {
-			//return onuID, uniID associated with the given interface and GEM port
+			// return onuID, uniID associated with the given interface and GEM port
 			data := []uint32{1, 0}
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
 		}
-		//Interface, GEM port path
+		// Interface, GEM port path
 		if strings.Contains(key, "0,257") {
-			//return onuID, uniID associated with the given interface and GEM port
+			// return onuID, uniID associated with the given interface and GEM port
 			data := []uint32{1, 0}
 			str, _ := json.Marshal(data)
 			return kvstore.NewKVPair(key, str, "mock", 3000, 1), nil
@@ -248,7 +247,7 @@ func (kvclient *MockKVClient) GetWithPrefixKeysOnly(ctx context.Context, prefix 
 
 // getPacketInGemPort returns the GEM port associated with the given key
 func getPacketInGemPort(key string) (*kvstore.KVPair, error) {
-	//parse interface, onu, uni, vlan, priority values
+	// parse interface, onu, uni, vlan, priority values
 	arr := getParamsFromPacketInKey(key)
 
 	if len(arr) < 5 {
@@ -271,7 +270,7 @@ func getPacketInGemPort(key string) (*kvstore.KVPair, error) {
 
 // getParamsFromPacketInKey parse packetIn key that is in the format of "onu_packetin/{1,1,1,1,2}"
 func getParamsFromPacketInKey(key string) []string {
-	//return intfID, onuID, uniID, vlanID, priority
+	// return intfID, onuID, uniID, vlanID, priority
 	firstIndex := strings.Index(key, "{")
 	lastIndex := strings.Index(key, "}")
 	if firstIndex == -1 && lastIndex == -1 {

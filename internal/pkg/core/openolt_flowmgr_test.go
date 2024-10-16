@@ -85,30 +85,30 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		wantErr    bool
 	}{
 		// TODO: Add test cases.
-		{"CreateSchedulerQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 1, Upstream)}, false},
-		{"CreateSchedulerQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 1, Downstream)}, false},
-		{"CreateSchedulerQueues-13", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 2, Upstream)}, false},
-		{"CreateSchedulerQueues-14", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 2, Downstream)}, false},
-		{"CreateSchedulerQueues-15", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 3, Upstream)}, false},
-		{"CreateSchedulerQueues-16", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 3, Downstream)}, false},
-		{"CreateSchedulerQueues-17", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 4, Upstream)}, false},
-		{"CreateSchedulerQueues-18", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 4, Downstream)}, false},
-		{"CreateSchedulerQueues-19", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 5, Upstream)}, false},
-		{"CreateSchedulerQueues-20", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 5, Downstream)}, false},
+		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 1, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 1, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-13", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-14", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-15", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-16", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-17", schedQueue{tprofile, createFlowMetadata(tprofile, 4, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-18", schedQueue{tprofile2, createFlowMetadata(tprofile2, 4, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-19", schedQueue{tprofile, createFlowMetadata(tprofile, 5, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-20", schedQueue{tprofile2, createFlowMetadata(tprofile2, 5, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
 
-		//Negative testcases
-		{"CreateSchedulerQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, createFlowMetadata(tprofile, 0, Upstream)}, true},
-		{"CreateSchedulerQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, createFlowMetadata(tprofile2, 0, Downstream)}, true},
-		{"CreateSchedulerQueues-3", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, createFlowMetadata(tprofile, 2, Upstream)}, true},
-		{"CreateSchedulerQueues-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, createFlowMetadata(tprofile2, 2, Downstream)}, true},
-		{"CreateSchedulerQueues-5", schedQueue{tp_pb.Direction_UPSTREAM, 1, 2, 2, 64, 2, tprofile, 2, createFlowMetadata(tprofile, 3, Upstream)}, true},
-		{"CreateSchedulerQueues-6", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 2, 2, 65, 2, tprofile2, 2, createFlowMetadata(tprofile2, 3, Downstream)}, true},
-		{"CreateSchedulerQueues-7", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 1, &ofp.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-8", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 0, &ofp.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-9", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 1, &ofp.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-10", schedQueue{tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, tprofile, 2, &ofp.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-11", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, &ofp.FlowMetadata{}}, true},
-		{"CreateSchedulerQueues-12", schedQueue{tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, tprofile2, 2, nil}, true},
+		// Negative testcases
+		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 0, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, true},
+		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 0, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, true},
+		{"CreateSchedulerQueues-3", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 2}, true},
+		{"CreateSchedulerQueues-4", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
+		{"CreateSchedulerQueues-5", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 1, 2, 2, 64, 2, 2}, true},
+		{"CreateSchedulerQueues-6", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 1, 2, 2, 65, 2, 2}, true},
+		{"CreateSchedulerQueues-7", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, true},
+		{"CreateSchedulerQueues-8", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 0}, true},
+		{"CreateSchedulerQueues-9", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, true},
+		{"CreateSchedulerQueues-10", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 2}, true},
+		{"CreateSchedulerQueues-11", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
+		{"CreateSchedulerQueues-12", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -126,26 +126,26 @@ func createFlowMetadata(techProfile *tp_pb.TechProfileInstance, tcontType int, d
 	bands := make([]*ofp.OfpMeterBandHeader, 0)
 	switch tcontType {
 	case 1:
-		//tcont-type-1
+		// tcont-type-1
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		additionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	case 2:
-		//tcont-type-2
+		// tcont-type-2
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 60000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		additionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	case 3:
-		//tcont-type-3
+		// tcont-type-3
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 100000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 20000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		additionalBw = tp_pb.AdditionalBW_AdditionalBW_NA
 	case 4:
-		//tcont-type-4
+		// tcont-type-4
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 200000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		additionalBw = tp_pb.AdditionalBW_AdditionalBW_BestEffort
 	case 5:
-		//tcont-type-5
+		// tcont-type-5
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 50000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 100000, BurstSize: 10000, Data: &ofp.OfpMeterBandHeader_Drop{}})
 		bands = append(bands, &ofp.OfpMeterBandHeader{Type: ofp.OfpMeterBandType_OFPMBT_DROP, Rate: 10000, BurstSize: 0, Data: &ofp.OfpMeterBandHeader_Drop{}})
@@ -180,16 +180,16 @@ func TestOpenOltFlowMgr_RemoveScheduler(t *testing.T) {
 	tprofile2.DsScheduler.Direction = tp_pb.Direction_DOWNSTREAM
 	tprofile2.DsScheduler.AdditionalBw = tp_pb.AdditionalBW_AdditionalBW_None
 	tprofile2.DsScheduler.QSchedPolicy = tp_pb.SchedulingPolicy_WRR
-	//defTprofile := &tp.DefaultTechProfile{}
+	// defTprofile := &tp.DefaultTechProfile{}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
 		wantErr    bool
 	}{
-		{"RemoveScheduler-1", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
-		{"RemoveScheduler-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		{"RemoveScheduler-3", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		{"RemoveScheduler-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveScheduler-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, 0}, false},
+		{"RemoveScheduler-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveScheduler-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveScheduler-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -200,7 +200,6 @@ func TestOpenOltFlowMgr_RemoveScheduler(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestOpenOltFlowMgr_RemoveQueues(t *testing.T) {
@@ -245,16 +244,16 @@ func TestOpenOltFlowMgr_RemoveQueues(t *testing.T) {
 	tprofile2.DownstreamGemPortAttributeList = make([]*tp_pb.GemPortAttributes, 0)
 	tprofile2.DownstreamGemPortAttributeList = append(tprofile.DownstreamGemPortAttributeList, &tp_pb.GemPortAttributes{GemportId: 1, PbitMap: "0b11111111"})
 
-	//defTprofile := &tp.DefaultTechProfile{}
+	// defTprofile := &tp.DefaultTechProfile{}
 	tests := []struct {
 		name       string
 		schedQueue schedQueue
 		wantErr    bool
 	}{
-		{"RemoveQueues-1", schedQueue{tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, tprofile, 0, nil}, false},
-		{"RemoveQueues-2", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		{"RemoveQueues-3", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
-		{"RemoveQueues-4", schedQueue{tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, tprofile2, 0, nil}, false},
+		{"RemoveQueues-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, 0}, false},
+		{"RemoveQueues-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveQueues-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveQueues-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -265,7 +264,6 @@ func TestOpenOltFlowMgr_RemoveQueues(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
@@ -343,14 +341,14 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		},
 	}
 	lldpofpstats, _ := fu.MkFlowStat(lldpFa)
-	//lldpofpstats.Cookie = lldpofpstats.Id
+	// lldpofpstats.Cookie = lldpofpstats.Id
 
 	dhcpFa := &fu.FlowArgs{
 		KV: fu.OfpFlowModArgs{"priority": 1000, "cookie": 48132224281636694},
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(1),
 			fu.UdpSrc(67),
-			//fu.TunnelId(536870912),
+			// fu.TunnelId(536870912),
 			fu.IpProto(17),
 		},
 		Actions: []*ofp.OfpAction{
@@ -358,16 +356,16 @@ func TestOpenOltFlowMgr_RemoveFlow(t *testing.T) {
 		},
 	}
 	dhcpofpstats, _ := fu.MkFlowStat(dhcpFa)
-	//dhcpofpstats.Cookie = dhcpofpstats.Id
+	// dhcpofpstats.Cookie = dhcpofpstats.Id
 
-	//multicast flow
+	// multicast flow
 	multicastFa := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(16777216),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.VlanVid(660),             // vlan
+			fu.Metadata_ofp(uint64(66)), // inner vlan
+			fu.EthType(0x800),           // ipv4
+			fu.Ipv4Dst(3809869825),      // 227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
 			fu.Group(1),
@@ -429,7 +427,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(16777216),
 			fu.PushVlan(0x8100),
@@ -445,8 +443,8 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			//fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
 			fu.PopVlan(),
 			fu.Output(536870912),
 		},
@@ -460,7 +458,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
 			fu.Output(65533),
 		},
@@ -510,7 +508,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(65535),
 		},
@@ -534,7 +532,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(1),
 			fu.UdpSrc(67),
-			//fu.TunnelId(536870912),
+			// fu.TunnelId(536870912),
 			fu.IpProto(17),
 		},
 		Actions: []*ofp.OfpAction{
@@ -546,7 +544,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(1),
 			fu.UdpSrc(67),
-			//fu.TunnelId(536870912),
+			// fu.TunnelId(536870912),
 			fu.IpProto(2),
 		},
 		Actions: []*ofp.OfpAction{
@@ -580,7 +578,7 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.Ipv4Src(536870912),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(65535),
 		},
@@ -600,20 +598,20 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 			fu.Ipv4Src(536870912),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(65535),
 		},
 		KV: kw6,
 	}
-	//multicast flow
+	// multicast flow
 	fa11 := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(16777216),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.VlanVid(660),             // vlan
+			fu.Metadata_ofp(uint64(66)), // inner vlan
+			fu.EthType(0x800),           // ipv4
+			fu.Ipv4Dst(3809869825),      // 227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
 			fu.Group(1),
@@ -654,13 +652,13 @@ func TestOpenOltFlowMgr_AddFlow(t *testing.T) {
 		{"AddFlow", args{flow: ofpstats3, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: ofpstats4, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: ofpstats5, flowMetadata: flowMetadata}},
-		//{"AddFlow", args{flow: ofpstats6, flowMetadata: flowMetadata}},
+		// {"AddFlow", args{flow: ofpstats6, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: ofpstats7, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: ofpstats8, flowMetadata: flowMetadata}},
-		//{"AddFlow", args{flow: ofpstats9, flowMetadata: flowMetadata}},
+		// {"AddFlow", args{flow: ofpstats9, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: igmpstats, flowMetadata: flowMetadata}},
-		//{"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
-		//ofpstats10
+		// {"AddFlow", args{flow: ofpstats10, flowMetadata: flowMetadata}},
+		// ofpstats10
 		{"AddFlow", args{flow: ofpstats11, flowMetadata: flowMetadata}},
 		{"AddFlow", args{flow: pppoedstats, flowMetadata: flowMetadata}},
 	}
@@ -695,7 +693,6 @@ func TestOpenOltFlowMgr_GetLogicalPortFromPacketIn(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			got, err := flowMgr[tt.args.packetIn.IntfId].GetLogicalPortFromPacketIn(ctx, tt.args.packetIn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OpenOltFlowMgr.GetLogicalPortFromPacketIn() error = %v, wantErr %v", err, tt.wantErr)
@@ -712,21 +709,21 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 	// Create fresh flowMgr instance
 	flowMgr = newMockFlowmgr()
 
-	//untagged packet in hex string
+	// untagged packet in hex string
 	untaggedStr := "01005e000002000000000001080046c00020000040000102fa140a000001e00000029404000017000705e10000fa"
 	untagged, err := hex.DecodeString(untaggedStr)
 	if err != nil {
 		t.Error("Unable to parse hex string", err)
 		panic(err)
 	}
-	//single-tagged packet in hex string. vlanID.pbit: 1.1
+	// single-tagged packet in hex string. vlanID.pbit: 1.1
 	singleTaggedStr := "01005e0000010025ba48172481002001080046c0002000004000010257deab140023e0000001940400001164ee9b0000000000000000000000000000"
 	singleTagged, err := hex.DecodeString(singleTaggedStr)
 	if err != nil {
 		t.Error("Unable to parse hex string", err)
 		panic(err)
 	}
-	//double-tagged packet in hex string. vlanID.pbit: 210.0-0.0
+	// double-tagged packet in hex string. vlanID.pbit: 210.0-0.0
 	doubleTaggedStr := "01005e000016deadbeefba118100021081000000080046000028000000000102c5b87f000001e0000016940400002200f8030000000104000000e10000fa"
 	doubleTagged, err := hex.DecodeString(doubleTaggedStr)
 	if err != nil {
@@ -758,16 +755,15 @@ func TestOpenOltFlowMgr_GetPacketOutGemPortID(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			got, err := flowMgr[tt.args.intfID].GetPacketOutGemPortID(ctx, tt.args.intfID, tt.args.onuID, tt.args.portNum, tt.args.packet)
 			if tt.wantErr {
 				if err == nil {
-					//error expected but got value
+					// error expected but got value
 					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() = %v, wantErr %v", got, tt.wantErr)
 				}
 			} else {
 				if err != nil {
-					//error is not expected but got error
+					// error is not expected but got error
 					t.Errorf("OpenOltFlowMgr.GetPacketOutGemPortID() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
@@ -823,7 +819,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(16777216),
 			fu.PushVlan(0x8100),
@@ -841,7 +837,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(16777216),
 			fu.PushVlan(0x8100),
@@ -854,11 +850,11 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(536870912),
 			fu.Metadata_ofp(1),
-			//fu.EthType(0x8100),
+			// fu.EthType(0x8100),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
 			fu.Output(16777216),
 			fu.PushVlan(0x8100),
@@ -874,7 +870,7 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 			fu.VlanPcp(1),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
 			fu.Output(536870912),
 			fu.PopVlan(),
@@ -1137,21 +1133,21 @@ func TestOpenOltFlowMgr_checkAndAddFlow(t *testing.T) {
 func TestOpenOltFlowMgr_TestMulticastFlowAndGroup(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	//create group
+	// create group
 	group := newGroup(2, []uint32{1})
 	err := flowMgr[0].grpMgr.AddGroup(ctx, group)
 	if err != nil {
 		t.Error("group-add failed", err)
 		return
 	}
-	//create multicast flow
+	// create multicast flow
 	multicastFlowArgs := &fu.FlowArgs{
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(16777216),
-			fu.VlanVid(660),             //vlan
-			fu.Metadata_ofp(uint64(66)), //inner vlan
-			fu.EthType(0x800),           //ipv4
-			fu.Ipv4Dst(3809869825),      //227.22.0.1
+			fu.VlanVid(660),             // vlan
+			fu.Metadata_ofp(uint64(66)), // inner vlan
+			fu.EthType(0x800),           // ipv4
+			fu.Ipv4Dst(3809869825),      // 227.22.0.1
 		},
 		Actions: []*ofp.OfpAction{
 			fu.Group(1),
@@ -1165,21 +1161,21 @@ func TestOpenOltFlowMgr_TestMulticastFlowAndGroup(t *testing.T) {
 		return
 	}
 
-	//add bucket to the group
+	// add bucket to the group
 	group = newGroup(2, []uint32{1, 2})
 	err = flowMgr[0].grpMgr.ModifyGroup(ctx, group)
 	if err != nil {
 		t.Error("modify-group failed", err)
 		return
 	}
-	//remove the multicast flow
+	// remove the multicast flow
 	err = flowMgr[0].RemoveFlow(ctx, ofpStats)
 	if err != nil {
 		t.Error("Multicast flow-remove failed", err)
 		return
 	}
 
-	//remove the group
+	// remove the group
 	err = flowMgr[0].grpMgr.DeleteGroup(ctx, group)
 	if err != nil {
 		t.Error("delete-group failed", err)
@@ -1260,7 +1256,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
@@ -1279,7 +1275,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
@@ -1292,12 +1288,12 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 		MatchFields: []*ofp.OfpOxmOfbField{
 			fu.InPort(536870912),
 			fu.Metadata_ofp(1),
-			//fu.EthType(0x8100),
+			// fu.EthType(0x8100),
 			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
 			fu.Output(16777216),
 			fu.PushVlan(0x8100),
@@ -1315,7 +1311,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT))),
 			fu.Output(536870912),
 			fu.PopVlan(),
@@ -1334,7 +1330,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 259)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
@@ -1353,7 +1349,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
@@ -1372,7 +1368,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
@@ -1391,7 +1387,7 @@ func TestOpenOltFlowMgr_TestRouteFlowToOnuChannel(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
