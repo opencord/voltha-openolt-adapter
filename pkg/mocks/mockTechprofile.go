@@ -81,12 +81,10 @@ func (m MockTechProfile) GetTPInstance(ctx context.Context, path string) (interf
 		UpstreamGemPortAttributeList:   usGemPortAttributeList,
 		DownstreamGemPortAttributeList: dsGemPortAttributeList,
 	}, nil
-
 }
 
 // CreateTechProfileInstance to mock techprofile CreateTechProfileInstance method
 func (m MockTechProfile) CreateTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (interface{}, error) {
-
 	var usGemPortAttributeList []*tp_pb.GemPortAttributes
 	var dsGemPortAttributeList []*tp_pb.GemPortAttributes
 	if techProfiletblID == 64 {
@@ -151,13 +149,11 @@ func (m MockTechProfile) DeleteTechProfileInstance(ctx context.Context, techProf
 // GetprotoBufParamValue to mock techprofile GetprotoBufParamValue method
 func (m MockTechProfile) GetprotoBufParamValue(ctx context.Context, paramType string, paramKey string) int32 {
 	return 0
-
 }
 
 // GetUsScheduler to mock techprofile GetUsScheduler method
 func (m MockTechProfile) GetUsScheduler(tpInstance *tp_pb.TechProfileInstance) *tp_pb.SchedulerConfig {
 	return &tp_pb.SchedulerConfig{}
-
 }
 
 // GetDsScheduler to mock techprofile GetDsScheduler method
@@ -169,7 +165,6 @@ func (m MockTechProfile) GetDsScheduler(tpInstance *tp_pb.TechProfileInstance) *
 func (m MockTechProfile) GetTrafficScheduler(tpInstance *tp_pb.TechProfileInstance, SchedCfg *tp_pb.SchedulerConfig,
 	ShapingCfg *tp_pb.TrafficShapingInfo) *tp_pb.TrafficScheduler {
 	return &tp_pb.TrafficScheduler{}
-
 }
 
 // GetTrafficQueues to mock techprofile GetTrafficQueues method

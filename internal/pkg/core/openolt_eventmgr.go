@@ -342,6 +342,7 @@ func (em *OpenOltEventMgr) oltLosIndication(ctx context.Context, oltLos *oop.Los
 	logger.Debugw(ctx, "olt-los-event-sent-to-kafka", log.Fields{"intf-id": ponIntdID})
 	return nil
 }
+
 func (em *OpenOltEventMgr) oltRebootFailedEvent(ctx context.Context, deviceID string, reason string, raisedTs int64) error {
 	de := voltha.DeviceEvent{
 		Context:         map[string]string{ContextOltFailureReason: "olt-reboot-failed"},
@@ -350,10 +351,10 @@ func (em *OpenOltEventMgr) oltRebootFailedEvent(ctx context.Context, deviceID st
 	if err := em.eventProxy.SendDeviceEvent(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_OLT,
 		raisedTs); err != nil {
 		return olterrors.NewErrCommunication("send-olt-reboot-failed-event", log.Fields{
-			"device-id": deviceID, "raised-ts": raisedTs}, err)
+			"device-id": deviceID, "raised-ts": raisedTs, "reason": reason}, err)
 	}
 	logger.Debugw(ctx, "olt-reboot-failed-event-sent-to-kafka", log.Fields{
-		"device-id": deviceID, "raised-ts": raisedTs})
+		"device-id": deviceID, "raised-ts": raisedTs, "reason": reason})
 	return nil
 }
 

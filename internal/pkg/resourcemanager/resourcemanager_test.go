@@ -438,7 +438,6 @@ func TestOpenOltResourceMgr_GetCurrentAllocIDForOnu(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_DeleteAllFlowIDsForGemForIntf(t *testing.T) {
-
 	type args struct {
 		PONIntfID uint32
 	}
@@ -464,7 +463,6 @@ func TestOpenOltResourceMgr_DeleteAllFlowIDsForGemForIntf(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_DeleteAllOnuGemInfoForIntf(t *testing.T) {
-
 	type args struct {
 		PONIntfID uint32
 	}
@@ -490,7 +488,6 @@ func TestOpenOltResourceMgr_DeleteAllOnuGemInfoForIntf(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_deleteGemPort(t *testing.T) {
-
 	type args struct {
 		intfID                uint32
 		onuID                 uint32
@@ -559,7 +556,6 @@ func TestOpenOltResourceMgr_deleteGemPort(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_AddNewOnuGemInfo(t *testing.T) {
-
 	type args struct {
 		PONIntfID uint32
 		OnuCount  uint32
@@ -578,17 +574,16 @@ func TestOpenOltResourceMgr_AddNewOnuGemInfo(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			for j := 1; j <= int(tt.args.OnuCount); j++ {
-				go func(i uint32, j uint32) {
+				go func(i uint32) {
 					// TODO: actually verify success
 					_ = RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, i, fmt.Sprintf("onu-%d", i))
-				}(tt.args.PONIntfID, uint32(j))
+				}(tt.args.PONIntfID)
 			}
 		})
 	}
 }
 
 func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
-
 	type args struct {
 		intfID              uint32
 		onuID               uint32
@@ -731,7 +726,6 @@ func TestOpenOltResourceMgr_GetONUID(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
-
 	type args struct {
 		IntfID uint32
 		OnuID  uint32
@@ -759,7 +753,6 @@ func TestOpenOltResourceMgr_GetTechProfileIDForOnu(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_RemoveMeterIDForOnu(t *testing.T) {
-
 	type args struct {
 		Direction string
 		IntfID    uint32
@@ -847,7 +840,6 @@ func TestOpenOltResourceMgr_UpdateAllocIdsForOnu(t *testing.T) {
 }
 
 func TestOpenOltResourceMgr_UpdateGEMPortIDsForOnu(t *testing.T) {
-
 	type args struct {
 		ponPort     uint32
 		onuID       uint32
@@ -982,7 +974,6 @@ func Test_newKVClient(t *testing.T) {
 				t.Errorf("newKVClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
 		})
 	}
 }
@@ -1057,11 +1048,11 @@ func TestOpenOltResourceMgr_AddFlowGroupToKVStore(t *testing.T) {
 		group  *ofp.OfpGroupEntry
 		cached bool
 	}
-	//create group 1
+	// create group 1
 	group1 := newGroup(1, []uint32{1})
-	//create group 2
+	// create group 2
 	group2 := newGroup(2, []uint32{2})
-	//define test set
+	// define test set
 	tests := []struct {
 		name   string
 		args   args
@@ -1070,7 +1061,7 @@ func TestOpenOltResourceMgr_AddFlowGroupToKVStore(t *testing.T) {
 		{"AddFlowGroupToKVStore-1", args{group1, true}, getResMgr()},
 		{"AddFlowGroupToKVStore-2", args{group2, false}, getResMgr()},
 	}
-	//execute tests
+	// execute tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
@@ -1090,7 +1081,7 @@ func TestOpenOltResourceMgr_RemoveFlowGroupFromKVStore(t *testing.T) {
 		groupID uint32
 		cached  bool
 	}
-	//define test set
+	// define test set
 	tests := []struct {
 		name   string
 		args   args
@@ -1099,7 +1090,7 @@ func TestOpenOltResourceMgr_RemoveFlowGroupFromKVStore(t *testing.T) {
 		{"RemoveFlowGroupFromKVStore-1", args{1, true}, getResMgr()},
 		{"RemoveFlowGroupFromKVStore-2", args{2, false}, getResMgr()},
 	}
-	//execute tests
+	// execute tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)
@@ -1119,7 +1110,7 @@ func TestOpenOltResourceMgr_GetFlowGroupFromKVStore(t *testing.T) {
 		groupID uint32
 		cached  bool
 	}
-	//define test set
+	// define test set
 	tests := []struct {
 		name   string
 		args   args
@@ -1129,7 +1120,7 @@ func TestOpenOltResourceMgr_GetFlowGroupFromKVStore(t *testing.T) {
 		{"GetFlowGroupFromKVStore-2", args{2, false}, getResMgr()},
 		{"GetFlowGroupFromKVStore-3", args{1000, false}, getResMgr()},
 	}
-	//execute tests
+	// execute tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			RsrcMgr := testResMgrObject(tt.fields)

@@ -44,22 +44,22 @@ import (
 
 // OpenOLT structure holds the OLT information
 type OpenOLT struct {
+	eventProxy                         eventif.EventProxy
 	configManager                      *conf.ConfigManager
 	deviceHandlers                     map[string]*DeviceHandler
 	coreClient                         *vgrpc.Client
-	eventProxy                         eventif.EventProxy
 	config                             *config.AdapterFlags
-	numOnus                            int
+	exitChannel                        chan struct{}
 	KVStoreAddress                     string
 	KVStoreType                        string
-	exitChannel                        chan struct{}
+	numOnus                            int
 	HeartbeatCheckInterval             time.Duration
 	HeartbeatFailReportInterval        time.Duration
 	GrpcTimeoutInterval                time.Duration
+	rpcTimeout                         time.Duration
 	lockDeviceHandlersMap              sync.RWMutex
 	enableONUStats                     bool
 	enableGemStats                     bool
-	rpcTimeout                         time.Duration
 	CheckOnuDevExistenceAtOnuDiscovery bool
 }
 
@@ -264,7 +264,6 @@ func (oo *OpenOLT) RebootDevice(ctx context.Context, device *voltha.Device) (*em
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
-
 }
 
 // DeleteDevice deletes a device
@@ -333,7 +332,6 @@ func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*em
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": packet.DeviceId}, nil)
-
 }
 
 // EnablePort to Enable PON/NNI interface
@@ -507,7 +505,6 @@ func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ia.TechP
 		return handler.GetTechProfileDownloadMessage(ctx, request)
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.DeviceId}, nil).Log()
-
 }
 
 // GetHealthStatus is used by a OltAdapterService client to detect a connection

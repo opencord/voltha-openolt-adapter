@@ -230,7 +230,7 @@ func TestOpenOLT_DeleteDevice(t *testing.T) {
 		{"delete_device-1", &fields{}, args{oo1, mockDevice()},
 			olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": "olt"}, nil)},
 		{"delete_device-2", &fields{}, args{oo2, mockDevice()}, nil},
-		{"delete_device-3", &fields{}, args{oo3, mockDevice()}, nil},
+		{"delete_device-3", &fields{}, args{oo3, mockDevice()}, errors.New("reboot failed")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -704,7 +704,6 @@ func TestOpenOLT_UpdatePmConfig(t *testing.T) {
 			if _, err := oo.UpdatePmConfig(context.Background(), &ca.PmConfigsInfo{DeviceId: tt.args.device.Id, PmConfigs: tt.args.pmConfigs}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_pm_config() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
 		})
 	}
 }
