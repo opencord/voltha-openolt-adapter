@@ -35,62 +35,62 @@ import (
 )
 
 const (
-	//NNIStats statType constant
+	// NNIStats statType constant
 	NNIStats = "NNIStats"
-	//PONStats statType constant
+	// PONStats statType constant
 	PONStats = "PONStats"
-	//ONUStats statType constant
+	// ONUStats statType constant
 	ONUStats = "ONUStats"
-	//GEMStats statType constant
+	// GEMStats statType constant
 	GEMStats = "GEMStats"
 
-	//RxBytes constant
+	// RxBytes constant
 	RxBytes = "RxBytes"
-	//RxPackets constant
+	// RxPackets constant
 	RxPackets = "RxPackets"
-	//TxBytes constant
+	// TxBytes constant
 	TxBytes = "TxBytes"
-	//TxPackets constant
+	// TxPackets constant
 	TxPackets = "TxPackets"
-	//FecCodewords constant
+	// FecCodewords constant
 	FecCodewords = "FecCodewords"
-	//BipUnits constant
+	// BipUnits constant
 	BipUnits = "BipUnits"
-	//BipErrors constant
+	// BipErrors constant
 	BipErrors = "BipErrors"
-	//RxPloamsNonIdle constant
+	// RxPloamsNonIdle constant
 	RxPloamsNonIdle = "RxPloamsNonIdle"
-	//RxPloamsError constant
+	// RxPloamsError constant
 	RxPloamsError = "RxPloamsError"
-	//RxOmci constant
+	// RxOmci constant
 	RxOmci = "RxOmci"
-	//RxOmciPacketsCrcError constant
+	// RxOmciPacketsCrcError constant
 	RxOmciPacketsCrcError = "RxOmciPacketsCrcError"
-	//PositiveDrift constant
+	// PositiveDrift constant
 	PositiveDrift = "PositiveDrift"
-	//NegativeDrift constant
+	// NegativeDrift constant
 	NegativeDrift = "NegativeDrift"
-	//DelimiterMissDetection constant
+	// DelimiterMissDetection constant
 	DelimiterMissDetection = "DelimiterMissDetection"
-	//FecCorrectedSymbols constant
+	// FecCorrectedSymbols constant
 	FecCorrectedSymbols = "FecCorrectedSymbols"
-	//FecCodewordsCorrected constant
+	// FecCodewordsCorrected constant
 	FecCodewordsCorrected = "FecCodewordsCorrected"
-	//fecCodewordsUncorrectable constant
+	// fecCodewordsUncorrectable constant
 	fecCodewordsUncorrectable = "fec_codewords_uncorrectable"
-	//FecCorrectedUnits constant
+	// FecCorrectedUnits constant
 	FecCorrectedUnits = "FecCorrectedUnits"
-	//XGEMKeyErrors constant
+	// XGEMKeyErrors constant
 	XGEMKeyErrors = "XGEMKeyErrors"
-	//XGEMLoss constant
+	// XGEMLoss constant
 	XGEMLoss = "XGEMLOSS"
-	//BerReported constant
+	// BerReported constant
 	BerReported = "BerReported"
-	//LcdgErrors constant
+	// LcdgErrors constant
 	LcdgErrors = "LcdgErrors"
-	//RdiErrors constant
+	// RdiErrors constant
 	RdiErrors = "RdiErrors"
-	//Timestamp constant
+	// Timestamp constant
 	Timestamp = "Timestamp"
 )
 
@@ -109,28 +109,11 @@ type statRegInfo struct {
 
 // PonPort representation
 type PonPort struct {
-	/*
-	   This is a highly reduced version taken from the adtran pon_port.
-	   TODO: Extend for use in the openolt adapter set.
-	*/
-	/*    MAX_ONUS_SUPPORTED = 256
-	      DEFAULT_ENABLED = False
-	      MAX_DEPLOYMENT_RANGE = 25000  # Meters (OLT-PB maximum)
-
-	      _MCAST_ONU_ID = 253
-	      _MCAST_ALLOC_BASE = 0x500
-
-	      _SUPPORTED_ACTIVATION_METHODS = ['autodiscovery']  # , 'autoactivate']
-	      _SUPPORTED_AUTHENTICATION_METHODS = ['serial-number']
-	*/
-	PONID    uint32
-	DeviceID string
-	IntfID   uint32
-	PortNum  uint32
-	PortID   uint32
-	Label    string
 	ONUs     map[uint32]interface{}
 	ONUsByID map[uint32]interface{}
+
+	DeviceID string
+	Label    string
 
 	RxBytes        uint64
 	RxPackets      uint64
@@ -146,11 +129,28 @@ type PonPort struct {
 	TxErrorPackets uint64
 	RxCrcErrors    uint64
 	BipErrors      uint64
+	/*
+	   This is a highly reduced version taken from the adtran pon_port.
+	   TODO: Extend for use in the openolt adapter set.
+	*/
+	/*    MAX_ONUS_SUPPORTED = 256
+	      DEFAULT_ENABLED = False
+	      MAX_DEPLOYMENT_RANGE = 25000  # Meters (OLT-PB maximum)
+
+	      _MCAST_ONU_ID = 253
+	      _MCAST_ALLOC_BASE = 0x500
+
+	      _SUPPORTED_ACTIVATION_METHODS = ['autodiscovery']  # , 'autoactivate']
+	      _SUPPORTED_AUTHENTICATION_METHODS = ['serial-number']
+	*/
+	PONID   uint32
+	IntfID  uint32
+	PortNum uint32
+	PortID  uint32
 }
 
 // NewPONPort returns a new instance of PonPort initialized with given PONID, DeviceID, IntfID and PortNum
 func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *PonPort {
-
 	var PON PonPort
 
 	PON.PONID = PONID
@@ -202,16 +202,7 @@ func NewPONPort(PONID uint32, DeviceID string, IntfID uint32, PortNum uint32) *P
 
 // NniPort representation
 type NniPort struct {
-	/*
-	   Northbound network port, often Ethernet-based
-
-	   This is a highly reduced version taken from the adtran nni_port code set
-	   TODO:   add functions to allow for port specific values and operations
-	*/
-	PortNum     uint32
-	Name        string
-	LogicalPort uint32
-	IntfID      uint32
+	Name string
 
 	RxBytes        uint64
 	RxPackets      uint64
@@ -227,11 +218,19 @@ type NniPort struct {
 	TxErrorPackets uint64
 	RxCrcErrors    uint64
 	BipErrors      uint64
+	/*
+	   Northbound network port, often Ethernet-based
+
+	   This is a highly reduced version taken from the adtran nni_port code set
+	   TODO:   add functions to allow for port specific values and operations
+	*/
+	PortNum     uint32
+	LogicalPort uint32
+	IntfID      uint32
 }
 
 // NewNniPort returns a new instance of NniPort initialized with the given PortNum and IntfID
 func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
-
 	var NNI NniPort
 
 	NNI.PortNum = PortNum
@@ -266,18 +265,17 @@ const (
 
 // OpenOltStatisticsMgr structure
 type OpenOltStatisticsMgr struct {
-	Device         *DeviceHandler
-	NorthBoundPort map[uint32]*NniPort
-	SouthBoundPort map[uint32]*PonPort
+	Device          *DeviceHandler
+	NorthBoundPort  map[uint32]*NniPort
+	SouthBoundPort  map[uint32]*PonPort
+	statIndListners map[StatType]*list.List
 	// TODO  PMMetrics Metrics
-	//statIndListners is the list of requests to be notified when port and flow stats indication is received
+	// statIndListners is the list of requests to be notified when port and flow stats indication is received
 	statIndListnerMu sync.Mutex
-	statIndListners  map[StatType]*list.List
 }
 
 // NewOpenOltStatsMgr returns a new instance of the OpenOltStatisticsMgr
 func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatisticsMgr {
-
 	var StatMgr OpenOltStatisticsMgr
 
 	StatMgr.Device = Dev
@@ -347,8 +345,8 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 	   :return:
 	*/
 
-	//This builds a port object which is added to the
-	//appropriate northbound or southbound values
+	// This builds a port object which is added to the
+	// appropriate northbound or southbound values
 	if IntfType == "nni" {
 		IntfID := plt.IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
 		nniID := plt.PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
@@ -375,7 +373,6 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 
 // collectNNIMetrics will collect the nni port metrics
 func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]float32 {
-
 	nnival := make(map[string]float32)
 	mutex.Lock()
 	cm := StatMgr.Device.portStats.NorthBoundPort[nniID]
@@ -416,7 +413,6 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 
 // collectPONMetrics will collect the pon port metrics
 func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]float32 {
-
 	ponval := make(map[string]float32)
 	mutex.Lock()
 	cm := StatMgr.Device.portStats.SouthBoundPort[pID]
@@ -520,7 +516,6 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnDemandOnuStats(ctx context.Context
 	if stats, err = StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
 		statValue := StatMgr.convertONUStats(stats)
 		return statValue
-
 	}
 	logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": intfID, "OnuID": onuID, "err": err})
 	return nil
@@ -620,8 +615,8 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
 	StatMgr.PortsStatisticsKpis(ctx, PortStats, NumPonPorts)
 	logger.Debugw(ctx, "received-port-stats-indication", log.Fields{"port-stats": PortStats})
-	//Indicate that PortStatisticsIndication is handled
-	//PortStats.IntfId is actually the port number
+	// Indicate that PortStatisticsIndication is handled
+	// PortStats.IntfId is actually the port number
 	StatMgr.processStatIndication(ctx, portStatsType, PortStats.IntfId)
 	// TODO send stats to core topic to the voltha kafka or a different kafka ?
 }
@@ -629,19 +624,18 @@ func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(ctx context.Contex
 // FlowStatisticsIndication to be implemented
 func FlowStatisticsIndication(ctx context.Context, self, FlowStats *openolt.FlowStatistics) {
 	logger.Debugw(ctx, "flow-stats-collected", log.Fields{"flow-stats": FlowStats})
-	//TODO send to kafka ?
+	// TODO send to kafka ?
 }
 
 // PortsStatisticsKpis map the port stats values into a dictionary, creates the kpiEvent and then publish to Kafka
 func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
-
 	/*map the port stats values into a dictionary
 	  Create a kpoEvent and publish to Kafka
 
 	  :param port_stats:
 	  :return:
 	*/
-	//var err error
+	// var err error
 	IntfID := PortStats.IntfId
 
 	if (plt.IntfIDToPortNo(1, voltha.Port_ETHERNET_NNI) < IntfID) &&
@@ -653,7 +647,6 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 		*/
 		return
 	} else if plt.IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) == IntfID {
-
 		var portNNIStat NniPort
 		portNNIStat.IntfID = IntfID
 		portNNIStat.PortNum = uint32(0)
@@ -673,7 +666,6 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 		logger.Debugw(ctx, "received-nni-stats", log.Fields{"nni-stats": StatMgr.NorthBoundPort})
 	}
 	for i := uint32(0); i < NumPonPorts; i++ {
-
 		if plt.IntfIDToPortNo(i, voltha.Port_PON_OLT) == IntfID {
 			var portPonStat PonPort
 			portPonStat.IntfID = IntfID
@@ -695,7 +687,6 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 			logger.Debugw(ctx, "received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
 		}
 	}
-
 	/*
 	   Based upon the intf_id map to an nni port or a pon port
 	   the intf_id is the key to the north or south bound collections
@@ -705,7 +696,7 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 
 	   For prefixing the rule is currently to use the port number and not the intf_id
 	*/
-	//FIXME : Just use first NNI for now
+	// FIXME : Just use first NNI for now
 	/* TODO should the data be marshaled before sending it ?
 	   if IntfID == IntfIdToPortNo(0, voltha.Port_ETHERNET_NNI) {
 	       //NNI port (just the first one)
@@ -718,11 +709,9 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 	       logger.Error(ctx, "Error publishing statistics data")
 	   }
 	*/
-
 }
 
 func (StatMgr *OpenOltStatisticsMgr) updateGetOltPortCountersResponse(ctx context.Context, singleValResp *extension.SingleGetValueResponse, stats map[string]float32) {
-
 	metrics := singleValResp.GetResponse().GetPortCoutners()
 	metrics.TxBytes = uint64(stats["TxBytes"])
 	metrics.RxBytes = uint64(stats["RxBytes"])
@@ -753,7 +742,6 @@ func (StatMgr *OpenOltStatisticsMgr) RegisterForStatIndication(ctx context.Conte
 	StatMgr.statIndListnerMu.Lock()
 	StatMgr.statIndListners[t].PushBack(statInd)
 	StatMgr.statIndListnerMu.Unlock()
-
 }
 
 // DeRegisterFromStatIndication removes the previously registered channel ch for type t of statistics
@@ -791,16 +779,13 @@ func (StatMgr *OpenOltStatisticsMgr) processStatIndication(ctx context.Context, 
 		// message sent
 		statInd.chn <- true
 		deRegList = append(deRegList, e)
-
 	}
 	for _, e := range deRegList {
 		StatMgr.statIndListners[t].Remove(e)
 	}
-
 }
 
 func (StatMgr *OpenOltStatisticsMgr) updateGetOnuPonCountersResponse(ctx context.Context, singleValResp *extension.SingleGetValueResponse, stats map[string]float32) {
-
 	metrics := singleValResp.GetResponse().GetOnuPonCounters()
 	metrics.IsIntfId = &extension.GetOnuCountersResponse_IntfId{
 		IntfId: uint32(stats[IntfID]),

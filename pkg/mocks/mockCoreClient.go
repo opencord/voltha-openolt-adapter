@@ -179,7 +179,7 @@ func (mcs MockCoreService) GetChildDevice(ctx context.Context, in *ca.ChildDevic
 	if onuDevice != nil {
 		return onuDevice, nil
 	}
-	//return &voltha.Device{}, nil
+	// return &voltha.Device{}, nil
 	return nil, errors.New("device detection failed")
 }
 
