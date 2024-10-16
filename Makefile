@@ -80,7 +80,7 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 2.4.0
+VOLTHA_TOOLS_VERSION ?= 3.1.0
 
 ## TODO: Verify / migrate to repo:onf-make
 # GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
@@ -141,12 +141,12 @@ build: docker-build ## Alias for 'docker build'
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
 docker-build: local-protos local-lib-go ## Build openolt adapter docker image (set BUILD_PROFILED=true to also build the profiled image)
-	docker build $(DOCKER_BUILD_ARGS) --target=${DOCKER_TARGET} --build-arg CGO_PARAMETER=0 -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) --platform=linux/amd64 --target=${DOCKER_TARGET} --build-arg CGO_PARAMETER=0 -t ${ADAPTER_IMAGENAME} -f docker/Dockerfile.openolt .
 ifdef BUILD_PROFILED
-	docker build $(DOCKER_BUILD_ARGS) --target=dev --build-arg CGO_PARAMETER=1 --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) --platform=linux/amd64 --target=dev --build-arg CGO_PARAMETER=1 --build-arg EXTRA_GO_BUILD_TAGS="-tags profile" -t ${ADAPTER_IMAGENAME}-profile -f docker/Dockerfile.openolt .
 endif
 ifdef BUILD_RACE
-	docker build $(DOCKER_BUILD_ARGS) --target=dev --build-arg CGO_PARAMETER=1 --build-arg EXTRA_GO_BUILD_TAGS="-race" -t ${ADAPTER_IMAGENAME}-rd -f docker/Dockerfile.openolt .
+	docker build $(DOCKER_BUILD_ARGS) --platform=linux/amd64 --target=dev --build-arg CGO_PARAMETER=1 --build-arg EXTRA_GO_BUILD_TAGS="-race" -t ${ADAPTER_IMAGENAME}-rd -f docker/Dockerfile.openolt .
 endif
 
 ## -----------------------------------------------------------------------
@@ -269,8 +269,7 @@ sca:
 	@$(RM) -r ./sca-report
 	@mkdir -p ./sca-report
 	@echo "Running static code analysis..."
-	@${GOLANGCI_LINT} run --deadline=6m --out-format junit-xml ./... \
-	    | tee ./sca-report/sca-report.xml
+	@${GOLANGCI_LINT} run -vv --out-format junit-xml ./... | tee ./sca-report/sca-report.xml
 	@echo ""
 	@echo "Static code analysis OK"
 

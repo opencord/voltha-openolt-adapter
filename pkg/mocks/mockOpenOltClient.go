@@ -38,7 +38,7 @@ type MockOpenoltClient struct {
 
 // DisableOlt mocks the DisableOlt function of Openoltclient.
 func (ooc *MockOpenoltClient) DisableOlt(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	//return &openolt.Empty{}, nil
+	// return &openolt.Empty{}, nil
 	if ooc.counter == 0 {
 		ooc.counter++
 		return &openolt.Empty{}, nil
@@ -206,12 +206,12 @@ type mockOpenoltEnableIndicationClient struct {
 
 func (mock *mockOpenoltEnableIndicationClient) Recv() (*openolt.Indication, error) {
 	if mock.count == 0 {
-		mock.count = mock.count + 1
+		mock.count++
 		indi := &openolt.Indication{Data: &openolt.Indication_OltInd{OltInd: &openolt.OltIndication{OperState: "Down"}}}
 		return indi, nil
 	}
 	if mock.count == 1 {
-		mock.count = mock.count + 1
+		mock.count++
 		return nil, errors.New("error, while processing indication")
 	}
 

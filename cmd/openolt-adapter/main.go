@@ -21,12 +21,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
-	codes "google.golang.org/grpc/codes"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	codes "google.golang.org/grpc/codes"
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
@@ -52,20 +53,21 @@ const (
 	oltAdapterService       = "olt-adapter-service"
 	kvService               = "kv-service"
 	coreService             = "core-service"
+	etcdStoreName           = "etcd"
 )
 
 type adapter struct {
-	instanceID      string
+	kafkaClient     kafka.Client
+	kvClient        kvstore.Client
+	eventProxy      eventif.EventProxy
 	config          *config.AdapterFlags
 	grpcServer      *vgrpc.GrpcServer
 	oltAdapter      *ac.OpenOLT
 	oltInterAdapter *ac.OpenOLTInterAdapter
-	kafkaClient     kafka.Client
-	kvClient        kvstore.Client
 	coreClient      *vgrpc.Client
-	eventProxy      eventif.EventProxy
-	halted          bool
 	exitChannel     chan int
+	instanceID      string
+	halted          bool
 }
 
 func newAdapter(cf *config.AdapterFlags) *adapter {
@@ -117,14 +119,14 @@ func (a *adapter) start(ctx context.Context) {
 	}
 
 	// Start kafka communication with the broker
-	if err := kafka.StartAndWaitUntilKafkaConnectionIsUp(ctx, a.kafkaClient, a.config.HeartbeatCheckInterval, clusterMessagingService); err != nil {
+	if err = kafka.StartAndWaitUntilKafkaConnectionIsUp(ctx, a.kafkaClient, a.config.HeartbeatCheckInterval, clusterMessagingService); err != nil {
 		logger.Fatal(ctx, "unable-to-connect-to-kafka")
 	}
 
 	// Create the event proxy to post events to KAFKA
 	a.eventProxy = events.NewEventProxy(events.MsgClient(a.kafkaClient), events.MsgTopic(kafka.Topic{Name: a.config.EventTopic}))
 	go func() {
-		if err := a.eventProxy.Start(); err != nil {
+		if err = a.eventProxy.Start(); err != nil {
 			logger.Fatalw(ctx, "event-proxy-cannot-start", log.Fields{"error": err})
 		}
 	}()
@@ -162,10 +164,10 @@ func (a *adapter) start(ctx context.Context) {
 	// Create and start the grpc server
 	a.grpcServer = vgrpc.NewGrpcServer(a.config.GrpcAddress, nil, false, p)
 
-	//Register the  adapter  service
+	// Register the  adapter  service
 	a.addAdapterService(ctx, a.grpcServer, a.oltAdapter)
 
-	//Register the olt inter-adapter  service
+	// Register the olt inter-adapter  service
 	a.addOltInterAdapterService(ctx, a.grpcServer, a.oltInterAdapter)
 
 	// Start the grpc server
@@ -298,17 +300,15 @@ func (a *adapter) stop(ctx context.Context) {
 }
 
 func newKVClient(ctx context.Context, storeType, address string, timeout time.Duration) (kvstore.Client, error) {
-
 	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
 	switch storeType {
-	case "etcd":
+	case etcdStoreName:
 		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
 	}
 	return nil, errors.New("unsupported-kv-store")
 }
 
 func newKafkaClient(ctx context.Context, clientType, address string) (kafka.Client, error) {
-
 	logger.Infow(ctx, "common-client-type", log.Fields{"client": clientType})
 	switch clientType {
 	case "sarama":
@@ -497,12 +497,12 @@ func main() {
 	}
 
 	// Setup default logger - applies for packages that do not have specific logger set
-	if _, err := log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if _, err = log.SetDefaultLogger(log.JSON, logLevel, log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
 	}
 
 	// Update all loggers (provisionned via init) with a common field
-	if err := log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
+	if err = log.UpdateAllLoggers(log.Fields{"instanceId": cf.InstanceID}); err != nil {
 		logger.With(log.Fields{"error": err}).Fatal(ctx, "Cannot setup logging")
 	}
 
@@ -511,7 +511,7 @@ func main() {
 	realMain()
 
 	defer func() {
-		err := log.CleanUp()
+		err = log.CleanUp()
 		if err != nil {
 			logger.Errorw(context.Background(), "unable-to-flush-any-buffered-log-entries", log.Fields{"error": err})
 		}
