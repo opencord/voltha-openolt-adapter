@@ -64,9 +64,9 @@ type WrappedError interface {
 // ErrAdapter represents a basic adapter error that combines an name, field set
 // and wrapped error
 type ErrAdapter struct {
-	name    string
-	fields  log.Fields
 	wrapped error
+	fields  log.Fields
+	name    string
 }
 
 // NewErrAdapter constructs a new error with the given values

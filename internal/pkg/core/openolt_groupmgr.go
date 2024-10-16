@@ -99,7 +99,7 @@ func (g *OpenOltGroupMgr) DeleteGroup(ctx context.Context, group *ofp.OfpGroupEn
 		logger.Errorw(ctx, "delete-group-failed-on-dev", log.Fields{"groupToOlt": groupToOlt, "err": err})
 		return olterrors.NewErrAdapter("delete-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
 	}
-	//remove group from the store
+	// remove group from the store
 	if err := g.resourceMgr.RemoveFlowGroupFromKVStore(ctx, group.Desc.GroupId, false); err != nil {
 		return olterrors.NewErrPersistence("delete", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 	}
@@ -114,7 +114,7 @@ func (g *OpenOltGroupMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEn
 		return olterrors.NewErrInvalidValue(log.Fields{"group": group}, nil)
 	}
 	newGroup := g.buildGroup(ctx, group.Desc.GroupId, group.Desc.Buckets)
-	//get existing members of the group
+	// get existing members of the group
 	val, groupExists, err := g.getFlowGroupFromKVStore(ctx, group.Desc.GroupId, false)
 	if err != nil {
 		return olterrors.NewErrNotFound("flow-group-in-kv-store", log.Fields{"groupId": group.Desc.GroupId}, err)
@@ -149,16 +149,16 @@ func (g *OpenOltGroupMgr) ModifyGroup(ctx context.Context, group *ofp.OfpGroupEn
 	if len(membersToBeAdded) > 0 {
 		groupToOlt.Command = openoltpb2.Group_ADD_MEMBERS
 		groupToOlt.Members = membersToBeAdded
-		//execute addMembers
+		// execute addMembers
 		errAdd = g.callGroupAddRemove(ctx, &groupToOlt)
 	}
 	if len(membersToBeRemoved) > 0 {
 		groupToOlt.Command = openoltpb2.Group_REMOVE_MEMBERS
 		groupToOlt.Members = membersToBeRemoved
-		//execute removeMembers
+		// execute removeMembers
 		errRemoved = g.callGroupAddRemove(ctx, &groupToOlt)
 	}
-	//save the modified group
+	// save the modified group
 	if errAdd == nil && errRemoved == nil {
 		if err := g.resourceMgr.AddFlowGroupToKVStore(ctx, group, false); err != nil {
 			return olterrors.NewErrPersistence("add", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
@@ -252,7 +252,7 @@ func (g *OpenOltGroupMgr) buildGroupAction() *openoltpb2.Action {
 	var actionCmd openoltpb2.ActionCmd
 	var action openoltpb2.Action
 	action.Cmd = &actionCmd
-	//pop outer vlan
+	// pop outer vlan
 	action.Cmd.RemoveOuterTag = true
 	return &action
 }
@@ -261,7 +261,7 @@ func (g *OpenOltGroupMgr) buildGroupAction() *openoltpb2.Action {
 func (g *OpenOltGroupMgr) callGroupAddRemove(ctx context.Context, group *openoltpb2.Group) error {
 	if err := g.performGroupOperation(ctx, group); err != nil {
 		st, _ := status.FromError(err)
-		//ignore already exists error code
+		// ignore already exists error code
 		if st.Code() != codes.AlreadyExists {
 			return olterrors.NewErrGroupOp("groupAddRemove", group.GroupId, log.Fields{"status": st}, err)
 		}
@@ -346,7 +346,7 @@ func (g *OpenOltGroupMgr) buildMember(ctx context.Context, ofBucket *ofp.OfpBuck
 			GemPortId:     groupInfo.gemPortID,
 			Priority:      groupInfo.servicePriority,
 		}
-		//add member to the group
+		// add member to the group
 		return &member
 	}
 	logger.Warnf(ctx, "bucket-skipped-since-interface-2-gem-mapping-cannot-be-found", log.Fields{"ofBucket": ofBucket})

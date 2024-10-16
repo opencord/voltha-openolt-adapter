@@ -41,13 +41,13 @@ const (
 	defaultProbeAddress         = ":8080"
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
-	//defaultHeartbeatCheckInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
+	// defaultHeartbeatCheckInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
 	defaultHeartbeatCheckInterval = 15 * time.Second
 	// defaultHeartbeatFailReportInterval is the time adapter will wait before updating the state to the core.
 	defaultHeartbeatFailReportInterval = 0 * time.Second
 	defaultGrpcAddress                 = ":50060"
 	defaultCoreEndpoint                = ":55555"
-	//defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
+	// defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
 	defaultGrpcTimeoutInterval                = 2 * time.Second
 	defaultCurrentReplica                     = 1
 	defaultTotalReplicas                      = 1
@@ -71,36 +71,36 @@ type AdapterFlags struct {
 	InstanceID                         string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
 	KafkaClusterAddress                string
 	KVStoreType                        string
-	KVStoreTimeout                     time.Duration
 	KVStoreAddress                     string
-	RPCTimeout                         time.Duration
-	PerRPCRetryTimeout                 time.Duration
 	EventTopic                         string
 	LogLevel                           string
-	OnuNumber                          int
-	Banner                             bool
-	DisplayVersionOnly                 bool
 	ProbeAddress                       string
+	GrpcAddress                        string
+	CoreEndpoint                       string
+	TraceAgentAddress                  string
+	AdapterEndpoint                    string
+	KVStoreTimeout                     time.Duration
+	RPCTimeout                         time.Duration
+	PerRPCRetryTimeout                 time.Duration
+	OnuNumber                          int
 	LiveProbeInterval                  time.Duration
 	NotLiveProbeInterval               time.Duration
 	HeartbeatCheckInterval             time.Duration
 	HeartbeatFailReportInterval        time.Duration
 	GrpcTimeoutInterval                time.Duration
-	GrpcAddress                        string
-	CoreEndpoint                       string
 	CurrentReplica                     int
 	TotalReplicas                      int
+	MinBackoffRetryDelay               time.Duration
+	MaxBackoffRetryDelay               time.Duration
+	MaxRetries                         uint
+	Banner                             bool
+	DisplayVersionOnly                 bool
 	TraceEnabled                       bool
-	TraceAgentAddress                  string
 	LogCorrelationEnabled              bool
 	OmccEncryption                     bool
 	EnableONUStats                     bool
 	EnableGEMStats                     bool
-	MinBackoffRetryDelay               time.Duration
-	MaxBackoffRetryDelay               time.Duration
-	AdapterEndpoint                    string
 	CheckOnuDevExistenceAtOnuDiscovery bool
-	MaxRetries                         uint
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -142,7 +142,6 @@ func NewAdapterFlags() *AdapterFlags {
 
 // ParseCommandArguments parses the arguments when running read-write adaptercore service
 func (so *AdapterFlags) ParseCommandArguments() {
-
 	flag.StringVar(&(so.KafkaClusterAddress),
 		"kafka_cluster_address",
 		defaultKafkaclusteraddress,
@@ -308,7 +307,6 @@ func (so *AdapterFlags) ParseCommandArguments() {
 	if len(containerName) > 0 {
 		so.InstanceID = containerName
 	}
-
 }
 
 func getContainerInfo() string {

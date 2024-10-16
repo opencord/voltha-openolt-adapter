@@ -20,6 +20,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
@@ -37,28 +40,26 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
-	"time"
 )
 
 // OpenOLT structure holds the OLT information
 type OpenOLT struct {
+	eventProxy                         eventif.EventProxy
 	configManager                      *conf.ConfigManager
 	deviceHandlers                     map[string]*DeviceHandler
 	coreClient                         *vgrpc.Client
-	eventProxy                         eventif.EventProxy
 	config                             *config.AdapterFlags
-	numOnus                            int
+	exitChannel                        chan struct{}
 	KVStoreAddress                     string
 	KVStoreType                        string
-	exitChannel                        chan struct{}
+	numOnus                            int
 	HeartbeatCheckInterval             time.Duration
 	HeartbeatFailReportInterval        time.Duration
 	GrpcTimeoutInterval                time.Duration
+	rpcTimeout                         time.Duration
 	lockDeviceHandlersMap              sync.RWMutex
 	enableONUStats                     bool
 	enableGemStats                     bool
-	rpcTimeout                         time.Duration
 	CheckOnuDevExistenceAtOnuDiscovery bool
 }
 
@@ -173,7 +174,7 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 	logger.Infow(ctx, "reconcile-device", log.Fields{"device-id": device.Id})
 	var handler *DeviceHandler
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
-		//Setting state to RECONCILING
+		// Setting state to RECONCILING
 		cgClient, err := oo.coreClient.GetCoreServiceClient()
 		if err != nil {
 			return nil, err
@@ -238,7 +239,6 @@ func (oo *OpenOLT) RebootDevice(ctx context.Context, device *voltha.Device) (*em
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
-
 }
 
 // DeleteDevice deletes a device
@@ -286,7 +286,6 @@ func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*em
 		return &empty.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": packet.DeviceId}, nil)
-
 }
 
 // EnablePort to Enable PON/NNI interface
@@ -430,7 +429,6 @@ func (oo *OpenOLT) GetTechProfileInstance(ctx context.Context, request *ia.TechP
 		return handler.GetTechProfileDownloadMessage(ctx, request)
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.DeviceId}, nil).Log()
-
 }
 
 // GetHealthStatus is used by a OltAdapterService client to detect a connection

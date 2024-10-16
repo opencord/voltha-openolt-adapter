@@ -704,7 +704,6 @@ func TestOpenOLT_UpdatePmConfig(t *testing.T) {
 			if _, err := oo.UpdatePmConfig(context.Background(), &ca.PmConfigsInfo{DeviceId: tt.args.device.Id, PmConfigs: tt.args.pmConfigs}); !reflect.DeepEqual(err, tt.wantErr) {
 				t.Errorf("Update_pm_config() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
 		})
 	}
 }

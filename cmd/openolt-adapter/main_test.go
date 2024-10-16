@@ -32,6 +32,7 @@ func newMockAdapter() *adapter {
 	ad := newAdapter(cf)
 	return ad
 }
+
 func Test_adapter_setKVClient(t *testing.T) {
 	adapt := newMockAdapter()
 	adapt1 := newMockAdapter()
@@ -140,7 +141,6 @@ func Test_newKafkaClient(t *testing.T) {
 				t.Errorf("newKafkaClient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
 		})
 	}
 }

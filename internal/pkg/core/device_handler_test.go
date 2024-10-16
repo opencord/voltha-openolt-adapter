@@ -304,7 +304,7 @@ func Test_generateMacFromHost(t *testing.T) {
 	}{
 		{"generateMacFromHost-1", args{host: "localhost"}, "00:00:7f:00:00:01", false},
 		{"generateMacFromHost-2", args{host: "10.10.10.10"}, "00:00:0a:0a:0a:0a", false},
-		//{"generateMacFromHost-3", args{host: "google.com"}, "00:00:d8:3a:c8:8e", false},
+		// {"generateMacFromHost-3", args{host: "google.com"}, "00:00:d8:3a:c8:8e", false},
 		{"generateMacFromHost-4", args{host: "testing3"}, "", true},
 	}
 	for _, tt := range tests {
@@ -461,7 +461,6 @@ func TestGetportLabel(t *testing.T) {
 				t.Errorf("GetportLabel() => want=(%v, %v) got=(%v, %v)",
 					tt.want, tt.errType, got, reflect.TypeOf(err))
 			}
-
 		})
 	}
 }
@@ -721,9 +720,7 @@ func TestDeviceHandler_ProxyOmciRequests(t *testing.T) {
 			case "sendProxiedMessage-6":
 				err := tt.devicehandler.ProxyOmciRequests(ctx, tt.args.omciMsg)
 				assert.Contains(t, err.Error(), "no deviceID")
-
 			}
-
 		})
 	}
 }
@@ -822,7 +819,6 @@ func TestDeviceHandler_RebootDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			if err := tt.devicehandler.RebootDevice(context.Background(), tt.args.device); (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.RebootDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -958,7 +954,7 @@ func TestDeviceHandler_addPort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_ = tt.devicehandler.addPort(context.Background(), tt.args.intfID, tt.args.portType, tt.args.state, tt.args.speedMbps)
 
-			//Check if the correct state is stored
+			// Check if the correct state is stored
 			storedState, ok := tt.devicehandler.activePorts.Load(tt.args.intfID)
 			expectedState := tt.args.state == "up"
 
@@ -968,7 +964,7 @@ func TestDeviceHandler_addPort(t *testing.T) {
 				t.Errorf("Expected stored port state: %v, found: %v in test %v", expectedState, storedState, tt.name)
 			}
 
-			//Check if the reported speed values are correct
+			// Check if the reported speed values are correct
 			ofpPort := makeOfpPort(tt.devicehandler.device.MacAddress, tt.args.speedMbps)
 
 			if ofpPort.Curr != tt.expectedCapacity ||
@@ -1016,7 +1012,6 @@ func Test_macAddressToUint32Array(t *testing.T) {
 }
 
 func TestDeviceHandler_handleOltIndication(t *testing.T) {
-
 	type args struct {
 		oltIndication *oop.OltIndication
 	}
@@ -1056,9 +1051,9 @@ func TestDeviceHandler_AdoptDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//dh.doStateInit()
+			// dh.doStateInit()
 			//	context.
-			//dh.AdoptDevice(tt.args.device)
+			// dh.AdoptDevice(tt.args.device)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			if err := tt.devicehandler.postInit(ctx); err != nil {
@@ -1105,7 +1100,6 @@ func TestDeviceHandler_start(t *testing.T) {
 
 	dh1.start(context.Background())
 	dh1.Stop(context.Background())
-
 }
 
 func TestDeviceHandler_PacketOut(t *testing.T) {
@@ -1128,7 +1122,7 @@ func TestDeviceHandler_PacketOut(t *testing.T) {
 		wantErr       bool
 	}{
 		// TODO: Add test cases.
-		//{"test1", args{egressPortNo: 0, packet: &ofp.OfpPacketOut{}}, true},
+		// {"test1", args{egressPortNo: 0, packet: &ofp.OfpPacketOut{}}, true},
 		{"PacketOut-1", dh1, args{egressPortNo: 0, packet: pktout}, false},
 		{"PacketOut-2", dh2, args{egressPortNo: 1, packet: pktout}, false},
 		{"PacketOut-3", dh2, args{egressPortNo: 4112, packet: pktout}, false},
@@ -1170,7 +1164,7 @@ func TestDeviceHandler_doStateUp(t *testing.T) {
 			if err := tt.devicehandler.doStateUp(ctx); (err != nil) != tt.wantErr {
 				t.Logf("DeviceHandler.doStateUp() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			tt.devicehandler.stopCollector <- true //stop the stat collector invoked from doStateUp
+			tt.devicehandler.stopCollector <- true // stop the stat collector invoked from doStateUp
 		})
 	}
 }
@@ -1230,7 +1224,6 @@ func TestDeviceHandler_GetOfpDeviceInfo(t *testing.T) {
 }
 
 func TestDeviceHandler_onuDiscIndication(t *testing.T) {
-
 	dh1 := newMockDeviceHandler()
 	dh1.discOnus = sync.Map{}
 	dh1.discOnus.Store("onu1", true)
@@ -1289,13 +1282,11 @@ func TestDeviceHandler_populateDeviceInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			_, err := tt.devicehandler.populateDeviceInfo(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeviceHandler.populateDeviceInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
 		})
 	}
 }
@@ -1486,7 +1477,7 @@ func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
 			fu.TunnelId(256),
 		},
 		Actions: []*ofp.OfpAction{
-			//fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
+			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
 			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
