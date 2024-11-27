@@ -3,6 +3,52 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9d54e5b3_bb7c7027",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-11-27T18:24:20Z",
+      "side": 1,
+      "message": "What is the exact case here? When does this happen?",
+      "range": {
+        "startLine": 957,
+        "startChar": 0,
+        "endLine": 957,
+        "endChar": 4
+      },
+      "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f70f25da_004a70ae",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1030,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-11-27T18:24:20Z",
+      "side": 1,
+      "message": "deviceStateFilter is already created above. It can be used here.",
+      "range": {
+        "startLine": 1030,
+        "startChar": 47,
+        "endLine": 1030,
+        "endChar": 64
+      },
+      "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ae2db30a_01b9222f",
         "filename": "internal/pkg/core/openolt.go",
         "patchSetId": 2
@@ -14,6 +60,29 @@
       "writtenOn": "2024-11-27T11:09:41Z",
       "side": 1,
       "message": "Put a comment on why we would need the previous state here",
+      "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0757c190_ce01172a",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-11-27T18:24:20Z",
+      "side": 1,
+      "message": "no need to introduce prevConnStatus. It is only used in the log below. device.ConnectStatus could be used instead.",
+      "range": {
+        "startLine": 180,
+        "startChar": 2,
+        "endLine": 180,
+        "endChar": 16
+      },
       "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
