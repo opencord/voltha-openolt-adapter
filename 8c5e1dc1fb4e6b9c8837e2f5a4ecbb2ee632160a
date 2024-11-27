@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae2db30a_01b9222f",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2024-11-27T11:09:41Z",
+      "side": 1,
+      "message": "Put a comment on why we would need the previous state here",
+      "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
