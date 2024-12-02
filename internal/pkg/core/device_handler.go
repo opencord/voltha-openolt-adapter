@@ -943,6 +943,8 @@ func (dh *DeviceHandler) reconcilePonPorts(ctx context.Context) error { // need 
 // doStateUp handle the olt up indication and update to voltha core
 func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	//starting the stat collector
+	// Declare deviceStateFilter to be used later
+	var deviceStateFilter *ca.DeviceStateFilter
 	go startCollector(ctx, dh)
 	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
 	if err != nil {
@@ -1012,7 +1014,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 			dh.mcastHandlerRoutineActive[i] = true
 			go dh.mcastFlowOrGroupChannelHandlerRoutine(i, dh.incomingMcastFlowOrGroup[i], dh.stopMcastHandlerRoutine[i])
 			// Create DeviceStateFilter with the desired operational and connection statuses
-			deviceStateFilter := &ca.DeviceStateFilter{
+			deviceStateFilter = &ca.DeviceStateFilter{
 				DeviceId:   dh.device.Id,
 				OperStatus: voltha.OperStatus_ACTIVE,
 				ConnStatus: voltha.ConnectStatus_REACHABLE,
@@ -1027,11 +1029,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	}
 
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
-		DeviceId:   dh.device.Id,
-		OperStatus: voltha.OperStatus_ACTIVE,
-		ConnStatus: voltha.ConnectStatus_REACHABLE,
-	}); err != nil {
+	if err := dh.updateDeviceStateInCore(ctx, deviceStateFilter); err != nil {
 		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 
