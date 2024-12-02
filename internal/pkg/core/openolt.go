@@ -176,14 +176,14 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		//Setting state to RECONCILING
 		// Fetch previous state
+		//here we are fetching the previous operation states of the device,so to check which operation state it was previously for proper transistion and proper clean up of the resources.
 		PrevOperStatus := device.OperStatus
-		prevConnStatus := device.ConnectStatus
 
 		// Log previous state
 		logger.Infow(ctx, "previous-device-state", log.Fields{
 			"device-id":           device.Id,
 			"previous-operStatus": PrevOperStatus,
-			"previous-connStatus": prevConnStatus,
+			"Device-connStatus":   device.ConnectStatus,
 		})
 		cgClient, err := oo.coreClient.GetCoreServiceClient()
 		if err != nil {
