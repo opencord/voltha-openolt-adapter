@@ -3568,6 +3568,42 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INTERNAL_ERROR)
 }
 
+func (dh *DeviceHandler) getOltOffloadStats(ctx context.Context, oltPortInfo *extension.GetOffloadedAppsStatisticsRequest) *extension.SingleGetValueResponse {
+
+	singleValResp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_OffloadedAppsStats{
+				OffloadedAppsStats: &extension.GetOffloadedAppsStatisticsResponse{},
+			},
+		},
+	}
+
+	return &singleValResp
+}
+
+func (dh *DeviceHandler) setOltOffloadStats(ctx context.Context, congig *extension.AppOffloadConfig) *extension.SingleSetValueResponse {
+
+	singleValResp := extension.SingleSetValueResponse{
+		Response: &extension.SetValueResponse{
+			Status: extension.SetValueResponse_OK,
+		},
+	}
+
+	return &singleValResp
+}
+
+func (dh *DeviceHandler) setOnuOffloadStats(ctx context.Context, config *extension.AppOffloadOnuConfig) *extension.SingleSetValueResponse {
+
+	singleValResp := extension.SingleSetValueResponse{
+		Response: &extension.SetValueResponse{
+			Status: extension.SetValueResponse_OK,
+		},
+	}
+
+	return &singleValResp
+}
+
 func (dh *DeviceHandler) getOnuPonCounters(ctx context.Context, onuPonInfo *extension.GetOnuCountersRequest) *extension.SingleGetValueResponse {
 
 	singleValResp := extension.SingleGetValueResponse{
