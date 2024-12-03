@@ -20,6 +20,9 @@ package core
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
@@ -37,8 +40,6 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
-	"time"
 )
 
 // OpenOLT structure holds the OLT information
@@ -381,6 +382,8 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			return handler.getRxPower(ctx, reqType.RxPower), nil
 		case *extension.GetValueRequest_OltRxPower:
 			return handler.getPONRxPower(ctx, reqType.OltRxPower), nil
+		case *extension.GetValueRequest_OffloadedAppsStats:
+			return handler.getOltOffloadStats(ctx, reqType.OffloadedAppsStats), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}
@@ -388,6 +391,32 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 
 	logger.Infow(ctx, "Single_get_value_request failed ", log.Fields{"request": request})
 	return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_INVALID_DEVICE_ID), nil
+}
+
+// SetSingleValue is implemented
+func (oo *OpenOLT) SetSingleValue(ctx context.Context, request *extension.SingleSetValueRequest) (*extension.SingleSetValueResponse, error) {
+	logger.Infow(ctx, "single_set_value_request", log.Fields{"request": request})
+
+	errResp := func(status extension.SetValueResponse_Status,
+		reason extension.SetValueResponse_ErrorReason) *extension.SingleSetValueResponse {
+		return &extension.SingleSetValueResponse{
+			Response: &extension.SetValueResponse{
+				Status:    status,
+				ErrReason: reason,
+			},
+		}
+	}
+	if handler := oo.getDeviceHandler(request.TargetId); handler != nil {
+		switch reqType := request.GetRequest().GetRequest().(type) {
+		case *extension.SetValueRequest_AppOffloadConfig:
+			return handler.setOltOffloadStats(ctx, reqType.AppOffloadConfig), nil
+		default:
+			return errResp(extension.SetValueResponse_ERROR, extension.SetValueResponse_UNSUPPORTED), nil
+		}
+	}
+
+	logger.Infow(ctx, "Single_set_value_request failed ", log.Fields{"request": request})
+	return errResp(extension.SetValueResponse_ERROR, extension.SetValueResponse_INVALID_DEVICE_ID), nil
 }
 
 /*
@@ -490,11 +519,6 @@ func (oo *OpenOLT) SimulateAlarm(context.Context, *ca.SimulateAlarmMessage) (*vo
 
 // SetExtValue is unimplemented
 func (oo *OpenOLT) SetExtValue(context.Context, *ca.SetExtValueMessage) (*empty.Empty, error) {
-	return nil, olterrors.ErrNotImplemented
-}
-
-// SetSingleValue is unimplemented
-func (oo *OpenOLT) SetSingleValue(context.Context, *extension.SingleSetValueRequest) (*extension.SingleSetValueResponse, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
