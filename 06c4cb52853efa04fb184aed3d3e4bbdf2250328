@@ -22,6 +22,30 @@
       },
       "revId": "06c4cb52853efa04fb184aed3d3e4bbdf2250328",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0e895ec1_32208475",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1000957
+      },
+      "writtenOn": "2024-12-06T03:08:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b946cf8_5eaaa5f5",
+      "range": {
+        "startLine": 252,
+        "startChar": 49,
+        "endLine": 252,
+        "endChar": 50
+      },
+      "revId": "06c4cb52853efa04fb184aed3d3e4bbdf2250328",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
