@@ -67,6 +67,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "811a68c0_b0b7ee69",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 957,
+      "author": {
+        "id": 1001011
+      },
+      "writtenOn": "2024-12-06T05:02:09Z",
+      "side": 1,
+      "message": "1)When an OLT is rebooted, while the rwcore is still processing the rebooted state transitions and cleaning up the device resources the adapter hits an exception and causes the the olt adapter to fail cleaning up the resources .\n\n2)Further, the childDeviceLost calls from rwcore will not be executed as the adapter is reconciling and will be unable to handle those calls. so,The Adapter post reconciling will have the stale device resources and cannot further process discovery indications.\n\n3)If case is only reconciling ,the reconciling process should go on.\n\n4)The reconcile device is to handle device reconciliation in concurrent manner,so the system has to initiate the reconciliation process without blocking other operations.",
+      "parentUuid": "55a3736b_2601597e",
+      "range": {
+        "startLine": 957,
+        "startChar": 0,
+        "endLine": 957,
+        "endChar": 4
+      },
+      "revId": "8c5e1dc1fb4e6b9c8837e2f5a4ecbb2ee632160a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f70f25da_004a70ae",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 2
