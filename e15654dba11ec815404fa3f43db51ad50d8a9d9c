@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "12caa4f2_ab1bb683",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-12-07T06:14:54Z",
+      "side": 1,
+      "message": "This loop is infinitive. Isn\u0027t it better to put an end to this after a while, in case one of these flags remain false?",
+      "range": {
+        "startLine": 256,
+        "startChar": 1,
+        "endLine": 268,
+        "endChar": 4
+      },
+      "revId": "e15654dba11ec815404fa3f43db51ad50d8a9d9c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
