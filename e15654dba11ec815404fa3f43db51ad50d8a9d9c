@@ -3,6 +3,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6467600f_6ccdf02f",
+        "filename": "VERSION",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-12-07T06:17:52Z",
+      "side": 1,
+      "message": "you can increase it to 4.5.1, or 4.5.0-dev2.",
+      "range": {
+        "startLine": 1,
+        "startChar": 4,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "e15654dba11ec815404fa3f43db51ad50d8a9d9c",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "12caa4f2_ab1bb683",
         "filename": "internal/pkg/core/openolt.go",
         "patchSetId": 9
