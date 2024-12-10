@@ -82,6 +82,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8de4b96_f16ed769",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1094,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2024-12-10T06:22:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a276f36e_1271f262",
+      "range": {
+        "startLine": 1094,
+        "startChar": 24,
+        "endLine": 1094,
+        "endChar": 41
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4cde1982_36ac2fb3",
@@ -119,6 +143,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "4cde1982_36ac2fb3",
+      "range": {
+        "startLine": 186,
+        "startChar": 22,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "a177c6baa6d0af83fbe5fb07ab48960b8a96bbee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9553446e_05c91018",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2024-12-10T06:22:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "02f02aed_747ee7b1",
       "range": {
         "startLine": 186,
         "startChar": 22,
