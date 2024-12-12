@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9e8b4d3d_430818e3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2024-12-12T20:59:34Z",
+      "side": 1,
+      "message": "Given that two +1s removed during the rebase",
+      "revId": "3bcf5e0ba3329e6210f7a305fd634b3e29a1f6cb",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
