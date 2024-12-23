@@ -455,7 +455,9 @@ func (oo *OpenOLT) SetSingleValue(ctx context.Context, request *extension.Single
 	if handler := oo.getDeviceHandler(request.TargetId); handler != nil {
 		switch reqType := request.GetRequest().GetRequest().(type) {
 		case *extension.SetValueRequest_AppOffloadConfig:
-			return handler.setOltOffloadStats(ctx, reqType.AppOffloadConfig), nil
+			return handler.setOltOffload(ctx, reqType.AppOffloadConfig), nil
+		case *extension.SetValueRequest_AppOffloadOnuConfig:
+			return handler.setOnuOffload(ctx, reqType.AppOffloadOnuConfig), nil
 		default:
 			return errResp(extension.SetValueResponse_ERROR, extension.SetValueResponse_UNSUPPORTED), nil
 		}

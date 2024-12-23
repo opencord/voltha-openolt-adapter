@@ -3664,7 +3664,18 @@ func (dh *DeviceHandler) getOltOffloadStats(ctx context.Context, oltPortInfo *ex
 	return &singleValResp
 }
 
-func (dh *DeviceHandler) setOltOffloadStats(ctx context.Context, congig *extension.AppOffloadConfig) *extension.SingleSetValueResponse {
+func (dh *DeviceHandler) setOltOffload(ctx context.Context, congig *extension.AppOffloadConfig) *extension.SingleSetValueResponse {
+
+	singleValResp := extension.SingleSetValueResponse{
+		Response: &extension.SetValueResponse{
+			Status: extension.SetValueResponse_OK,
+		},
+	}
+
+	return &singleValResp
+}
+
+func (dh *DeviceHandler) setOnuOffload(ctx context.Context, config *extension.AppOffloadOnuConfig) *extension.SingleSetValueResponse {
 
 	singleValResp := extension.SingleSetValueResponse{
 		Response: &extension.SetValueResponse{
