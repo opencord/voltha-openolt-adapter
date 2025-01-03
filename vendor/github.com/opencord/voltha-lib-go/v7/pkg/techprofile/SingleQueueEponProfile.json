@@ -57,5 +57,9 @@
           "max_probability": 0
         }
       }
-    ]
+  ],
+  "copyright-notice" : {
+      "SPDX-FileCopyrightText" : "2020-2024 Open Networking Foundation Contributors",
+      "SPDX-License-Identifier" : "Apache-2.0"
+  }
 }
