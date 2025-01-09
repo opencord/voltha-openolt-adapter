@@ -16,6 +16,23 @@
       "message": "please bump up the version file",
       "revId": "4a80a13667ee67fdbb891afa9b59ecaa97f58435",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bfca2f2c_aaec7112",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-01-09T11:31:11Z",
+      "side": 1,
+      "message": "there is no defect raised, please raise a ticket and update the issue RCA and fix in the defect",
+      "revId": "4a80a13667ee67fdbb891afa9b59ecaa97f58435",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
