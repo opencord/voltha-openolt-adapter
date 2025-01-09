@@ -2984,14 +2984,8 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 
 	logger.Warnw(ctx, "update-state-rebooted", log.Fields{"device-id": dh.device.Id, "connect-status": device.ConnectStatus,
 		"admin-state": device.AdminState, "oper-status": device.OperStatus, "conn-status": voltha.ConnectStatus_UNREACHABLE})
-	if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
-		DeviceId:   dh.device.Id,
-		OperStatus: voltha.OperStatus_REBOOTED,
-		ConnStatus: voltha.ConnectStatus_REACHABLE,
-	}); err != nil {
-		_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
-	}
-
+	// First, stop the read indication and heartbeat check routines to prevent any delay
+	// in cleanup, which could cause the heartbeat routine to restart the read indication.
 	dh.lockDevice.RLock()
 	// Stop the read indication only if it the routine is active
 	// The read indication would have already stopped due to failure on the gRPC stream following OLT going unreachable
@@ -3001,6 +2995,14 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 		dh.stopIndications <- true
 	}
 	dh.lockDevice.RUnlock()
+
+	if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
+		DeviceId:   dh.device.Id,
+		OperStatus: voltha.OperStatus_REBOOTED,
+		ConnStatus: voltha.ConnectStatus_REACHABLE,
+	}); err != nil {
+		_ = olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+	}
 
 	//raise olt communication failure event
 	raisedTs := time.Now().Unix()
