@@ -2581,6 +2581,10 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	if dh.resourceMgr != nil {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
+			if dh.resourceMgr[ponPort] == nil {
+				logger.Warnw(ctx, "resource manager for ponPort is nil", log.Fields{"ponPort": ponPort})
+				continue
+			}
 			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
@@ -2607,13 +2611,15 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 		errs = append(errs, err)
 	}
 
-	dh.CloseKVClient(ctx)
-
 	// Take one final sweep at cleaning up KV store for the OLT device
 	// Clean everything at <base-path-prefix>/openolt/<device-id>
 	if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
 		errs = append(errs, err)
 	}
+	dh.lockDevice.Lock()
+	logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
+	dh.CloseKVClient(ctx)
+	dh.lockDevice.Unlock()
 
 	/*Delete ONU map for the device*/
 	dh.onus.Range(func(key interface{}, value interface{}) bool {
