@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "520fd6fd_9c5d988d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-01-11T00:25:49Z",
+      "side": 1,
+      "message": "Is this needed to be merged before the release?",
+      "revId": "7ea59e7f5f4bc0884f6488e0011bd75ca01057c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
