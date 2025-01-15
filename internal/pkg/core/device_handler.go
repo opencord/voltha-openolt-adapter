@@ -3165,6 +3165,12 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			log.Fields{"parent-device-id": dh.device.Id, "pon-port": pPortNo, "onuID": onuID, "onuSN": onuSn})
 		return nil
 	}
+
+	if dh.transitionMap.currentDeviceState != deviceStateUp {
+		logger.Warnw(ctx, "device-is-not-up--not-handling-child-device-lost", log.Fields{"device-id": dh.device.Id, "current-device-state": dh.transitionMap.currentDeviceState})
+		return fmt.Errorf("device-is-not-up--not-handling-child-device-lost")
+	}
+
 	intfID := plt.PortNoToIntfID(pPortNo, voltha.Port_PON_OLT)
 	onuKey := dh.formOnuKey(intfID, onuID)
 

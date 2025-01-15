@@ -577,6 +577,11 @@ func (rsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, o
 
 	intfOnuIDuniID := fmt.Sprintf("%d,%d,%d", rsrcMgr.PonIntfID, onuID, uniID)
 
+	if rsrcMgr.PonRsrMgr == nil || rsrcMgr.TechprofileRef == nil {
+		logger.Warn(ctx, "PonRsrMgr or TechprofileRef is nil")
+		return
+	}
+
 	AllocIDs := rsrcMgr.PonRsrMgr.GetCurrentAllocIDForOnu(ctx, intfOnuIDuniID)
 
 	if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, rsrcMgr.PonIntfID,
