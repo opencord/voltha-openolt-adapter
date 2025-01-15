@@ -51,6 +51,24 @@
       "message": "Could you please update the VERSION file and bump up the patch version(last digit of the version)?",
       "revId": "7ea59e7f5f4bc0884f6488e0011bd75ca01057c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ee53cf76_1d6c50f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000790
+      },
+      "writtenOn": "2025-01-15T07:46:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "55f6f6c7_8a7803aa",
+      "revId": "7ea59e7f5f4bc0884f6488e0011bd75ca01057c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
