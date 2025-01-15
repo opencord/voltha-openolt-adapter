@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "62ef428c_1d711b38",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-01-15T19:00:38Z",
+      "side": 1,
+      "message": "can you put same checks above this line for rsrcMgr \u003d\u003d nil case and rsrcMgr.PonRsrMgr \u003d\u003d nil case?",
+      "range": {
+        "startLine": 580,
+        "startChar": 1,
+        "endLine": 580,
+        "endChar": 9
+      },
+      "revId": "08bc6367466927bc4d04cdd35f715fe0962f418a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
