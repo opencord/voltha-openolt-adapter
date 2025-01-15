@@ -579,14 +579,16 @@ func (rsrcMgr *OpenOltResourceMgr) FreePONResourcesForONU(ctx context.Context, o
 
 	AllocIDs := rsrcMgr.PonRsrMgr.GetCurrentAllocIDForOnu(ctx, intfOnuIDuniID)
 
-	if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, rsrcMgr.PonIntfID,
-		ponrmgr.ALLOC_ID,
-		AllocIDs); err != nil {
-		logger.Errorw(ctx, "error-while-freeing-all-alloc-ids-for-onu", log.Fields{
-			"intf-id": rsrcMgr.PonIntfID,
-			"onu-id":  onuID,
-			"err":     err.Error(),
-		})
+	if rsrcMgr.TechprofileRef != nil {
+		if err := rsrcMgr.TechprofileRef.FreeResourceID(ctx, rsrcMgr.PonIntfID,
+			ponrmgr.ALLOC_ID,
+			AllocIDs); err != nil {
+			logger.Errorw(ctx, "error-while-freeing-all-alloc-ids-for-onu", log.Fields{
+				"intf-id": rsrcMgr.PonIntfID,
+				"onu-id":  onuID,
+				"err":     err.Error(),
+			})
+		}
 	}
 
 	//update cache
