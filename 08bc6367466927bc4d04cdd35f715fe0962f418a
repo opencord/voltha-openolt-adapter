@@ -22,6 +22,30 @@
       },
       "revId": "08bc6367466927bc4d04cdd35f715fe0962f418a",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6dc8fcca_387cd842",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-01-15T19:47:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62ef428c_1d711b38",
+      "range": {
+        "startLine": 580,
+        "startChar": 1,
+        "endLine": 580,
+        "endChar": 9
+      },
+      "revId": "08bc6367466927bc4d04cdd35f715fe0962f418a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
