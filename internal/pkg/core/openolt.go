@@ -207,7 +207,7 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
 			DeviceId:   device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
-			ConnStatus: voltha.ConnectStatus_UNREACHABLE,
+			ConnStatus: device.ConnectStatus,
 		}); err != nil {
 			return nil, olterrors.NewErrAdapter("device-update-failed", log.Fields{"device-id": device.Id}, err)
 		}
@@ -215,7 +215,6 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		// The OperState and connection state of the device is set to RECONCILING and UNREACHABLE in the previous section. This also needs to be set on the
 		// locally cached copy of the device struct.
 		device.OperStatus = voltha.OperStatus_RECONCILING
-		device.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
 		handler := NewDeviceHandler(oo.coreClient, oo.eventProxy, device, oo, oo.configManager, oo.config)
 		handler.adapterPreviouslyConnected = true
 		handler.prevOperStatus = PrevOperStatus
