@@ -202,6 +202,50 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 	return nil, errors.New("key didn't find")
 }
 
+// GetWithPrefix mock function implementation for KVClient
+func (kvclient *MockKVClient) GetWithPrefix(ctx context.Context, prefix string) (map[string]*kvstore.KVPair, error) {
+	result := make(map[string]*kvstore.KVPair)
+
+	// Get all the key-value pairs from the KV store
+	kvPairs, err := kvclient.List(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through all the keys in the KV store
+	for key, kvPair := range kvPairs {
+		// Check if the key has the specified prefix
+		if strings.HasPrefix(key, prefix) {
+			// Add the KVPair to the result map
+			result[key] = kvPair
+		}
+	}
+
+	return result, nil
+}
+
+// GetWithPrefixKeysOnly mock function implementation for KVClient
+func (kvclient *MockKVClient) GetWithPrefixKeysOnly(ctx context.Context, prefix string) ([]string, error) {
+	keys := make([]string, 0)
+
+	// Get all the key-value pairs from the KV store
+	kvPairs, err := kvclient.List(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through all the keys in the KV store
+	for key := range kvPairs {
+		// Check if the key has the specified prefix
+		if strings.HasPrefix(key, prefix) {
+			// Add the key to the result slice
+			keys = append(keys, key)
+		}
+	}
+
+	return keys, nil
+}
+
 // getPacketInGemPort returns the GEM port associated with the given key
 func getPacketInGemPort(key string) (*kvstore.KVPair, error) {
 	//parse interface, onu, uni, vlan, priority values

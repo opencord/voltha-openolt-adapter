@@ -197,6 +197,18 @@ func (kvclient *MockResKVClient) Get(ctx context.Context, key string) (*kvstore.
 	return nil, errors.New("key didn't find")
 }
 
+// GetWithPrefix mock function implementation for KVClient
+func (kvclient *MockResKVClient) GetWithPrefix(ctx context.Context, prefix string) (map[string]*kvstore.KVPair, error) {
+	// Implement your logic here to retrieve key-value pairs with the given prefix
+	return nil, errors.New("key didn't find")
+}
+
+// GetWithPrefixKeysOnly mock function implementation for KVClient
+func (kvclient *MockResKVClient) GetWithPrefixKeysOnly(ctx context.Context, prefix string) ([]string, error) {
+	// Implement your logic here to retrieve keys with the given prefix
+	return nil, errors.New("key didn't find")
+}
+
 // Put mock function implementation for KVClient
 func (kvclient *MockResKVClient) Put(ctx context.Context, key string, value interface{}) error {
 	if key != "" {

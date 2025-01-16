@@ -214,13 +214,13 @@ func NewPONResourceManager(ctx context.Context, Technology string, DeviceType st
 	PONMgr.KVStore = SetKVClient(ctx, Technology, Backend, Address, false, basePathKvStore)
 	if PONMgr.KVStore == nil {
 		logger.Error(ctx, "KV Client initilization failed")
-		return nil, errors.New("Failed to init KV client")
+		return nil, errors.New("failed to init KV client")
 	}
 	// init kv client to read from the config path
 	PONMgr.KVStoreForConfig = SetKVClient(ctx, Technology, Backend, Address, true, basePathKvStore)
 	if PONMgr.KVStoreForConfig == nil {
 		logger.Error(ctx, "KV Config Client initilization failed")
-		return nil, errors.New("Failed to init KV Config client")
+		return nil, errors.New("failed to init KV Config client")
 	}
 
 	PONMgr.PonResourceRanges = make(map[string]interface{})
@@ -483,7 +483,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, ONU_ID); !status {
 			logger.Error(ctx, "Failed to clear ONU ID resource pool")
-			return errors.New("Failed to clear ONU ID resource pool")
+			return errors.New("failed to clear ONU ID resource pool")
 		}
 		if SharedPoolID != 0 {
 			break
@@ -497,7 +497,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, ALLOC_ID); !status {
 			logger.Error(ctx, "Failed to clear ALLOC ID resource pool ")
-			return errors.New("Failed to clear ALLOC ID resource pool")
+			return errors.New("failed to clear ALLOC ID resource pool")
 		}
 		if SharedPoolID != 0 {
 			break
@@ -510,7 +510,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, GEMPORT_ID); !status {
 			logger.Error(ctx, "Failed to clear GEMPORT ID resource pool")
-			return errors.New("Failed to clear GEMPORT ID resource pool")
+			return errors.New("failed to clear GEMPORT ID resource pool")
 		}
 		if SharedPoolID != 0 {
 			break
@@ -524,7 +524,7 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePool(ctx context.Context) 
 		}
 		if status := PONRMgr.ClearResourceIDPool(ctx, Intf, FLOW_ID); !status {
 			logger.Error(ctx, "Failed to clear FLOW ID resource pool")
-			return errors.New("Failed to clear FLOW ID resource pool")
+			return errors.New("failed to clear FLOW ID resource pool")
 		}
 		if SharedPoolID != 0 {
 			break
@@ -539,22 +539,22 @@ func (PONRMgr *PONResourceManager) ClearDeviceResourcePoolForIntf(ctx context.Co
 
 	if status := PONRMgr.ClearResourceIDPool(ctx, intfID, ONU_ID); !status {
 		logger.Error(ctx, "Failed to clear ONU ID resource pool")
-		return errors.New("Failed to clear ONU ID resource pool")
+		return errors.New("failed to clear ONU ID resource pool")
 	}
 
 	if status := PONRMgr.ClearResourceIDPool(ctx, intfID, ALLOC_ID); !status {
 		logger.Error(ctx, "Failed to clear ALLOC ID resource pool ")
-		return errors.New("Failed to clear ALLOC ID resource pool")
+		return errors.New("failed to clear ALLOC ID resource pool")
 	}
 
 	if status := PONRMgr.ClearResourceIDPool(ctx, intfID, GEMPORT_ID); !status {
 		logger.Error(ctx, "Failed to clear GEMPORT ID resource pool")
-		return errors.New("Failed to clear GEMPORT ID resource pool")
+		return errors.New("failed to clear GEMPORT ID resource pool")
 	}
 
 	if status := PONRMgr.ClearResourceIDPool(ctx, intfID, FLOW_ID); !status {
 		logger.Error(ctx, "Failed to clear FLOW ID resource pool")
-		return errors.New("Failed to clear FLOW ID resource pool")
+		return errors.New("failed to clear FLOW ID resource pool")
 	}
 
 	return nil
@@ -580,7 +580,7 @@ func (PONRMgr *PONResourceManager) InitResourceIDPool(ctx context.Context, Intf 
 	Path := PONRMgr.GetPath(ctx, Intf, ResourceType)
 	if Path == "" {
 		logger.Errorf(ctx, "Failed to get path for resource type %s", ResourceType)
-		return fmt.Errorf("Failed to get path for resource type %s", ResourceType)
+		return fmt.Errorf("failed to get path for resource type %s", ResourceType)
 	}
 
 	//In case of adapter reboot and reconciliation resource in kv store
@@ -663,7 +663,7 @@ func (PONRMgr *PONResourceManager) FormatResource(ctx context.Context, IntfID ui
 	var TSData *bitmap.Threadsafe
 	if TSData = bitmap.NewTS(int(EndIDx)); TSData == nil {
 		logger.Error(ctx, "Failed to create a bitmap")
-		return nil, errors.New("Failed to create bitmap")
+		return nil, errors.New("failed to create bitmap")
 	}
 	for _, excludedID := range Excluded {
 		if excludedID < StartIDx || excludedID > EndIDx {
@@ -781,7 +781,7 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 
 	if NumIDs < 1 {
 		logger.Error(ctx, "Invalid number of resources requested")
-		return nil, fmt.Errorf("Invalid number of resources requested %d", NumIDs)
+		return nil, fmt.Errorf("invalid number of resources requested %d", NumIDs)
 	}
 	// delegate to the master instance if sharing enabled across instances
 
@@ -794,7 +794,7 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 	Path := PONRMgr.GetPath(ctx, IntfID, ResourceType)
 	if Path == "" {
 		logger.Errorf(ctx, "Failed to get path for resource type %s", ResourceType)
-		return nil, fmt.Errorf("Failed to get path for resource type %s", ResourceType)
+		return nil, fmt.Errorf("failed to get path for resource type %s", ResourceType)
 	}
 	logger.Debugf(ctx, "Get resource for type %s on path %s", ResourceType, Path)
 	var Result []uint32
@@ -831,7 +831,7 @@ func (PONRMgr *PONResourceManager) GetResourceID(ctx context.Context, IntfID uin
 	//Update resource in kv store
 	if PONRMgr.UpdateResource(ctx, Path, Resource) != nil {
 		logger.Errorf(ctx, "Failed to update resource %s", Path)
-		return nil, fmt.Errorf("Failed to update resource %s", Path)
+		return nil, fmt.Errorf("failed to update resource %s", Path)
 	}
 	return Result, nil
 }
@@ -863,12 +863,12 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 	})
 
 	if !checkValidResourceType(ResourceType) {
-		err := fmt.Errorf("Invalid resource type: %s", ResourceType)
+		err := fmt.Errorf("invalid resource type: %s", ResourceType)
 		logger.Error(ctx, err.Error())
 		return err
 	}
 	if ReleaseContent == nil {
-		err := fmt.Errorf("Nothing to release")
+		err := fmt.Errorf("nothing to release")
 		logger.Debug(ctx, err.Error())
 		return err
 	}
@@ -879,7 +879,7 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 	}
 	Path := PONRMgr.GetPath(ctx, IntfID, ResourceType)
 	if Path == "" {
-		err := fmt.Errorf("Failed to get path for IntfId %d and ResourceType %s", IntfID, ResourceType)
+		err := fmt.Errorf("failed to get path for IntfId %d and ResourceType %s", IntfID, ResourceType)
 		logger.Error(ctx, err.Error())
 		return err
 	}
@@ -892,7 +892,7 @@ func (PONRMgr *PONResourceManager) FreeResourceID(ctx context.Context, IntfID ui
 		PONRMgr.ReleaseID(ctx, Resource, Val)
 	}
 	if PONRMgr.UpdateResource(ctx, Path, Resource) != nil {
-		err := fmt.Errorf("Free resource for %s failed", Path)
+		err := fmt.Errorf("free resource for %s failed", Path)
 		logger.Errorf(ctx, err.Error())
 		return err
 	}
@@ -1292,7 +1292,7 @@ func (PONRMgr *PONResourceManager) GenerateNextID(ctx context.Context, Resource 
 	}
 	Data := bitmap.TSFromData(ByteArray, false)
 	if Data == nil {
-		return 0, errors.New("Failed to get data from byte array")
+		return 0, errors.New("failed to get data from byte array")
 	}
 
 	Len := Data.Len()
