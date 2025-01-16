@@ -968,7 +968,7 @@ func (f *OpenOltFlowMgr) populateTechProfileForCurrentPonPort(ctx context.Contex
 		for _, intfID := range techRange.IntfIds {
 			if intfID == f.ponPortIdx { // initialize only for the pon port that this flow manager is managing
 				var err error
-				f.techprofile, err = tp.NewTechProfile(ctx, f.resourceMgr.PonRsrMgr, f.resourceMgr.PonRsrMgr.Backend,
+				f.techprofile, err = tp.NewTechProfile(ctx, intfID, f.resourceMgr.DeviceID, f.resourceMgr.PonRsrMgr, f.resourceMgr.PonRsrMgr.Backend,
 					f.resourceMgr.PonRsrMgr.Address, f.deviceHandler.cm.Backend.PathPrefix)
 				if err != nil || f.techprofile == nil {
 					logger.Errorw(ctx, "failed-to-allocate-to-techprofile-for-pon-port", log.Fields{"intfID": intfID, "err": err})
