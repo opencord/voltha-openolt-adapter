@@ -33,6 +33,42 @@
       "message": "there is no defect raised, please raise a ticket and update the issue RCA and fix in the defect",
       "revId": "4a80a13667ee67fdbb891afa9b59ecaa97f58435",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "28c9f1d9_8bf155af",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001019
+      },
+      "writtenOn": "2025-01-28T05:27:55Z",
+      "side": 1,
+      "message": "Updated the version file",
+      "parentUuid": "8ffbf73d_39e826a7",
+      "revId": "4a80a13667ee67fdbb891afa9b59ecaa97f58435",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5ae49576_1d3c7e7c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001019
+      },
+      "writtenOn": "2025-01-28T05:27:55Z",
+      "side": 1,
+      "message": "Added defect ID",
+      "parentUuid": "bfca2f2c_aaec7112",
+      "revId": "4a80a13667ee67fdbb891afa9b59ecaa97f58435",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
