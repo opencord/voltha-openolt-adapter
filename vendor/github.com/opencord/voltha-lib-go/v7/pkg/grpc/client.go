@@ -60,6 +60,12 @@ const (
 )
 
 const (
+	// [VOL-5434] Setting max receive message size to 20 MB,
+	// Default value of 'defaultServerMaxReceiveMessageSize' is 4 MB
+	grpcRecvMsgSizeLimit = 20
+)
+
+const (
 	eventConnecting = event(iota)
 	eventValidatingConnection
 	eventConnected
@@ -612,6 +618,7 @@ func (c *Client) connectToEndpoint(ctx context.Context, p *probe.Probe, retry_in
 	}
 	conn, err := grpc.Dial(c.serverEndPoint,
 		grpc.WithInsecure(),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcRecvMsgSizeLimit*1024*1024)),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
 			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
 		)),
