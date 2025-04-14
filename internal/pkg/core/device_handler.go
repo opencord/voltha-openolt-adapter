@@ -1024,6 +1024,16 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 	// Clear olt communication failure event
 	dh.device.ConnectStatus = voltha.ConnectStatus_REACHABLE
 	dh.device.OperStatus = voltha.OperStatus_ACTIVE
+
+	ports, err := dh.listDevicePortsFromCore(ctx, dh.device.Id)
+	if err != nil {
+		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
+	}
+	dh.populateActivePorts(ctx, ports.Items)
+	if err := dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
+		logger.Error(ctx, "port-status-update-failed", log.Fields{"error": err, "ports": ports})
+	}
+
 	raisedTs := time.Now().Unix()
 	go dh.eventMgr.oltCommunicationEvent(ctx, dh.device, raisedTs)
 
@@ -1202,16 +1212,6 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 		go startHeartbeatCheck(ctx, dh)
 
 		return nil
-	}
-
-	ports, err := dh.listDevicePortsFromCore(ctx, dh.device.Id)
-	if err != nil {
-		/*TODO: needs to handle error scenarios */
-		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
-	}
-	dh.populateActivePorts(ctx, ports.Items)
-	if err := dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
-		return olterrors.NewErrAdapter("port-status-update-failed", log.Fields{"ports": ports}, err)
 	}
 
 	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
