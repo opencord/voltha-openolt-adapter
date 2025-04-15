@@ -1017,7 +1017,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 		"ConnStatus": deviceStateFilter.ConnStatus,
 	})
 	// Synchronous call to update device state - this method is run in its own go routine
-	if err := dh.updateDeviceStateInCore(ctx, deviceStateFilter); err != nil {
+	if err = dh.updateDeviceStateInCore(ctx, deviceStateFilter); err != nil {
 		return olterrors.NewErrAdapter("device-state-update-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 
@@ -1030,7 +1030,7 @@ func (dh *DeviceHandler) doStateUp(ctx context.Context) error {
 		return olterrors.NewErrAdapter("fetch-ports-failed", log.Fields{"device-id": dh.device.Id}, err)
 	}
 	dh.populateActivePorts(ctx, ports.Items)
-	if err := dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
+	if err = dh.disableAdminDownPorts(ctx, ports.Items); err != nil {
 		logger.Error(ctx, "port-status-update-failed", log.Fields{"error": err, "ports": ports})
 	}
 
