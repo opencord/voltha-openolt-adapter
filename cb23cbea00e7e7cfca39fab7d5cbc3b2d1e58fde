@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95e02079_9f32949c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2025-04-15T08:29:16Z",
+      "side": 1,
+      "message": "\u003e Patch Set 1: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2533/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_licensed/2674/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/2053/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2528/ : SUCCESS\n\nrecheck",
+      "revId": "cb23cbea00e7e7cfca39fab7d5cbc3b2d1e58fde",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
