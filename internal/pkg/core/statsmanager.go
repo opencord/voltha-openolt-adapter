@@ -386,26 +386,28 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 		}
 	}
 
-	for _, mName := range metrics {
-		switch mName {
-		case "rx_bytes":
-			nnival["RxBytes"] = float32(cm.RxBytes)
-		case "rx_packets":
-			nnival["RxPackets"] = float32(cm.RxPackets)
-		case "rx_ucast_packets":
-			nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
-		case "rx_mcast_packets":
-			nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
-		case "rx_bcast_packets":
-			nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
-		case "tx_bytes":
-			nnival["TxBytes"] = float32(cm.TxBytes)
-		case "tx_packets":
-			nnival["TxPackets"] = float32(cm.TxPackets)
-		case "tx_mcast_packets":
-			nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
-		case "tx_bcast_packets":
-			nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
+	if cm != nil {
+		for _, mName := range metrics {
+			switch mName {
+			case "rx_bytes":
+				nnival["RxBytes"] = float32(cm.RxBytes)
+			case "rx_packets":
+				nnival["RxPackets"] = float32(cm.RxPackets)
+			case "rx_ucast_packets":
+				nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
+			case "rx_mcast_packets":
+				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
+			case "rx_bcast_packets":
+				nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			case "tx_bytes":
+				nnival["TxBytes"] = float32(cm.TxBytes)
+			case "tx_packets":
+				nnival["TxPackets"] = float32(cm.TxPackets)
+			case "tx_mcast_packets":
+				nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
+			case "tx_bcast_packets":
+				nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			}
 		}
 	}
 	return nnival
@@ -426,26 +428,28 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 		}
 	}
 
-	for _, mName := range metrics {
-		switch mName {
-		case "rx_bytes":
-			ponval["RxBytes"] = float32(cm.RxBytes)
-		case "rx_packets":
-			ponval["RxPackets"] = float32(cm.RxPackets)
-		case "rx_ucast_packets":
-			ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
-		case "rx_mcast_packets":
-			ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
-		case "rx_bcast_packets":
-			ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
-		case "tx_bytes":
-			ponval["TxBytes"] = float32(cm.TxBytes)
-		case "tx_packets":
-			ponval["TxPackets"] = float32(cm.TxPackets)
-		case "tx_mcast_packets":
-			ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
-		case "tx_bcast_packets":
-			ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+	if cm != nil {
+		for _, mName := range metrics {
+			switch mName {
+			case "rx_bytes":
+				ponval["RxBytes"] = float32(cm.RxBytes)
+			case "rx_packets":
+				ponval["RxPackets"] = float32(cm.RxPackets)
+			case "rx_ucast_packets":
+				ponval["RxUcastPackets"] = float32(cm.RxUcastPackets)
+			case "rx_mcast_packets":
+				ponval["RxMcastPackets"] = float32(cm.RxMcastPackets)
+			case "rx_bcast_packets":
+				ponval["RxBcastPackets"] = float32(cm.RxBcastPackets)
+			case "tx_bytes":
+				ponval["TxBytes"] = float32(cm.TxBytes)
+			case "tx_packets":
+				ponval["TxPackets"] = float32(cm.TxPackets)
+			case "tx_mcast_packets":
+				ponval["TxMcastPackets"] = float32(cm.TxMcastPackets)
+			case "tx_bcast_packets":
+				ponval["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			}
 		}
 	}
 
