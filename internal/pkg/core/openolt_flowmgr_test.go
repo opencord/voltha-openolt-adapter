@@ -85,30 +85,30 @@ func TestOpenOltFlowMgr_CreateSchedulerQueues(t *testing.T) {
 		wantErr    bool
 	}{
 		// TODO: Add test cases.
-		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 1, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
-		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 1, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
-		{"CreateSchedulerQueues-13", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
-		{"CreateSchedulerQueues-14", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
-		{"CreateSchedulerQueues-15", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
-		{"CreateSchedulerQueues-16", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
-		{"CreateSchedulerQueues-17", schedQueue{tprofile, createFlowMetadata(tprofile, 4, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
-		{"CreateSchedulerQueues-18", schedQueue{tprofile2, createFlowMetadata(tprofile2, 4, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
-		{"CreateSchedulerQueues-19", schedQueue{tprofile, createFlowMetadata(tprofile, 5, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, false},
-		{"CreateSchedulerQueues-20", schedQueue{tprofile2, createFlowMetadata(tprofile2, 5, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 1, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 1, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-13", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-14", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-15", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-16", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-17", schedQueue{tprofile, createFlowMetadata(tprofile, 4, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-18", schedQueue{tprofile2, createFlowMetadata(tprofile2, 4, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, false},
+		{"CreateSchedulerQueues-19", schedQueue{tprofile, createFlowMetadata(tprofile, 5, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, false},
+		{"CreateSchedulerQueues-20", schedQueue{tprofile2, createFlowMetadata(tprofile2, 5, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, false},
 
 		// Negative testcases
-		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 0, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, true},
-		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 0, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, true},
-		{"CreateSchedulerQueues-3", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 2}, true},
-		{"CreateSchedulerQueues-4", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
-		{"CreateSchedulerQueues-5", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 1, 2, 2, 64, 2, 2}, true},
-		{"CreateSchedulerQueues-6", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 1, 2, 2, 65, 2, 2}, true},
-		{"CreateSchedulerQueues-7", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 1}, true},
-		{"CreateSchedulerQueues-8", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 0}, true},
-		{"CreateSchedulerQueues-9", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 1}, true},
-		{"CreateSchedulerQueues-10", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 1, 1, 64, 1, 2}, true},
-		{"CreateSchedulerQueues-11", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
-		{"CreateSchedulerQueues-12", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 0, 1, 1, 65, 1, 2}, true},
+		{"CreateSchedulerQueues-1", schedQueue{tprofile, createFlowMetadata(tprofile, 0, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, true},
+		{"CreateSchedulerQueues-2", schedQueue{tprofile2, createFlowMetadata(tprofile2, 0, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, true},
+		{"CreateSchedulerQueues-3", schedQueue{tprofile, createFlowMetadata(tprofile, 2, Upstream), tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 2}, true},
+		{"CreateSchedulerQueues-4", schedQueue{tprofile2, createFlowMetadata(tprofile2, 2, Downstream), tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 2}, true},
+		{"CreateSchedulerQueues-5", schedQueue{tprofile, createFlowMetadata(tprofile, 3, Upstream), tp_pb.Direction_UPSTREAM, 1, 0, 2, 2, 64, 2, 2}, true},
+		{"CreateSchedulerQueues-6", schedQueue{tprofile2, createFlowMetadata(tprofile2, 3, Downstream), tp_pb.Direction_DOWNSTREAM, 1, 0, 2, 2, 65, 2, 2}, true},
+		{"CreateSchedulerQueues-7", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 1}, true},
+		{"CreateSchedulerQueues-8", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 0}, true},
+		{"CreateSchedulerQueues-9", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 1}, true},
+		{"CreateSchedulerQueues-10", schedQueue{tprofile, &ofp.FlowMetadata{}, tp_pb.Direction_UPSTREAM, 0, 0, 1, 1, 64, 1, 2}, true},
+		{"CreateSchedulerQueues-11", schedQueue{tprofile2, &ofp.FlowMetadata{}, tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 2}, true},
+		{"CreateSchedulerQueues-12", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 0, 0, 1, 1, 65, 1, 2}, true},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -186,10 +186,10 @@ func TestOpenOltFlowMgr_RemoveScheduler(t *testing.T) {
 		schedQueue schedQueue
 		wantErr    bool
 	}{
-		{"RemoveScheduler-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, 0}, false},
-		{"RemoveScheduler-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
-		{"RemoveScheduler-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
-		{"RemoveScheduler-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveScheduler-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 0, 1, 1, 64, 1, 0}, false},
+		{"RemoveScheduler-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
+		{"RemoveScheduler-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
+		{"RemoveScheduler-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -250,10 +250,10 @@ func TestOpenOltFlowMgr_RemoveQueues(t *testing.T) {
 		schedQueue schedQueue
 		wantErr    bool
 	}{
-		{"RemoveQueues-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 1, 1, 64, 1, 0}, false},
-		{"RemoveQueues-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
-		{"RemoveQueues-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
-		{"RemoveQueues-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 1, 1, 65, 1, 0}, false},
+		{"RemoveQueues-1", schedQueue{tprofile, nil, tp_pb.Direction_UPSTREAM, 1, 0, 1, 1, 64, 1, 0}, false},
+		{"RemoveQueues-2", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
+		{"RemoveQueues-3", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
+		{"RemoveQueues-4", schedQueue{tprofile2, nil, tp_pb.Direction_DOWNSTREAM, 1, 0, 1, 1, 65, 1, 0}, false},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -276,6 +276,7 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 	}
 	type args struct {
 		intfID       uint32
+		nniIntfID    uint32
 		onuID        uint32
 		uniID        uint32
 		uni          string
@@ -295,7 +296,7 @@ func TestOpenOltFlowMgr_createTcontGemports(t *testing.T) {
 	defer cancel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, tpInst := flowMgr[tt.args.intfID].createTcontGemports(ctx, tt.args.intfID, tt.args.onuID, tt.args.uniID, tt.args.uni, tt.args.uniPort, tt.args.TpID, tt.args.UsMeterID, tt.args.DsMeterID, tt.args.flowMetadata)
+			_, _, tpInst := flowMgr[tt.args.intfID].createTcontGemports(ctx, tt.args.intfID, tt.args.nniIntfID, tt.args.onuID, tt.args.uniID, tt.args.uni, tt.args.uniPort, tt.args.TpID, tt.args.UsMeterID, tt.args.DsMeterID, tt.args.flowMetadata)
 			switch tpInst := tpInst.(type) {
 			case *tp_pb.TechProfileInstance:
 				if tt.args.TpID != 64 {
