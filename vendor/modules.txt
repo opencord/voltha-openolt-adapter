@@ -305,10 +305,22 @@ golang.org/x/net/trace
 golang.org/x/sys/unix
 # golang.org/x/text v0.16.0
 ## explicit; go 1.18
+golang.org/x/text/collate
+golang.org/x/text/collate/build
+golang.org/x/text/internal/colltab
+golang.org/x/text/internal/gen
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/internal/triegen
+golang.org/x/text/internal/ucd
+golang.org/x/text/language
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/cldr
 golang.org/x/text/unicode/norm
+golang.org/x/text/unicode/rangetable
 # golang.org/x/tools v0.22.0
 ## explicit; go 1.19
 # google.golang.org/genproto v0.0.0-20230629202037-9506855d4529
