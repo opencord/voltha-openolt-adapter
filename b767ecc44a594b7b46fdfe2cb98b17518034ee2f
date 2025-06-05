@@ -75,6 +75,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "50c7e76d_4ddc45ac",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2228,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-06-05T14:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dde9d2b2_eb1501ec",
+      "range": {
+        "startLine": 2228,
+        "startChar": 0,
+        "endLine": 2228,
+        "endChar": 6
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bc2ee2ea_8bf6bdfc",
@@ -88,6 +112,30 @@
       "writtenOn": "2024-05-13T21:01:29Z",
       "side": 1,
       "message": "Controller Bound Flows are also upstream flows and need to be considered here.",
+      "range": {
+        "startLine": 2456,
+        "startChar": 2,
+        "endLine": 2456,
+        "endChar": 47
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "34f06f9b_350380db",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2456,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-06-05T14:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc2ee2ea_8bf6bdfc",
       "range": {
         "startLine": 2456,
         "startChar": 2,
@@ -121,6 +169,30 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62fc08b4_b91399c5",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2903,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-06-05T14:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50a52a74_0bb1d48c",
+      "range": {
+        "startLine": 2903,
+        "startChar": 2,
+        "endLine": 2903,
+        "endChar": 43
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "28afc709_3bffdf11",
@@ -134,6 +206,30 @@
       "writtenOn": "2024-05-13T21:01:29Z",
       "side": 1,
       "message": "If this is same with portType \u003d\u003d voltha.Port_PON_OLT then we may just an an OR to the first if case.",
+      "range": {
+        "startLine": 3285,
+        "startChar": 0,
+        "endLine": 3285,
+        "endChar": 3
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "19ad08a2_f4c33f5d",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3285,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-06-05T14:02:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28afc709_3bffdf11",
       "range": {
         "startLine": 3285,
         "startChar": 0,
