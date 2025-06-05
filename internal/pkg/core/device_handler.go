@@ -1789,13 +1789,14 @@ func (dh *DeviceHandler) processDiscONULOSClear(ctx context.Context, onuDiscInd 
 
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
 	var error error
+	var tpInstExists bool
 
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
 	defer func() {
-		if error != nil {
+		if error != nil || tpInstExists {
 			logger.Infow(ctx, "onu-processing-errored-out-not-adding-to-discovery-map", log.Fields{"sn": sn})
 		} else {
 			// once the function completes set the value to false so that
@@ -1809,7 +1810,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
-	tpInstExists, error := dh.checkForResourceExistance(ctx, onuDiscInd, sn)
+	tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
 	if error != nil {
 		return error
 	}
