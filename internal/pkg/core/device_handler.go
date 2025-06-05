@@ -1787,29 +1787,32 @@ func (dh *DeviceHandler) processDiscONULOSClear(ctx context.Context, onuDiscInd 
 	})
 }
 
+func (dh *DeviceHandler) handleOnuDiscoveryProcessingError(ctx context.Context, err error, sn string, tpInstExists bool) {
+	if err != nil || tpInstExists {
+		logger.Infow(ctx, "onu-processing-errored-out-not-adding-to-discovery-map", log.Fields{"sn": sn})
+	} else {
+		// once the function completes set the value to false so that
+		// we know the processing has inProcess.
+		// Note that this is done after checking if we are already processing
+		// to avoid changing the value from a different thread
+		logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
+		dh.discOnus.Store(sn, false)
+	}
+}
+
 func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.OnuDiscIndication) error {
 	var error error
+	var tpInstExists bool
 
 	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
 
 	sn := dh.stringifySerialNumber(onuDiscInd.SerialNumber)
-	defer func() {
-		if error != nil {
-			logger.Infow(ctx, "onu-processing-errored-out-not-adding-to-discovery-map", log.Fields{"sn": sn})
-		} else {
-			// once the function completes set the value to false so that
-			// we know the processing has inProcess.
-			// Note that this is done after checking if we are already processing
-			// to avoid changing the value from a different thread
-			logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
-			dh.discOnus.Store(sn, false)
-		}
-	}()
+	defer dh.handleOnuDiscoveryProcessingError(ctx, error, sn)
 
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
-	tpInstExists, error := dh.checkForResourceExistance(ctx, onuDiscInd, sn)
+	tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
 	if error != nil {
 		return error
 	}
