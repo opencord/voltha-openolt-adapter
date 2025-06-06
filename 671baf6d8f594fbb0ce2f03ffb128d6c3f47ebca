@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e5777011_5e4c011f",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2205,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-06-06T16:19:59Z",
+      "side": 1,
+      "message": "Controller bound flows?",
+      "range": {
+        "startLine": 2205,
+        "startChar": 0,
+        "endLine": 2205,
+        "endChar": 5
+      },
+      "revId": "671baf6d8f594fbb0ce2f03ffb128d6c3f47ebca",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "95f6d670_5c6bd4a5",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2442,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-06-06T16:19:59Z",
+      "side": 1,
+      "message": "For controller bound flows nni_port will be 0. Is this a correct value? Is it ok to call processAddFlow with nni 0?",
+      "range": {
+        "startLine": 2442,
+        "startChar": 0,
+        "endLine": 2442,
+        "endChar": 3
+      },
+      "revId": "671baf6d8f594fbb0ce2f03ffb128d6c3f47ebca",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "30eb208c_17d2cb94",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2888,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-06-06T16:19:59Z",
+      "side": 1,
+      "message": "For controller bound flows nni_port will be 0. Is this a correct value? Is it ok to call clearResources with nni 0?",
+      "range": {
+        "startLine": 2888,
+        "startChar": 0,
+        "endLine": 2888,
+        "endChar": 6
+      },
+      "revId": "671baf6d8f594fbb0ce2f03ffb128d6c3f47ebca",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
