@@ -18,266 +18,738 @@
 package mocks
 
 import (
-	"context"
-	"errors"
-	"io"
+	context "context"
+	reflect "reflect"
 
+	common "github.com/opencord/voltha-protos/v5/go/common"
 	config "github.com/opencord/voltha-protos/v5/go/ext/config"
-	"github.com/opencord/voltha-protos/v5/go/extension"
+	extension "github.com/opencord/voltha-protos/v5/go/extension"
 	openolt "github.com/opencord/voltha-protos/v5/go/openolt"
 	tech_profile "github.com/opencord/voltha-protos/v5/go/tech_profile"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
+	gomock "go.uber.org/mock/gomock"
+	grpc "google.golang.org/grpc"
 )
 
-// MockOpenoltClient mock struct for OpenoltClient.
+// MockOpenoltClient is a mock of OpenoltClient interface.
 type MockOpenoltClient struct {
-	counter     int
-	IsRestarted bool
+	ctrl     *gomock.Controller
+	recorder *MockOpenoltClientMockRecorder
+	isgomock struct{}
 }
 
-// DisableOlt mocks the DisableOlt function of Openoltclient.
-func (ooc *MockOpenoltClient) DisableOlt(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	// return &openolt.Empty{}, nil
-	if ooc.counter == 0 {
-		ooc.counter++
-		return &openolt.Empty{}, nil
+// MockOpenoltClientMockRecorder is the mock recorder for MockOpenoltClient.
+type MockOpenoltClientMockRecorder struct {
+	mock *MockOpenoltClient
+}
+
+// NewMockOpenoltClient creates a new mock instance.
+func NewMockOpenoltClient(ctrl *gomock.Controller) *MockOpenoltClient {
+	mock := &MockOpenoltClient{ctrl: ctrl}
+	mock.recorder = &MockOpenoltClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOpenoltClient) EXPECT() *MockOpenoltClientMockRecorder {
+	return m.recorder
+}
+
+// ActivateOnu mocks base method.
+func (m *MockOpenoltClient) ActivateOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return nil, errors.New("disableOlt failed")
+	ret := m.ctrl.Call(m, "ActivateOnu", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// ReenableOlt mocks the ReenableOlt function of Openoltclient.
-func (ooc *MockOpenoltClient) ReenableOlt(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	if ooc.counter == 0 {
-		ooc.counter++
-		return &openolt.Empty{}, nil
+// ActivateOnu indicates an expected call of ActivateOnu.
+func (mr *MockOpenoltClientMockRecorder) ActivateOnu(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActivateOnu", reflect.TypeOf((*MockOpenoltClient)(nil).ActivateOnu), varargs...)
+}
+
+// CollectStatistics mocks base method.
+func (m *MockOpenoltClient) CollectStatistics(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return nil, errors.New("reenable olt failed")
+	ret := m.ctrl.Call(m, "CollectStatistics", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// ActivateOnu mocks the ActivateOnu function of Openoltclient.
-func (ooc *MockOpenoltClient) ActivateOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	if in == nil {
-		return nil, errors.New("invalid onuId")
+// CollectStatistics indicates an expected call of CollectStatistics.
+func (mr *MockOpenoltClientMockRecorder) CollectStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CollectStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).CollectStatistics), varargs...)
+}
+
+// CreateTrafficQueues mocks base method.
+func (m *MockOpenoltClient) CreateTrafficQueues(ctx context.Context, in *tech_profile.TrafficQueues, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return &openolt.Empty{}, nil
+	ret := m.ctrl.Call(m, "CreateTrafficQueues", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// DeactivateOnu mocks the DeactivateOnu function of Openoltclient.
-func (ooc *MockOpenoltClient) DeactivateOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
+// CreateTrafficQueues indicates an expected call of CreateTrafficQueues.
+func (mr *MockOpenoltClientMockRecorder) CreateTrafficQueues(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficQueues", reflect.TypeOf((*MockOpenoltClient)(nil).CreateTrafficQueues), varargs...)
 }
 
-// DeleteOnu mocks the DeleteOnu function of Openoltclient.
-func (ooc *MockOpenoltClient) DeleteOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// OmciMsgOut mocks the OmciMsgOut function of Openoltclient.
-func (ooc *MockOpenoltClient) OmciMsgOut(ctx context.Context, in *openolt.OmciMsg, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	if in == nil {
-		return nil, errors.New("invalid Omci Msg")
+// CreateTrafficSchedulers mocks base method.
+func (m *MockOpenoltClient) CreateTrafficSchedulers(ctx context.Context, in *tech_profile.TrafficSchedulers, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return &openolt.Empty{}, nil
+	ret := m.ctrl.Call(m, "CreateTrafficSchedulers", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// OnuPacketOut mocks the OnuPacketOut function of Openoltclient.
-func (ooc *MockOpenoltClient) OnuPacketOut(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
+// CreateTrafficSchedulers indicates an expected call of CreateTrafficSchedulers.
+func (mr *MockOpenoltClientMockRecorder) CreateTrafficSchedulers(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrafficSchedulers", reflect.TypeOf((*MockOpenoltClient)(nil).CreateTrafficSchedulers), varargs...)
 }
 
-// UplinkPacketOut mocks the UplinkPacketOut function of Openoltclient.
-func (ooc *MockOpenoltClient) UplinkPacketOut(ctx context.Context, in *openolt.UplinkPacket, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// FlowAdd mocks the FlowAdd function of Openoltclient.
-func (ooc *MockOpenoltClient) FlowAdd(ctx context.Context, in *openolt.Flow, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// FlowRemove mocks the FlowRemove function of Openoltclient.
-func (ooc *MockOpenoltClient) FlowRemove(ctx context.Context, in *openolt.Flow, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// HeartbeatCheck mocks the HeartbeatCheck function of Openoltclient.
-func (ooc *MockOpenoltClient) HeartbeatCheck(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Heartbeat, error) {
-	return nil, nil
-}
-
-// EnablePonIf mocks the EnablePonIf function of Openoltclient.
-func (ooc *MockOpenoltClient) EnablePonIf(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// DisablePonIf mocks the DisablePonIf function of Openoltclient.
-func (ooc *MockOpenoltClient) DisablePonIf(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// GetDeviceInfo mocks the GetDeviceInfo function of Openoltclient.
-func (ooc *MockOpenoltClient) GetDeviceInfo(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.DeviceInfo, error) {
-	if ooc.counter == 0 {
-		ooc.counter++
-		deviceInfo := &openolt.DeviceInfo{Vendor: "Openolt", Model: "1.0", HardwareVersion: "1.0", FirmwareVersion: "1.0", DeviceId: "olt", DeviceSerialNumber: "olt"}
-		return deviceInfo, nil
+// DeactivateOnu mocks base method.
+func (m *MockOpenoltClient) DeactivateOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	if ooc.counter == 1 {
-		ooc.counter++
-		deviceInfo := &openolt.DeviceInfo{Vendor: "Openolt", Model: "1.0", HardwareVersion: "1.0", FirmwareVersion: "1.0", DeviceId: "", DeviceSerialNumber: "olt"}
-		return deviceInfo, nil
+	ret := m.ctrl.Call(m, "DeactivateOnu", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeactivateOnu indicates an expected call of DeactivateOnu.
+func (mr *MockOpenoltClientMockRecorder) DeactivateOnu(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOnu", reflect.TypeOf((*MockOpenoltClient)(nil).DeactivateOnu), varargs...)
+}
+
+// DeleteGroup mocks base method.
+func (m *MockOpenoltClient) DeleteGroup(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	if ooc.counter == 2 {
-		ooc.counter++
-		return nil, nil
+	ret := m.ctrl.Call(m, "DeleteGroup", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockOpenoltClientMockRecorder) DeleteGroup(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockOpenoltClient)(nil).DeleteGroup), varargs...)
+}
+
+// DeleteOnu mocks base method.
+func (m *MockOpenoltClient) DeleteOnu(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-
-	return nil, errors.New("device info not found")
+	ret := m.ctrl.Call(m, "DeleteOnu", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Reboot mocks the Reboot function of Openoltclient.
-func (ooc *MockOpenoltClient) Reboot(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	if ooc.counter == 0 {
-		ooc.counter++
-		ooc.IsRestarted = true
-		return &openolt.Empty{}, nil
+// DeleteOnu indicates an expected call of DeleteOnu.
+func (mr *MockOpenoltClientMockRecorder) DeleteOnu(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOnu", reflect.TypeOf((*MockOpenoltClient)(nil).DeleteOnu), varargs...)
+}
+
+// DisableOlt mocks base method.
+func (m *MockOpenoltClient) DisableOlt(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return nil, errors.New("reboot failed")
+	ret := m.ctrl.Call(m, "DisableOlt", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// CollectStatistics mocks the CollectStatistics function of Openoltclient.
-func (ooc *MockOpenoltClient) CollectStatistics(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
+// DisableOlt indicates an expected call of DisableOlt.
+func (mr *MockOpenoltClientMockRecorder) DisableOlt(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisableOlt", reflect.TypeOf((*MockOpenoltClient)(nil).DisableOlt), varargs...)
 }
 
-// CreateTrafficSchedulers mocks the CreateTrafficSchedulers function of Openoltclient.
-func (ooc *MockOpenoltClient) CreateTrafficSchedulers(ctx context.Context, in *tech_profile.TrafficSchedulers, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// RemoveTrafficSchedulers mocks the RemoveTrafficSchedulers function of Openoltclient.
-func (ooc *MockOpenoltClient) RemoveTrafficSchedulers(ctx context.Context, in *tech_profile.TrafficSchedulers, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// CreateTrafficQueues mocks the CreateTrafficQueues function of Openoltclient.
-func (ooc *MockOpenoltClient) CreateTrafficQueues(ctx context.Context, in *tech_profile.TrafficQueues, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// RemoveTrafficQueues mocks the RemoveTrafficQueues function of Openoltclient.
-func (ooc *MockOpenoltClient) RemoveTrafficQueues(ctx context.Context, in *tech_profile.TrafficQueues, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// DeleteGroup mocks the DeleteGroup RPC of Openoltclient.
-func (ooc *MockOpenoltClient) DeleteGroup(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
-}
-
-// GetLogicalOnuDistance mocks the GetLogicalOnuDistance RPC of Openoltclient.
-func (ooc *MockOpenoltClient) GetLogicalOnuDistance(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
-	return &openolt.OnuLogicalDistance{}, nil
-}
-
-// GetLogicalOnuDistanceZero mocks the GetLogicalOnuDistanceZero RPC of Openoltclient.
-func (ooc *MockOpenoltClient) GetLogicalOnuDistanceZero(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
-	return &openolt.OnuLogicalDistance{}, nil
-}
-
-// EnableIndication mocks the EnableIndication function of Openoltclient.
-func (ooc *MockOpenoltClient) EnableIndication(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (openolt.Openolt_EnableIndicationClient, error) {
-	if ooc.counter < 2 {
-		ooc.counter++
-		mockInd := &mockOpenoltEnableIndicationClient{0}
-		return mockInd, nil
+// DisablePonIf mocks base method.
+func (m *MockOpenoltClient) DisablePonIf(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	if ooc.counter == 2 {
-		ooc.counter++
-		return nil, nil
+	ret := m.ctrl.Call(m, "DisablePonIf", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DisablePonIf indicates an expected call of DisablePonIf.
+func (mr *MockOpenoltClientMockRecorder) DisablePonIf(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisablePonIf", reflect.TypeOf((*MockOpenoltClient)(nil).DisablePonIf), varargs...)
+}
+
+// EnableIndication mocks base method.
+func (m *MockOpenoltClient) EnableIndication(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (openolt.Openolt_EnableIndicationClient, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	return nil, errors.New("invalid method invocation")
+	ret := m.ctrl.Call(m, "EnableIndication", varargs...)
+	ret0, _ := ret[0].(openolt.Openolt_EnableIndicationClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-type mockOpenoltEnableIndicationClient struct {
-	count int
+// EnableIndication indicates an expected call of EnableIndication.
+func (mr *MockOpenoltClientMockRecorder) EnableIndication(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnableIndication", reflect.TypeOf((*MockOpenoltClient)(nil).EnableIndication), varargs...)
 }
 
-func (mock *mockOpenoltEnableIndicationClient) Recv() (*openolt.Indication, error) {
-	if mock.count == 0 {
-		mock.count++
-		indi := &openolt.Indication{Data: &openolt.Indication_OltInd{OltInd: &openolt.OltIndication{OperState: "Down"}}}
-		return indi, nil
+// EnablePonIf mocks base method.
+func (m *MockOpenoltClient) EnablePonIf(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-	if mock.count == 1 {
-		mock.count++
-		return nil, errors.New("error, while processing indication")
+	ret := m.ctrl.Call(m, "EnablePonIf", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EnablePonIf indicates an expected call of EnablePonIf.
+func (mr *MockOpenoltClientMockRecorder) EnablePonIf(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnablePonIf", reflect.TypeOf((*MockOpenoltClient)(nil).EnablePonIf), varargs...)
+}
+
+// FlowAdd mocks base method.
+func (m *MockOpenoltClient) FlowAdd(ctx context.Context, in *openolt.Flow, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
 	}
-
-	return nil, io.EOF
+	ret := m.ctrl.Call(m, "FlowAdd", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (mock *mockOpenoltEnableIndicationClient) Header() (metadata.MD, error) {
-	return nil, nil
+// FlowAdd indicates an expected call of FlowAdd.
+func (mr *MockOpenoltClientMockRecorder) FlowAdd(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlowAdd", reflect.TypeOf((*MockOpenoltClient)(nil).FlowAdd), varargs...)
 }
 
-func (mock *mockOpenoltEnableIndicationClient) Trailer() metadata.MD {
-	return nil
+// FlowRemove mocks base method.
+func (m *MockOpenoltClient) FlowRemove(ctx context.Context, in *openolt.Flow, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FlowRemove", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (mock *mockOpenoltEnableIndicationClient) CloseSend() error {
-	return nil
+// FlowRemove indicates an expected call of FlowRemove.
+func (mr *MockOpenoltClientMockRecorder) FlowRemove(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlowRemove", reflect.TypeOf((*MockOpenoltClient)(nil).FlowRemove), varargs...)
 }
 
-func (mock *mockOpenoltEnableIndicationClient) Context() context.Context {
-	return context.Background()
+// GetAllocIdStatistics mocks base method.
+func (m *MockOpenoltClient) GetAllocIdStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.OnuAllocIdStatistics, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetAllocIdStatistics", varargs...)
+	ret0, _ := ret[0].(*openolt.OnuAllocIdStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (mock *mockOpenoltEnableIndicationClient) SendMsg(m interface{}) error {
-	return nil
+// GetAllocIdStatistics indicates an expected call of GetAllocIdStatistics.
+func (mr *MockOpenoltClientMockRecorder) GetAllocIdStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllocIdStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).GetAllocIdStatistics), varargs...)
 }
 
-func (mock *mockOpenoltEnableIndicationClient) RecvMsg(m interface{}) error {
-	return nil
+// GetDeviceInfo mocks base method.
+func (m *MockOpenoltClient) GetDeviceInfo(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.DeviceInfo, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetDeviceInfo", varargs...)
+	ret0, _ := ret[0].(*openolt.DeviceInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GetExtValue mocks the GetExtValue function of Openoltclient.
-func (ooc *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.ValueParam, opts ...grpc.CallOption) (*extension.ReturnValues, error) {
-	return &extension.ReturnValues{}, nil
+// GetDeviceInfo indicates an expected call of GetDeviceInfo.
+func (mr *MockOpenoltClientMockRecorder) GetDeviceInfo(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeviceInfo", reflect.TypeOf((*MockOpenoltClient)(nil).GetDeviceInfo), varargs...)
 }
 
-// OnuItuPonAlarmSet mocks the OnuItuPonAlarmSet function of Openoltclient.
-func (ooc *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *config.OnuItuPonAlarm, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
+// GetExtValue mocks base method.
+func (m *MockOpenoltClient) GetExtValue(ctx context.Context, in *openolt.ValueParam, opts ...grpc.CallOption) (*extension.ReturnValues, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetExtValue", varargs...)
+	ret0, _ := ret[0].(*extension.ReturnValues)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// PerformGroupOperation mocks the PerformGroupOperation function of Openoltclient.
-func (ooc *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
-	return &openolt.Empty{}, nil
+// GetExtValue indicates an expected call of GetExtValue.
+func (mr *MockOpenoltClientMockRecorder) GetExtValue(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExtValue", reflect.TypeOf((*MockOpenoltClient)(nil).GetExtValue), varargs...)
 }
 
-// GetOnuStatistics mocks the GetOnuStatistics function of Openoltclient.
-func (ooc *MockOpenoltClient) GetOnuStatistics(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuStatistics, error) {
-	return &openolt.OnuStatistics{}, nil
+// GetGemPortStatistics mocks base method.
+func (m *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.GemPortStatistics, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetGemPortStatistics", varargs...)
+	ret0, _ := ret[0].(*openolt.GemPortStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GetGemPortStatistics mocks the GetGemPortStatistics function of Openoltclient.
-func (ooc *MockOpenoltClient) GetGemPortStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.GemPortStatistics, error) {
-	return &openolt.GemPortStatistics{}, nil
+// GetGemPortStatistics indicates an expected call of GetGemPortStatistics.
+func (mr *MockOpenoltClientMockRecorder) GetGemPortStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGemPortStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).GetGemPortStatistics), varargs...)
 }
 
-// GetPonRxPower mocks the GetPonRxPower function of Openoltclient.
-func (ooc *MockOpenoltClient) GetPonRxPower(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.PonRxPowerData, error) {
-	return &openolt.PonRxPowerData{}, nil
+// GetLogicalOnuDistance mocks base method.
+func (m *MockOpenoltClient) GetLogicalOnuDistance(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetLogicalOnuDistance", varargs...)
+	ret0, _ := ret[0].(*openolt.OnuLogicalDistance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GetOnuInfo mocks the GetOnuInfo function of Openoltclient.
-func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuInfo, error) {
-	return &openolt.OnuInfo{}, nil
+// GetLogicalOnuDistance indicates an expected call of GetLogicalOnuDistance.
+func (mr *MockOpenoltClientMockRecorder) GetLogicalOnuDistance(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogicalOnuDistance", reflect.TypeOf((*MockOpenoltClient)(nil).GetLogicalOnuDistance), varargs...)
 }
 
-// GetPonInterfaceInfo mocks the GetPonInterfaceInfo function of Openoltclient.
-func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
-	return &openolt.PonIntfInfo{}, nil
+// GetLogicalOnuDistanceZero mocks base method.
+func (m *MockOpenoltClient) GetLogicalOnuDistanceZero(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuLogicalDistance, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetLogicalOnuDistanceZero", varargs...)
+	ret0, _ := ret[0].(*openolt.OnuLogicalDistance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLogicalOnuDistanceZero indicates an expected call of GetLogicalOnuDistanceZero.
+func (mr *MockOpenoltClientMockRecorder) GetLogicalOnuDistanceZero(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogicalOnuDistanceZero", reflect.TypeOf((*MockOpenoltClient)(nil).GetLogicalOnuDistanceZero), varargs...)
+}
+
+// GetNniPortStatistics mocks base method.
+func (m *MockOpenoltClient) GetNniPortStatistics(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*common.PortStatistics, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetNniPortStatistics", varargs...)
+	ret0, _ := ret[0].(*common.PortStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNniPortStatistics indicates an expected call of GetNniPortStatistics.
+func (mr *MockOpenoltClientMockRecorder) GetNniPortStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNniPortStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).GetNniPortStatistics), varargs...)
+}
+
+// GetOnuInfo mocks base method.
+func (m *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuInfo, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetOnuInfo", varargs...)
+	ret0, _ := ret[0].(*openolt.OnuInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOnuInfo indicates an expected call of GetOnuInfo.
+func (mr *MockOpenoltClientMockRecorder) GetOnuInfo(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOnuInfo", reflect.TypeOf((*MockOpenoltClient)(nil).GetOnuInfo), varargs...)
+}
+
+// GetOnuStatistics mocks base method.
+func (m *MockOpenoltClient) GetOnuStatistics(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.OnuStatistics, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetOnuStatistics", varargs...)
+	ret0, _ := ret[0].(*openolt.OnuStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOnuStatistics indicates an expected call of GetOnuStatistics.
+func (mr *MockOpenoltClientMockRecorder) GetOnuStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOnuStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).GetOnuStatistics), varargs...)
+}
+
+// GetPonInterfaceInfo mocks base method.
+func (m *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPonInterfaceInfo", varargs...)
+	ret0, _ := ret[0].(*openolt.PonIntfInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPonInterfaceInfo indicates an expected call of GetPonInterfaceInfo.
+func (mr *MockOpenoltClientMockRecorder) GetPonInterfaceInfo(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPonInterfaceInfo", reflect.TypeOf((*MockOpenoltClient)(nil).GetPonInterfaceInfo), varargs...)
+}
+
+// GetPonPortStatistics mocks base method.
+func (m *MockOpenoltClient) GetPonPortStatistics(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*common.PortStatistics, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPonPortStatistics", varargs...)
+	ret0, _ := ret[0].(*common.PortStatistics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPonPortStatistics indicates an expected call of GetPonPortStatistics.
+func (mr *MockOpenoltClientMockRecorder) GetPonPortStatistics(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPonPortStatistics", reflect.TypeOf((*MockOpenoltClient)(nil).GetPonPortStatistics), varargs...)
+}
+
+// GetPonRxPower mocks base method.
+func (m *MockOpenoltClient) GetPonRxPower(ctx context.Context, in *openolt.Onu, opts ...grpc.CallOption) (*openolt.PonRxPowerData, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPonRxPower", varargs...)
+	ret0, _ := ret[0].(*openolt.PonRxPowerData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPonRxPower indicates an expected call of GetPonRxPower.
+func (mr *MockOpenoltClientMockRecorder) GetPonRxPower(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPonRxPower", reflect.TypeOf((*MockOpenoltClient)(nil).GetPonRxPower), varargs...)
+}
+
+// HeartbeatCheck mocks base method.
+func (m *MockOpenoltClient) HeartbeatCheck(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Heartbeat, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "HeartbeatCheck", varargs...)
+	ret0, _ := ret[0].(*openolt.Heartbeat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HeartbeatCheck indicates an expected call of HeartbeatCheck.
+func (mr *MockOpenoltClientMockRecorder) HeartbeatCheck(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HeartbeatCheck", reflect.TypeOf((*MockOpenoltClient)(nil).HeartbeatCheck), varargs...)
+}
+
+// OmciMsgOut mocks base method.
+func (m *MockOpenoltClient) OmciMsgOut(ctx context.Context, in *openolt.OmciMsg, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "OmciMsgOut", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OmciMsgOut indicates an expected call of OmciMsgOut.
+func (mr *MockOpenoltClientMockRecorder) OmciMsgOut(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OmciMsgOut", reflect.TypeOf((*MockOpenoltClient)(nil).OmciMsgOut), varargs...)
+}
+
+// OnuItuPonAlarmSet mocks base method.
+func (m *MockOpenoltClient) OnuItuPonAlarmSet(ctx context.Context, in *config.OnuItuPonAlarm, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "OnuItuPonAlarmSet", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OnuItuPonAlarmSet indicates an expected call of OnuItuPonAlarmSet.
+func (mr *MockOpenoltClientMockRecorder) OnuItuPonAlarmSet(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnuItuPonAlarmSet", reflect.TypeOf((*MockOpenoltClient)(nil).OnuItuPonAlarmSet), varargs...)
+}
+
+// OnuPacketOut mocks base method.
+func (m *MockOpenoltClient) OnuPacketOut(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "OnuPacketOut", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OnuPacketOut indicates an expected call of OnuPacketOut.
+func (mr *MockOpenoltClientMockRecorder) OnuPacketOut(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnuPacketOut", reflect.TypeOf((*MockOpenoltClient)(nil).OnuPacketOut), varargs...)
+}
+
+// PerformGroupOperation mocks base method.
+func (m *MockOpenoltClient) PerformGroupOperation(ctx context.Context, in *openolt.Group, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PerformGroupOperation", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PerformGroupOperation indicates an expected call of PerformGroupOperation.
+func (mr *MockOpenoltClientMockRecorder) PerformGroupOperation(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PerformGroupOperation", reflect.TypeOf((*MockOpenoltClient)(nil).PerformGroupOperation), varargs...)
+}
+
+// Reboot mocks base method.
+func (m *MockOpenoltClient) Reboot(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Reboot", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Reboot indicates an expected call of Reboot.
+func (mr *MockOpenoltClientMockRecorder) Reboot(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reboot", reflect.TypeOf((*MockOpenoltClient)(nil).Reboot), varargs...)
+}
+
+// ReenableOlt mocks base method.
+func (m *MockOpenoltClient) ReenableOlt(ctx context.Context, in *openolt.Empty, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ReenableOlt", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReenableOlt indicates an expected call of ReenableOlt.
+func (mr *MockOpenoltClientMockRecorder) ReenableOlt(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReenableOlt", reflect.TypeOf((*MockOpenoltClient)(nil).ReenableOlt), varargs...)
+}
+
+// RemoveTrafficQueues mocks base method.
+func (m *MockOpenoltClient) RemoveTrafficQueues(ctx context.Context, in *tech_profile.TrafficQueues, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveTrafficQueues", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveTrafficQueues indicates an expected call of RemoveTrafficQueues.
+func (mr *MockOpenoltClientMockRecorder) RemoveTrafficQueues(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTrafficQueues", reflect.TypeOf((*MockOpenoltClient)(nil).RemoveTrafficQueues), varargs...)
+}
+
+// RemoveTrafficSchedulers mocks base method.
+func (m *MockOpenoltClient) RemoveTrafficSchedulers(ctx context.Context, in *tech_profile.TrafficSchedulers, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveTrafficSchedulers", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveTrafficSchedulers indicates an expected call of RemoveTrafficSchedulers.
+func (mr *MockOpenoltClientMockRecorder) RemoveTrafficSchedulers(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTrafficSchedulers", reflect.TypeOf((*MockOpenoltClient)(nil).RemoveTrafficSchedulers), varargs...)
+}
+
+// UplinkPacketOut mocks base method.
+func (m *MockOpenoltClient) UplinkPacketOut(ctx context.Context, in *openolt.UplinkPacket, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UplinkPacketOut", varargs...)
+	ret0, _ := ret[0].(*openolt.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UplinkPacketOut indicates an expected call of UplinkPacketOut.
+func (mr *MockOpenoltClientMockRecorder) UplinkPacketOut(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UplinkPacketOut", reflect.TypeOf((*MockOpenoltClient)(nil).UplinkPacketOut), varargs...)
 }

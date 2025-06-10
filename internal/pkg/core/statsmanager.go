@@ -29,6 +29,7 @@ import (
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
+	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/extension"
 	"github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
@@ -612,7 +613,7 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 }
 
 // PortStatisticsIndication handles the port statistics indication
-func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
+func (StatMgr *OpenOltStatisticsMgr) PortStatisticsIndication(ctx context.Context, PortStats *common.PortStatistics, NumPonPorts uint32) {
 	StatMgr.PortsStatisticsKpis(ctx, PortStats, NumPonPorts)
 	logger.Debugw(ctx, "received-port-stats-indication", log.Fields{"port-stats": PortStats})
 	// Indicate that PortStatisticsIndication is handled
@@ -628,7 +629,7 @@ func FlowStatisticsIndication(ctx context.Context, self, FlowStats *openolt.Flow
 }
 
 // PortsStatisticsKpis map the port stats values into a dictionary, creates the kpiEvent and then publish to Kafka
-func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, PortStats *openolt.PortStatistics, NumPonPorts uint32) {
+func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, PortStats *common.PortStatistics, NumPonPorts uint32) {
 	/*map the port stats values into a dictionary
 	  Create a kpoEvent and publish to Kafka
 
