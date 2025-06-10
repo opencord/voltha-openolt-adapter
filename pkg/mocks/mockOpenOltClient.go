@@ -22,6 +22,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/opencord/voltha-protos/v5/go/common"
 	config "github.com/opencord/voltha-protos/v5/go/ext/config"
 	"github.com/opencord/voltha-protos/v5/go/extension"
 	openolt "github.com/opencord/voltha-protos/v5/go/openolt"
@@ -280,4 +281,19 @@ func (ooc *MockOpenoltClient) GetOnuInfo(ctx context.Context, in *openolt.Onu, o
 // GetPonInterfaceInfo mocks the GetPonInterfaceInfo function of Openoltclient.
 func (ooc *MockOpenoltClient) GetPonInterfaceInfo(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*openolt.PonIntfInfo, error) {
 	return &openolt.PonIntfInfo{}, nil
+}
+
+// GetAllocIdStatistics mocks base method.
+func (m *MockOpenoltClient) GetAllocIdStatistics(ctx context.Context, in *openolt.OnuPacket, opts ...grpc.CallOption) (*openolt.OnuAllocIdStatistics, error) {
+	return &openolt.OnuAllocIdStatistics{}, nil
+}
+
+// GetNniPortStatistics mocks base method.
+func (m *MockOpenoltClient) GetNniPortStatistics(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*common.PortStatistics, error) {
+	return &common.PortStatistics{}, nil
+}
+
+// GetPonPortStatistics mocks base method.
+func (m *MockOpenoltClient) GetPonPortStatistics(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*common.PortStatistics, error) {
+	return &common.PortStatistics{}, nil
 }
