@@ -440,6 +440,10 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			return handler.getOltOffloadStats(ctx, reqType.OffloadedAppsStats), nil
 		case *extension.GetValueRequest_OnuStatsFromOlt:
 			return handler.getOnuStatsFromOlt(ctx, reqType.OnuStatsFromOlt, onuDevice), nil
+		case *extension.GetValueRequest_OltPonStats:
+			return handler.getPonPortStats(ctx, reqType.OltPonStats), nil
+		case *extension.GetValueRequest_OltNniStats:
+			return handler.getNniPortStats(ctx, reqType.OltNniStats), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}
