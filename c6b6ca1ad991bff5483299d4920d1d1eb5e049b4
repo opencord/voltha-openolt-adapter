@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6bb391fc_ac105b7e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2025-06-12T23:08:28Z",
+      "side": 1,
+      "message": "Jenkins verification needs to be triggered again after flake8 version is fixed in voltha-system-tests",
+      "revId": "c6b6ca1ad991bff5483299d4920d1d1eb5e049b4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
