@@ -406,6 +406,8 @@ func (oo *OpenOLT) GetExtValue(ctx context.Context, extInfo *ca.GetExtValueMessa
 // GetSingleValue handles get uni status on ONU and ondemand metric on OLT
 func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.SingleGetValueRequest) (*extension.SingleGetValueResponse, error) {
 	logger.Infow(ctx, "single_get_value_request", log.Fields{"request": request})
+	var handler *DeviceHandler
+	var onuDevice *voltha.Device
 
 	errResp := func(status extension.GetValueResponse_Status,
 		reason extension.GetValueResponse_ErrorReason) *extension.SingleGetValueResponse {
@@ -416,7 +418,15 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			},
 		}
 	}
-	if handler := oo.getDeviceHandler(request.TargetId); handler != nil {
+
+	switch request.GetRequest().GetRequest().(type) {
+	case *extension.GetValueRequest_OnuStatsFromOlt:
+		handler, onuDevice = oo.GetDeviceHandlerFromChild(ctx, request.TargetId)
+	default:
+		handler = oo.getDeviceHandler(request.TargetId)
+	}
+
+	if handler != nil {
 		switch reqType := request.GetRequest().GetRequest().(type) {
 		case *extension.GetValueRequest_OltPortInfo:
 			return handler.getOltPortCounters(ctx, reqType.OltPortInfo), nil
@@ -428,6 +438,8 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			return handler.getPONRxPower(ctx, reqType.OltRxPower), nil
 		case *extension.GetValueRequest_OffloadedAppsStats:
 			return handler.getOltOffloadStats(ctx, reqType.OffloadedAppsStats), nil
+		case *extension.GetValueRequest_OnuStatsFromOlt:
+			return handler.getOnuStatsFromOlt(ctx, reqType.OnuStatsFromOlt, onuDevice), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}
@@ -463,6 +475,23 @@ func (oo *OpenOLT) SetSingleValue(ctx context.Context, request *extension.Single
 
 	logger.Infow(ctx, "Single_set_value_request failed ", log.Fields{"request": request})
 	return errResp(extension.SetValueResponse_ERROR, extension.SetValueResponse_INVALID_DEVICE_ID), nil
+}
+
+func (oo *OpenOLT) GetDeviceHandlerFromChild(ctx context.Context, deviceId string) (*DeviceHandler, *voltha.Device) {
+	oo.lockDeviceHandlersMap.Lock()
+	defer oo.lockDeviceHandlersMap.Unlock()
+
+	for parentId, handler := range oo.deviceHandlers {
+		devices, _ := handler.getChildDevicesFromCore(ctx, parentId)
+		if devices != nil {
+			for _, onuDevice := range devices.Items {
+				if onuDevice.Id == deviceId {
+					return handler, onuDevice
+				}
+			}
+		}
+	}
+	return nil, nil
 }
 
 /*
