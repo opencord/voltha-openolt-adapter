@@ -50,6 +50,23 @@
       "message": "\u003e Patch Set 3: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/2081/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_licensed/2699/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2553/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2558/ : SUCCESS\n\nrecheck",
       "revId": "c6b6ca1ad991bff5483299d4920d1d1eb5e049b4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03bb26ad_91d437d2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2025-06-17T04:44:22Z",
+      "side": 1,
+      "message": "\u003e Patch Set 3:\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_sanity-test/2084/ : FAILURE\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_licensed/2702/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-tests/2556/ : SUCCESS\n\u003e \n\u003e https://jenkins.opencord.org/job/verify_voltha-openolt-adapter_unit-test-lint/2561/ : SUCCESS\n\nrecheck\n",
+      "revId": "c6b6ca1ad991bff5483299d4920d1d1eb5e049b4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
