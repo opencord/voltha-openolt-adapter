@@ -238,6 +238,30 @@
       },
       "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "41c3280b_b132b570",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 3285,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-06-23T04:37:52Z",
+      "side": 1,
+      "message": "As per the existing implementation, when Inport is a UNI, we return 0 with no error, which means we always return default nni-0.\nThe separate check introduced for UNI in the MR, is to check if there is another nni configured in action[Output]. If not we will return 0 with no error.",
+      "parentUuid": "19ad08a2_f4c33f5d",
+      "range": {
+        "startLine": 3285,
+        "startChar": 0,
+        "endLine": 3285,
+        "endChar": 3
+      },
+      "revId": "b767ecc44a594b7b46fdfe2cb98b17518034ee2f",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
