@@ -80,7 +80,7 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 3.1.1
+VOLTHA_TOOLS_VERSION ?= 3.1.2
 
 ## TODO: Verify / migrate to repo:onf-make
 # GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
@@ -269,7 +269,7 @@ sca:
 	@$(RM) -r ./sca-report
 	@mkdir -p ./sca-report
 	@echo "Running static code analysis..."
-	@${GOLANGCI_LINT} run --out-format junit-xml ./... | tee ./sca-report/sca-report.xml
+	@${GOLANGCI_LINT} run --output.junit-xml.path stdout --verbose ./... | tee ./sca-report/sca-report.xml
 	@echo ""
 	@echo "Static code analysis OK"
 
