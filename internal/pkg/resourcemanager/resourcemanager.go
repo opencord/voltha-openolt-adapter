@@ -355,15 +355,16 @@ func InitializeDeviceResourceRangeAndPool(ctx context.Context, ponRMgr *ponrmgr.
 	})
 	for _, RangePool := range techRange.Pools {
 		// FIXME: Remove hardcoding
-		if RangePool.Type == openolt.DeviceInfo_DeviceResourceRanges_Pool_ONU_ID {
+		switch RangePool.Type {
+		case openolt.DeviceInfo_DeviceResourceRanges_Pool_ONU_ID:
 			ONUIDStart = RangePool.Start
 			ONUIDEnd = RangePool.End
 			ONUIDShared = uint32(RangePool.Sharing)
-		} else if RangePool.Type == openolt.DeviceInfo_DeviceResourceRanges_Pool_ALLOC_ID {
+		case openolt.DeviceInfo_DeviceResourceRanges_Pool_ALLOC_ID:
 			AllocIDStart = RangePool.Start
 			AllocIDEnd = RangePool.End
 			AllocIDShared = uint32(RangePool.Sharing)
-		} else if RangePool.Type == openolt.DeviceInfo_DeviceResourceRanges_Pool_GEMPORT_ID {
+		case openolt.DeviceInfo_DeviceResourceRanges_Pool_GEMPORT_ID:
 			GEMPortIDStart = RangePool.Start
 			GEMPortIDEnd = RangePool.End
 			GEMPortIDShared = uint32(RangePool.Sharing)
