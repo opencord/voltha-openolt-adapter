@@ -389,9 +389,10 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	}
 
 	var SchedCfg *tp_pb.SchedulerConfig
-	if sq.direction == tp_pb.Direction_UPSTREAM {
+	switch sq.direction {
+	case tp_pb.Direction_UPSTREAM:
 		SchedCfg = f.techprofile.GetUsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	case tp_pb.Direction_DOWNSTREAM:
 		SchedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
 	}
 	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
@@ -662,10 +663,11 @@ func (f *OpenOltFlowMgr) RemoveScheduler(ctx context.Context, sq schedQueue) err
 			"uni-id":    sq.uniID,
 			"uni-port":  sq.uniPort,
 			"device-id": f.deviceHandler.device.Id})
-	if sq.direction == tp_pb.Direction_UPSTREAM {
+	switch sq.direction {
+	case tp_pb.Direction_UPSTREAM:
 		SchedCfg = f.techprofile.GetUsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
 		Direction = "upstream"
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	case tp_pb.Direction_DOWNSTREAM:
 		SchedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
 		Direction = "downstream"
 	}
@@ -732,9 +734,10 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 			"uni-port":  sq.uniPort,
 			"tp-id":     sq.tpID,
 			"device-id": f.deviceHandler.device.Id})
-	if sq.direction == tp_pb.Direction_UPSTREAM {
+	switch sq.direction {
+	case tp_pb.Direction_UPSTREAM:
 		schedCfg = f.techprofile.GetUsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
-	} else if sq.direction == tp_pb.Direction_DOWNSTREAM {
+	case tp_pb.Direction_DOWNSTREAM:
 		schedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
 	}
 
@@ -2114,13 +2117,14 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 
 	var ethType, ipProto, inPort uint32
 	for _, field := range flows.GetOfbFields(flow) {
-		if field.Type == flows.IP_PROTO {
+		switch field.Type {
+		case flows.IP_PROTO:
 			ipProto = field.GetIpProto()
 			logger.Debugw(ctx, "field-type-ip-proto", log.Fields{"ipProto": ipProto})
-		} else if field.Type == flows.ETH_TYPE {
+		case flows.ETH_TYPE:
 			ethType = field.GetEthType()
 			logger.Debugw(ctx, "field-type-eth-type", log.Fields{"ethType": ethType})
-		} else if field.Type == flows.IN_PORT {
+		case flows.IN_PORT:
 			inPort = field.GetPort()
 			logger.Debugw(ctx, "field-type-in-port", log.Fields{"inPort": inPort})
 		}
@@ -2563,7 +2567,8 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetIn *openoltpb2.PacketIndication) (uint32, error) {
 	var logicalPortNum uint32
 
-	if packetIn.IntfType == "pon" {
+	switch packetIn.IntfType {
+	case "pon":
 		// packet indication does not have serial number , so sending as nil
 		// get onu and uni ids associated with the given pon and gem ports
 		onuID, uniID := packetIn.OnuId, packetIn.UniId
@@ -2576,7 +2581,7 @@ func (f *OpenOltFlowMgr) GetLogicalPortFromPacketIn(ctx context.Context, packetI
 		}
 		// Store the gem port through which the packet_in came. Use the same gem port for packet_out
 		f.UpdateGemPortForPktIn(ctx, packetIn.IntfId, onuID, logicalPortNum, packetIn.GemportId, packetIn.Pkt)
-	} else if packetIn.IntfType == "nni" {
+	case "nni":
 		logicalPortNum = plt.IntfIDToPortNo(packetIn.IntfId, voltha.Port_ETHERNET_NNI)
 	}
 
@@ -2821,9 +2826,10 @@ func verifyMeterIDAndGetDirection(MeterID uint32, Dir tp_pb.Direction) (string, 
 	if MeterID == 0 { // This should never happen
 		return "", olterrors.NewErrInvalidValue(log.Fields{"meter-id": MeterID}, nil).Log()
 	}
-	if Dir == tp_pb.Direction_UPSTREAM {
+	switch Dir {
+	case tp_pb.Direction_UPSTREAM:
 		return "upstream", nil
-	} else if Dir == tp_pb.Direction_DOWNSTREAM {
+	case tp_pb.Direction_DOWNSTREAM:
 		return "downstream", nil
 	}
 	return "", nil
@@ -2895,7 +2901,8 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 	}
 
 	if ipProto, ok := classifierInfo[IPProto]; ok {
-		if ipProto.(uint32) == IPProtoDhcp {
+		switch ipProto.(uint32) {
+		case IPProtoDhcp:
 			logger.Infow(ctx, "adding-dhcp-flow", log.Fields{
 				"tp-id":    tpID,
 				"alloc-id": allocID,
@@ -2910,7 +2917,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false, nni_port)
 				return err
 			}
-		} else if ipProto.(uint32) == IgmpProto {
+		case IgmpProto:
 			logger.Infow(ctx, "adding-us-igmp-flow",
 				log.Fields{
 					"intf-id":          intfID,
@@ -2923,12 +2930,13 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false, nni_port)
 				return err
 			}
-		} else {
+		default:
 			logger.Errorw(ctx, "invalid-classifier-to-handle", log.Fields{"classifier": classifierInfo, "action": actionInfo})
 			return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifierInfo, "action": actionInfo}, nil)
 		}
 	} else if ethType, ok := classifierInfo[EthType]; ok {
-		if ethType.(uint32) == EapEthType {
+		switch ethType.(uint32) {
+		case EapEthType:
 			logger.Infow(ctx, "adding-eapol-flow", log.Fields{
 				"intf-id": intfID,
 				"onu-id":  onuID,
@@ -2947,7 +2955,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 				_ = f.clearResources(ctx, intfID, int32(onuID), int32(uniID), flow.Id, portNo, tpID, false, nni_port)
 				return err
 			}
-		} else if ethType.(uint32) == PPPoEDEthType {
+		case PPPoEDEthType:
 			logger.Infow(ctx, "adding-pppoed-flow", log.Fields{
 				"tp-id":    tpID,
 				"alloc-id": allocID,
@@ -3033,49 +3041,50 @@ func (f *OpenOltFlowMgr) isAllocUsedByAnotherUNI(ctx context.Context, sq schedQu
 
 func formulateClassifierInfoFromFlow(ctx context.Context, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) {
 	for _, field := range flows.GetOfbFields(flow) {
-		if field.Type == flows.ETH_TYPE {
+		switch field.Type {
+		case flows.ETH_TYPE:
 			classifierInfo[EthType] = field.GetEthType()
 			logger.Debug(ctx, "field-type-eth-type", log.Fields{"classifierInfo[ETH_TYPE]": classifierInfo[EthType].(uint32)})
-		} else if field.Type == flows.ETH_DST {
+		case flows.ETH_DST:
 			classifierInfo[EthDst] = field.GetEthDst()
 			logger.Debug(ctx, "field-type-eth-dst", log.Fields{"classifierInfo[ETH_DST]": classifierInfo[EthDst].([]uint8)})
-		} else if field.Type == flows.ETH_SRC {
+		case flows.ETH_SRC:
 			classifierInfo[EthSrc] = field.GetEthSrc()
 			logger.Debug(ctx, "field-type-eth-src", log.Fields{"classifierInfo[ETH_SRC]": classifierInfo[EthSrc].([]uint8)})
-		} else if field.Type == flows.IP_PROTO {
+		case flows.IP_PROTO:
 			classifierInfo[IPProto] = field.GetIpProto()
 			logger.Debug(ctx, "field-type-ip-proto", log.Fields{"classifierInfo[IP_PROTO]": classifierInfo[IPProto].(uint32)})
-		} else if field.Type == flows.IN_PORT {
+		case flows.IN_PORT:
 			classifierInfo[InPort] = field.GetPort()
 			logger.Debug(ctx, "field-type-in-port", log.Fields{"classifierInfo[IN_PORT]": classifierInfo[InPort].(uint32)})
-		} else if field.Type == flows.VLAN_VID {
+		case flows.VLAN_VID:
 			// The ReservedVlan is used to signify transparent vlan. Do not do any classification when we see ReservedVlan
 			if field.GetVlanVid() != ReservedVlan {
 				classifierInfo[VlanVid] = field.GetVlanVid() & 0xfff
 				logger.Debug(ctx, "field-type-vlan-vid", log.Fields{"classifierInfo[VLAN_VID]": classifierInfo[VlanVid].(uint32)})
 			}
-		} else if field.Type == flows.VLAN_PCP {
+		case flows.VLAN_PCP:
 			classifierInfo[VlanPcp] = field.GetVlanPcp()
 			logger.Debug(ctx, "field-type-vlan-pcp", log.Fields{"classifierInfo[VLAN_PCP]": classifierInfo[VlanPcp].(uint32)})
-		} else if field.Type == flows.UDP_DST {
+		case flows.UDP_DST:
 			classifierInfo[UDPDst] = field.GetUdpDst()
 			logger.Debug(ctx, "field-type-udp-dst", log.Fields{"classifierInfo[UDP_DST]": classifierInfo[UDPDst].(uint32)})
-		} else if field.Type == flows.UDP_SRC {
+		case flows.UDP_SRC:
 			classifierInfo[UDPSrc] = field.GetUdpSrc()
 			logger.Debug(ctx, "field-type-udp-src", log.Fields{"classifierInfo[UDP_SRC]": classifierInfo[UDPSrc].(uint32)})
-		} else if field.Type == flows.IPV4_DST {
+		case flows.IPV4_DST:
 			classifierInfo[Ipv4Dst] = field.GetIpv4Dst()
 			logger.Debug(ctx, "field-type-ipv4-dst", log.Fields{"classifierInfo[IPV4_DST]": classifierInfo[Ipv4Dst].(uint32)})
-		} else if field.Type == flows.IPV4_SRC {
+		case flows.IPV4_SRC:
 			classifierInfo[Ipv4Src] = field.GetIpv4Src()
 			logger.Debug(ctx, "field-type-ipv4-src", log.Fields{"classifierInfo[IPV4_SRC]": classifierInfo[Ipv4Src].(uint32)})
-		} else if field.Type == flows.METADATA {
+		case flows.METADATA:
 			classifierInfo[Metadata] = field.GetTableMetadata()
 			logger.Debug(ctx, "field-type-metadata", log.Fields{"classifierInfo[Metadata]": classifierInfo[Metadata].(uint64)})
-		} else if field.Type == flows.TUNNEL_ID {
+		case flows.TUNNEL_ID:
 			classifierInfo[TunnelID] = field.GetTunnelId()
 			logger.Debug(ctx, "field-type-tunnelId", log.Fields{"classifierInfo[TUNNEL_ID]": classifierInfo[TunnelID].(uint64)})
-		} else {
+		default:
 			logger.Errorw(ctx, "un-supported-field-type", log.Fields{"type": field.Type})
 			return
 		}
@@ -3084,17 +3093,18 @@ func formulateClassifierInfoFromFlow(ctx context.Context, classifierInfo map[str
 
 func formulateActionInfoFromFlow(ctx context.Context, actionInfo, classifierInfo map[string]interface{}, flow *ofp.OfpFlowStats) error {
 	for _, action := range flows.GetActions(flow) {
-		if action.Type == flows.OUTPUT {
+		switch action.Type {
+		case flows.OUTPUT:
 			if out := action.GetOutput(); out != nil {
 				actionInfo[Output] = out.GetPort()
 				logger.Debugw(ctx, "action-type-output", log.Fields{"out-port": actionInfo[Output].(uint32)})
 			} else {
 				return olterrors.NewErrInvalidValue(log.Fields{"output-port": nil}, nil)
 			}
-		} else if action.Type == flows.POP_VLAN {
+		case flows.POP_VLAN:
 			actionInfo[PopVlan] = true
 			logger.Debugw(ctx, "action-type-pop-vlan", log.Fields{"in_port": classifierInfo[InPort].(uint32)})
-		} else if action.Type == flows.PUSH_VLAN {
+		case flows.PUSH_VLAN:
 			if out := action.GetPush(); out != nil {
 				if tpid := out.GetEthertype(); tpid != 0x8100 {
 					logger.Errorw(ctx, "invalid ethertype in push action", log.Fields{"ethertype": actionInfo[PushVlan].(int32)})
@@ -3107,7 +3117,7 @@ func formulateActionInfoFromFlow(ctx context.Context, actionInfo, classifierInfo
 							"in-port":   classifierInfo[InPort].(uint32)})
 				}
 			}
-		} else if action.Type == flows.SET_FIELD {
+		case flows.SET_FIELD:
 			if out := action.GetSetField(); out != nil {
 				if field := out.GetField(); field != nil {
 					if ofClass := field.GetOxmClass(); ofClass != ofp.OfpOxmClass_OFPXMC_OPENFLOW_BASIC {
@@ -3117,9 +3127,9 @@ func formulateActionInfoFromFlow(ctx context.Context, actionInfo, classifierInfo
 					formulateSetFieldActionInfoFromFlow(ctx, field, actionInfo)
 				}
 			}
-		} else if action.Type == flows.GROUP {
+		case flows.GROUP:
 			formulateGroupActionInfoFromFlow(ctx, action, actionInfo)
-		} else {
+		default:
 			return olterrors.NewErrInvalidValue(log.Fields{"action-type": action.Type}, nil)
 		}
 	}
@@ -3129,18 +3139,19 @@ func formulateActionInfoFromFlow(ctx context.Context, actionInfo, classifierInfo
 func formulateSetFieldActionInfoFromFlow(ctx context.Context, field *ofp.OfpOxmField, actionInfo map[string]interface{}) {
 	if ofbField := field.GetOfbField(); ofbField != nil {
 		fieldtype := ofbField.GetType()
-		if fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_VID {
+		switch fieldtype {
+		case ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_VID:
 			if vlan := ofbField.GetVlanVid(); vlan != 0 {
 				actionInfo[VlanVid] = vlan & 0xfff
 				logger.Debugw(ctx, "action-set-vlan-vid", log.Fields{"actionInfo[VLAN_VID]": actionInfo[VlanVid].(uint32)})
 			} else {
 				logger.Error(ctx, "no-invalid-vlan-id-in-set-vlan-vid-action")
 			}
-		} else if fieldtype == ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_PCP {
+		case ofp.OxmOfbFieldTypes_OFPXMT_OFB_VLAN_PCP:
 			pcp := ofbField.GetVlanPcp()
 			actionInfo[VlanPcp] = pcp
 			logger.Debugw(ctx, "action-set-vlan-pcp", log.Fields{"actionInfo[VLAN_PCP]": actionInfo[VlanPcp].(uint32)})
-		} else {
+		default:
 			logger.Errorw(ctx, "unsupported-action-set-field-type", log.Fields{"type": fieldtype})
 		}
 	}
@@ -3247,7 +3258,8 @@ func appendUnique64bit(slice []uint64, item uint64) []uint64 {
 // getNniIntfID gets nni intf id from the flow classifier/action
 func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action map[string]interface{}) (uint32, error) {
 	portType := plt.IntfIDToPortTypeName(classifier[InPort].(uint32))
-	if portType == voltha.Port_PON_OLT {
+	switch portType {
+	case voltha.Port_PON_OLT:
 		intfID, err := plt.IntfIDFromNniPortNum(ctx, action[Output].(uint32))
 		if err != nil {
 			logger.Debugw(ctx, "invalid-action-port-number",
@@ -3258,7 +3270,7 @@ func getNniIntfID(ctx context.Context, classifier map[string]interface{}, action
 		}
 		logger.Infow(ctx, "output-nni-intfId-is", log.Fields{"intf-id": intfID})
 		return intfID, nil
-	} else if portType == voltha.Port_ETHERNET_NNI {
+	case voltha.Port_ETHERNET_NNI:
 		intfID, err := plt.IntfIDFromNniPortNum(ctx, classifier[InPort].(uint32))
 		if err != nil {
 			logger.Debugw(ctx, "invalid-classifier-port-number",
@@ -3327,7 +3339,7 @@ func (f *OpenOltFlowMgr) UpdateGemPortForPktIn(ctx context.Context, intfID uint3
 
 // getCTagFromPacket retrieves and returns c-tag and priority value from a packet.
 func getCTagFromPacket(ctx context.Context, packet []byte) (uint16, uint8, error) {
-	if packet == nil || len(packet) < 18 {
+	if len(packet) < 18 {
 		logger.Error(ctx, "unable-get-c-tag-from-the-packet--invalid-packet-length ")
 		return 0, 0, errors.New("invalid packet length")
 	}
