@@ -257,9 +257,10 @@ func (em *OpenOltEventMgr) oltUpDownIndication(ctx context.Context, oltIndicatio
 	/* Populating device event body */
 	de.Context = context
 	de.ResourceId = deviceID
-	if oltIndication.OperState == operationStateDown {
+	switch oltIndication.OperState {
+	case operationStateDown:
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "RAISE_EVENT")
-	} else if oltIndication.OperState == operationStateUp {
+	case operationStateUp:
 		de.DeviceEventName = fmt.Sprintf("%s_%s", oltIndicationDown, "CLEAR_EVENT")
 	}
 	/* Send event to KAFKA */
