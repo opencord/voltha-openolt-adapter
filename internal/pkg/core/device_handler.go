@@ -2774,11 +2774,12 @@ func (dh *DeviceHandler) PacketOut(ctx context.Context, egressPortNo uint32, pac
 
 	egressPortType := plt.IntfIDToPortTypeName(uint32(egressPortNo))
 	var err error
-	if egressPortType == voltha.Port_ETHERNET_UNI {
+	switch egressPortType {
+	case voltha.Port_ETHERNET_UNI:
 		err = dh.PacketOutUNI(ctx, egressPortNo, packet)
-	} else if egressPortType == voltha.Port_ETHERNET_NNI {
+	case voltha.Port_ETHERNET_NNI:
 		err = dh.PacketOutNNI(ctx, egressPortNo, packet)
-	} else {
+	default:
 		logger.Warnw(ctx, "packet-out-to-this-interface-type-not-implemented", log.Fields{
 			"egress-port-no": egressPortNo,
 			"egressPortType": egressPortType,
@@ -3480,21 +3481,22 @@ func (dh *DeviceHandler) mcastFlowOrGroupChannelHandlerRoutine(routineIndex int,
 					*mcastFlowOrGroupCb.errChan <- err
 				}
 			} else { // mcast group
-				if mcastFlowOrGroupCb.flowOrGroupAction == McastFlowOrGroupAdd {
+				switch mcastFlowOrGroupCb.flowOrGroupAction {
+				case McastFlowOrGroupAdd:
 					logger.Debugw(mcastFlowOrGroupCb.ctx, "adding-mcast-group",
 						log.Fields{"device-id": dh.device.Id,
 							"groupToAdd": mcastFlowOrGroupCb.group})
 					err := dh.groupMgr.AddGroup(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.group)
 					// Pass the return value over the return channel
 					*mcastFlowOrGroupCb.errChan <- err
-				} else if mcastFlowOrGroupCb.flowOrGroupAction == McastFlowOrGroupModify { // group modify
+				case McastFlowOrGroupModify:
 					logger.Debugw(mcastFlowOrGroupCb.ctx, "modifying-mcast-group",
 						log.Fields{"device-id": dh.device.Id,
 							"groupToModify": mcastFlowOrGroupCb.group})
 					err := dh.groupMgr.ModifyGroup(mcastFlowOrGroupCb.ctx, mcastFlowOrGroupCb.group)
 					// Pass the return value over the return channel
 					*mcastFlowOrGroupCb.errChan <- err
-				} else { // group remove
+				case McastFlowOrGroupRemove:
 					logger.Debugw(mcastFlowOrGroupCb.ctx, "removing-mcast-group",
 						log.Fields{"device-id": dh.device.Id,
 							"groupToRemove": mcastFlowOrGroupCb.group})
@@ -3582,7 +3584,8 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 		logger.Debugw(ctx, "getOltPortCounters ctx Done ", log.Fields{"oltPortInfo": oltPortInfo})
 		return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_TIMEOUT)
 	}
-	if oltPortInfo.PortType == extension.GetOltPortCounters_Port_ETHERNET_NNI {
+	switch oltPortInfo.PortType {
+	case extension.GetOltPortCounters_Port_ETHERNET_NNI:
 		// get nni stats
 		intfID := plt.PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_ETHERNET_NNI)
 		logger.Debugw(ctx, "getOltPortCounters intfID  ", log.Fields{"intfID": intfID})
@@ -3593,7 +3596,7 @@ func (dh *DeviceHandler) getOltPortCounters(ctx context.Context, oltPortInfo *ex
 		}
 		dh.portStats.updateGetOltPortCountersResponse(ctx, &singleValResp, cmnni)
 		return &singleValResp
-	} else if oltPortInfo.PortType == extension.GetOltPortCounters_Port_PON_OLT {
+	case extension.GetOltPortCounters_Port_PON_OLT:
 		// get pon stats
 		intfID := plt.PortNoToIntfID(oltPortInfo.PortNo, voltha.Port_PON_OLT)
 		if val, ok := dh.activePorts.Load(intfID); ok && val == true {

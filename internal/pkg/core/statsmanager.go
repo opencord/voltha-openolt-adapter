@@ -313,22 +313,22 @@ func InitPorts(ctx context.Context, Intftype string, DeviceID string, numOfPorts
 	   :param type:
 	   :return:
 	*/
-	var i uint32
-	if Intftype == "nni" {
+	switch Intftype {
+	case "nni":
 		NniPorts := make(map[uint32]*NniPort)
-		for i = 0; i < numOfPorts; i++ {
-			Port := BuildPortObject(ctx, i, "nni", DeviceID).(*NniPort)
+		for i := range make([]struct{}, numOfPorts) {
+			Port := BuildPortObject(ctx, uint32(i), "nni", DeviceID).(*NniPort)
 			NniPorts[Port.IntfID] = Port
 		}
 		return NniPorts, nil
-	} else if Intftype == "pon" {
+	case "pon":
 		PONPorts := make(map[uint32]*PonPort)
-		for i = 0; i < numOfPorts; i++ {
-			PONPort := BuildPortObject(ctx, i, "pon", DeviceID).(*PonPort)
+		for i := range make([]struct{}, numOfPorts) {
+			PONPort := BuildPortObject(ctx, uint32(i), "pon", DeviceID).(*PonPort)
 			PONPorts[plt.PortNoToIntfID(PONPort.IntfID, voltha.Port_PON_OLT)] = PONPort
 		}
 		return PONPorts, nil
-	} else {
+	default:
 		logger.Errorw(ctx, "invalid-type-of-interface", log.Fields{"interface-type": Intftype})
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"interface-type": Intftype}, nil)
 	}
@@ -347,7 +347,8 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 
 	// This builds a port object which is added to the
 	// appropriate northbound or southbound values
-	if IntfType == "nni" {
+	switch IntfType {
+	case "nni":
 		IntfID := plt.IntfIDToPortNo(PortNum, voltha.Port_ETHERNET_NNI)
 		nniID := plt.PortNoToIntfID(IntfID, voltha.Port_ETHERNET_NNI)
 		logger.Debugw(ctx, "interface-type-nni",
@@ -355,7 +356,7 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 				"nni-id":    nniID,
 				"intf-type": IntfType})
 		return NewNniPort(PortNum, nniID)
-	} else if IntfType == "pon" {
+	case "pon":
 		// PON ports require a different configuration
 		//  intf_id and pon_id are currently equal.
 		IntfID := plt.IntfIDToPortNo(PortNum, voltha.Port_PON_OLT)
@@ -365,7 +366,7 @@ func BuildPortObject(ctx context.Context, PortNum uint32, IntfType string, Devic
 				"pon-id":    PONID,
 				"intf-type": IntfType})
 		return NewPONPort(PONID, DeviceID, IntfID, PortNum)
-	} else {
+	default:
 		logger.Errorw(ctx, "invalid-type-of-interface", log.Fields{"intf-type": IntfType})
 		return nil
 	}
@@ -583,11 +584,12 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 	metricsContext["devicetype"] = devType
 	metricsContext["portlabel"] = port.Label
 
-	if statType == NNIStats {
+	switch statType {
+	case NNIStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI
-	} else if statType == PONStats {
+	case PONStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_PON
-	} else if statType == GEMStats || statType == ONUStats {
+	case GEMStats, ONUStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_ONT
 	}
 

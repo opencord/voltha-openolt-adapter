@@ -87,7 +87,8 @@ func (m MockTechProfile) GetTPInstance(ctx context.Context, path string) (interf
 func (m MockTechProfile) CreateTechProfileInstance(ctx context.Context, techProfiletblID uint32, uniPortName string, intfID uint32) (interface{}, error) {
 	var usGemPortAttributeList []*tp_pb.GemPortAttributes
 	var dsGemPortAttributeList []*tp_pb.GemPortAttributes
-	if techProfiletblID == 64 {
+	switch techProfiletblID {
+	case 64:
 		usGemPortAttributeList = append(usGemPortAttributeList, &tp_pb.GemPortAttributes{
 			GemportId: 1,
 			PbitMap:   "0b11111111",
@@ -126,7 +127,7 @@ func (m MockTechProfile) CreateTechProfileInstance(ctx context.Context, techProf
 			UpstreamGemPortAttributeList:   usGemPortAttributeList,
 			DownstreamGemPortAttributeList: dsGemPortAttributeList,
 		}, nil
-	} else if techProfiletblID == 65 {
+	case 65:
 		return &tp_pb.EponTechProfileInstance{
 			Name:                         "mock-epon-profile",
 			SubscriberIdentifier:         "257",
@@ -136,7 +137,7 @@ func (m MockTechProfile) CreateTechProfileInstance(ctx context.Context, techProf
 			UpstreamQueueAttributeList:   nil,
 			DownstreamQueueAttributeList: nil,
 		}, nil
-	} else {
+	default:
 		return nil, nil
 	}
 }

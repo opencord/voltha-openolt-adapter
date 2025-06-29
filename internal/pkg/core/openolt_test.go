@@ -39,7 +39,6 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
-	"github.com/opencord/voltha-protos/v5/go/openflow_13"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 )
@@ -336,12 +335,12 @@ func TestOpenOLT_GetOfpDeviceInfo(t *testing.T) {
 		wantErr error
 	}{
 		{"get_ofp_device_info-1", mockOlt(), args{mockDevice()}, &ca.SwitchCapability{
-			Desc: &openflow_13.OfpDesc{
+			Desc: &ofp.OfpDesc{
 				MfrDesc: "VOLTHA Project",
 				HwDesc:  "open_pon",
 				SwDesc:  "open_pon",
 			},
-			SwitchFeatures: &openflow_13.OfpSwitchFeatures{
+			SwitchFeatures: &ofp.OfpSwitchFeatures{
 				NBuffers:     uint32(256),
 				NTables:      uint32(2),
 				Capabilities: uint32(15),
@@ -395,7 +394,7 @@ func TestOpenOLT_SendPacketOut(t *testing.T) {
 	type args struct {
 		deviceID     string
 		egressPortNo int
-		packet       *openflow_13.OfpPacketOut
+		packet       *ofp.OfpPacketOut
 	}
 	pktout := &ofp.OfpPacketOut{BufferId: 0, InPort: 1, Actions: acts, Data: []byte("AYDCAAAOAODsSE5TiMwCBwQA4OxITlIEBQUwLzUx" +
 		"BgIAFAgEMC81MQoJbG9jYWxob3N0EBwFAawbqqACAAAAoRAxLjMuNi4xLjQuMS40NDEz/gYAgMILAgD+GQCAwgkDAAAAAGQAAAAAAAAAAgICAgICAgL+" +
@@ -655,8 +654,8 @@ func TestOpenOLT_UpdateFlowsBulk(t *testing.T) {
 func TestOpenOLT_UpdateFlowsIncrementally(t *testing.T) {
 	type args struct {
 		device       *voltha.Device
-		flows        *openflow_13.FlowChanges
-		groups       *openflow_13.FlowGroupChanges
+		flows        *ofp.FlowChanges
+		groups       *ofp.FlowGroupChanges
 		flowMetadata *ofp.FlowMetadata
 	}
 
