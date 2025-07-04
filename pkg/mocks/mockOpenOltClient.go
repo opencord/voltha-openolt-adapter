@@ -297,3 +297,43 @@ func (m *MockOpenoltClient) GetNniPortStatistics(ctx context.Context, in *openol
 func (m *MockOpenoltClient) GetPonPortStatistics(ctx context.Context, in *openolt.Interface, opts ...grpc.CallOption) (*common.PortStatistics, error) {
 	return &common.PortStatistics{}, nil
 }
+
+// DisableOnuSerialNumber mocks the DisableOnuSerialNumber function of Openoltclient.
+func (ooc *MockOpenoltClient) DisableOnuSerialNumber(ctx context.Context, in *openolt.InterfaceOnuSerialNumber, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	//return &openolt.Empty{}, nil
+	if ooc.counter == 0 {
+		ooc.counter++
+		return &openolt.Empty{}, nil
+	}
+	return nil, errors.New("disableOnuSerialNumber failed")
+}
+
+// EnableOnuSerialNumber mocks the EnableOnuSerialNumber function of Openoltclient.
+func (ooc *MockOpenoltClient) EnableOnuSerialNumber(ctx context.Context, in *openolt.InterfaceOnuSerialNumber, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	//return &openolt.Empty{}, nil
+	if ooc.counter == 0 {
+		ooc.counter++
+		return &openolt.Empty{}, nil
+	}
+	return nil, errors.New("enableOnuSerialNumber failed")
+}
+
+// DisableOnu mocks the DisableOnu function of Openoltclient.
+func (ooc *MockOpenoltClient) DisableOnu(ctx context.Context, in *openolt.InterfaceOnuSerialNumberOnuId, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	//return &openolt.Empty{}, nil
+	if ooc.counter == 0 {
+		ooc.counter++
+		return &openolt.Empty{}, nil
+	}
+	return nil, errors.New("disableOnu failed")
+}
+
+// EnableOnu mocks the EnableOnu function of Openoltclient.
+func (ooc *MockOpenoltClient) EnableOnu(ctx context.Context, in *openolt.InterfaceOnuSerialNumberOnuId, opts ...grpc.CallOption) (*openolt.Empty, error) {
+	//return &openolt.Empty{}, nil
+	if ooc.counter == 0 {
+		ooc.counter++
+		return &openolt.Empty{}, nil
+	}
+	return nil, errors.New("enableOnu failed")
+}
