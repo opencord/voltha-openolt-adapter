@@ -659,6 +659,66 @@ func (dh *DeviceHandler) handleOltIndication(ctx context.Context, oltIndication 
 	return nil
 }
 
+func (dh *DeviceHandler) handleOnuDisableIndication(ctx context.Context, onuIndication *oop.OnuDisabledIndication) error {
+
+	logger.Infow(ctx, "handleOnuDisableIndication", log.Fields{"device-id": dh.device.Id, "onuInd": onuIndication})
+	sn := dh.stringifySerialNumber(onuIndication.SerialNumber)
+	intfID := onuIndication.GetIntfId()
+	ponPort := plt.IntfIDToPortNo(intfID, voltha.Port_PON_OLT)
+	onuDev := dh.getChildDevice(ctx, sn, ponPort)
+	if onuDev == nil {
+		logger.Warnw(ctx, "handleOnuDisableIndication onu-device-fetch-failed", log.Fields{"device-id": dh.device.Id, "onuInd": onuIndication})
+		onuDev = &OnuDevice{
+			serialNumber: sn,
+		}
+	}
+	dh.discOnus.Delete(sn)
+
+	raisedTs := time.Now().Unix()
+	if err := dh.eventMgr.onuDisableIndication(ctx, onuIndication, dh.device.Id, onuDev, raisedTs); err != nil {
+		return olterrors.NewErrAdapter("failed-indication", log.Fields{
+			"device-id":  dh.device.Id,
+			"indication": onuIndication,
+			"timestamp":  raisedTs}, err)
+	}
+	OnuIndication := generateOnuIndication(onuDev.intfID, onuDev.onuID, "down", "down")
+	err := dh.sendOnuIndicationToChildAdapter(ctx, onuDev.adapterEndpoint, &ia.OnuIndicationMessage{
+		DeviceId:      onuDev.deviceID,
+		OnuIndication: OnuIndication.GetOnuInd(),
+	})
+	if err != nil {
+		return olterrors.NewErrCommunication("inter-adapter-send-failed", log.Fields{
+			"onu-indicator": OnuIndication.GetOnuInd(),
+			"source":        dh.openOLT.config.AdapterEndpoint,
+			"device-type":   onuDev.deviceType,
+			"device-id":     onuDev.deviceID}, err)
+	}
+	return nil
+}
+
+func (dh *DeviceHandler) handleOnuEnableIndication(ctx context.Context, onuIndication *oop.OnuEnabledIndication) error {
+	logger.Infow(ctx, "handleOnuEnableIndication", log.Fields{"device-id": dh.device.Id, "onuInd": onuIndication})
+	sn := dh.stringifySerialNumber(onuIndication.SerialNumber)
+	intfID := onuIndication.GetIntfId()
+	ponPort := plt.IntfIDToPortNo(intfID, voltha.Port_PON_OLT)
+	onuDev := dh.getChildDevice(ctx, sn, ponPort)
+	if onuDev == nil {
+		logger.Warnw(ctx, "handleOnuEnableIndication onu-device-fetch-failed", log.Fields{"device-id": dh.device.Id, "onuInd": onuIndication})
+		onuDev = &OnuDevice{
+			serialNumber: sn,
+		}
+	}
+	raisedTs := time.Now().Unix()
+
+	if err := dh.eventMgr.onuEnableIndication(ctx, onuIndication, dh.device.Id, onuDev, raisedTs); err != nil {
+		return olterrors.NewErrAdapter("failed-indication", log.Fields{
+			"device-id":  dh.device.Id,
+			"indication": onuIndication,
+			"timestamp":  raisedTs}, err)
+	}
+	return nil
+}
+
 // nolint: gocyclo,govet
 func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.Indication) {
 	raisedTs := time.Now().Unix()
@@ -780,6 +840,20 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		alarmInd := indication.GetAlarmInd()
 		logger.Infow(ctx, "received-alarm-indication", log.Fields{"AlarmInd": alarmInd, "device-id": dh.device.Id})
 		go dh.eventMgr.ProcessEvents(ctx, alarmInd, dh.device.Id, raisedTs)
+	case *oop.Indication_OnuDisabledInd:
+		span, ctx := log.CreateChildSpan(ctx, "onu-disable-indication", log.Fields{"device-id": dh.device.Id})
+		defer span.Finish()
+		logger.Infow(ctx, "received onu-disable-indication", log.Fields{"device-id": dh.device.Id, "onu-ind": indication.GetOnuInd()})
+		if err := dh.handleOnuDisableIndication(ctx, indication.GetOnuDisabledInd()); err != nil {
+			_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "olt", "device-id": dh.device.Id, "onu-ind": indication.GetOnuInd()}, err).Log()
+		}
+	case *oop.Indication_OnuEnabledInd:
+		span, ctx := log.CreateChildSpan(ctx, "onu-enable-indication", log.Fields{"device-id": dh.device.Id})
+		defer span.Finish()
+		logger.Infow(ctx, "received onu-enable-indication", log.Fields{"device-id": dh.device.Id, "onu-ind": indication.GetOnuInd()})
+		if err := dh.handleOnuEnableIndication(ctx, indication.GetOnuEnabledInd()); err != nil {
+			_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "olt", "device-id": dh.device.Id, "onu-ind": indication.GetOnuInd()}, err).Log()
+		}
 	}
 }
 
@@ -3036,6 +3110,145 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	dh.setDeviceDeletionInProgressFlag(false)
 	logger.Infow(ctx, "cleanup complete after reboot , moving to init", log.Fields{"deviceID": device.Id})
 	dh.transitionMap.Handle(ctx, DeviceInit)
+}
+
+// EnableOnuSerialNumber to enable onu serial number
+func (dh *DeviceHandler) EnableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOfOLTPon) error {
+	logger.Debugw(ctx, "enable-onu-serial-number", log.Fields{"Device": dh.device, "onu-serial-number": device.SerialNumber, "port": device.Port.PortNo})
+	onuSerialNumber := device.SerialNumber
+
+	// fetch interfaceid from PortNo
+	ponID := plt.PortNoToIntfID(device.Port.GetPortNo(), voltha.Port_PON_OLT)
+
+	sn, err := dh.deStringifySerialNumber(onuSerialNumber)
+	if err != nil {
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
+			log.Fields{
+				"devicer-id":    dh.device.Id,
+				"serial-number": onuSerialNumber}, err).Log()
+	}
+
+	onuIntf := &oop.InterfaceOnuSerialNumber{
+		IntfId:          ponID,
+		OnuSerialNumber: sn,
+	}
+	_, err = dh.Client.EnableOnuSerialNumber(ctx, onuIntf)
+
+	if err != nil {
+		logger.Errorw(ctx, "failed to enable onu serial number", log.Fields{"onudev": onuSerialNumber, "error": err})
+		return olterrors.NewErrAdapter("onu-serial-number-enable-failed", log.Fields{
+			"device-id":         dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, err)
+	}
+	return nil
+}
+
+// DisableOnuSerialNumber to disable onu serial number
+func (dh *DeviceHandler) DisableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOfOLTPon) error {
+	logger.Debugw(ctx, "disable-onu-serial-number", log.Fields{"Device": dh.device, "onu-serial-number": device.SerialNumber, "port": device.Port.PortNo})
+	onuSerialNumber := device.SerialNumber
+	ponID := plt.PortNoToIntfID(device.Port.GetPortNo(), voltha.Port_PON_OLT)
+	sn, err := dh.deStringifySerialNumber(onuSerialNumber)
+	if err != nil {
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
+			log.Fields{
+				"devicer-id":    dh.device.Id,
+				"serial-number": onuSerialNumber}, err).Log()
+	}
+
+	onuIntf := &oop.InterfaceOnuSerialNumber{
+		OnuSerialNumber: sn,
+		IntfId:          ponID,
+	}
+	_, err = dh.Client.DisableOnuSerialNumber(ctx, onuIntf)
+
+	if err != nil {
+		logger.Errorw(ctx, "failed to disable onu serial number", log.Fields{"onudev": onuSerialNumber, "error": err})
+		return olterrors.NewErrAdapter("onu-serial-number-disable-failed", log.Fields{
+			"device-id":         dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, err)
+	}
+	return nil
+}
+
+// EnableChildDevice to enable onu
+func (dh *DeviceHandler) EnableChildDevice(ctx context.Context, device *voltha.Device) error {
+	logger.Debugw(ctx, "enable-onu", log.Fields{"Device": dh.device, "onu-serial-number": device.SerialNumber})
+	onuSerialNumber := device.SerialNumber
+	InCacheOnuDev := dh.getChildDevice(ctx, onuSerialNumber, dh.device.ParentPortNo)
+	if InCacheOnuDev == nil {
+		logger.Errorw(ctx, "failed to get child device from cache", log.Fields{"onudev": onuSerialNumber})
+		return olterrors.NewErrAdapter("failed to get child device from cache", log.Fields{
+			"device-id":         dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, nil)
+	}
+	logger.Debugw(ctx, "successfully-received-child-device-from-cache", log.Fields{"child-device-intfid": InCacheOnuDev.intfID, "child-device-sn": InCacheOnuDev.serialNumber, "child-onuid": InCacheOnuDev.onuID})
+
+	sn, err := dh.deStringifySerialNumber(onuSerialNumber)
+	if err != nil {
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
+			log.Fields{
+				"devicer-id":    dh.device.Id,
+				"serial-number": onuSerialNumber}, err).Log()
+	}
+
+	onuIntf := &oop.InterfaceOnuSerialNumber{
+		OnuSerialNumber: sn,
+		IntfId:          InCacheOnuDev.intfID,
+	}
+	onuIntfReq := &oop.InterfaceOnuSerialNumberOnuId{
+		OnuId:           InCacheOnuDev.onuID,
+		IntfIdSerialNum: onuIntf,
+	}
+	_, err = dh.Client.EnableOnu(ctx, onuIntfReq)
+
+	if err != nil {
+		logger.Errorw(ctx, "failed to enable onu ", log.Fields{"onudev": onuSerialNumber, "error": err})
+		return olterrors.NewErrAdapter("onu-enable-failed", log.Fields{
+			"olt-device-id":     dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, err)
+	}
+	return nil
+}
+
+// DisableChildDevice to disable onu
+func (dh *DeviceHandler) DisableChildDevice(ctx context.Context, device *voltha.Device) error {
+	logger.Debugw(ctx, "disable-onu", log.Fields{"Device": dh.device, "onu-serial-number": device.SerialNumber})
+	onuSerialNumber := device.SerialNumber
+	InCacheOnuDev := dh.getChildDevice(ctx, onuSerialNumber, dh.device.ParentPortNo)
+	if InCacheOnuDev == nil {
+		logger.Errorw(ctx, "failed to get child device from cache", log.Fields{"onudev": onuSerialNumber})
+		return olterrors.NewErrAdapter("failed to get child device from cache", log.Fields{
+			"device-id":         dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, nil)
+	}
+	logger.Debugw(ctx, "successfully-received-child-device-from-cache", log.Fields{"child-device-intfid": InCacheOnuDev.intfID, "child-device-sn": InCacheOnuDev.serialNumber, "child-onuid": InCacheOnuDev.onuID})
+
+	sn, err := dh.deStringifySerialNumber(onuSerialNumber)
+	if err != nil {
+		return olterrors.NewErrAdapter("failed-to-destringify-serial-number",
+			log.Fields{
+				"devicer-id":    dh.device.Id,
+				"serial-number": onuSerialNumber}, err).Log()
+	}
+
+	onuIntf := &oop.InterfaceOnuSerialNumber{
+		OnuSerialNumber: sn,
+		IntfId:          InCacheOnuDev.intfID,
+	}
+	onuIntfReq := &oop.InterfaceOnuSerialNumberOnuId{
+		OnuId:           InCacheOnuDev.onuID,
+		IntfIdSerialNum: onuIntf,
+	}
+	_, err = dh.Client.DisableOnu(ctx, onuIntfReq)
+
+	if err != nil {
+		logger.Errorw(ctx, "failed to disable onu ", log.Fields{"onudev": onuSerialNumber, "error": err})
+		return olterrors.NewErrAdapter("onu-disable-failed", log.Fields{
+			"olt-device-id":     dh.device.Id,
+			"onu-serial-number": onuSerialNumber}, err)
+	}
+	return nil
 }
 
 // EnablePort to enable Pon interface

@@ -288,7 +288,7 @@ distclean:
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
 .PHONY: mod-update
-mod-update: mod-tidy mod-vendor
+mod-update: mod-cache mod-tidy mod-vendor
 
 ## -----------------------------------------------------------------------
 ## -----------------------------------------------------------------------
@@ -296,6 +296,12 @@ mod-update: mod-tidy mod-vendor
 mod-tidy:
 	$(call banner-enter,$@)
 	${GO} mod tidy
+	$(call banner-leave,$@)
+
+.PHONY: mod-cache
+mod-cache:
+	$(call banner-enter,$@)
+	${GO} clean -modcache
 	$(call banner-leave,$@)
 
 ## -----------------------------------------------------------------------
