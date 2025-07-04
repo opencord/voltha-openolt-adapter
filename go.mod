@@ -14,7 +14,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/opencord/voltha-lib-go/v7 v7.6.7
-	github.com/opencord/voltha-protos/v5 v5.6.5
+	github.com/opencord/voltha-protos/v5 v5.6.6
 	github.com/stretchr/testify v1.9.0
 	go.etcd.io/etcd v3.3.25+incompatible
 	google.golang.org/grpc v1.56.2
