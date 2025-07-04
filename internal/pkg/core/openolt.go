@@ -334,6 +334,48 @@ func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*em
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": packet.DeviceId}, nil)
 }
 
+// EnableChildSerialNumber to Enable onu serial number
+func (oo *OpenOLT) EnableChildSerialNumber(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+	logger.Infow(ctx, "enable_onu_serial_number", log.Fields{"device_id": device.Id})
+	if err := oo.enableDisableOnuSerialNumber(log.WithSpanFromContext(context.Background(), ctx), device, true); err != nil {
+		return nil, err
+	}
+	return &empty.Empty{}, nil
+}
+
+// DisableChildSerialNumber to Disable onu serial number
+func (oo *OpenOLT) DisableChildSerialNumber(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+	logger.Infow(ctx, "disable_onu_serial_number", log.Fields{"device_id": device.Id})
+	if err := oo.enableDisableOnuSerialNumber(log.WithSpanFromContext(context.Background(), ctx), device, false); err != nil {
+		return nil, err
+	}
+	return &empty.Empty{}, nil
+}
+
+// enableDisableOnuSerialNumber to Disable onu or Enable onu
+func (oo *OpenOLT) enableDisableOnuSerialNumber(ctx context.Context, device *voltha.Device, enable bool) error {
+	logger.Infow(ctx, "enableDisableOnuSerialNumber", log.Fields{"device_id": device.Id})
+	if device.SerialNumber == "" {
+		return olterrors.NewErrInvalidValue(log.Fields{
+			"reason": "onu_serial_number cannot be empty",
+		}, nil)
+	}
+	if handler := oo.getDeviceHandler(device.ParentId); handler != nil {
+
+		if enable {
+			if err := handler.EnableOnuSerialNumber(ctx, device.SerialNumber); err != nil {
+				return olterrors.NewErrAdapter("error-occurred-during-enable-onu-serial-number", log.Fields{"device-id": device.Id, "sn": device.SerialNumber}, err)
+			}
+		} else {
+			if err := handler.DisableOnuSerialNumber(ctx, device.SerialNumber); err != nil {
+				return olterrors.NewErrAdapter("error-occurred-during-disable-onu-serial-number", log.Fields{"device-id": device.Id, "sn": device.SerialNumber}, err)
+			}
+		}
+	}
+
+	return nil
+}
+
 // EnablePort to Enable PON/NNI interface
 func (oo *OpenOLT) EnablePort(ctx context.Context, port *voltha.Port) (*empty.Empty, error) {
 	logger.Infow(ctx, "enable_port", log.Fields{"device-id": port.DeviceId, "port": port})
