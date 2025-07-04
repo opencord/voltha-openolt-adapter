@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b8b26f5_3aba1604",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1811,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-07-04T00:36:43Z",
+      "side": 1,
+      "message": "Please double check the defer statement here.  It evaluate the arguments at the time the defer statement is executed, not when the deferred function is finally called.",
+      "revId": "86e97a9dbee7c8ddce1b1c04fb21611a0337f23a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
