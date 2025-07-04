@@ -54,6 +54,8 @@ const (
 	onuLossOfKeySyncEvent               = "ONU_LOSS_OF_KEY_SYNC"
 	onuLossOfFrameEvent                 = "ONU_LOSS_OF_FRAME"
 	onuLossOfPloamEvent                 = "ONU_LOSS_OF_PLOAM"
+	onuDisableEvent                     = "ONU_DISABLE"
+	onuEnableEvent                      = "ONU_ENABLE"
 	ponIntfDownIndiction                = "OLT_PON_INTERFACE_DOWN"
 	onuDeactivationFailureEvent         = "ONU_DEACTIVATION_FAILURE"
 	onuRemoteDefectIndication           = "ONU_REMOTE_DEFECT"
@@ -371,6 +373,50 @@ func (em *OpenOltEventMgr) populateContextWithSerialDeviceID(context map[string]
 	context[ContextOnuSerialNumber] = serialNumber
 	context[ContextOnuDeviceID] = onuDeviceID
 	return onuDeviceID
+}
+
+func (em *OpenOltEventMgr) onuDisableIndication(ctx context.Context, onui *oop.OnuDisabledIndication, parentDeviceID string, onuDev *OnuDevice, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	onuDeviceID := em.populateContextWithSerialDeviceID(context, onui.IntfId, onui.OnuId)
+
+	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(onui.IntfId), base10)
+	context[ContextOnuOnuID] = strconv.FormatUint(uint64(onui.OnuId), base10)
+	context[ContextDeviceID] = onuDev.deviceID
+	context[ContextOnuSerialNumber] = onuDev.serialNumber
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = parentDeviceID
+	de.DeviceEventName = onuDisableEvent
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEventWithKey(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_ONU, raisedTs, onuDeviceID); err != nil {
+		return err
+	}
+	logger.Debugw(ctx, "onu-disabled-event-sent-to-kafka", log.Fields{"intf-id": onui.IntfId, "onu_id": onui.OnuId})
+	return nil
+}
+
+func (em *OpenOltEventMgr) onuEnableIndication(ctx context.Context, onui *oop.OnuEnabledIndication, deviceID string, onuDev *OnuDevice, raisedTs int64) error {
+	var de voltha.DeviceEvent
+	context := make(map[string]string)
+	/* Populating event context */
+	onuDeviceID := em.populateContextWithSerialDeviceID(context, onui.IntfId, onui.OnuId)
+
+	context[ContextOnuPonIntfID] = strconv.FormatUint(uint64(onui.IntfId), base10)
+	context[ContextOnuOnuID] = strconv.FormatUint(uint64(onui.OnuId), base10)
+	context[ContextDeviceID] = onuDev.deviceID
+	context[ContextOnuSerialNumber] = onuDev.serialNumber
+	/* Populating device event body */
+	de.Context = context
+	de.ResourceId = deviceID
+	de.DeviceEventName = onuEnableEvent
+	/* Send event to KAFKA */
+	if err := em.eventProxy.SendDeviceEventWithKey(ctx, &de, voltha.EventCategory_COMMUNICATION, voltha.EventSubCategory_ONU, raisedTs, onuDeviceID); err != nil {
+		return err
+	}
+	logger.Debugw(ctx, "onu-enabled-event-sent-to-kafka", log.Fields{"intf-id": onui.IntfId, "onu_id": onui.OnuId})
+	return nil
 }
 
 func (em *OpenOltEventMgr) onuDyingGaspIndication(ctx context.Context, dgi *oop.DyingGaspIndication, deviceID string, raisedTs int64) error {
