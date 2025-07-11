@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ec84d8fb_472b1879",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2025-07-11T05:26:40Z",
+      "side": 1,
+      "message": "Log and return an error in case the handler is not found.",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e84f207d_ea81ff53",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2025-07-11T05:26:40Z",
+      "side": 1,
+      "message": "Log and return an error in case the handler is not found.",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20a70cdd_ff6f941c",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000959
+      },
+      "writtenOn": "2025-07-11T05:26:40Z",
+      "side": 1,
+      "message": "Can we rename this events to ONU_PLOAM_DISABLE and ONU_PLOAM_ENABLE to avoid confusion with Admin disable functionality and better readibility.",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
