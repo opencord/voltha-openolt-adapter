@@ -44,23 +44,24 @@ import (
 
 // OpenOLT structure holds the OLT information
 type OpenOLT struct {
-	eventProxy                         eventif.EventProxy
-	configManager                      *conf.ConfigManager
-	deviceHandlers                     map[string]*DeviceHandler
-	coreClient                         *vgrpc.Client
-	config                             *config.AdapterFlags
-	exitChannel                        chan struct{}
-	KVStoreAddress                     string
-	KVStoreType                        string
-	numOnus                            int
-	HeartbeatCheckInterval             time.Duration
-	HeartbeatFailReportInterval        time.Duration
-	GrpcTimeoutInterval                time.Duration
-	rpcTimeout                         time.Duration
-	lockDeviceHandlersMap              sync.RWMutex
-	enableONUStats                     bool
-	enableGemStats                     bool
-	CheckOnuDevExistenceAtOnuDiscovery bool
+	eventProxy                          eventif.EventProxy
+	configManager                       *conf.ConfigManager
+	deviceHandlers                      map[string]*DeviceHandler
+	coreClient                          *vgrpc.Client
+	config                              *config.AdapterFlags
+	exitChannel                         chan struct{}
+	KVStoreAddress                      string
+	KVStoreType                         string
+	numOnus                             int
+	HeartbeatCheckInterval              time.Duration
+	HeartbeatFailReportInterval         time.Duration
+	GrpcTimeoutInterval                 time.Duration
+	rpcTimeout                          time.Duration
+	lockDeviceHandlersMap               sync.RWMutex
+	enableONUStats                      bool
+	enableGemStats                      bool
+	CheckOnuDevExistenceAtOnuDiscovery  bool
+	SkipOnuDevExistenceCheckOnDiscovery bool
 }
 
 // NewOpenOLT returns a new instance of OpenOLT
@@ -85,6 +86,7 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.enableGemStats = cfg.EnableGEMStats
 	openOLT.rpcTimeout = cfg.RPCTimeout
 	openOLT.CheckOnuDevExistenceAtOnuDiscovery = cfg.CheckOnuDevExistenceAtOnuDiscovery
+	openOLT.SkipOnuDevExistenceCheckOnDiscovery = cfg.SkipOnuDevExistenceCheckOnDiscovery
 	return &openOLT
 }
 

@@ -48,94 +48,97 @@ const (
 	defaultGrpcAddress                 = ":50060"
 	defaultCoreEndpoint                = ":55555"
 	// defaultGrpcTimeoutInterval is the time in seconds a grpc call will wait before returning error.
-	defaultGrpcTimeoutInterval                = 2 * time.Second
-	defaultCurrentReplica                     = 1
-	defaultTotalReplicas                      = 1
-	defaultTraceEnabled                       = false
-	defaultTraceAgentAddress                  = "127.0.0.1:6831"
-	defaultLogCorrelationEnabled              = true
-	defaultOmccEncryption                     = false
-	defaultEnableONUStats                     = false
-	defaultEnableGEMStats                     = false
-	defaultMinBackoffRetryDelay               = 500 * time.Millisecond
-	defaultMaxBackoffRetryDelay               = 10 * time.Second
-	defaultAdapterEndpoint                    = "adapter-open-olt"
-	defaultCheckOnuDevExistenceAtOnuDiscovery = false
-	defaultMaxRetries                         = 10
+	defaultGrpcTimeoutInterval                 = 2 * time.Second
+	defaultCurrentReplica                      = 1
+	defaultTotalReplicas                       = 1
+	defaultTraceEnabled                        = false
+	defaultTraceAgentAddress                   = "127.0.0.1:6831"
+	defaultLogCorrelationEnabled               = true
+	defaultOmccEncryption                      = false
+	defaultEnableONUStats                      = false
+	defaultEnableGEMStats                      = false
+	defaultMinBackoffRetryDelay                = 500 * time.Millisecond
+	defaultMaxBackoffRetryDelay                = 10 * time.Second
+	defaultAdapterEndpoint                     = "adapter-open-olt"
+	defaultCheckOnuDevExistenceAtOnuDiscovery  = false
+	defaultSkipOnuDevExistenceCheckOnDiscovery = false
+	defaultMaxRetries                          = 10
 )
 
 // AdapterFlags represents the set of configurations used by the read-write adaptercore service
 type AdapterFlags struct {
 	// Command line parameters
-	AdapterName                        string
-	InstanceID                         string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
-	KafkaClusterAddress                string
-	KVStoreType                        string
-	KVStoreAddress                     string
-	EventTopic                         string
-	LogLevel                           string
-	ProbeAddress                       string
-	GrpcAddress                        string
-	CoreEndpoint                       string
-	TraceAgentAddress                  string
-	AdapterEndpoint                    string
-	KVStoreTimeout                     time.Duration
-	RPCTimeout                         time.Duration
-	PerRPCRetryTimeout                 time.Duration
-	OnuNumber                          int
-	LiveProbeInterval                  time.Duration
-	NotLiveProbeInterval               time.Duration
-	HeartbeatCheckInterval             time.Duration
-	HeartbeatFailReportInterval        time.Duration
-	GrpcTimeoutInterval                time.Duration
-	CurrentReplica                     int
-	TotalReplicas                      int
-	MinBackoffRetryDelay               time.Duration
-	MaxBackoffRetryDelay               time.Duration
-	MaxRetries                         uint
-	Banner                             bool
-	DisplayVersionOnly                 bool
-	TraceEnabled                       bool
-	LogCorrelationEnabled              bool
-	OmccEncryption                     bool
-	EnableONUStats                     bool
-	EnableGEMStats                     bool
-	CheckOnuDevExistenceAtOnuDiscovery bool
+	AdapterName                         string
+	InstanceID                          string // NOTE what am I used for? why not cli but only ENV? TODO expose in the chart
+	KafkaClusterAddress                 string
+	KVStoreType                         string
+	KVStoreAddress                      string
+	EventTopic                          string
+	LogLevel                            string
+	ProbeAddress                        string
+	GrpcAddress                         string
+	CoreEndpoint                        string
+	TraceAgentAddress                   string
+	AdapterEndpoint                     string
+	KVStoreTimeout                      time.Duration
+	RPCTimeout                          time.Duration
+	PerRPCRetryTimeout                  time.Duration
+	OnuNumber                           int
+	LiveProbeInterval                   time.Duration
+	NotLiveProbeInterval                time.Duration
+	HeartbeatCheckInterval              time.Duration
+	HeartbeatFailReportInterval         time.Duration
+	GrpcTimeoutInterval                 time.Duration
+	CurrentReplica                      int
+	TotalReplicas                       int
+	MinBackoffRetryDelay                time.Duration
+	MaxBackoffRetryDelay                time.Duration
+	MaxRetries                          uint
+	Banner                              bool
+	DisplayVersionOnly                  bool
+	TraceEnabled                        bool
+	LogCorrelationEnabled               bool
+	OmccEncryption                      bool
+	EnableONUStats                      bool
+	EnableGEMStats                      bool
+	CheckOnuDevExistenceAtOnuDiscovery  bool
+	SkipOnuDevExistenceCheckOnDiscovery bool
 }
 
 // NewAdapterFlags returns a new RWCore config
 func NewAdapterFlags() *AdapterFlags {
 	var adapterFlags = AdapterFlags{ // Default values
-		InstanceID:                         defaultInstanceid,
-		KafkaClusterAddress:                defaultKafkaclusteraddress,
-		KVStoreType:                        defaultKvstoretype,
-		KVStoreTimeout:                     defaultKvstoretimeout,
-		KVStoreAddress:                     defaultKvstoreaddress,
-		EventTopic:                         defaultEventtopic,
-		LogLevel:                           defaultLoglevel,
-		OnuNumber:                          defaultOnunumber,
-		Banner:                             defaultBanner,
-		DisplayVersionOnly:                 defaultDisplayVersionOnly,
-		ProbeAddress:                       defaultProbeAddress,
-		LiveProbeInterval:                  defaultLiveProbeInterval,
-		NotLiveProbeInterval:               defaultNotLiveProbeInterval,
-		HeartbeatCheckInterval:             defaultHeartbeatCheckInterval,
-		HeartbeatFailReportInterval:        defaultHeartbeatFailReportInterval,
-		GrpcAddress:                        defaultGrpcAddress,
-		CoreEndpoint:                       defaultCoreEndpoint,
-		GrpcTimeoutInterval:                defaultGrpcTimeoutInterval,
-		TraceEnabled:                       defaultTraceEnabled,
-		TraceAgentAddress:                  defaultTraceAgentAddress,
-		LogCorrelationEnabled:              defaultLogCorrelationEnabled,
-		OmccEncryption:                     defaultOmccEncryption,
-		EnableONUStats:                     defaultEnableONUStats,
-		EnableGEMStats:                     defaultEnableGEMStats,
-		RPCTimeout:                         defaultRPCTimeout,
-		PerRPCRetryTimeout:                 defaultPerRPCRetryTimeout,
-		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
-		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
-		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
-		MaxRetries:                         defaultMaxRetries,
+		InstanceID:                          defaultInstanceid,
+		KafkaClusterAddress:                 defaultKafkaclusteraddress,
+		KVStoreType:                         defaultKvstoretype,
+		KVStoreTimeout:                      defaultKvstoretimeout,
+		KVStoreAddress:                      defaultKvstoreaddress,
+		EventTopic:                          defaultEventtopic,
+		LogLevel:                            defaultLoglevel,
+		OnuNumber:                           defaultOnunumber,
+		Banner:                              defaultBanner,
+		DisplayVersionOnly:                  defaultDisplayVersionOnly,
+		ProbeAddress:                        defaultProbeAddress,
+		LiveProbeInterval:                   defaultLiveProbeInterval,
+		NotLiveProbeInterval:                defaultNotLiveProbeInterval,
+		HeartbeatCheckInterval:              defaultHeartbeatCheckInterval,
+		HeartbeatFailReportInterval:         defaultHeartbeatFailReportInterval,
+		GrpcAddress:                         defaultGrpcAddress,
+		CoreEndpoint:                        defaultCoreEndpoint,
+		GrpcTimeoutInterval:                 defaultGrpcTimeoutInterval,
+		TraceEnabled:                        defaultTraceEnabled,
+		TraceAgentAddress:                   defaultTraceAgentAddress,
+		LogCorrelationEnabled:               defaultLogCorrelationEnabled,
+		OmccEncryption:                      defaultOmccEncryption,
+		EnableONUStats:                      defaultEnableONUStats,
+		EnableGEMStats:                      defaultEnableGEMStats,
+		RPCTimeout:                          defaultRPCTimeout,
+		PerRPCRetryTimeout:                  defaultPerRPCRetryTimeout,
+		MinBackoffRetryDelay:                defaultMinBackoffRetryDelay,
+		MaxBackoffRetryDelay:                defaultMaxBackoffRetryDelay,
+		CheckOnuDevExistenceAtOnuDiscovery:  defaultCheckOnuDevExistenceAtOnuDiscovery,
+		SkipOnuDevExistenceCheckOnDiscovery: defaultSkipOnuDevExistenceCheckOnDiscovery,
+		MaxRetries:                          defaultMaxRetries,
 	}
 	return &adapterFlags
 }
@@ -301,6 +304,10 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"check_onu_exist_on_discovery",
 		defaultCheckOnuDevExistenceAtOnuDiscovery,
 		"Whether to check for flows only or child device before honoring discovery?")
+	flag.BoolVar(&(so.SkipOnuDevExistenceCheckOnDiscovery),
+		"skip_check_onu_exist_on_discovery",
+		defaultSkipOnuDevExistenceCheckOnDiscovery,
+		"Skip the check for onu device existence on onu discovery")
 
 	flag.Parse()
 	containerName := getContainerInfo()
