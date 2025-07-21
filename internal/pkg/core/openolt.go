@@ -61,6 +61,7 @@ type OpenOLT struct {
 	enableONUStats                     bool
 	enableGemStats                     bool
 	CheckOnuDevExistenceAtOnuDiscovery bool
+	ForceOnuDiscIndProcessing          bool
 }
 
 // NewOpenOLT returns a new instance of OpenOLT
@@ -85,6 +86,7 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.enableGemStats = cfg.EnableGEMStats
 	openOLT.rpcTimeout = cfg.RPCTimeout
 	openOLT.CheckOnuDevExistenceAtOnuDiscovery = cfg.CheckOnuDevExistenceAtOnuDiscovery
+	openOLT.ForceOnuDiscIndProcessing = cfg.ForceOnuDiscIndProcessing
 	return &openOLT
 }
 

@@ -1710,14 +1710,28 @@ func (dh *DeviceHandler) getChildDevice(ctx context.Context, sn string, parentPo
 	return onuDev
 }
 
+// checkForResourceExistance checks for either device in rw-core or active techprofile in olt-adapter, based on the flag CheckOnuDevExistenceAtOnuDiscovery.
+// If the ONU device/resource exists in either of these, the ONU discovery will be ignored.
 func (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscInd *oop.OnuDiscIndication, sn string) (bool, error) {
-	channelID := onuDiscInd.GetIntfId()
 	parentPortNo := plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)
-	tpInstExists := false
-
 	// CheckOnuDevExistenceAtOnuDiscovery if true , a check will be made for the existence of the onu device. If the onu device
 	// still exists , the onu discovery will be ignored, else a check for active techprofiles for ONU is checked.
-	if !dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {
+	if dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {
+		onuDevice, _ := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
+			ParentId:     dh.device.Id,
+			SerialNumber: sn,
+			ParentPortNo: parentPortNo,
+		})
+		if onuDevice != nil {
+			logger.Infow(ctx, "Child device still present ignoring discovery indication", log.Fields{"sn": sn})
+			return true, nil
+		}
+		logger.Infow(ctx, "No device present in core , continuing with discovery", log.Fields{"sn": sn})
+
+		return false, nil
+	} else {
+		tpInstExists := false
+		channelID := onuDiscInd.GetIntfId()
 		onuDev := dh.getChildDevice(ctx, sn, parentPortNo)
 		if onuDev != nil {
 			var onuGemInfo *rsrcMgr.OnuGemInfo
@@ -1740,19 +1754,6 @@ func (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscI
 		}
 		return tpInstExists, nil
 	}
-
-	onuDevice, _ := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
-		ParentId:     dh.device.Id,
-		SerialNumber: sn,
-		ParentPortNo: parentPortNo,
-	})
-	if onuDevice != nil {
-		logger.Infow(ctx, "Child device still present ignoring discovery indication", log.Fields{"sn": sn})
-		return true, nil
-	}
-	logger.Infow(ctx, "No device present in core , continuing with discovery", log.Fields{"sn": sn})
-
-	return false, nil
 }
 
 // processDiscONULOSClear clears the LOS Alarm if it's needed
@@ -1815,14 +1816,17 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
-	tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
-	if error != nil {
-		return error
-	}
-	if tpInstExists {
-		// ignore the discovery if tpinstance is present.
-		logger.Debugw(ctx, "ignoring-onu-indication-as-tp-already-exists", log.Fields{"sn": sn})
-		return nil
+	// Check for resource existence only if the ForceOnuDiscIndProcessing is disabled.
+	if !dh.cfg.ForceOnuDiscIndProcessing {
+		tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
+		if error != nil {
+			return error
+		}
+		if tpInstExists {
+			// ignore the discovery if tpinstance is present.
+			logger.Debugw(ctx, "ignoring-onu-indication-as-tp-already-exists", log.Fields{"sn": sn})
+			return nil
+		}
 	}
 	inProcess, existing := dh.discOnus.LoadOrStore(sn, true)
 
