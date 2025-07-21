@@ -1815,14 +1815,16 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 
 	logger.Infow(ctx, "new-discovery-indication", log.Fields{"sn": sn})
 
-	tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
-	if error != nil {
-		return error
-	}
-	if tpInstExists {
-		// ignore the discovery if tpinstance is present.
-		logger.Debugw(ctx, "ignoring-onu-indication-as-tp-already-exists", log.Fields{"sn": sn})
-		return nil
+	if !dh.cfg.ForceOnuDiscIndProcessing {
+		tpInstExists, error = dh.checkForResourceExistance(ctx, onuDiscInd, sn)
+		if error != nil {
+			return error
+		}
+		if tpInstExists {
+			// ignore the discovery if tpinstance is present.
+			logger.Debugw(ctx, "ignoring-onu-indication-as-tp-already-exists", log.Fields{"sn": sn})
+			return nil
+		}
 	}
 	inProcess, existing := dh.discOnus.LoadOrStore(sn, true)
 

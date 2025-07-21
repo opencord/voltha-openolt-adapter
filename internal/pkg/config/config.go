@@ -61,6 +61,7 @@ const (
 	defaultMaxBackoffRetryDelay               = 10 * time.Second
 	defaultAdapterEndpoint                    = "adapter-open-olt"
 	defaultCheckOnuDevExistenceAtOnuDiscovery = false
+	defaultForceOnuDiscIndProcessing          = false
 	defaultMaxRetries                         = 10
 )
 
@@ -101,6 +102,7 @@ type AdapterFlags struct {
 	EnableONUStats                     bool
 	EnableGEMStats                     bool
 	CheckOnuDevExistenceAtOnuDiscovery bool
+	ForceOnuDiscIndProcessing          bool
 }
 
 // NewAdapterFlags returns a new RWCore config
@@ -135,6 +137,7 @@ func NewAdapterFlags() *AdapterFlags {
 		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
 		MaxBackoffRetryDelay:               defaultMaxBackoffRetryDelay,
 		CheckOnuDevExistenceAtOnuDiscovery: defaultCheckOnuDevExistenceAtOnuDiscovery,
+		ForceOnuDiscIndProcessing:          defaultForceOnuDiscIndProcessing,
 		MaxRetries:                         defaultMaxRetries,
 	}
 	return &adapterFlags
@@ -301,6 +304,10 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"check_onu_exist_on_discovery",
 		defaultCheckOnuDevExistenceAtOnuDiscovery,
 		"Whether to check for flows only or child device before honoring discovery?")
+	flag.BoolVar(&(so.ForceOnuDiscIndProcessing),
+		"skip_check_onu_exist_on_discovery",
+		defaultForceOnuDiscIndProcessing,
+		"Skip the check for onu device existence on onu discovery")
 
 	flag.Parse()
 	containerName := getContainerInfo()
