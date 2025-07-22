@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "72826513_66ede4ea",
+        "filename": "internal/pkg/config/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-22T12:22:25Z",
+      "side": 1,
+      "message": "this will need a helmchart change as well",
+      "revId": "10549da8463e2347439807fd049dc2f427b155c0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
