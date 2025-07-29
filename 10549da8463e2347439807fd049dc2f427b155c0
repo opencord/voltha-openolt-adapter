@@ -33,6 +33,23 @@
       "message": "this will need a helmchart change as well",
       "revId": "10549da8463e2347439807fd049dc2f427b155c0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b0b607a7_4fc8986d",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-07-29T05:29:48Z",
+      "side": 1,
+      "message": "SkipOnuDevExistenceCheckOnDiscovery and CheckOnuDevExistenceAtOnuDiscovery seems like the same.",
+      "revId": "10549da8463e2347439807fd049dc2f427b155c0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
