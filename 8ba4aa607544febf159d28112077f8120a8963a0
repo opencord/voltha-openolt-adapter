@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "db70f22d_f1a01aea",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-07-30T13:55:20Z",
+      "side": 1,
+      "message": "I could not understand why this boolean flag is needed. CheckOnuDevExistenceAtOnuDiscovery is already for this purpose? The same purpose could still be achived by using the CheckOnuDevExistenceAtOnuDiscovery flag.",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
