@@ -50,6 +50,24 @@
       "message": "SkipOnuDevExistenceCheckOnDiscovery and CheckOnuDevExistenceAtOnuDiscovery seems like the same.",
       "revId": "10549da8463e2347439807fd049dc2f427b155c0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dba4ea61_a404ede8",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-07-30T12:34:50Z",
+      "side": 1,
+      "message": "Changed it to ForceOnuDiscIndProcessing",
+      "parentUuid": "b0b607a7_4fc8986d",
+      "revId": "10549da8463e2347439807fd049dc2f427b155c0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
