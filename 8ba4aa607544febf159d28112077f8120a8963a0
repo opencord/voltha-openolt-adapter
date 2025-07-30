@@ -34,6 +34,24 @@
       "parentUuid": "db70f22d_f1a01aea",
       "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f5b29724_30d23bef",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-07-30T21:07:15Z",
+      "side": 1,
+      "message": "The flag CheckOnuDevExistenceAtOnuDiscovery seems to be an inverted control for checkForResourceExistance\u0027s core logic. If CheckOnuDevExistenceAtOnuDiscovery is true, it effectively disables the \"check for resource existence\" behavior.\nThe simplest and most logical refactoring is to remove CheckOnuDevExistenceAtOnuDiscovery and rely only on ForceOnuDiscIndProcessing to decide whether to perform the checkForResourceExistance logic at all.\nIt seems that also the comment above the CheckOnuDevExistenceAtOnuDiscovery is wrong:\n\n// CheckOnuDevExistenceAtOnuDiscovery if true , a check will be made for the existence of the onu device. If the onu device still exists , the onu discovery will be ignored, else a check for active techprofiles for ONU is checked.\nif !dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {\n // checks the resource existence here.. but the flag is inverted!",
+      "parentUuid": "787d7843_48e976e4",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
