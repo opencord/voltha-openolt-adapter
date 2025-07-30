@@ -16,6 +16,24 @@
       "message": "I could not understand why this boolean flag is needed. CheckOnuDevExistenceAtOnuDiscovery is already for this purpose? The same purpose could still be achived by using the CheckOnuDevExistenceAtOnuDiscovery flag.",
       "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "787d7843_48e976e4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-07-30T14:08:56Z",
+      "side": 1,
+      "message": "CheckOnuDevExistenceAtOnuDiscovery flag is used to check if the TP instance exists for the ONU device. If the TP inst exists in olt-adapter, we do not further process the discovery indication. If this flag is disabled, we will check if the ONU device exists in rw-core. If the device exists in rw-core, the olt-adapter will skip processing the discovery indication.\n\nFor the onu-reboot enhancement, we want the ONU discovery indication to be processed irrespective of whether the TP inst exists in the adapter or the device exists in rw-core. Hence the new flag will force the olt-adapter to proceed with processing the ONU discovery indication.",
+      "parentUuid": "db70f22d_f1a01aea",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
