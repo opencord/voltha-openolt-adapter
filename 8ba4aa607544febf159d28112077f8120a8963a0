@@ -88,6 +88,24 @@
       "parentUuid": "dd47b614_79971609",
       "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "47b81b52_caa0d50a",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-07-31T12:57:26Z",
+      "side": 1,
+      "message": "It seems to me that your explanation and checkForResourceExistance function doesn\u0027t follow the intended behaviour!\n\nCase 2: !dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery should be inverted to dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery.\nCase 1: checking tpInstance still tied to CheckOnuDevExistenceAtOnuDiscovery so case 1 and case 2 are controlled by a single flag.\nCase 3: Don\u0027t check anything condition still be applied by setting the CheckOnuDevExistenceAtOnuDiscovery. Maybe I\u0027m confused here.\n\nI donwloaded the entire patch and here I what I see for the checkForResourceExistance function.\n\nfunc (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscInd *oop.OnuDiscIndication, sn string) (bool, error) {\n\tchannelID :\u003d onuDiscInd.GetIntfId()\n\tparentPortNo :\u003d plt.IntfIDToPortNo(onuDiscInd.GetIntfId(), voltha.Port_PON_OLT)\n\ttpInstExists :\u003d false\n\n\t// CheckOnuDevExistenceAtOnuDiscovery if true , a check will be made for the existence of the onu device. If the onu device\n\t// still exists , the onu discovery will be ignored, else a check for active techprofiles for ONU is checked.\n\tif !dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {\n\t\tonuDev :\u003d dh.getChildDevice(ctx, sn, parentPortNo)\n\t\tif onuDev !\u003d nil {\n\t\t\tvar onuGemInfo *rsrcMgr.OnuGemInfo\n\t\t\tvar err error\n\t\t\tif onuGemInfo, err \u003d dh.resourceMgr[channelID].GetOnuGemInfo(ctx, onuDev.onuID); err !\u003d nil {\n\t\t\t\tlogger.Warnw(ctx, \"Unable to find onuGemInfo\", log.Fields{\"onuID\": onuDev.onuID})\n\t\t\t\treturn false, err\n\t\t\t}\n\t\t\tif onuGemInfo !\u003d nil {\n\t\t\t\tfor _, uni :\u003d range onuGemInfo.UniPorts {\n\t\t\t\t\tuniID :\u003d plt.UniIDFromPortNum(uni)\n\t\t\t\t\ttpIDs :\u003d dh.resourceMgr[channelID].GetTechProfileIDForOnu(ctx, onuDev.onuID, uniID)\n\t\t\t\t\tif len(tpIDs) !\u003d 0 {\n\t\t\t\t\t\tlogger.Warnw(ctx, \"Techprofile present for ONU, ignoring onu discovery\", log.Fields{\"onuID\": onuDev.onuID})\n\t\t\t\t\t\ttpInstExists \u003d true\n\t\t\t\t\t\tbreak\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\treturn tpInstExists, nil\n\t}",
+      "parentUuid": "badd0602_d4752aa9",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
