@@ -52,6 +52,24 @@
       "parentUuid": "787d7843_48e976e4",
       "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd47b614_79971609",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-07-31T08:01:33Z",
+      "side": 1,
+      "message": "We have 3 cases to handle now \n case 1: check for tpinstance , which should be default behavior. before proceeding with onu discovery check for tpinstance\n case 2: check for device , this we need to check if the device is existing in core before accepting discovery. if there is no device then it is obvious that all tps and flows also will be deleted.\n case 3: dont check anything , this is needed for our reboot optimization \n \n inorder to handle all 3 scenrios we would need 2 flags, agree it is 1 extar flag to handle similar scenarios but easy way instead of complicating the logic\n if CheckOnuDevExistenceAtOnuDiscovery is set to true then case 2 will be checked , if it is set to false then case 1 will be checked by default.\n if ForceOnuDiscIndProcessing is set to true then CheckOnuDevExistenceAtOnuDiscovery will be ignored .\n if both CheckOnuDevExistenceAtOnuDiscovery and CheckOnuDevExistenceAtOnuDiscovery are false then it will be case 1 , TP check only by default.\n \n I think we will put better documentation in helmcharts and in adapter config file to be clear \n\nPlease share if you have other ideas",
+      "parentUuid": "f5b29724_30d23bef",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
