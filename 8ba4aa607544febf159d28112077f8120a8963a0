@@ -106,6 +106,24 @@
       "parentUuid": "badd0602_d4752aa9",
       "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3fd58b17_2f4736ad",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1818,
+      "author": {
+        "id": 1000960
+      },
+      "writtenOn": "2025-08-01T11:05:07Z",
+      "side": 1,
+      "message": "Modified the checkForResourceExistance function for better readability. Below is the behavior with the new flag introduced.\n\n1. If ForceOnuDiscIndProcessing is enabled, no check on resource existence will be done and discovery will be processed.\n2. Else, based on the CheckOnuDevExistenceAtOnuDiscovery flag, check will be made on either techprofile or device existence. Accordingly discovery will be ignored if the resource exists.",
+      "parentUuid": "47b81b52_caa0d50a",
+      "revId": "8ba4aa607544febf159d28112077f8120a8963a0",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
