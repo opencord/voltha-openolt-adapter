@@ -1,4 +1,4 @@
-# -*- makefile -*-
+#  -*- makefile -*-
 # -----------------------------------------------------------------------
 # Copyright 2016-2024 Open Networking Foundation Contributors
 #
