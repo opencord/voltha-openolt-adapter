@@ -1356,6 +1356,7 @@ func Test_startCollector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.args.dh.collectorWaitGroup.Add(1)
 			go func() {
 				time.Sleep(1 * time.Second) // simulated wait time to stop startCollector
 				tt.args.dh.stopCollector <- true
