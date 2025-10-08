@@ -16,6 +16,24 @@
       "message": "Do you have any plan to implement if the connected OLT is not the one before the IP change, rejecting the IP address change?",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "78821df4_05b70a93",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-10-08T21:21:47Z",
+      "side": 1,
+      "message": "Serial number of the OLT can be checked",
+      "parentUuid": "79780436_60da50c9",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
