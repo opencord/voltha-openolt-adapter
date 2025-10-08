@@ -136,6 +136,7 @@ type DeviceHandler struct {
 
 	isDeviceDeletionInProgress bool
 	prevOperStatus             common.OperStatus_Types
+	transitionHandlerCancel    context.CancelFunc
 }
 
 // OnuDevice represents ONU related info
@@ -1111,7 +1112,9 @@ func (dh *DeviceHandler) doStateDown(ctx context.Context) error {
 // doStateInit dial the grpc before going to init state
 func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	var err error
-
+	dh.lockDevice.RLock()
+	hostAndPort := dh.device.GetHostAndPort() //store the IP of OLT , so that when we are blocked on  grpc dail with old IP,and IP is updated it wont be updated here.
+	dh.lockDevice.RUnlock()
 	// if the connection is already available, close the previous connection (olt reboot case)
 	if dh.clientCon != nil {
 		if err = dh.clientCon.Close(); err != nil {
@@ -1121,9 +1124,9 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		}
 	}
 
-	logger.Debugw(ctx, "Dailing grpc", log.Fields{"device-id": dh.device.Id})
+	logger.Debugw(ctx, "Dailing grpc", log.Fields{"device-id": dh.device.Id, "host-and-port": hostAndPort})
 	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
-	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
+	dh.clientCon, err = grpc.DialContext(ctx, hostAndPort,
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
@@ -1136,18 +1139,11 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	if err != nil {
 		return olterrors.NewErrCommunication("dial-failure", log.Fields{
 			"device-id":     dh.device.Id,
-			"host-and-port": dh.device.GetHostAndPort()}, err)
-	}
-	//Setting oper and connection state to RECONCILING and conn state to reachable
-	cgClient, err := dh.coreClient.GetCoreServiceClient()
-	if err != nil {
-		return err
+			"host-and-port": hostAndPort}, err)
 	}
 
 	if dh.device.OperStatus == voltha.OperStatus_RECONCILING {
-		subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.openOLT.rpcTimeout)
-		defer cancel()
-		if _, err := cgClient.DeviceStateUpdate(subCtx, &ca.DeviceStateFilter{
+		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
 			DeviceId:   dh.device.Id,
 			OperStatus: voltha.OperStatus_RECONCILING,
 			ConnStatus: voltha.ConnectStatus_REACHABLE,
@@ -1381,9 +1377,11 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 
 // AdoptDevice adopts the OLT device
 func (dh *DeviceHandler) AdoptDevice(ctx context.Context, device *voltha.Device) {
+	var dhCtx context.Context
 	dh.transitionMap = NewTransitionMap(dh)
 	logger.Infow(ctx, "adopt-device", log.Fields{"device-id": device.Id, "Address": device.GetHostAndPort()})
-	dh.transitionMap.Handle(ctx, DeviceInit)
+	dhCtx, dh.transitionHandlerCancel = context.WithCancel(context.Background())
+	dh.transitionMap.Handle(dhCtx, DeviceInit)
 
 	// Now, set the initial PM configuration for that device
 	cgClient, err := dh.coreClient.GetCoreServiceClient()
@@ -4435,4 +4433,22 @@ func (dh *DeviceHandler) getHeartbeatSignature(ctx context.Context) uint32 {
 		}
 	}
 	return signature
+}
+
+func (dh *DeviceHandler) UpdateDevice(ctx context.Context, newDevice *voltha.Device) {
+	var dhCtx context.Context
+	logger.Debug(ctx, "UpdateDevice called", log.Fields{"deviceConfig": newDevice})
+	if dh.transitionHandlerCancel != nil {
+		dh.transitionHandlerCancel() //if the previous device transition was grpc blocked on old IP,this make that handler return/exit.
+		dh.transitionHandlerCancel = nil
+	}
+	dh.lockDevice.Lock()
+	dh.device = newDevice //update the device handler with the new device which would have newIP
+	dh.lockDevice.Unlock()
+	dhCtx, dh.transitionHandlerCancel = context.WithCancel(context.Background())
+	if newDevice.ConnectStatus == voltha.ConnectStatus_REACHABLE {
+		dh.updateStateUnreachable(dhCtx)
+	} else {
+		dh.transitionMap.Handle(dhCtx, DeviceInit)
+	}
 }
