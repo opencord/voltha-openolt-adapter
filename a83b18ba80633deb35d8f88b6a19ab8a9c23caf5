@@ -36,6 +36,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3bafa6a2_9794ef21",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2025-10-08T06:57:17Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "ec84d8fb_472b1879",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e84f207d_ea81ff53",
@@ -71,6 +89,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce87d765_d3cdc502",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2025-10-08T06:57:17Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "e84f207d_ea81ff53",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "20a70cdd_ff6f941c",
@@ -101,6 +137,24 @@
       "writtenOn": "2025-07-15T07:41:29Z",
       "side": 1,
       "message": "Done",
+      "parentUuid": "20a70cdd_ff6f941c",
+      "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "00a6ac94_ca0a9a2a",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2025-10-08T06:57:17Z",
+      "side": 1,
+      "message": "Discussed with abhilash and kept this header names",
       "parentUuid": "20a70cdd_ff6f941c",
       "revId": "a83b18ba80633deb35d8f88b6a19ab8a9c23caf5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"

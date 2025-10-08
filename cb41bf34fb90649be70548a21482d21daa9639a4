@@ -16,6 +16,23 @@
       "message": "recheck",
       "revId": "cb41bf34fb90649be70548a21482d21daa9639a4",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "47c79bca_2eac28d7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2025-10-08T06:57:17Z",
+      "side": 1,
+      "message": "\u003e Patch Set 11: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-lint/2618/ : FAILURE\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_sanity-test/2157/ : FAILURE\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_licensed/2759/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-tests/2613/ : SUCCESS\n\nrecheck",
+      "revId": "cb41bf34fb90649be70548a21482d21daa9639a4",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
