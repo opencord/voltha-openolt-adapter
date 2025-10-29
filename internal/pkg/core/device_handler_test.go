@@ -40,7 +40,7 @@ import (
 	cmn "github.com/opencord/voltha-protos/v5/go/common"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
-	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
+
 	oop "github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"github.com/stretchr/testify/assert"
@@ -1106,12 +1106,12 @@ func TestDeviceHandler_start(t *testing.T) {
 func TestDeviceHandler_PacketOut(t *testing.T) {
 	dh1 := newMockDeviceHandler()
 	dh2 := negativeDeviceHandler()
-	acts := []*ofp.OfpAction{
-		fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA))),
-		fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 101)),
+	acts := []*of.OfpAction{
+		fu.SetField(fu.Metadata_ofp(uint64(of.OfpInstructionType_OFPIT_WRITE_METADATA))),
+		fu.SetField(fu.VlanVid(uint32(of.OfpVlanId_OFPVID_PRESENT) | 101)),
 		fu.Output(1),
 	}
-	pktout := &ofp.OfpPacketOut{BufferId: 0, InPort: 1, Actions: acts, Data: []byte("AYDCAAAOAODsSE5TiMwCBwQA4OxITlIEBQUwLzUxBgIAFAgEMC81MQoJbG9jYWxob3N0EBwFAawbqqACAAAAoRAxLjMuNi4xLjQuMS40NDEz/gYAgMILAgD+GQCAwgkDAAAAAGQAAAAAAAAAAgICAgICAgL+GQCAwgoDAAAAAGQAAAAAAAAAAgICAgICAgIAAA==")}
+	pktout := &of.OfpPacketOut{BufferId: 0, InPort: 1, Actions: acts, Data: []byte("AYDCAAAOAODsSE5TiMwCBwQA4OxITlIEBQUwLzUxBgIAFAgEMC81MQoJbG9jYWxob3N0EBwFAawbqqACAAAAoRAxLjMuNi4xLjQuMS40NDEz/gYAgMILAgD+GQCAwgkDAAAAAGQAAAAAAAAAAgICAgICAgL+GQCAwgoDAAAAAGQAAAAAAAAAAgICAgICAgIAAA==")}
 	type args struct {
 		egressPortNo int
 		packet       *of.OfpPacketOut
@@ -1470,17 +1470,17 @@ func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
 
 	// Upstream flow DHCP flow - ONU1 UNI0 PON0
 	fa0 := &fu.FlowArgs{
-		MatchFields: []*ofp.OfpOxmOfbField{
+		MatchFields: []*of.OfpOxmOfbField{
 			fu.InPort(536870912),
 			fu.Metadata_ofp(1),
 			fu.IpProto(17), // dhcp
 			fu.VlanPcp(0),
-			fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT)),
+			fu.VlanVid(uint32(of.OfpVlanId_OFPVID_PRESENT)),
 			fu.TunnelId(256),
 		},
-		Actions: []*ofp.OfpAction{
+		Actions: []*of.OfpAction{
 			// fu.SetField(fu.Metadata_ofp(uint64(ofp.OfpInstructionType_OFPIT_WRITE_METADATA | 2))),
-			fu.SetField(fu.VlanVid(uint32(ofp.OfpVlanId_OFPVID_PRESENT) | 257)),
+			fu.SetField(fu.VlanVid(uint32(of.OfpVlanId_OFPVID_PRESENT) | 257)),
 			fu.Output(2147483645),
 			fu.PushVlan(0x8100),
 		},
@@ -1491,7 +1491,7 @@ func Test_UpdateFlowsIncrementallyNegativeTestCases(t *testing.T) {
 	flowAdd := of.Flows{Items: make([]*of.OfpFlowStats, 0)}
 	flowAdd.Items = append(flowAdd.Items, flow0)
 	flowRemove := of.Flows{Items: make([]*of.OfpFlowStats, 0)}
-	flowChanges := &ofp.FlowChanges{ToAdd: &flowAdd, ToRemove: &flowRemove}
+	flowChanges := &of.FlowChanges{ToAdd: &flowAdd, ToRemove: &flowRemove}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
