@@ -2499,6 +2499,11 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	   other pon resources like alloc_id and gemport_id
 	*/
 
+	if dh.getDeviceDeletionInProgressFlag() {
+		logger.Errorw(ctx, "cannot complete operation as device deletion is in progress", log.Fields{"device-id": dh.device.Id})
+		return olterrors.NewErrAdapter(fmt.Errorf("cannot complete operation as device deletion is in progress").Error(), log.Fields{"device-id": dh.device.Id}, nil)
+	}
+
 	dh.setDeviceDeletionInProgressFlag(true)
 	dh.StopAllFlowRoutines(ctx)
 
@@ -2567,7 +2572,7 @@ func (dh *DeviceHandler) StopAllFlowRoutines(ctx context.Context) {
 
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	var errs []error
-	if dh.resourceMgr != nil {
+	if dh.resourceMgr != nil && dh.totalPonPorts > 0 {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
@@ -2596,7 +2601,10 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 		errs = append(errs, err)
 	}
 
+	dh.lockDevice.Lock()
+	logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
 	dh.CloseKVClient(ctx)
+	dh.lockDevice.Unlock()
 
 	// Take one final sweep at cleaning up KV store for the OLT device
 	// Clean everything at <base-path-prefix>/openolt/<device-id>
