@@ -281,7 +281,14 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 }
 
 // CloseKVClient closes open KV clients
+// This method is thread-safe and can be called concurrently
 func (dh *DeviceHandler) CloseKVClient(ctx context.Context) {
+	// Acquire read lock to safely iterate over resourceMgr and flowMgr slices
+	// Use RLock since we're only reading the slices, not modifying them
+	dh.lockDevice.RLock()
+	defer dh.lockDevice.RUnlock()
+
+
 	if dh.resourceMgr != nil {
 		for _, rscMgr := range dh.resourceMgr {
 			if rscMgr != nil {
@@ -2579,6 +2586,11 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	   other pon resources like alloc_id and gemport_id
 	*/
 
+	if dh.getDeviceDeletionInProgressFlag() {
+		logger.Errorw(ctx, "cannot complete operation as device deletion is in progress", log.Fields{"device-id": dh.device.Id})
+		return olterrors.NewErrAdapter(fmt.Errorf("cannot complete operation as device deletion is in progress").Error(), log.Fields{"device-id": dh.device.Id}, nil)
+	}
+
 	dh.setDeviceDeletionInProgressFlag(true)
 	dh.StopAllFlowRoutines(ctx)
 
@@ -2647,7 +2659,7 @@ func (dh *DeviceHandler) StopAllFlowRoutines(ctx context.Context) {
 
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	var errs []error
-	if dh.resourceMgr != nil {
+	if dh.resourceMgr != nil && dh.totalPonPorts > 0 {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
@@ -2676,6 +2688,7 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 		errs = append(errs, err)
 	}
 
+	logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
 	dh.CloseKVClient(ctx)
 
 	// Take one final sweep at cleaning up KV store for the OLT device
