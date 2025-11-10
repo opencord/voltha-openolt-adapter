@@ -749,15 +749,16 @@ func (PONRMgr *PONResourceManager) GetPath(ctx context.Context, IntfID uint32, R
 		IntfID = SharedPoolID
 	}
 	var Path string
-	if ResourceType == ONU_ID {
+	switch ResourceType {
+	case ONU_ID:
 		Path = fmt.Sprintf(ONU_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
-	} else if ResourceType == ALLOC_ID {
+	case ALLOC_ID:
 		Path = fmt.Sprintf(ALLOC_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
-	} else if ResourceType == GEMPORT_ID {
+	case GEMPORT_ID:
 		Path = fmt.Sprintf(GEMPORT_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
-	} else if ResourceType == FLOW_ID {
+	case FLOW_ID:
 		Path = fmt.Sprintf(FLOW_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
-	} else {
+	default:
 		logger.Error(ctx, "Invalid resource pool identifier")
 	}
 	return Path

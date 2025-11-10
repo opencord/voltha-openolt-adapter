@@ -1,5 +1,5 @@
 /*
-* Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+* Copyright 2018-2025 Open Networking Foundation (ONF) and the ONF Contributors
 
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	mgrpc "github.com/opencord/voltha-lib-go/v7/pkg/mocks/grpc"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
-	"go.etcd.io/etcd/pkg/mock/mockserver"
+	"go.etcd.io/etcd/tests/v3/framework/integration"
 )
 
 func newMockAdapter() *adapter {
@@ -39,9 +39,11 @@ func Test_adapter_setKVClient(t *testing.T) {
 	adapt1.config.KVStoreType = "etcd"
 	adapt2 := newMockAdapter()
 	adapt2.config.KVStoreType = ""
-	a, _ := mockserver.StartMockServers(1)
-	_ = a.StartAt(0)
-	defer a.StopAt(0)
+
+	integration.BeforeTest(t)
+	cluster := integration.NewCluster(t, &integration.ClusterConfig{Size: 1})
+	defer cluster.Terminate(t)
+
 	tests := []struct {
 		name       string
 		clienttype string
@@ -63,9 +65,10 @@ func Test_adapter_setKVClient(t *testing.T) {
 
 func Test_adapter_KVClient(t *testing.T) {
 	adapt := newMockAdapter()
-	a, _ := mockserver.StartMockServers(1)
-	_ = a.StartAt(0)
-	defer a.StopAt(0)
+
+	integration.BeforeTest(t)
+	cluster := integration.NewCluster(t, &integration.ClusterConfig{Size: 1})
+	defer cluster.Terminate(t)
 
 	if err := adapt.setKVClient(context.Background()); err != nil {
 		t.Errorf("adapter.setKVClient() error = %v", err)
@@ -101,10 +104,11 @@ func Test_registerWithCore(t *testing.T) {
 }
 
 func Test_startOpenOLT(t *testing.T) {
-	a, _ := mockserver.StartMockServers(1)
+	integration.BeforeTest(t)
+	cluster := integration.NewCluster(t, &integration.ClusterConfig{Size: 1})
+	defer cluster.Terminate(t)
+
 	cm := &conf.ConfigManager{}
-	_ = a.StartAt(0)
-	defer a.StopAt(0)
 
 	ad := newMockAdapter()
 	oolt, err := ad.startOpenOLT(context.TODO(), nil, ad.eventProxy, ad.config, cm)
@@ -117,9 +121,10 @@ func Test_startOpenOLT(t *testing.T) {
 }
 
 func Test_newKafkaClient(t *testing.T) {
-	a, _ := mockserver.StartMockServers(1)
-	_ = a.StartAt(0)
-	defer a.StopAt(0)
+	integration.BeforeTest(t)
+	cluster := integration.NewCluster(t, &integration.ClusterConfig{Size: 1})
+	defer cluster.Terminate(t)
+
 	adapter := newMockAdapter()
 	type args struct {
 		clientType string
