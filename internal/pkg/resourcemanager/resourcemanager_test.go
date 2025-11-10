@@ -267,6 +267,14 @@ func (kvclient *MockResKVClient) IsConnectionUp(ctx context.Context) bool { // t
 	return true
 }
 
+// KeyExists mock function implementation for KVClient
+func (kvclient *MockResKVClient) KeyExists(ctx context.Context, key string) (bool, error) {
+	if key != "" {
+		return true, nil
+	}
+	return false, errors.New("key didn't find")
+}
+
 // CloseWatch mock function implementation for KVClient
 func (kvclient *MockResKVClient) CloseWatch(ctx context.Context, key string, ch chan *kvstore.Event) {
 }
