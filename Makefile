@@ -80,7 +80,7 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 3.1.3
+VOLTHA_TOOLS_VERSION ?= 3.1.4
 
 ## TODO: Verify / migrate to repo:onf-make
 # GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
@@ -171,7 +171,7 @@ docker-kind-load: ## Load docker images into a KinD cluster
 ## -----------------------------------------------------------------------
 lint-dockerfile: ## Perform static analysis on Dockerfile
 	@echo "Running Dockerfile lint check ..."
-	@${HADOLINT} $$(find . -name "Dockerfile.*")
+	@${HADOLINT} $$(find . -name "Dockerfile.*" -not -path "./vendor/*")
 	@echo "Dockerfile lint check OK"
 
 ## -----------------------------------------------------------------------

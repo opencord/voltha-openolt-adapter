@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+//nolint:staticcheck
 package techprofile
 
 import (
@@ -817,9 +817,7 @@ func (t *TechProfileMgr) allocateTPInstance(ctx context.Context, uniPortName str
 		}
 	}
 	//add multicast GEM ports to dsGemPortAttributeList afterwards
-	for k := range dsMulticastGemAttributeList {
-		dsGemPortAttributeList = append(dsGemPortAttributeList, dsMulticastGemAttributeList[k])
-	}
+	dsGemPortAttributeList = append(dsGemPortAttributeList, dsMulticastGemAttributeList...)
 
 	return &tp_pb.TechProfileInstance{
 		SubscriberIdentifier: uniPortName,
