@@ -667,6 +667,7 @@ func (dh *DeviceHandler) handleIndication(ctx context.Context, indication *oop.I
 		span, ctx := log.CreateChildSpan(ctx, "olt-indication", log.Fields{"device-id": dh.device.Id})
 		defer span.Finish()
 		logger.Infow(ctx, "received olt indication", log.Fields{"device-id": dh.device.Id, "olt-ind": indication.GetOltInd()})
+		logger.Infow(ctx, "received olt indication", log.Fields{"device-id": dh.device.Id, "olt-ind": indication.GetOltInd()})
 		if err := dh.handleOltIndication(ctx, indication.GetOltInd()); err != nil {
 			_ = olterrors.NewErrAdapter("handle-indication-error", log.Fields{"type": "olt", "device-id": dh.device.Id}, err).Log()
 		}
