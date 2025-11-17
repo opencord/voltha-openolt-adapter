@@ -177,12 +177,19 @@ type McastFlowOrGroupControlBlock struct {
 var pmNames = []string{
 	"rx_bytes",
 	"rx_packets",
+	"rx_ucast_packets",
 	"rx_mcast_packets",
 	"rx_bcast_packets",
+	"rx_error_packets",
+	"rx_crc_errors",
+	"rx_packets_dropped",
 	"tx_bytes",
 	"tx_packets",
+	"tx_ucast_packets",
 	"tx_mcast_packets",
 	"tx_bcast_packets",
+	"tx_error_packets",
+	"tx_dropped_total",
 }
 
 // NewOnuDevice creates a new Onu Device
