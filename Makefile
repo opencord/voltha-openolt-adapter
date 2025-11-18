@@ -80,7 +80,7 @@ DOCKER_BUILD_ARGS ?= \
 	--build-arg org_opencord_vcs_dirty="${DOCKER_LABEL_VCS_DIRTY}"
 
 # tool containers
-VOLTHA_TOOLS_VERSION ?= 3.1.3
+VOLTHA_TOOLS_VERSION ?= 3.1.4
 
 ## TODO: Verify / migrate to repo:onf-make
 # GO                = docker run --rm --user $$(id -u):$$(id -g) -v ${CURDIR}:/app $(shell test -t 0 && echo "-it") -v gocache:/.cache -v gocache-${VOLTHA_TOOLS_VERSION}:/go/pkg voltha/voltha-ci-tools:${VOLTHA_TOOLS_VERSION}-golang go
