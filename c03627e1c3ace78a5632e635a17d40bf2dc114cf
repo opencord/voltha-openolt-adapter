@@ -101,6 +101,91 @@
       "message": "\u003e Patch Set 21:\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_sanity-test/2204/ : FAILURE\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_licensed/2802/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-tests/2656/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-lint/2661/ : SUCCESS\n\nrecheck",
       "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b3c5ad4_3deed7ca",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3174,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-24T23:53:35Z",
+      "side": 1,
+      "message": "Let\u0027s keep the method name as EnableOnu to be consistent.",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "05d02b12_004a2c00",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3190,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-24T23:53:35Z",
+      "side": 1,
+      "message": "typo here",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45c3bb3a_51f3409c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3214,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-24T23:53:35Z",
+      "side": 1,
+      "message": "Let\u0027s keep the method name as DisableOnu to be consistent.",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "332ab5eb_a1ffb6b3",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3230,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-24T23:53:35Z",
+      "side": 1,
+      "message": "typo here",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c5acd426_f35ce3ac",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-24T23:53:35Z",
+      "side": 1,
+      "message": "let\u0027s keep it as enableDisableOnuDevice",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
