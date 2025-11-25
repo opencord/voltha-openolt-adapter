@@ -16,6 +16,29 @@
       "message": "\u003e Patch Set 4: Verified-1\n\u003e \n\u003e Build Failed \n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_sanity-test/2203/ : FAILURE\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_licensed/2801/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-tests/2655/ : SUCCESS\n\u003e \n\u003e https://jenkins.lfbroadband.org/job/verify_voltha-openolt-adapter_unit-test-lint/2660/ : SUCCESS\n\nrecheck",
       "revId": "00b707072e830d5109e44f795415d88649e79cc3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "03694981_b87a6f70",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2604,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2025-11-25T22:53:24Z",
+      "side": 1,
+      "message": "If CloseKVClient is not safe, then isn\u0027t it better to make it a thread safe method. Maybe in another patch?",
+      "range": {
+        "startLine": 2604,
+        "startChar": 4,
+        "endLine": 2604,
+        "endChar": 14
+      },
+      "revId": "00b707072e830d5109e44f795415d88649e79cc3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
