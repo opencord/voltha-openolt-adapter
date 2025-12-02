@@ -120,6 +120,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ce5689e_3eb1d927",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3174,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-12-02T07:07:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b3c5ad4_3deed7ca",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "05d02b12_004a2c00",
@@ -133,6 +151,24 @@
       "writtenOn": "2025-11-24T23:53:35Z",
       "side": 1,
       "message": "typo here",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d4284503_2857b099",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3190,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-12-02T07:07:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "05d02b12_004a2c00",
       "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -154,6 +190,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c46852db_2fb03bd6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3214,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-12-02T07:07:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45c3bb3a_51f3409c",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "332ab5eb_a1ffb6b3",
@@ -171,6 +225,24 @@
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5193a747_8f8f7212",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 3230,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-12-02T07:07:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "332ab5eb_a1ffb6b3",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c5acd426_f35ce3ac",
@@ -184,6 +256,24 @@
       "writtenOn": "2025-11-24T23:53:35Z",
       "side": 1,
       "message": "let\u0027s keep it as enableDisableOnuDevice",
+      "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c1b58f6_587c39e9",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2025-12-02T07:07:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5acd426_f35ce3ac",
       "revId": "c03627e1c3ace78a5632e635a17d40bf2dc114cf",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
