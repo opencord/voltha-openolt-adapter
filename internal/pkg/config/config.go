@@ -39,6 +39,7 @@ const (
 	defaultEventtopic           = "voltha.events"
 	defaultOnunumber            = 1
 	defaultProbeAddress         = ":8080"
+	defaultPrometheusPort       = ":8081"
 	defaultLiveProbeInterval    = 60 * time.Second
 	defaultNotLiveProbeInterval = 5 * time.Second // Probe more frequently when not alive
 	// defaultHeartbeatCheckInterval is the time in seconds the adapter will keep checking the hardware for heartbeat.
@@ -78,6 +79,7 @@ type AdapterFlags struct {
 	EventTopic                         string
 	LogLevel                           string
 	ProbeAddress                       string
+	PrometheusAddress                  string
 	GrpcAddress                        string
 	CoreEndpoint                       string
 	TraceAgentAddress                  string
@@ -123,6 +125,7 @@ func NewAdapterFlags() *AdapterFlags {
 		Banner:                             defaultBanner,
 		DisplayVersionOnly:                 defaultDisplayVersionOnly,
 		ProbeAddress:                       defaultProbeAddress,
+		PrometheusAddress:                  defaultPrometheusPort,
 		LiveProbeInterval:                  defaultLiveProbeInterval,
 		NotLiveProbeInterval:               defaultNotLiveProbeInterval,
 		HeartbeatCheckInterval:             defaultHeartbeatCheckInterval,
@@ -200,6 +203,11 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"probe_address",
 		defaultProbeAddress,
 		"The address on which to listen to answer liveness and readiness probe queries over HTTP.")
+
+	flag.StringVar(&(so.PrometheusAddress),
+		"prometheus_address",
+		defaultPrometheusPort,
+		"Used for exposing the metrics to prometheus.")
 
 	flag.DurationVar(&(so.LiveProbeInterval),
 		"live_probe_interval",

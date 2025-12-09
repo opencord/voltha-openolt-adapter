@@ -39,6 +39,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	flow_utils "github.com/opencord/voltha-lib-go/v7/pkg/flows"
@@ -1209,15 +1210,18 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 	}
 
 	logger.Debugw(ctx, "Dailing grpc", log.Fields{"device-id": dh.device.Id})
+	grpc_prometheus.EnableClientHandlingTimeHistogram()
 	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
 			grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
+			grpc_prometheus.StreamClientInterceptor,
 		)),
 		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
 			grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(log.ActiveTracerProxy{})),
+			grpc_prometheus.UnaryClientInterceptor,
 		)))
 
 	if err != nil {
