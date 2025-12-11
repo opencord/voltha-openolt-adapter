@@ -529,7 +529,9 @@ func (StatMgr *OpenOltStatisticsMgr) convertONUStats(onuStats *openolt.OnuStatis
 func (StatMgr *OpenOltStatisticsMgr) collectOnuStats(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
 	onu := &openolt.Onu{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID}
 	logger.Debugw(ctx, "pulling-onu-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
-	if stats, err := StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
+	subCtx, cancel := context.WithTimeout(context.Background(), StatMgr.Device.openOLT.rpcTimeout)
+	defer cancel()
+	if stats, err := StatMgr.Device.Client.GetOnuStatistics(subCtx, onu); err == nil {
 		onuStats <- stats
 	} else {
 		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "err": err})
@@ -542,10 +544,13 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnDemandOnuStats(ctx context.Context
 	var stats *openolt.OnuStatistics
 	var err error
 	logger.Debugw(ctx, "pulling-onu-stats-on-demand", log.Fields{"IntfID": intfID, "OnuID": onuID})
-	if stats, err = StatMgr.Device.Client.GetOnuStatistics(context.Background(), onu); err == nil {
+	subCtx, cancel := context.WithTimeout(context.Background(), StatMgr.Device.openOLT.rpcTimeout)
+	if stats, err = StatMgr.Device.Client.GetOnuStatistics(subCtx, onu); err == nil {
+		cancel()
 		statValue := StatMgr.convertONUStats(stats)
 		return statValue
 	}
+	cancel()
 	logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": intfID, "OnuID": onuID, "err": err})
 	return nil
 }
@@ -571,12 +576,14 @@ func (StatMgr *OpenOltStatisticsMgr) collectGemStats(ctx context.Context, onuGem
 	for _, gem := range onuGemInfo.GemPorts {
 		logger.Debugw(ctx, "pulling-gem-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem})
 		onuPacket := &openolt.OnuPacket{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID, GemportId: gem}
-		if stats, err := StatMgr.Device.Client.GetGemPortStatistics(context.Background(), onuPacket); err == nil {
+		subCtx, cancel := context.WithTimeout(context.Background(), StatMgr.Device.openOLT.rpcTimeout)
+		if stats, err := StatMgr.Device.Client.GetGemPortStatistics(subCtx, onuPacket); err == nil {
 			gemStats <- stats
 		} else {
 			logger.Errorw(ctx, "error-while-getting-gem-stats-for-onu",
 				log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem, "err": err})
 		}
+		cancel()
 	}
 }
 

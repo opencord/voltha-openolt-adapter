@@ -71,7 +71,9 @@ func (g *OpenOltGroupMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry
 		Action:  g.buildGroupAction(),
 	}
 	logger.Debugw(ctx, "sending-group-to-device", log.Fields{"groupToOlt": groupToOlt})
-	_, err := g.deviceHandler.Client.PerformGroupOperation(ctx, &groupToOlt)
+	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), g.deviceHandler.cfg.RPCTimeout)
+	_, err := g.deviceHandler.Client.PerformGroupOperation(subCtx, &groupToOlt)
+	cancel()
 	if err != nil {
 		return olterrors.NewErrAdapter("add-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
 	}
@@ -94,7 +96,9 @@ func (g *OpenOltGroupMgr) DeleteGroup(ctx context.Context, group *ofp.OfpGroupEn
 		GroupId: group.Desc.GroupId,
 	}
 	logger.Debugw(ctx, "deleting-group-from-device", log.Fields{"groupToOlt": groupToOlt})
-	_, err := g.deviceHandler.Client.DeleteGroup(ctx, &groupToOlt)
+	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), g.deviceHandler.cfg.RPCTimeout)
+	_, err := g.deviceHandler.Client.DeleteGroup(subCtx, &groupToOlt)
+	cancel()
 	if err != nil {
 		logger.Errorw(ctx, "delete-group-failed-on-dev", log.Fields{"groupToOlt": groupToOlt, "err": err})
 		return olterrors.NewErrAdapter("delete-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
@@ -297,7 +301,9 @@ func (g *OpenOltGroupMgr) performGroupOperation(ctx context.Context, group *open
 		log.Fields{
 			"groupToOlt": group,
 			"command":    group.Command})
-	_, err := g.deviceHandler.Client.PerformGroupOperation(log.WithSpanFromContext(context.Background(), ctx), group)
+	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), g.deviceHandler.cfg.RPCTimeout)
+	_, err := g.deviceHandler.Client.PerformGroupOperation(subCtx, group)
+	cancel()
 	if err != nil {
 		return olterrors.NewErrAdapter("group-operation-failed", log.Fields{"groupToOlt": group}, err)
 	}
