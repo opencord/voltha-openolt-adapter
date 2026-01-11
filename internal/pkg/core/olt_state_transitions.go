@@ -21,6 +21,7 @@ import (
 	"context"
 	"reflect"
 	"runtime"
+	"sync"
 
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 )
@@ -72,6 +73,7 @@ type Transition struct {
 type TransitionMap struct {
 	transitions        map[Trigger]Transition
 	currentDeviceState DeviceState
+	oltTransitionMutex sync.Mutex
 }
 
 //    OpenoltDevice state machine:
@@ -147,6 +149,8 @@ func (tMap *TransitionMap) isValidTransition(trigger Trigger) bool {
 // after handlers if the transition is a valid transition
 func (tMap *TransitionMap) Handle(ctx context.Context, trigger Trigger) {
 	// Check whether the transtion is valid from current state
+	tMap.oltTransitionMutex.Lock()
+	defer tMap.oltTransitionMutex.Unlock()
 	if !tMap.isValidTransition(trigger) {
 		logger.Errorw(ctx, "invalid-transition-triggered",
 			log.Fields{

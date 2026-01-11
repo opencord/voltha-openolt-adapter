@@ -1215,7 +1215,7 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 		}
 	}
 
-	logger.Debugw(ctx, "Dailing grpc", log.Fields{"device-id": dh.device.Id})
+	logger.Debugw(ctx, "Dialing grpc", log.Fields{"device-id": dh.device.Id})
 	grpc_prometheus.EnableClientHandlingTimeHistogram()
 	// Use Interceptors to automatically inject and publish Open Tracing Spans by this GRPC client
 	dh.clientCon, err = grpc.Dial(dh.device.GetHostAndPort(),
@@ -1263,7 +1263,8 @@ func (dh *DeviceHandler) doStateInit(ctx context.Context) error {
 // postInit create olt client instance to invoke RPC on the olt device
 func (dh *DeviceHandler) postInit(ctx context.Context) error {
 	dh.Client = oop.NewOpenoltClient(dh.clientCon)
-	dh.transitionMap.Handle(ctx, GrpcConnected)
+	// decoupling it to avoid blocking state machine transition
+	go dh.transitionMap.Handle(ctx, GrpcConnected)
 	return nil
 }
 
@@ -1315,7 +1316,22 @@ func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	}
 
 	if err := dh.initializeDeviceHandlerModules(ctx); err != nil {
-		return olterrors.NewErrAdapter("device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id}, err).LogAt(log.ErrorLevel)
+		logger.Error(ctx, "device-handler-initialization-failed", log.Fields{"device-id": dh.device.Id, "error": err})
+		cloned := proto.Clone(device).(*voltha.Device)
+		cloned.ConnectStatus = voltha.ConnectStatus_UNREACHABLE
+		cloned.OperStatus = voltha.OperStatus_UNKNOWN
+		dh.device = cloned
+
+		if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
+			DeviceId:   cloned.Id,
+			OperStatus: cloned.OperStatus,
+			ConnStatus: cloned.ConnectStatus,
+		}); err != nil {
+			logger.Error(ctx, "device-state-update-failed", log.Fields{"device-id": dh.device.Id, "error": err})
+		}
+		// decoupling it to avoid blocking state machine transition
+		go dh.transitionMap.Handle(ctx, GrpcDisconnected)
+		return nil
 	}
 
 	go dh.updateLocalDevice(ctx)
@@ -1399,7 +1415,7 @@ func (dh *DeviceHandler) populateDeviceInfo(ctx context.Context) (*oop.DeviceInf
 	cancel()
 
 	if err != nil {
-		return nil, olterrors.NewErrPersistence("get", "device", 0, nil, err)
+		return nil, olterrors.NewErrCommunication("get-device-info-failed", log.Fields{"device-id": dh.device.Id}, err).Log()
 	}
 	if deviceInfo == nil {
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
