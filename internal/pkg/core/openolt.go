@@ -175,6 +175,7 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 	}
 	logger.Infow(ctx, "reconcile-device", log.Fields{"device-id": device.Id})
 	var handler *DeviceHandler
+	var dhCtx context.Context
 	if handler = oo.getDeviceHandler(device.Id); handler == nil {
 		//Setting state to RECONCILING
 		// Fetch previous state
@@ -224,7 +225,8 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		oo.addDeviceHandlerToMap(handler)
 		handler.transitionMap = NewTransitionMap(handler)
 
-		go handler.transitionMap.Handle(log.WithSpanFromContext(context.Background(), ctx), DeviceInit)
+		dhCtx, handler.transitionHandlerCancel = context.WithCancel(log.WithSpanFromContext(context.Background(), ctx))
+		go handler.transitionMap.Handle(dhCtx, DeviceInit)
 	} else {
 		logger.Warnf(ctx, "device-already-reconciled-or-active", log.Fields{"device-id": device.Id})
 		return &empty.Empty{}, status.Errorf(codes.AlreadyExists, "handler exists: %s", device.Id)
@@ -679,6 +681,23 @@ loop:
 	}
 	logger.Errorw(ctx, "connection-down", log.Fields{"remote-client": remoteClient, "error": err, "initial-conn-time": initialRequestTime})
 	return err
+}
+
+// UpdateDevice updates the address of the OLT for now
+func (oo *OpenOLT) UpdateDevice(ctx context.Context, updateDeviceReq *voltha.UpdateDevice) (*empty.Empty, error) {
+	logger.Infow(ctx, "update-device", log.Fields{"device": updateDeviceReq})
+	if updateDeviceReq == nil {
+		return nil, fmt.Errorf("nil-device-config")
+	}
+	if updateDeviceReq.Address == nil {
+		return nil, fmt.Errorf("device-address-not-found")
+	}
+	if handler := oo.getDeviceHandler(updateDeviceReq.Id); handler != nil {
+		go handler.UpdateDevice(context.Background(), updateDeviceReq)
+		return &empty.Empty{}, nil
+	}
+
+	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": updateDeviceReq.Id}, nil).Log()
 }
 
 /*
