@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cbe85eef_cc02e095",
+        "filename": "internal/pkg/core/openolt.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-01-13T18:31:14Z",
+      "side": 1,
+      "message": "If the intention is calling the UpdateDevice async, then another context has to be created since as soon as the RPC returns, the ctx is cancelled.",
+      "revId": "d624bd9f76c5f367e895f7f9cbd60de1218bb39e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
