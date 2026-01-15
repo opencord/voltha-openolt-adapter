@@ -34,6 +34,24 @@
       "parentUuid": "79780436_60da50c9",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fee8bd7d_dd5ff7b7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2026-01-15T07:59:02Z",
+      "side": 1,
+      "message": "The newly assigned IP and serial number of the OLT are already validated at Voltha’s northbound interface, which maps the serial number to the Voltha deviceID and sends the UpdateDevice request to RW-Core. Therefore, performing the same validation again in the OpenOLT adapter is redundant",
+      "parentUuid": "78821df4_05b70a93",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
