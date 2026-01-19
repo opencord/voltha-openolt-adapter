@@ -16,6 +16,24 @@
       "message": "I have a concern regarding resource management: if the previous OLT was reachable, do we risk having stale data from the previous one?",
       "revId": "f2a50a1f346cc6a631f3b9e6a90928826185b3a3",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a5d5775_b7e5eab0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2026-01-19T09:41:06Z",
+      "side": 1,
+      "message": "currently as per design we are not storing any data corresponding to the session at the Kvstore. All we store is resources associated to the OLTs and IP details",
+      "parentUuid": "d57fb2a0_1ae435ff",
+      "revId": "f2a50a1f346cc6a631f3b9e6a90928826185b3a3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
