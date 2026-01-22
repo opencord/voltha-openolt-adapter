@@ -52,6 +52,24 @@
       "parentUuid": "78821df4_05b70a93",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6053584a_b4e9bb46",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-01-22T12:06:55Z",
+      "side": 1,
+      "message": "HI Serkant,\nThe idea is to handle when the ip of a OLT is changed, but not the OLT itself. Yes if there is any different OLT with same ip that check should be done, most probably this check is already done in core. but if there is any change in OLT with same ip the NB applications should take care of it",
+      "parentUuid": "fee8bd7d_dd5ff7b7",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
