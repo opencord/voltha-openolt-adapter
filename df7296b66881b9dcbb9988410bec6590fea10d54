@@ -70,6 +70,24 @@
       "parentUuid": "fee8bd7d_dd5ff7b7",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5f4fbe4_d8e35a88",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-01-22T20:07:28Z",
+      "side": 1,
+      "message": "Thanks Abhilash. Now I better understand the use case. How can we make sure if the given IP address is for the same OLT? I\u0027m not sure if this is handled in core. \nThis operation can be dangerous if someone enters an IP address that hits a different existing OLT and can mess up the 2 OLTs at the same time, which is hard to recover. I strongly suggest putting a protection mechanism in the core or in the adapter.",
+      "parentUuid": "6053584a_b4e9bb46",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
