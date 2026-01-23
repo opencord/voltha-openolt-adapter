@@ -88,6 +88,24 @@
       "parentUuid": "6053584a_b4e9bb46",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45f49cab_6f3b5929",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-01-23T05:50:01Z",
+      "side": 1,
+      "message": "Yes, the updateDevice rpc takes deviceid and the ipaddress as input. so only that device ip will be changed. what we can do is put a check in core for ip against device id. that will ensure that there are no multiple devices sharing the same ipaddress by mistake",
+      "parentUuid": "a5f4fbe4_d8e35a88",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
