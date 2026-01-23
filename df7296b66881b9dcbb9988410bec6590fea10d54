@@ -106,6 +106,24 @@
       "parentUuid": "a5f4fbe4_d8e35a88",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8d813a12_357d482e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-01-23T17:45:56Z",
+      "side": 1,
+      "message": "Thanks, Abhilash. I think even if the core checks if there is already a known OLT with the given IP address, the OLT might be connected to another voltha stack and the current core can not know about the existence of the OLT. So the check doesn\u0027t work for all the cases.\nIt might be possible to check if the given IP address and the old IP address have the same device serial number. Implementation could be tricky and I\u0027m not sure if it\u0027s possible. I\u0027m marking this as +1 and let\u0027s discuss if we can find a better way of handling this case.",
+      "parentUuid": "45f49cab_6f3b5929",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
