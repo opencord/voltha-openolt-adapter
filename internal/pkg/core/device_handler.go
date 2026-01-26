@@ -1711,7 +1711,7 @@ func (dh *DeviceHandler) sendProxyOmciRequests(ctx context.Context, onuDevice *v
 func (dh *DeviceHandler) ProxyOmciMessage(ctx context.Context, omciMsg *ia.OmciMessage) error {
 	logger.Debugw(ctx, "proxy-omci-message", log.Fields{"parent-device-id": omciMsg.ParentDeviceId, "child-device-id": omciMsg.ChildDeviceId, "proxy-address": omciMsg.ProxyAddress, "connect-status": omciMsg.ConnectStatus})
 
-	if DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE) {
+	if DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE) || DeviceState(dh.device.OperStatus) != DeviceState(voltha.OperStatus_ACTIVE) {
 		return status.Error(codes.Unavailable, "OLT unreachable")
 	}
 	if omciMsg.GetProxyAddress() == nil {
