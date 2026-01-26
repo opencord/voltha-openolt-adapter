@@ -415,7 +415,7 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	if meterInfo != nil && meterInfo.MeterID == sq.meterID {
 		logger.Infow(ctx, "scheduler-already-created-for-direction",
 			log.Fields{"device-id": f.deviceHandler.device.Id, "direction": direction, "meter-id": sq.meterID})
-		if err = f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, direction, sq.onuID, sq.uniID, sq.tpID, true); err != nil {
+		if err = f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, meterInfo, direction, sq.onuID, sq.uniID, sq.tpID, true); err != nil {
 			return err
 		}
 
@@ -982,10 +982,8 @@ func (f *OpenOltFlowMgr) storeTcontsGEMPortsIntoKVStore(ctx context.Context, int
 	}
 
 	logger.Infow(ctx, "stored-tconts-and-gem-into-kv-store-successfully", log.Fields{"device-id": f.deviceHandler.device.Id})
-	for _, gemPort := range gemPortIDs {
-		if err := f.resourceMgr.AddGemToOnuGemInfo(ctx, onuID, gemPort); err != nil {
-			logger.Errorw(ctx, "error-while-uploading-onugeminfos-to-kv-store", log.Fields{"device-id": f.deviceHandler.device.Id, "onuID": onuID, "gemPort": gemPort})
-		}
+	if err := f.resourceMgr.AddGemToOnuGemInfo(ctx, onuID, gemPortIDs); err != nil {
+		logger.Errorw(ctx, "error-while-uploading-onugeminfos-to-kv-store", log.Fields{"device-id": f.deviceHandler.device.Id, "onuID": onuID, "gemPort": gemPortIDs})
 	}
 }
 
@@ -2206,7 +2204,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 	}
 
 	// Decrement reference count for the meter associated with the given <(pon_id, onu_id, uni_id)>/<tp_id>/meter_id/<direction>
-	if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, flowDirection, uint32(onuID), uint32(uniID), tpID, false); err != nil {
+	if err := f.resourceMgr.HandleMeterInfoRefCntUpdate(ctx, nil, flowDirection, uint32(onuID), uint32(uniID), tpID, false); err != nil {
 		return err
 	}
 	return nil
