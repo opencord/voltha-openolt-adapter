@@ -532,10 +532,8 @@ func TestOpenOltResourceMgr_deleteGemPort(t *testing.T) {
 			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.onuID, tt.args.serialNum); err != nil {
 				t.Errorf("failed to add onu")
 			}
-			for _, gemPort := range tt.args.gemPortIDs {
-				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, gemPort); err != nil {
-					t.Errorf("failed to add gem to onu")
-				}
+			if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, tt.args.gemPortIDs); err != nil {
+				t.Errorf("failed to add gem to onu")
 			}
 			for _, gemPortDeleted := range tt.args.gemPortIDsToBeDeleted {
 				if err := RsrcMgr.RemoveGemFromOnuGemInfo(ctx, tt.args.onuID, gemPortDeleted); err != nil {
@@ -623,10 +621,8 @@ func TestOpenOltFlowMgr_addGemPortToOnuInfoMap(t *testing.T) {
 			if err := RsrcMgr.AddNewOnuGemInfoToCacheAndKvStore(ctx, tt.args.onuID, tt.args.serialNum); err != nil {
 				t.Errorf("failed to add onu")
 			}
-			for _, gemPort := range tt.args.gemPortIDs {
-				if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, gemPort); err != nil {
-					t.Errorf("failed to add gem to onu")
-				}
+			if err := RsrcMgr.AddGemToOnuGemInfo(ctx, tt.args.onuID, tt.args.gemPortIDs); err != nil {
+				t.Errorf("failed to add gem to onu")
 			}
 
 			lenofGemPorts := 0

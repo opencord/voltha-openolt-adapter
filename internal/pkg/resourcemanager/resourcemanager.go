@@ -848,9 +848,12 @@ func (rsrcMgr *OpenOltResourceMgr) GetMeterInfoForOnu(ctx context.Context, Direc
 
 // HandleMeterInfoRefCntUpdate increments or decrements the reference counter for a given meter.
 // When reference count becomes 0, it clears the meter information from the kv store
-func (rsrcMgr *OpenOltResourceMgr) HandleMeterInfoRefCntUpdate(ctx context.Context, Direction string,
+func (rsrcMgr *OpenOltResourceMgr) HandleMeterInfoRefCntUpdate(ctx context.Context, meterInfo *MeterInfo, Direction string,
 	onuID uint32, uniID uint32, tpID uint32, increment bool) error {
-	meterInfo, err := rsrcMgr.GetMeterInfoForOnu(ctx, Direction, onuID, uniID, tpID)
+	var err error
+	if meterInfo == nil {
+		meterInfo, err = rsrcMgr.GetMeterInfoForOnu(ctx, Direction, onuID, uniID, tpID)
+	}
 	if err != nil {
 		return err
 	} else if meterInfo == nil {
@@ -895,21 +898,25 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveMeterInfoForOnu(ctx context.Context, Di
 }
 
 // AddGemToOnuGemInfo adds gemport to onugem info kvstore and also local cache
-func (rsrcMgr *OpenOltResourceMgr) AddGemToOnuGemInfo(ctx context.Context, onuID uint32, gemPort uint32) error {
+func (rsrcMgr *OpenOltResourceMgr) AddGemToOnuGemInfo(ctx context.Context, onuID uint32, gemPorts []uint32) error {
 	onugem, err := rsrcMgr.GetOnuGemInfo(ctx, onuID)
 	if err != nil || onugem == nil || onugem.SerialNumber == "" {
 		logger.Errorf(ctx, "failed to get onuifo for intfid %d", rsrcMgr.PonIntfID)
 		return err
 	}
+	dbGemPortMap := make(map[uint32]bool)
+	for _, gem := range onugem.GemPorts {
+		dbGemPortMap[gem] = true
+	}
 	if onugem.OnuID == onuID {
-		for _, gem := range onugem.GemPorts {
-			if gem == gemPort {
-				logger.Debugw(ctx, "Gem already present in onugem info, skpping addition", log.Fields{"gem": gem})
-				return nil
+		for _, gemPort := range gemPorts {
+			if _, exists := dbGemPortMap[gemPort]; exists {
+				logger.Debugw(ctx, "Gem already present in onugem info, skpping addition", log.Fields{"gem": gemPort})
+				continue
 			}
+			logger.Debugw(ctx, "Added gem to onugem info", log.Fields{"gem": gemPort})
+			onugem.GemPorts = append(onugem.GemPorts, gemPort)
 		}
-		logger.Debugw(ctx, "Added gem to onugem info", log.Fields{"gem": gemPort})
-		onugem.GemPorts = append(onugem.GemPorts, gemPort)
 	} else {
 		logger.Errorw(ctx, "onu id in OnuGemInfo does not match", log.Fields{"onuID": onuID, "ponIf": rsrcMgr.PonIntfID, "onuGemInfoOnuID": onugem.OnuID})
 		return fmt.Errorf("onu-id-in-OnuGemInfo-does-not-match-%v", onuID)
