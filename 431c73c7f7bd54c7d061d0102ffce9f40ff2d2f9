@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b22dcae7_0f2ddf83",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1713,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2026-01-27T18:06:04Z",
+      "side": 1,
+      "message": "Please change the error text accordingly",
+      "range": {
+        "startLine": 1713,
+        "startChar": 43,
+        "endLine": 1713,
+        "endChar": 58
+      },
+      "revId": "431c73c7f7bd54c7d061d0102ffce9f40ff2d2f9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
