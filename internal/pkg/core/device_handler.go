@@ -2645,6 +2645,8 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	err := dh.cleanupDeviceResources(ctx)
 	if err != nil {
 		logger.Errorw(ctx, "could-not-remove-device-from-KV-store", log.Fields{"device-id": dh.device.Id, "err": err})
+		dh.setDeviceDeletionInProgressFlag(false)
+		return status.Error(codes.Internal, olterrors.NewErrAdapter("could-not-remove-device-from-KV-store", log.Fields{"device-id": dh.device.Id}, err).Error())
 	} else {
 		logger.Debugw(ctx, "successfully-removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 	}
@@ -2723,13 +2725,14 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 		errs = append(errs, err)
 	}
 
-	logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
-	dh.CloseKVClient(ctx)
-
-	// Take one final sweep at cleaning up KV store for the OLT device
-	// Clean everything at <base-path-prefix>/openolt/<device-id>
-	if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
-		errs = append(errs, err)
+	if len(errs) == 0 {
+		// Take one final sweep at cleaning up KV store for the OLT device
+		// Clean everything at <base-path-prefix>/openolt/<device-id>
+		if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
+			errs = append(errs, err)
+		}
+		logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
+		dh.CloseKVClient(ctx)
 	}
 
 	/*Delete ONU map for the device*/
@@ -3011,9 +3014,9 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 					dh.lockDevice.RUnlock()
 				} else {
 					logger.Warn(ctx, "Heartbeat signature changed, OLT is rebooted. Cleaningup resources.")
+					dh.updateStateRebooted(ctx)
 					dh.updateHeartbeatSignature(ctx, heartBeat.HeartbeatSignature)
 					dh.heartbeatSignature = heartBeat.HeartbeatSignature
-					go dh.updateStateRebooted(ctx)
 				}
 			}
 			cancel()
