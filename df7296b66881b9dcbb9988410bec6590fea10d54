@@ -124,6 +124,24 @@
       "parentUuid": "45f49cab_6f3b5929",
       "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc014e09_fab00cc5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-01-27T05:55:02Z",
+      "side": 1,
+      "message": "yes, if in different vstack i think the NB applications will have to handle it.",
+      "parentUuid": "8d813a12_357d482e",
+      "revId": "df7296b66881b9dcbb9988410bec6590fea10d54",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
