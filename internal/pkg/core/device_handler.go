@@ -3495,9 +3495,6 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		}
 		logger.Debugw(ctx, "removed-onu-gem-info", log.Fields{"intf": intfID, "onu-device": onu, "onugem": onuGem})
 	}
-	dh.resourceMgr[intfID].FreeonuID(ctx, []uint32{onuID})
-	dh.onus.Delete(onuKey)
-	dh.discOnus.Delete(onuSn)
 
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.cfg.RPCTimeout)
 	// Now clear the ONU on the OLT
@@ -3508,6 +3505,11 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			"onu-id":    onuID}, err).Log()
 	}
 	cancel()
+
+	//free resources only if the deleteonu is successful
+	dh.resourceMgr[intfID].FreeonuID(ctx, []uint32{onuID})
+	dh.onus.Delete(onuKey)
+	dh.discOnus.Delete(onuSn)
 	return nil
 }
 func (dh *DeviceHandler) removeFlowFromDevice(ctx context.Context, flowID uint64, intfID uint32) {
