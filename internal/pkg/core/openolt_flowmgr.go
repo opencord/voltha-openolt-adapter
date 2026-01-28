@@ -261,7 +261,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 
 	// load interface to multicast queue map from kv store
 	flowMgr.grpMgr.LoadInterfaceToMulticastQueueMap(ctx)
-	logger.Info(ctx, "initialization-of-flow-manager-success")
+	logger.Debugw(ctx, "initialization-of-flow-manager-success", log.Fields{"device-id": dh.device.Id})
 	return &flowMgr
 }
 
@@ -563,7 +563,7 @@ func (f *OpenOltFlowMgr) pushSchedulerQueuesToDevice(ctx context.Context, sq sch
 			return olterrors.NewErrAdapter("failed-to-create-traffic-schedulers-in-device", log.Fields{"TrafficScheds": TrafficSched}, err)
 		}
 		cancel()
-		logger.Infow(ctx, "successfully-created-traffic-schedulers", log.Fields{
+		logger.Debugw(ctx, "successfully-created-traffic-schedulers", log.Fields{
 			"direction":      sq.direction,
 			"traffic-queues": trafficQueues,
 			"device-id":      f.deviceHandler.device.Id})
@@ -660,7 +660,7 @@ func (f *OpenOltFlowMgr) RemoveQueues(ctx context.Context, sq schedQueue) error 
 				"traffic-queues": TrafficQueues,
 				"device-id":      f.deviceHandler.device.Id}, err)
 	}
-	logger.Infow(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id, "trafficQueues": TrafficQueues})
+	logger.Debugw(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id, "trafficQueues": TrafficQueues})
 
 	return err
 }
@@ -790,7 +790,7 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 				"device-id": f.deviceHandler.device.Id,
 				"err":       err})
 		} else {
-			logger.Infow(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id,
+			logger.Debugw(ctx, "removed-traffic-queues-successfully", log.Fields{"device-id": f.deviceHandler.device.Id,
 				"direction": sq.direction,
 				"intf-id":   sq.intfID,
 				"onu-id":    sq.onuID,
@@ -817,7 +817,7 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 			"device-id": f.deviceHandler.device.Id,
 			"err":       err})
 	} else {
-		logger.Infow(ctx, "removed-traffic-schedulers-successfully", log.Fields{"device-id": f.deviceHandler.device.Id,
+		logger.Debugw(ctx, "removed-traffic-schedulers-successfully", log.Fields{"device-id": f.deviceHandler.device.Id,
 			"direction": sq.direction,
 			"intf-id":   sq.intfID,
 			"onu-id":    sq.onuID,
@@ -849,7 +849,7 @@ func (f *OpenOltFlowMgr) createTcontGemports(ctx context.Context, intfID uint32,
 	// Check tech profile instance already exists for derived port name
 	techProfileInstance, _ := f.techprofile.GetTPInstance(ctx, tpPath)
 	if techProfileInstance == nil {
-		logger.Infow(ctx, "tp-instance-not-found--creating-new",
+		logger.Debugw(ctx, "tp-instance-not-found--creating-new",
 			log.Fields{
 				"path":      tpPath,
 				"device-id": f.deviceHandler.device.Id})
@@ -2130,7 +2130,7 @@ func (f *OpenOltFlowMgr) clearResources(ctx context.Context, intfID uint32, onuI
 
 // nolint: gocyclo
 func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Context, flow *ofp.OfpFlowStats, flowDirection string, nni_port uint32) error {
-	logger.Infow(ctx, "clear-flow-from-resource-manager",
+	logger.Debugw(ctx, "clear-flow-from-resource-manager",
 		log.Fields{
 			"flowDirection": flowDirection,
 			"flow":          *flow,
@@ -2214,7 +2214,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 
 // RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
-	logger.Infow(ctx, "removing-flow", log.Fields{"flow": *flow})
+	logger.Debugw(ctx, "removing-flow", log.Fields{"flow": *flow})
 	var direction string
 	actionInfo := make(map[string]interface{})
 
@@ -2304,7 +2304,7 @@ func (f *OpenOltFlowMgr) RouteFlowToOnuChannel(ctx context.Context, flow *ofp.Of
 		f.incomingFlows[onuID] <- flowCb
 		// Wait on the channel for flow handlers return value
 		err := <-errChan
-		logger.Infow(ctx, "process-flow-received-resp", log.Fields{"err": err, "totalTimeSeconds": time.Since(startTime).Seconds()})
+		logger.Debugw(ctx, "process-flow-received-resp", log.Fields{"err": err, "totalTimeSeconds": time.Since(startTime).Seconds()})
 		return err
 	}
 	logger.Errorw(ctx, "flow handler routine not active for onu", log.Fields{"onuID": onuID, "ponPortIdx": f.ponPortIdx})
@@ -2321,17 +2321,17 @@ func (f *OpenOltFlowMgr) perOnuFlowHandlerRoutine(handlerRoutineIndex int, subsc
 		// process the flow completely before proceeding to handle the next flow
 		case flowCb = <-subscriberFlowChannel:
 			if flowCb.addFlow {
-				logger.Info(flowCb.ctx, "adding-flow-start")
+				logger.Debug(flowCb.ctx, "adding-flow-start")
 				startTime := time.Now()
 				err := f.AddFlow(flowCb.ctx, flowCb.flow, flowCb.flowMetadata)
-				logger.Infow(flowCb.ctx, "adding-flow-complete", log.Fields{"processTimeSecs": time.Since(startTime).Seconds()})
+				logger.Infow(flowCb.ctx, "adding-flow-complete", log.Fields{"processTimeSecs": time.Since(startTime).Seconds(), "flow": flowCb.flow})
 				// Pass the return value over the return channel
 				*flowCb.errChan <- err
 			} else {
-				logger.Info(flowCb.ctx, "removing-flow-start")
+				logger.Debug(flowCb.ctx, "removing-flow-start")
 				startTime := time.Now()
 				err := f.RemoveFlow(flowCb.ctx, flowCb.flow)
-				logger.Infow(flowCb.ctx, "removing-flow-complete", log.Fields{"processTimeSecs": time.Since(startTime).Seconds()})
+				logger.Infow(flowCb.ctx, "removing-flow-complete", log.Fields{"processTimeSecs": time.Since(startTime).Seconds(), "flow": flowCb.flow})
 				// Pass the return value over the return channel
 				*flowCb.errChan <- err
 			}
@@ -2410,7 +2410,7 @@ func (f *OpenOltFlowMgr) AddFlow(ctx context.Context, flow *ofp.OfpFlowStats, fl
 
 	if ethType, ok := classifierInfo[EthType]; ok {
 		if ethType.(uint32) == LldpEthType {
-			logger.Info(ctx, "adding-lldp-flow")
+			logger.Debug(ctx, "adding-lldp-flow")
 			return f.addLLDPFlow(ctx, flow, portNo)
 		}
 		if ethType.(uint32) == PPPoEDEthType {
@@ -2584,7 +2584,7 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 				"onu-id":        onuDev.deviceID,
 				"proxyDeviceID": onuDev.proxyDeviceID}, err)
 	}
-	logger.Infow(ctx, "success-sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpid": TpID})
+	logger.Debugw(ctx, "success-sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpid": TpID})
 	return nil
 }
 

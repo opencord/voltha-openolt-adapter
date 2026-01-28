@@ -55,7 +55,7 @@ func NewGroupManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenO
 	grpMgr.resourceMgr = rMgr
 	grpMgr.interfaceToMcastQueueMap = make(map[uint32]*QueueInfoBrief)
 	grpMgr.interfaceToMcastQueueMapLock = sync.RWMutex{}
-	logger.Info(ctx, "initialization-of-group-manager-success")
+	logger.Debugw(ctx, "initialization-of-group-manager-success", log.Fields{"device-id": dh.device.Id})
 	return &grpMgr
 }
 
