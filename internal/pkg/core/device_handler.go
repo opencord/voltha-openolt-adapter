@@ -1856,7 +1856,7 @@ func (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscI
 			logger.Infow(ctx, "Child device still present ignoring discovery indication", log.Fields{"sn": sn})
 			return true, nil
 		}
-		logger.Infow(ctx, "No device present in core , continuing with discovery", log.Fields{"sn": sn})
+		logger.Debugw(ctx, "No device present in core , continuing with discovery", log.Fields{"sn": sn})
 
 		return false, nil
 	} else {
@@ -1927,7 +1927,7 @@ func (dh *DeviceHandler) handleOnuDiscoveryProcessingError(ctx context.Context, 
 		// we know the processing has inProcess.
 		// Note that this is done after checking if we are already processing
 		// to avoid changing the value from a different thread
-		logger.Infow(ctx, "onu-processing-completed", log.Fields{"sn": sn})
+		logger.Debugw(ctx, "onu-processing-completed", log.Fields{"sn": sn})
 		dh.discOnus.Store(sn, false)
 	}
 }
@@ -2043,7 +2043,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 				"serial-number": sn}, error)
 			return error
 		}
-		logger.Infow(ctx, "onu-child-device-added",
+		logger.Debugw(ctx, "onu-child-device-added",
 			log.Fields{"onuDevice": onuDevice,
 				"sn":        sn,
 				"onu-id":    onuID,
@@ -4602,7 +4602,7 @@ Helper functions for remote communication
 // TODO: Use a connection tracker such that the adapter connection is stopped when the last device that adapter
 // supports is deleted
 func (dh *DeviceHandler) setupChildInterAdapterClient(ctx context.Context, endpoint string) error {
-	logger.Infow(ctx, "setting-child-adapter-connection", log.Fields{"child-endpoint": endpoint})
+	logger.Debugw(ctx, "setting-child-adapter-connection", log.Fields{"child-endpoint": endpoint})
 
 	dh.lockChildAdapterClients.Lock()
 	defer dh.lockChildAdapterClients.Unlock()
