@@ -269,7 +269,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	if err := ResourceMgr.LoadLocalCacheFromKVStore(ctx); err != nil {
 		logger.Error(ctx, "failed-to-load-local-cache-from-kvstore")
 	}
-	logger.Info(ctx, "Initialization of  resource manager success!")
+	logger.Infow(ctx, "Initialization of  resource manager success!", log.Fields{"device-id": deviceID})
 	return &ResourceMgr
 }
 
