@@ -22,6 +22,30 @@
       },
       "revId": "431c73c7f7bd54c7d061d0102ffce9f40ff2d2f9",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a24b608f_ad2000f8",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1713,
+      "author": {
+        "id": 1001025
+      },
+      "writtenOn": "2026-01-28T07:41:12Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "b22dcae7_0f2ddf83",
+      "range": {
+        "startLine": 1713,
+        "startChar": 43,
+        "endLine": 1713,
+        "endChar": 58
+      },
+      "revId": "431c73c7f7bd54c7d061d0102ffce9f40ff2d2f9",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
