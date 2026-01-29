@@ -21,6 +21,7 @@ import (
 	"container/list"
 	"context"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -208,18 +209,18 @@ type NniPort struct {
 	Name string
 
 	RxBytes          uint64
-	RxPackets        uint64
-	RxUcastPackets   uint64
-	RxMcastPackets   uint64
-	RxBcastPackets   uint64
-	RxErrorPackets   uint64
+	RxFrames         uint64
+	RxUcastFrames    uint64
+	RxMcastFrames    uint64
+	RxBcastFrames    uint64
+	RxErrorFrames    uint64
 	RxPacketsDropped uint64
 	TxBytes          uint64
-	TxPackets        uint64
-	TxUcastPackets   uint64
-	TxMcastPackets   uint64
-	TxBcastPackets   uint64
-	TxErrorPackets   uint64
+	TxFrames         uint64
+	TxUcastFrames    uint64
+	TxMcastFrames    uint64
+	TxBcastFrames    uint64
+	TxErrorFrames    uint64
 	TxDroppedTotal   uint64
 	RxCrcErrors      uint64
 	BipErrors        uint64
@@ -243,17 +244,17 @@ func NewNniPort(PortNum uint32, IntfID uint32) *NniPort {
 	NNI.IntfID = IntfID
 
 	NNI.RxBytes = 0
-	NNI.RxPackets = 0
-	NNI.RxUcastPackets = 0
-	NNI.RxMcastPackets = 0
-	NNI.RxBcastPackets = 0
-	NNI.RxErrorPackets = 0
+	NNI.RxFrames = 0
+	NNI.RxUcastFrames = 0
+	NNI.RxMcastFrames = 0
+	NNI.RxBcastFrames = 0
+	NNI.RxErrorFrames = 0
 	NNI.TxBytes = 0
-	NNI.TxPackets = 0
-	NNI.TxUcastPackets = 0
-	NNI.TxMcastPackets = 0
-	NNI.TxBcastPackets = 0
-	NNI.TxErrorPackets = 0
+	NNI.TxFrames = 0
+	NNI.TxUcastFrames = 0
+	NNI.TxMcastFrames = 0
+	NNI.TxBcastFrames = 0
+	NNI.TxErrorFrames = 0
 	NNI.RxCrcErrors = 0
 	NNI.BipErrors = 0
 
@@ -399,30 +400,30 @@ func (StatMgr *OpenOltStatisticsMgr) collectNNIMetrics(nniID uint32) map[string]
 			switch mName {
 			case "rx_bytes":
 				nnival["RxBytes"] = float32(cm.RxBytes)
-			case "rx_packets":
-				nnival["RxPackets"] = float32(cm.RxPackets)
-			case "rx_ucast_packets":
-				nnival["RxUcastPackets"] = float32(cm.RxUcastPackets)
-			case "rx_mcast_packets":
-				nnival["RxMcastPackets"] = float32(cm.RxMcastPackets)
-			case "rx_bcast_packets":
-				nnival["RxBcastPackets"] = float32(cm.RxBcastPackets)
-			case "rx_error_packets":
-				nnival["RxErrorPackets"] = float32(cm.RxErrorPackets)
+			case "rx_frames":
+				nnival["RxFrames"] = float32(cm.RxFrames)
+			case "rx_ucast_frames":
+				nnival["RxUcastFrames"] = float32(cm.RxUcastFrames)
+			case "rx_mcast_frames":
+				nnival["RxMcastFrames"] = float32(cm.RxMcastFrames)
+			case "rx_bcast_frames":
+				nnival["RxBcastFrames"] = float32(cm.RxBcastFrames)
+			case "rx_error_frames":
+				nnival["RxErrorFrames"] = float32(cm.RxErrorFrames)
 			case "rx_crc_errors":
 				nnival["RxCrcErrors"] = float32(cm.RxCrcErrors)
 			case "rx_packets_dropped":
 				nnival["RxPacketsDropped"] = float32(cm.RxPacketsDropped)
 			case "tx_bytes":
 				nnival["TxBytes"] = float32(cm.TxBytes)
-			case "tx_packets":
-				nnival["TxPackets"] = float32(cm.TxPackets)
-			case "tx_ucast_packets":
-				nnival["TxUcastPackets"] = float32(cm.TxUcastPackets)
-			case "tx_mcast_packets":
-				nnival["TxMcastPackets"] = float32(cm.TxMcastPackets)
-			case "tx_bcast_packets":
-				nnival["TxBcastPackets"] = float32(cm.TxBcastPackets)
+			case "tx_frames":
+				nnival["TxFrames"] = float32(cm.TxFrames)
+			case "tx_ucast_frames":
+				nnival["TxUcastFrames"] = float32(cm.TxUcastFrames)
+			case "tx_mcast_frames":
+				nnival["TxMcastFrames"] = float32(cm.TxMcastFrames)
+			case "tx_bcast_frames":
+				nnival["TxBcastFrames"] = float32(cm.TxBcastFrames)
 			case "tx_dropped_total":
 				nnival["TxDroppedTotal"] = float32(cm.TxDroppedTotal)
 			}
@@ -675,32 +676,24 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 	// var err error
 	IntfID := PortStats.IntfId
 
-	if (plt.IntfIDToPortNo(1, voltha.Port_ETHERNET_NNI) < IntfID) &&
-		(IntfID < plt.IntfIDToPortNo(4, voltha.Port_ETHERNET_NNI)) {
-		/*
-		   for this release we are only interested in the first NNI for
-		   Northbound.
-		   we are not using the other 3
-		*/
-		return
-	} else if plt.IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI) == IntfID {
+	if (IntfID & plt.IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI)) != 0 {
 		var portNNIStat NniPort
 		portNNIStat.IntfID = IntfID
 		portNNIStat.PortNum = uint32(0)
 		portNNIStat.RxBytes = PortStats.RxBytes
-		portNNIStat.RxPackets = PortStats.RxPackets
-		portNNIStat.RxUcastPackets = PortStats.RxUcastPackets
-		portNNIStat.RxMcastPackets = PortStats.RxMcastPackets
-		portNNIStat.RxBcastPackets = PortStats.RxBcastPackets
+		portNNIStat.RxFrames = selectCounter(PortStats.RxFrames, PortStats.RxPackets)
+		portNNIStat.RxUcastFrames = selectCounter(PortStats.RxUcastFrames, PortStats.RxUcastPackets)
+		portNNIStat.RxMcastFrames = selectCounter(PortStats.RxMcastFrames, PortStats.RxMcastPackets)
+		portNNIStat.RxBcastFrames = selectCounter(PortStats.RxBcastFrames, PortStats.RxBcastPackets)
 		portNNIStat.RxCrcErrors = PortStats.RxCrcErrors
-		portNNIStat.RxErrorPackets = PortStats.RxErrorPackets
+		portNNIStat.RxErrorFrames = selectCounter(PortStats.RxErrorFrames, PortStats.RxErrorPackets)
 		portNNIStat.RxPacketsDropped = PortStats.RxPacketsDropped
 		portNNIStat.TxBytes = PortStats.TxBytes
-		portNNIStat.TxPackets = PortStats.TxPackets
-		portNNIStat.TxUcastPackets = PortStats.TxUcastPackets
-		portNNIStat.TxMcastPackets = PortStats.TxMcastPackets
-		portNNIStat.TxBcastPackets = PortStats.TxBcastPackets
-		portNNIStat.TxErrorPackets = PortStats.TxErrorPackets
+		portNNIStat.TxFrames = selectCounter(PortStats.TxFrames, PortStats.TxPackets)
+		portNNIStat.TxUcastFrames = selectCounter(PortStats.TxUcastFrames, PortStats.TxUcastPackets)
+		portNNIStat.TxMcastFrames = selectCounter(PortStats.TxMcastFrames, PortStats.TxMcastPackets)
+		portNNIStat.TxBcastFrames = selectCounter(PortStats.TxBcastFrames, PortStats.TxBcastPackets)
+		portNNIStat.TxErrorFrames = selectCounter(PortStats.TxErrorFrames, PortStats.TxErrorPackets)
 		portNNIStat.TxDroppedTotal = PortStats.TxDroppedTotal
 		mutex.Lock()
 		StatMgr.NorthBoundPort[0] = &portNNIStat
@@ -914,4 +907,18 @@ func (StatMgr *OpenOltStatisticsMgr) updateGetOnuPonCountersResponse(ctx context
 
 	singleValResp.Response.Status = extension.GetValueResponse_OK
 	logger.Debugw(ctx, "updateGetOnuPonCountersResponse", log.Fields{"resp": singleValResp})
+}
+
+func selectCounter(primary, secondary uint64) uint64 {
+	if isValidCounter(primary) {
+		return primary
+	}
+	if isValidCounter(secondary) {
+		return secondary
+	}
+	return 0
+}
+
+func isValidCounter(metric uint64) bool {
+	return metric != 0 && metric != math.MaxUint64
 }
