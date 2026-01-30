@@ -1854,11 +1854,22 @@ func (dh *DeviceHandler) checkForResourceExistance(ctx context.Context, onuDiscI
 	// CheckOnuDevExistenceAtOnuDiscovery if true , a check will be made for the existence of the onu device. If the onu device
 	// still exists , the onu discovery will be ignored, else a check for active techprofiles for ONU is checked.
 	if dh.openOLT.CheckOnuDevExistenceAtOnuDiscovery {
-		onuDevice, _ := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
+		onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
 			SerialNumber: sn,
 			ParentPortNo: parentPortNo,
 		})
+		if err != nil {
+			if e, ok := status.FromError(err); ok {
+				switch e.Code() {
+				case codes.NotFound:
+					return false, nil
+				default:
+					logger.Errorw(ctx, "Unexpected error code while fetching device from core", log.Fields{"sn": sn, "error": err})
+					return false, err
+				}
+			}
+		}
 		if onuDevice != nil {
 			logger.Infow(ctx, "Child device still present ignoring discovery indication", log.Fields{"sn": sn})
 			return true, nil
@@ -1995,13 +2006,18 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		if e, ok := status.FromError(error); ok {
 			logger.Debugw(ctx, "core-proxy-get-child-device-failed-with-code", log.Fields{"errCode": e.Code(), "sn": sn})
 			switch e.Code() {
-			case codes.Internal:
+			case codes.Internal, codes.NotFound:
 				// this probably means NOT FOUND, so just create a new device
 				onuDevice = nil
 			case codes.DeadlineExceeded:
 				// if the call times out, cleanup and exit
 				dh.discOnus.Delete(sn)
 				error = olterrors.NewErrTimeout("get-child-device", log.Fields{"device-id": dh.device.Id}, error)
+				return error
+			default:
+				//any other rpc errors
+				dh.discOnus.Delete(sn)
+				error = olterrors.NewErrAdapter("unexpected error code while fetching device from core", log.Fields{"device-id": dh.device.Id, "sn": sn}, error)
 				return error
 			}
 		}
