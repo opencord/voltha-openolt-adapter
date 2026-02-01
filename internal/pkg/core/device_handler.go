@@ -521,7 +521,7 @@ func (dh *DeviceHandler) updateLocalDevice(ctx context.Context) {
 // nolint: gocyclo
 // readIndications to read the indications from the OLT device
 func (dh *DeviceHandler) readIndications(ctx context.Context) error {
-	defer logger.Debugw(ctx, "indications-ended", log.Fields{"device-id": dh.device.Id})
+	defer logger.Infow(ctx, "indications-ended", log.Fields{"device-id": dh.device.Id})
 	defer func() {
 		dh.lockDevice.Lock()
 		dh.isReadIndicationRoutineActive = false
@@ -1267,7 +1267,7 @@ func (dh *DeviceHandler) postInit(ctx context.Context) error {
 // doStateConnected get the device info and update to voltha core
 func (dh *DeviceHandler) doStateConnected(ctx context.Context) error {
 	var err error
-	logger.Debugw(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
+	logger.Infow(ctx, "olt-device-connected", log.Fields{"device-id": dh.device.Id})
 
 	// Case where OLT is disabled and then rebooted.
 	device, err := dh.getDeviceFromCore(ctx, dh.device.Id)
@@ -3021,7 +3021,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 			}
 			cancel()
 		case <-dh.stopHeartbeatCheck:
-			logger.Debugw(ctx, "stopping-heartbeat-check", log.Fields{"device-id": dh.device.Id})
+			logger.Infow(ctx, "stopping-heartbeat-check", log.Fields{"device-id": dh.device.Id})
 			return
 		}
 	}
