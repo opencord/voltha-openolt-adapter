@@ -954,6 +954,13 @@ func (dh *DeviceHandler) reconcileOnus(ctx context.Context) error {
 				go dh.eventMgr.ProcessEvents(ctx, alarmInd, dh.device.Id, raisedTs)
 
 				dh.putOnuIndicationToChannel(ctx, OnuIndication, intfID)
+			case onuLosFromOlt.String() == "OFF" && onuConnectStatusFromCore.String() == "REACHABLE":
+				//Nothing to Indicate , just add the onu to the device handler onu cache
+				deviceType := onuDeviceFromCore.Type
+				deviceID := onuDeviceFromCore.Id
+				proxyDeviceID := onuDeviceFromCore.ProxyAddress.DeviceId
+				onuKey := dh.formOnuKey(intfID, onuID)
+				dh.onus.Store(onuKey, NewOnuDevice(deviceID, deviceType, onuDeviceFromCore.SerialNumber, onuID, intfID, proxyDeviceID, false, onuDeviceFromCore.AdapterEndpoint))
 			}
 		}
 	}
