@@ -3116,6 +3116,12 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	if dh.isReadIndicationRoutineActive {
 		dh.stopIndications <- true
 	}
+
+	// stop the heartbeat check routine
+	if dh.isHeartbeatCheckActive {
+		dh.stopHeartbeatCheck <- true
+	}
+
 	dh.lockDevice.RUnlock()
 
 	if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
@@ -3145,10 +3151,7 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	if dh.isCollectorActive {
 		dh.stopCollector <- true
 	}
-	// stop the heartbeat check routine
-	if dh.isHeartbeatCheckActive {
-		dh.stopHeartbeatCheck <- true
-	}
+
 	dh.lockDevice.RUnlock()
 
 	dh.StopAllFlowRoutines(ctx)
