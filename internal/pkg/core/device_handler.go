@@ -3043,7 +3043,7 @@ func startHeartbeatCheck(ctx context.Context, dh *DeviceHandler) {
 					dh.lockDevice.RUnlock()
 				} else {
 					logger.Warn(ctx, "Heartbeat signature changed, OLT is rebooted. Cleaningup resources.")
-					dh.updateStateRebooted(ctx)
+					go dh.updateStateRebooted(ctx)
 					dh.updateHeartbeatSignature(ctx, heartBeat.HeartbeatSignature)
 					dh.heartbeatSignature = heartBeat.HeartbeatSignature
 				}
