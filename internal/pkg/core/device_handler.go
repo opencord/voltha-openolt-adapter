@@ -2699,6 +2699,10 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	if dh.resourceMgr != nil && dh.totalPonPorts > 0 {
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
+			if dh.resourceMgr[ponPort] == nil {
+				logger.Warnw(ctx, "resource manager for ponPort is nil", log.Fields{"ponPort": ponPort})
+				continue
+			}
 			onuGemData := dh.resourceMgr[ponPort].GetOnuGemInfoList(ctx)
 			for i, onu := range onuGemData {
 				logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
@@ -2719,10 +2723,12 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 				errs = append(errs, err)
 			}
 		}
-	}
-	// Clean up NNI manager's data
-	if err := dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx); err != nil {
-		errs = append(errs, err)
+		// Clean up NNI manager's data
+		if err := dh.resourceMgr[dh.totalPonPorts].DeleteAllFlowIDsForGemForIntf(ctx); err != nil {
+			errs = append(errs, err)
+		}
+	} else {
+		logger.Errorw(ctx, "resource manager empty, ignoring resource cleanup", log.Fields{"device-id": dh.device.Id})
 	}
 
 	if len(errs) == 0 {
