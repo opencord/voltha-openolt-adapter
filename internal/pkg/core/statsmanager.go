@@ -674,12 +674,16 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 	  :return:
 	*/
 	// var err error
-	IntfID := PortStats.IntfId
+	logicalPortNo := PortStats.IntfId
 
-	if (IntfID & plt.IntfIDToPortNo(0, voltha.Port_ETHERNET_NNI)) != 0 {
+	if plt.IntfIDToPortTypeName(logicalPortNo) == voltha.Port_ETHERNET_NNI {
+		IntfID, err := plt.IntfIDFromNniPortNum(ctx, logicalPortNo)
+		if err != nil {
+			return
+		}
 		var portNNIStat NniPort
 		portNNIStat.IntfID = IntfID
-		portNNIStat.PortNum = uint32(0)
+		portNNIStat.PortNum = logicalPortNo
 		portNNIStat.RxBytes = PortStats.RxBytes
 		portNNIStat.RxFrames = selectCounter(PortStats.RxFrames, PortStats.RxPackets)
 		portNNIStat.RxUcastFrames = selectCounter(PortStats.RxUcastFrames, PortStats.RxUcastPackets)
@@ -696,35 +700,37 @@ func (StatMgr *OpenOltStatisticsMgr) PortsStatisticsKpis(ctx context.Context, Po
 		portNNIStat.TxErrorFrames = selectCounter(PortStats.TxErrorFrames, PortStats.TxErrorPackets)
 		portNNIStat.TxDroppedTotal = PortStats.TxDroppedTotal
 		mutex.Lock()
-		StatMgr.NorthBoundPort[0] = &portNNIStat
+		StatMgr.NorthBoundPort[IntfID] = &portNNIStat
 		mutex.Unlock()
 		logger.Debugw(ctx, "received-nni-stats", log.Fields{"nni-stats": StatMgr.NorthBoundPort})
 	}
-	for i := uint32(0); i < NumPonPorts; i++ {
-		if plt.IntfIDToPortNo(i, voltha.Port_PON_OLT) == IntfID {
-			var portPonStat PonPort
-			portPonStat.IntfID = IntfID
-			portPonStat.PortNum = i
-			portPonStat.PONID = i
-			portPonStat.RxBytes = PortStats.RxBytes
-			portPonStat.RxPackets = PortStats.RxPackets
-			portPonStat.RxUcastPackets = PortStats.RxUcastPackets
-			portPonStat.RxMcastPackets = PortStats.RxMcastPackets
-			portPonStat.RxBcastPackets = PortStats.RxBcastPackets
-			portPonStat.RxErrorPackets = PortStats.RxErrorPackets
-			portPonStat.RxPacketsDropped = PortStats.RxPacketsDropped
-			portPonStat.TxBytes = PortStats.TxBytes
-			portPonStat.TxPackets = PortStats.TxPackets
-			portPonStat.TxUcastPackets = PortStats.TxUcastPackets
-			portPonStat.TxMcastPackets = PortStats.TxMcastPackets
-			portPonStat.TxBcastPackets = PortStats.TxBcastPackets
-			portPonStat.TxErrorPackets = PortStats.TxErrorPackets
-			portPonStat.TxDroppedTotal = PortStats.TxDroppedTotal
-			mutex.Lock()
-			StatMgr.SouthBoundPort[i] = &portPonStat
-			mutex.Unlock()
-			logger.Debugw(ctx, "received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
+	if plt.IntfIDToPortTypeName(logicalPortNo) == voltha.Port_PON_OLT {
+		var portPonStat PonPort
+		ponID, err := plt.IntfIDFromPonPortNum(ctx, logicalPortNo)
+		if err != nil {
+			return
 		}
+		portPonStat.IntfID = ponID
+		portPonStat.PortNum = logicalPortNo
+		portPonStat.PONID = logicalPortNo
+		portPonStat.RxBytes = PortStats.RxBytes
+		portPonStat.RxPackets = PortStats.RxPackets
+		portPonStat.RxUcastPackets = PortStats.RxUcastPackets
+		portPonStat.RxMcastPackets = PortStats.RxMcastPackets
+		portPonStat.RxBcastPackets = PortStats.RxBcastPackets
+		portPonStat.RxErrorPackets = PortStats.RxErrorPackets
+		portPonStat.RxPacketsDropped = PortStats.RxPacketsDropped
+		portPonStat.TxBytes = PortStats.TxBytes
+		portPonStat.TxPackets = PortStats.TxPackets
+		portPonStat.TxUcastPackets = PortStats.TxUcastPackets
+		portPonStat.TxMcastPackets = PortStats.TxMcastPackets
+		portPonStat.TxBcastPackets = PortStats.TxBcastPackets
+		portPonStat.TxErrorPackets = PortStats.TxErrorPackets
+		portPonStat.TxDroppedTotal = PortStats.TxDroppedTotal
+		mutex.Lock()
+		StatMgr.SouthBoundPort[ponID] = &portPonStat
+		mutex.Unlock()
+		logger.Debugw(ctx, "received-pon-stats-for-port", log.Fields{"port-pon-stats": portPonStat})
 	}
 	/*
 	   Based upon the intf_id map to an nni port or a pon port
