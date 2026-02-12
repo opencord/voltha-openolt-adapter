@@ -26,10 +26,9 @@ import (
 	"time"
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
-	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
-
 	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	fu "github.com/opencord/voltha-lib-go/v7/pkg/flows"
+	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	plt "github.com/opencord/voltha-lib-go/v7/pkg/platform"
 	"github.com/opencord/voltha-lib-go/v7/pkg/pmmetrics"
 	ponrmgr "github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager"
@@ -37,6 +36,7 @@ import (
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-openolt-adapter/pkg/mocks"
+	"github.com/opencord/voltha-protos/v5/go/adapter_service"
 	cmn "github.com/opencord/voltha-protos/v5/go/common"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	of "github.com/opencord/voltha-protos/v5/go/openflow_13"
@@ -168,7 +168,14 @@ func newMockDeviceHandler() *DeviceHandler {
 	cm := &conf.ConfigManager{}
 	cm.Backend = &db.Backend{StoreType: "etcd", Client: &mocks.MockKVClient{}}
 	cfg := &config.AdapterFlags{OmccEncryption: true}
-	openOLT := &OpenOLT{eventProxy: ep, config: cfg, KVStoreType: "etcd", KVStoreAddress: "1:2"}
+	openOLT := &OpenOLT{
+		UnimplementedAdapterServiceServer: adapter_service.UnimplementedAdapterServiceServer{},
+		eventProxy:                        ep,
+		config:                            cfg,
+		KVStoreType:                       "etcd",
+		KVStoreAddress:                    "1:2",
+	}
+
 	dh := NewDeviceHandler(cc, ep, device, openOLT, cm, cfg)
 	dh.kvStore = cm.Backend
 	oopRanges := []*oop.DeviceInfo_DeviceResourceRanges{{

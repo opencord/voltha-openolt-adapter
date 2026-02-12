@@ -395,8 +395,9 @@ func (f *OpenOltFlowMgr) CreateSchedulerQueues(ctx context.Context, sq schedQueu
 	case tp_pb.Direction_DOWNSTREAM:
 		SchedCfg = f.techprofile.GetDsScheduler(sq.tpInst.(*tp_pb.TechProfileInstance))
 	}
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
-	TrafficSched[0].TechProfileId = sq.tpID
+	trafficSched := f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)
+	trafficSched.TechProfileId = sq.tpID
+	TrafficSched := []*tp_pb.TrafficScheduler{trafficSched}
 
 	/* Lets make a simple assumption that if the meter-id is present on the KV store,
 	 * then the scheduler and queues configuration is applied on the OLT device
@@ -689,8 +690,9 @@ func (f *OpenOltFlowMgr) RemoveScheduler(ctx context.Context, sq schedQueue) err
 
 	TrafficShaping := &tp_pb.TrafficShapingInfo{} // this info is not really useful for the agent during flow removal. Just use default values.
 
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)}
-	TrafficSched[0].TechProfileId = sq.tpID
+	trafficSched := f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), SchedCfg, TrafficShaping)
+	trafficSched.TechProfileId = sq.tpID
+	TrafficSched := []*tp_pb.TrafficScheduler{trafficSched}
 
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), f.deviceHandler.cfg.RPCTimeout)
 	if _, err = f.deviceHandler.Client.RemoveTrafficSchedulers(subCtx, &tp_pb.TrafficSchedulers{
@@ -759,8 +761,9 @@ func (f *OpenOltFlowMgr) forceRemoveSchedulerQueues(ctx context.Context, sq sche
 	}
 
 	TrafficShaping := &tp_pb.TrafficShapingInfo{} // this info is not really useful for the agent during flow removal. Just use default values.
-	TrafficSched := []*tp_pb.TrafficScheduler{f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), schedCfg, TrafficShaping)}
-	TrafficSched[0].TechProfileId = sq.tpID
+	trafficSched := f.techprofile.GetTrafficScheduler(sq.tpInst.(*tp_pb.TechProfileInstance), schedCfg, TrafficShaping)
+	trafficSched.TechProfileId = sq.tpID
+	TrafficSched := []*tp_pb.TrafficScheduler{trafficSched}
 
 	// Remove traffic queues. Ignore any errors, just log them.
 	if TrafficQueues, err := f.techprofile.GetTrafficQueues(ctx, sq.tpInst.(*tp_pb.TechProfileInstance), sq.direction); err != nil {
@@ -1074,16 +1077,16 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 	logicalFlow := flowContext.logicalFlow
 	logger.Infow(ctx, "adding-hsia-flow",
 		log.Fields{
-			"intf-id":     intfID,
-			"onu-id":      onuID,
-			"uni-id":      uniID,
-			"device-id":   f.deviceHandler.device.Id,
-			"classifier":  classifier,
-			"action":      action,
-			"direction":   direction,
-			"alloc-id":    allocID,
-			"gemport-id":  gemPortID,
-			"logicalflow": *logicalFlow})
+			"intf-id":    intfID,
+			"onu-id":     onuID,
+			"uni-id":     uniID,
+			"device-id":  f.deviceHandler.device.Id,
+			"classifier": classifier,
+			"action":     action,
+			"direction":  direction,
+			"alloc-id":   allocID,
+			"gemport-id": gemPortID,
+			"flow-id":    logicalFlow.Id})
 
 	present, err := f.resourceMgr.IsFlowOnKvStore(ctx, int32(onuID), logicalFlow.Id)
 	if present {
@@ -1105,7 +1108,7 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 	}
 	logger.Debugw(ctx, "created-classifier-proto",
 		log.Fields{
-			"classifier": *classifierProto,
+			"classifier": classifierProto.String(),
 			"device-id":  f.deviceHandler.device.Id})
 	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
@@ -1113,7 +1116,7 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 	}
 	logger.Debugw(ctx, "created-action-proto",
 		log.Fields{
-			"action":    *actionProto,
+			"action":    actionProto.String(),
 			"device-id": f.deviceHandler.device.Id})
 	networkIntfID, err := getNniIntfID(ctx, classifier, action)
 	if err != nil {
@@ -1149,7 +1152,7 @@ func (f *OpenOltFlowMgr) addSymmetricDataPathFlow(ctx context.Context, flowConte
 	logger.Infow(ctx, "hsia-flow-added-to-device-successfully",
 		log.Fields{"direction": direction,
 			"device-id": f.deviceHandler.device.Id,
-			"flow":      flow,
+			"flow-id":   flow.FlowId,
 			"intf-id":   intfID,
 			"onu-id":    onuID})
 
@@ -1210,7 +1213,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err).Log()
 	}
-	logger.Debugw(ctx, "created-classifier-proto", log.Fields{"classifier": *classifierProto})
+	logger.Debugw(ctx, "created-classifier-proto", log.Fields{"classifier": classifierProto.String()})
 	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err).Log()
@@ -1235,7 +1238,7 @@ func (f *OpenOltFlowMgr) addDHCPTrapFlow(ctx context.Context, flowContext *flowC
 		GemportToAes:  flowContext.gemToAes,
 	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &dhcpFlow); err != nil {
-		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"dhcp-flow": dhcpFlow}, err).Log()
+		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"dhcp-flow-id": dhcpFlow.FlowId}, err).Log()
 	}
 	logger.Infow(ctx, "dhcp-ul-flow-added-to-device-successfully",
 		log.Fields{
@@ -1305,7 +1308,7 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *f
 	}
 	logger.Debugw(ctx, "created-classifier-proto",
 		log.Fields{
-			"classifier": *classifierProto,
+			"classifier": classifierProto.String(),
 			"device-id":  f.deviceHandler.device.Id})
 	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
@@ -1332,7 +1335,7 @@ func (f *OpenOltFlowMgr) addUpstreamTrapFlow(ctx context.Context, flowContext *f
 	}
 
 	if err := f.addFlowToDevice(ctx, logicalFlow, &flow); err != nil {
-		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": flow, "device-id": f.deviceHandler.device.Id}, err).Log()
+		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow-id": flow.FlowId, "device-id": f.deviceHandler.device.Id}, err).Log()
 	}
 
 	return nil
@@ -1402,7 +1405,7 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *f
 	}
 	logger.Debugw(ctx, "created-classifier-proto",
 		log.Fields{
-			"classifier": *classifierProto,
+			"classifier": classifierProto.String(),
 			"device-id":  f.deviceHandler.device.Id})
 	actionProto, err := makeOpenOltActionField(uplinkAction, uplinkClassifier)
 	if err != nil {
@@ -1410,7 +1413,7 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *f
 	}
 	logger.Debugw(ctx, "created-action-proto",
 		log.Fields{
-			"action":    *actionProto,
+			"action":    actionProto.String(),
 			"device-id": f.deviceHandler.device.Id})
 	networkIntfID, err := getNniIntfID(ctx, classifier, action)
 	if err != nil {
@@ -1440,7 +1443,7 @@ func (f *OpenOltFlowMgr) addEthTypeBasedFlow(ctx context.Context, flowContext *f
 		GemportToAes:  flowContext.gemToAes,
 	}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &upstreamFlow); err != nil {
-		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": upstreamFlow}, err).Log()
+		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow-id": upstreamFlow.FlowId}, err).Log()
 	}
 	logger.Infow(ctx, "ethType-ul-flow-added-to-device-successfully",
 		log.Fields{
@@ -1640,7 +1643,7 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 	}
 
 	logger.Debugw(ctx, "sending-flow-to-device-via-grpc", log.Fields{
-		"flow":      *deviceFlow,
+		"flow-id":   deviceFlow.FlowId,
 		"device-id": f.deviceHandler.device.Id,
 		"intf-id":   intfID})
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), f.deviceHandler.cfg.RPCTimeout)
@@ -1650,24 +1653,24 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 	st, _ := status.FromError(err)
 	if st.Code() == codes.AlreadyExists {
 		logger.Debug(ctx, "flow-already-exists", log.Fields{
-			"err":        err,
-			"deviceFlow": deviceFlow,
-			"device-id":  f.deviceHandler.device.Id,
-			"intf-id":    intfID})
+			"err":       err,
+			"flow-id":   deviceFlow.FlowId,
+			"device-id": f.deviceHandler.device.Id,
+			"intf-id":   intfID})
 		return nil
 	}
 
 	if err != nil {
 		logger.Errorw(ctx, "failed-to-add-flow-to-device",
 			log.Fields{"err": err,
-				"device-flow": deviceFlow,
-				"device-id":   f.deviceHandler.device.Id,
-				"intf-id":     intfID})
+				"flow-id":   deviceFlow.FlowId,
+				"device-id": f.deviceHandler.device.Id,
+				"intf-id":   intfID})
 		return err
 	}
 	logger.Infow(ctx, "flow-added-to-device-successfully ",
 		log.Fields{
-			"flow":      *deviceFlow,
+			"flow-id":   deviceFlow.FlowId,
 			"device-id": f.deviceHandler.device.Id,
 			"intf-id":   intfID})
 
@@ -1681,7 +1684,7 @@ func (f *OpenOltFlowMgr) addFlowToDevice(ctx context.Context, logicalFlow *ofp.O
 func (f *OpenOltFlowMgr) removeFlowFromDevice(ctx context.Context, deviceFlow *openoltpb2.Flow, ofFlowID uint64) error {
 	logger.Debugw(ctx, "sending-flow-to-device-via-grpc",
 		log.Fields{
-			"flow":      *deviceFlow,
+			"flow-id":   deviceFlow.FlowId,
 			"device-id": f.deviceHandler.device.Id})
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), f.deviceHandler.cfg.RPCTimeout)
 	_, err := f.deviceHandler.Client.FlowRemove(subCtx, deviceFlow)
@@ -1700,7 +1703,7 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(ctx context.Context, deviceFlow *o
 	}
 	logger.Infow(ctx, "flow-removed-from-device-successfully", log.Fields{
 		"of-flow-id": ofFlowID,
-		"flow":       *deviceFlow,
+		"flow-id":    deviceFlow.FlowId,
 		"device-id":  f.deviceHandler.device.Id,
 	})
 	return nil
@@ -1753,7 +1756,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	}
 	logger.Debugw(ctx, "created-classifier-proto",
 		log.Fields{
-			"classifier": *classifierProto,
+			"classifier": classifierProto.String(),
 			"device-id":  f.deviceHandler.device.Id})
 	actionProto, err := makeOpenOltActionField(actionInfo, classifierInfo)
 	if err != nil {
@@ -1764,7 +1767,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	}
 	logger.Debugw(ctx, "created-action-proto",
 		log.Fields{
-			"action":    *actionProto,
+			"action":    actionProto.String(),
 			"device-id": f.deviceHandler.device.Id})
 
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
@@ -1782,7 +1785,7 @@ func (f *OpenOltFlowMgr) addLLDPFlow(ctx context.Context, flow *ofp.OfpFlowStats
 	if err := f.addFlowToDevice(ctx, flow, &downstreamflow); err != nil {
 		return olterrors.NewErrFlowOp("add", flow.Id,
 			log.Fields{
-				"flow":      downstreamflow,
+				"flow-id":   downstreamflow.FlowId,
 				"device-id": f.deviceHandler.device.Id}, err)
 	}
 	logger.Infow(ctx, "lldp-trap-on-nni-flow-added-to-device-successfully",
@@ -1873,7 +1876,7 @@ func (f *OpenOltFlowMgr) sendDeleteGemPortToChild(ctx context.Context, intfID ui
 		TpInstancePath: tpPath,
 		GemPortId:      gemPortID,
 	}
-	logger.Debugw(ctx, "sending-gem-port-delete-to-openonu-adapter", log.Fields{"msg": *delGemPortMsg, "child-device-id": onuDev.deviceID})
+	logger.Debugw(ctx, "sending-gem-port-delete-to-openonu-adapter", log.Fields{"msg": delGemPortMsg.String(), "child-device-id": onuDev.deviceID})
 
 	if err := f.deviceHandler.sendDeleteGemPortToChildAdapter(ctx, onuDev.adapterEndpoint, delGemPortMsg); err != nil {
 		return olterrors.NewErrCommunication("send-delete-gem-port-to-onu-adapter",
@@ -1916,7 +1919,7 @@ func (f *OpenOltFlowMgr) sendDeleteTcontToChild(ctx context.Context, intfID uint
 
 	logger.Debugw(ctx, "sending-tcont-delete-to-openonu-adapter",
 		log.Fields{
-			"msg":       *delTcontMsg,
+			"msg":       delTcontMsg.String(),
 			"device-id": f.deviceHandler.device.Id})
 
 	if err := f.deviceHandler.sendDeleteTContToChildAdapter(ctx, onuDev.adapterEndpoint, delTcontMsg); err != nil {
@@ -2131,7 +2134,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 	logger.Debugw(ctx, "clear-flow-from-resource-manager",
 		log.Fields{
 			"flowDirection": flowDirection,
-			"flow":          *flow,
+			"flow-id":       flow.Id,
 			"device-id":     f.deviceHandler.device.Id})
 
 	if flowDirection == Multicast {
@@ -2212,7 +2215,7 @@ func (f *OpenOltFlowMgr) clearFlowFromDeviceAndResourceManager(ctx context.Conte
 
 // RemoveFlow removes the flow from the device
 func (f *OpenOltFlowMgr) RemoveFlow(ctx context.Context, flow *ofp.OfpFlowStats) error {
-	logger.Debugw(ctx, "removing-flow", log.Fields{"flow": *flow})
+	logger.Debugw(ctx, "removing-flow", log.Fields{"flow-id": flow.Id})
 	var direction string
 	actionInfo := make(map[string]interface{})
 
@@ -2519,7 +2522,7 @@ func (f *OpenOltFlowMgr) handleFlowWithGroup(ctx context.Context, actionInfo, cl
 		Cookie:        flow.Cookie}
 
 	if err := f.addFlowToDevice(ctx, flow, &multicastFlow); err != nil {
-		return olterrors.NewErrFlowOp("add", flow.Id, log.Fields{"flow": multicastFlow}, err)
+		return olterrors.NewErrFlowOp("add", flow.Id, log.Fields{"flow-id": multicastFlow.FlowId}, err)
 	}
 	logger.Info(ctx, "multicast-flow-added-to-device-successfully")
 	// get cached group
@@ -2552,7 +2555,7 @@ func (f *OpenOltFlowMgr) getNNIInterfaceIDOfMulticastFlow(ctx context.Context, c
 }
 
 // sendTPDownloadMsgToChild send payload
-func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, TpID uint32, tpInst tp_pb.TechProfileInstance) error {
+func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID uint32, onuID uint32, uniID uint32, uni string, TpID uint32, tpInst *tp_pb.TechProfileInstance) error {
 	onuDev, err := f.getOnuDevice(ctx, intfID, onuID)
 	if err != nil {
 		logger.Errorw(ctx, "couldnt-find-onu-child-device",
@@ -2569,9 +2572,9 @@ func (f *OpenOltFlowMgr) sendTPDownloadMsgToChild(ctx context.Context, intfID ui
 		DeviceId:       onuDev.deviceID,
 		UniId:          uniID,
 		TpInstancePath: tpPath,
-		TechTpInstance: &ia.TechProfileDownloadMessage_TpInstance{TpInstance: &tpInst},
+		TechTpInstance: &ia.TechProfileDownloadMessage_TpInstance{TpInstance: tpInst},
 	}
-	logger.Debugw(ctx, "sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": *tpDownloadMsg})
+	logger.Debugw(ctx, "sending-load-tech-profile-request-to-brcm-onu-adapter", log.Fields{"tpDownloadMsg": tpDownloadMsg.String()})
 
 	err = f.deviceHandler.sendDownloadTechProfileToChildAdapter(ctx, onuDev.adapterEndpoint, tpDownloadMsg)
 	if err != nil {
@@ -2711,12 +2714,12 @@ func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err)
 	}
-	logger.Debugw(ctx, "created-classifier-proto", log.Fields{"classifier": *classifierProto})
+	logger.Debugw(ctx, "created-classifier-proto", log.Fields{"classifier": classifierProto.String()})
 	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err)
 	}
-	logger.Debugw(ctx, "created-action-proto", log.Fields{"action": *actionProto})
+	logger.Debugw(ctx, "created-action-proto", log.Fields{"action": actionProto.String()})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
 		OnuId:         int32(onuID), // OnuId not required
 		UniId:         int32(uniID), // UniId not used
@@ -2731,7 +2734,7 @@ func (f *OpenOltFlowMgr) addTrapFlowOnNNI(ctx context.Context, logicalFlow *ofp.
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); err != nil {
-		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": downstreamflow}, err)
+		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow-id": downstreamflow.FlowId}, err)
 	}
 	logger.Info(ctx, "trap-on-nni-flow-added–to-device-successfully")
 	return nil
@@ -2818,12 +2821,12 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"classifier": classifier}, err)
 	}
-	logger.Debugw(ctx, "created-classifier-proto-for-the-igmp-flow", log.Fields{"classifier": *classifierProto})
+	logger.Debugw(ctx, "created-classifier-proto-for-the-igmp-flow", log.Fields{"classifier": classifierProto.String()})
 	actionProto, err := makeOpenOltActionField(action, classifier)
 	if err != nil {
 		return olterrors.NewErrInvalidValue(log.Fields{"action": action}, err)
 	}
-	logger.Debugw(ctx, "created-action-proto-for-the-igmp-flow", log.Fields{"action": *actionProto})
+	logger.Debugw(ctx, "created-action-proto-for-the-igmp-flow", log.Fields{"action": actionProto.String()})
 	downstreamflow := openoltpb2.Flow{AccessIntfId: int32(-1), // AccessIntfId not required
 		OnuId:         int32(onuID), // OnuId not required
 		UniId:         int32(uniID), // UniId not used
@@ -2838,7 +2841,7 @@ func (f *OpenOltFlowMgr) addIgmpTrapFlowOnNNI(ctx context.Context, logicalFlow *
 		Cookie:        logicalFlow.Cookie,
 		PortNo:        portNo}
 	if err := f.addFlowToDevice(ctx, logicalFlow, &downstreamflow); err != nil {
-		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow": downstreamflow}, err)
+		return olterrors.NewErrFlowOp("add", logicalFlow.Id, log.Fields{"flow-id": downstreamflow.FlowId}, err)
 	}
 	logger.Info(ctx, "igmp-trap-on-nni-flow-added-to-device-successfully")
 
@@ -3032,7 +3035,7 @@ func (f *OpenOltFlowMgr) checkAndAddFlow(ctx context.Context, args map[string]ui
 	}
 	// Send Techprofile download event to child device in go routine as it takes time
 	go func() {
-		if err := f.sendTPDownloadMsgToChild(ctx, intfID, onuID, uniID, uni, tpID, *(TpInst.(*tp_pb.TechProfileInstance))); err != nil {
+		if err := f.sendTPDownloadMsgToChild(ctx, intfID, onuID, uniID, uni, tpID, TpInst.(*tp_pb.TechProfileInstance)); err != nil {
 			logger.Warn(ctx, err)
 		}
 	}()
@@ -3044,7 +3047,7 @@ func (f *OpenOltFlowMgr) isAllocUsedByAnotherUNI(ctx context.Context, sq schedQu
 	if tpInst.InstanceControl.Onu == "single-instance" && sq.direction == tp_pb.Direction_UPSTREAM {
 		tpInstances := f.techprofile.FindAllTpInstances(ctx, f.deviceHandler.device.Id, sq.tpID, sq.intfID, sq.onuID).([]tp_pb.TechProfileInstance)
 		for i := 0; i < len(tpInstances); i++ {
-			tpI := tpInstances[i]
+			tpI := &tpInstances[i]
 			if tpI.SubscriberIdentifier != tpInst.SubscriberIdentifier &&
 				tpI.UsScheduler.AllocId == tpInst.UsScheduler.AllocId {
 				logger.Debugw(ctx, "alloc-is-in-use-on-another-uni",
