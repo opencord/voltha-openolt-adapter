@@ -17,7 +17,6 @@
 package techprofile
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -27,12 +26,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	tp_pb "github.com/opencord/voltha-protos/v5/go/tech_profile"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 // Interface to pon resource manager APIs
@@ -284,7 +283,7 @@ func (t *TechProfileMgr) CreateTechProfileInstance(ctx context.Context, tpID uin
 	if t.resourceMgr.GetTechnology() == epon {
 		tp := t.getEponTPFromKVStore(ctx, tpID)
 		if tp != nil {
-			if err := t.validateInstanceControlAttr(ctx, *tp.InstanceControl); err != nil {
+			if err := t.validateInstanceControlAttr(ctx, tp.InstanceControl); err != nil {
 				logger.Error(ctx, "invalid-instance-ctrl-attr-using-default-tp")
 				tp = t.getDefaultEponProfile(ctx)
 			} else {
@@ -318,7 +317,7 @@ func (t *TechProfileMgr) CreateTechProfileInstance(ctx context.Context, tpID uin
 
 		logger.Infow(ctx, "epon-tp-instance-created-successfully",
 			log.Fields{"tpID": tpID, "uni": uniPortName, "intfID": intfID})
-		if err := t.addResourceInstanceToKVStore(ctx, tpID, uniPortName, resInst); err != nil {
+		if err := t.addResourceInstanceToKVStore(ctx, tpID, uniPortName, &resInst); err != nil {
 			logger.Errorw(ctx, "failed-to-update-resource-instance-to-kv-store--freeing-up-resources", log.Fields{"err": err, "tpID": tpID, "uniPortName": uniPortName})
 			allocIDs := make([]uint32, 0)
 			allocIDs = append(allocIDs, resInst.AllocId)
@@ -334,7 +333,7 @@ func (t *TechProfileMgr) CreateTechProfileInstance(ctx context.Context, tpID uin
 	} else {
 		tp := t.getTPFromKVStore(ctx, tpID)
 		if tp != nil {
-			if err := t.validateInstanceControlAttr(ctx, *tp.InstanceControl); err != nil {
+			if err := t.validateInstanceControlAttr(ctx, tp.InstanceControl); err != nil {
 				logger.Error(ctx, "invalid-instance-ctrl-attr--using-default-tp")
 				tp = t.getDefaultTechProfile(ctx)
 			} else {
@@ -369,7 +368,7 @@ func (t *TechProfileMgr) CreateTechProfileInstance(ctx context.Context, tpID uin
 
 		logger.Infow(ctx, "tp-instance-created-successfully",
 			log.Fields{"tpID": tpID, "uni": uniPortName, "intfID": intfID})
-		if err := t.addResourceInstanceToKVStore(ctx, tpID, uniPortName, resInst); err != nil {
+		if err := t.addResourceInstanceToKVStore(ctx, tpID, uniPortName, &resInst); err != nil {
 			logger.Errorw(ctx, "failed-to-update-resource-instance-to-kv-store--freeing-up-resources", log.Fields{"err": err, "tpID": tpID, "uniPortName": uniPortName})
 			allocIDs := make([]uint32, 0)
 			allocIDs = append(allocIDs, resInst.AllocId)
@@ -523,22 +522,22 @@ func (t *TechProfileMgr) FindAllTpInstances(ctx context.Context, oltDeviceID str
 	if tech == xgspon || tech == xgpon || tech == gpon {
 		t.tpInstanceMapLock.RLock()
 		defer t.tpInstanceMapLock.RUnlock()
-		tpInstancesTech := make([]tp_pb.TechProfileInstance, 0)
+		tpInstancesTech := make([]*tp_pb.TechProfileInstance, 0)
 		for i := 0; i < MaxUniPortPerOnu; i++ {
 			key := onuTpInstancePathSuffix + fmt.Sprintf("/uni-{%d}", i)
 			if tpInst, ok := t.tpInstanceMap[key]; ok {
-				tpInstancesTech = append(tpInstancesTech, *tpInst)
+				tpInstancesTech = append(tpInstancesTech, tpInst)
 			}
 		}
 		return tpInstancesTech
 	} else if tech == epon {
 		t.epontpInstanceMapLock.RLock()
 		defer t.epontpInstanceMapLock.RUnlock()
-		tpInstancesTech := make([]tp_pb.EponTechProfileInstance, 0)
+		tpInstancesTech := make([]*tp_pb.EponTechProfileInstance, 0)
 		for i := 0; i < MaxUniPortPerOnu; i++ {
 			key := onuTpInstancePathSuffix + fmt.Sprintf("/uni-{%d}", i)
 			if tpInst, ok := t.eponTpInstanceMap[key]; ok {
-				tpInstancesTech = append(tpInstancesTech, *tpInst)
+				tpInstancesTech = append(tpInstancesTech, tpInst)
 			}
 		}
 		return tpInstancesTech
@@ -698,7 +697,7 @@ func (t *TechProfileMgr) GetTrafficQueues(ctx context.Context, tp *tp_pb.TechPro
 	return nil, fmt.Errorf("downstream gem port traffic queue creation failed due to unsupported direction %s", direction)
 }
 
-func (t *TechProfileMgr) validateInstanceControlAttr(ctx context.Context, instCtl tp_pb.InstanceControl) error {
+func (t *TechProfileMgr) validateInstanceControlAttr(ctx context.Context, instCtl *tp_pb.InstanceControl) error {
 	if instCtl.Onu != "single-instance" && instCtl.Onu != "multi-instance" {
 		logger.Errorw(ctx, "invalid-onu-instance-control-attribute", log.Fields{"onu-inst": instCtl.Onu})
 		return errors.New("invalid-onu-instance-ctl-attr")
@@ -1144,11 +1143,11 @@ func isMulticastGem(isMulticastAttrValue string) bool {
 		(isMulticastAttrValue == "True" || isMulticastAttrValue == "true" || isMulticastAttrValue == "TRUE")
 }
 
-func (t *TechProfileMgr) addResourceInstanceToKVStore(ctx context.Context, tpID uint32, uniPortName string, resInst tp_pb.ResourceInstance) error {
-	logger.Debugw(ctx, "adding-resource-instance-to-kv-store", log.Fields{"tpID": tpID, "uniPortName": uniPortName, "resInst": resInst})
-	val, err := proto.Marshal(&resInst)
+func (t *TechProfileMgr) addResourceInstanceToKVStore(ctx context.Context, tpID uint32, uniPortName string, resInst *tp_pb.ResourceInstance) error {
+	logger.Debugw(ctx, "adding-resource-instance-to-kv-store", log.Fields{"tpID": tpID, "uniPortName": uniPortName})
+	val, err := proto.Marshal(resInst)
 	if err != nil {
-		logger.Errorw(ctx, "failed-to-marshall-resource-instance", log.Fields{"err": err, "tpID": tpID, "uniPortName": uniPortName, "resInst": resInst})
+		logger.Errorw(ctx, "failed-to-marshall-resource-instance", log.Fields{"err": err, "tpID": tpID, "uniPortName": uniPortName})
 		return err
 	}
 	err = t.config.ResourceInstanceKVBacked.Put(ctx, fmt.Sprintf("%s/%d/%s", t.resourceMgr.GetTechnology(), tpID, uniPortName), val)
@@ -1184,13 +1183,12 @@ func (t *TechProfileMgr) getTPFromKVStore(ctx context.Context, tpID uint32) *tp_
 		/* Backend will return Value in string format,needs to be converted to []byte before unmarshal*/
 		if value, err := kvstore.ToByte(kvresult.Value); err == nil {
 			lTp := &tp_pb.TechProfile{}
-			reader := bytes.NewReader(value)
-			if err = jsonpb.Unmarshal(reader, lTp); err != nil {
+			if err = protojson.Unmarshal(value, lTp); err != nil {
 				logger.Errorw(ctx, "error-unmarshalling-tp-from-kv-store", log.Fields{"err": err, "tpID": tpID, "error": err})
 				return nil
 			}
 
-			logger.Debugw(ctx, "success-fetched-tp-from-kv-store", log.Fields{"tpID": tpID, "value": *lTp})
+			logger.Debugw(ctx, "success-fetched-tp-from-kv-store", log.Fields{"tpID": tpID})
 			return lTp
 		} else {
 			logger.Errorw(ctx, "error-decoding-tp", log.Fields{"err": err, "tpID": tpID})
@@ -1221,13 +1219,12 @@ func (t *TechProfileMgr) getEponTPFromKVStore(ctx context.Context, tpID uint32) 
 		/* Backend will return Value in string format,needs to be converted to []byte before unmarshal*/
 		if value, err := kvstore.ToByte(kvresult.Value); err == nil {
 			lEponTp := &tp_pb.EponTechProfile{}
-			reader := bytes.NewReader(value)
-			if err = jsonpb.Unmarshal(reader, lEponTp); err != nil {
+			if err = protojson.Unmarshal(value, lEponTp); err != nil {
 				logger.Errorw(ctx, "error-unmarshalling-epon-tp-from-kv-store", log.Fields{"err": err, "tpID": tpID, "error": err})
 				return nil
 			}
 
-			logger.Debugw(ctx, "success-fetching-epon-tp-from-kv-store", log.Fields{"tpID": tpID, "value": *lEponTp})
+			logger.Debugw(ctx, "success-fetching-epon-tp-from-kv-store", log.Fields{"tpID": tpID})
 			return lEponTp
 		}
 	}

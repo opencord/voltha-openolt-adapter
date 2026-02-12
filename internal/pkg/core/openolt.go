@@ -23,7 +23,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
@@ -40,10 +39,12 @@ import (
 	"github.com/opencord/voltha-protos/v5/go/voltha"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // OpenOLT structure holds the OLT information
 type OpenOLT struct {
+	adapter_service.UnimplementedAdapterServiceServer
 	eventProxy                         eventif.EventProxy
 	configManager                      *conf.ConfigManager
 	deviceHandlers                     map[string]*DeviceHandler
@@ -145,7 +146,7 @@ func (oo *OpenOLT) stopAllDeviceHandlers(ctx context.Context) {
 }
 
 // AdoptDevice creates a new device handler if not present already and then adopts the device
-func (oo *OpenOLT) AdoptDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) AdoptDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	if device == nil {
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil).Log()
 	}
@@ -156,7 +157,7 @@ func (oo *OpenOLT) AdoptDevice(ctx context.Context, device *voltha.Device) (*emp
 		oo.addDeviceHandlerToMap(handler)
 		go handler.AdoptDevice(log.WithSpanFromContext(context.Background(), ctx), device)
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // GetOfpDeviceInfo returns OFP information for the given device
@@ -169,7 +170,7 @@ func (oo *OpenOLT) GetOfpDeviceInfo(ctx context.Context, device *voltha.Device) 
 }
 
 // ReconcileDevice unimplemented
-func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	if device == nil {
 		return nil, olterrors.NewErrInvalidValue(log.Fields{"device": nil}, nil)
 	}
@@ -229,49 +230,49 @@ func (oo *OpenOLT) ReconcileDevice(ctx context.Context, device *voltha.Device) (
 		go handler.transitionMap.Handle(dhCtx, DeviceInit)
 	} else {
 		logger.Warnf(ctx, "device-already-reconciled-or-active", log.Fields{"device-id": device.Id})
-		return &empty.Empty{}, status.Errorf(codes.AlreadyExists, "handler exists: %s", device.Id)
+		return &emptypb.Empty{}, status.Errorf(codes.AlreadyExists, "handler exists: %s", device.Id)
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // DisableDevice disables the given device
-func (oo *OpenOLT) DisableDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) DisableDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "disable-device", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.DisableDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 // ReEnableDevice enables the olt device after disable
-func (oo *OpenOLT) ReEnableDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) ReEnableDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "reenable-device", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.ReenableDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 // RebootDevice reboots the given device
-func (oo *OpenOLT) RebootDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) RebootDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "reboot-device", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.RebootDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": device.Id}, nil)
 }
 
 // DeleteDevice deletes a device
-func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "delete-device", log.Fields{"device-id": device.Id})
 	if handler := oo.getDeviceHandler(device.Id); handler != nil {
 		if err := handler.DeleteDevice(log.WithSpanFromContext(context.Background(), ctx), device); err != nil {
@@ -291,13 +292,13 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 				if !handler.isHeartbeatCheckActive && !handler.isCollectorActive && !handler.isReadIndicationRoutineActive {
 					logger.Debugf(ctx, "delete-device-handler")
 					oo.deleteDeviceHandlerToMap(handler)
-					return &empty.Empty{}, nil
+					return &emptypb.Empty{}, nil
 				}
 			case <-timeout:
 				// Timeout exceeded
 				logger.Warnw(ctx, "delete-device-handler timeout exceeded", log.Fields{"device-id": device.Id})
 				oo.deleteDeviceHandlerToMap(handler) // Clean up anyway
-				return &empty.Empty{}, nil
+				return &emptypb.Empty{}, nil
 			}
 		}
 	}
@@ -305,55 +306,55 @@ func (oo *OpenOLT) DeleteDevice(ctx context.Context, device *voltha.Device) (*em
 }
 
 // UpdateFlowsIncrementally updates (add/remove) the flows on a given device
-func (oo *OpenOLT) UpdateFlowsIncrementally(ctx context.Context, incrFlows *ca.IncrementalFlows) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdateFlowsIncrementally(ctx context.Context, incrFlows *ca.IncrementalFlows) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "update_flows_incrementally", log.Fields{"device-id": incrFlows.Device.Id, "flows": incrFlows.Flows, "flowMetadata": incrFlows.FlowMetadata})
 	if handler := oo.getDeviceHandler(incrFlows.Device.Id); handler != nil {
 		if err := handler.UpdateFlowsIncrementally(log.WithSpanFromContext(context.Background(), ctx), incrFlows.Device, incrFlows.Flows, incrFlows.Groups, incrFlows.FlowMetadata); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": incrFlows.Device.Id}, nil)
 }
 
 // UpdatePmConfig returns PmConfigs nil or error
-func (oo *OpenOLT) UpdatePmConfig(ctx context.Context, configs *ca.PmConfigsInfo) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdatePmConfig(ctx context.Context, configs *ca.PmConfigsInfo) (*emptypb.Empty, error) {
 	logger.Debugw(ctx, "update_pm_config", log.Fields{"device-id": configs.DeviceId, "pm-configs": configs.PmConfigs})
 	if handler := oo.getDeviceHandler(configs.DeviceId); handler != nil {
 		handler.UpdatePmConfig(log.WithSpanFromContext(context.Background(), ctx), configs.PmConfigs)
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": configs.DeviceId}, nil)
 }
 
 // SendPacketOut sends packet out to the device
-func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*empty.Empty, error) {
+func (oo *OpenOLT) SendPacketOut(ctx context.Context, packet *ca.PacketOut) (*emptypb.Empty, error) {
 	logger.Debugw(ctx, "send_packet_out", log.Fields{"device-id": packet.DeviceId, "egress_port_no": packet.EgressPortNo, "pkt": packet.Packet})
 	if handler := oo.getDeviceHandler(packet.DeviceId); handler != nil {
 		if err := handler.PacketOut(log.WithSpanFromContext(context.Background(), ctx), packet.EgressPortNo, packet.Packet); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": packet.DeviceId}, nil)
 }
 
 // EnableOnuSerialNumber to Enable onu serial number
-func (oo *OpenOLT) EnableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOnOLTPon) (*empty.Empty, error) {
+func (oo *OpenOLT) EnableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOnOLTPon) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "enable_onu_serial_number", log.Fields{"olt_device_id": device.OltDeviceId, "onu_serial_number": device.SerialNumber})
 	if err := oo.enableDisableOnuSerialNumber(log.WithSpanFromContext(context.Background(), ctx), device, true); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // DisableOnuSerialNumber to Disable onu serial number
-func (oo *OpenOLT) DisableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOnOLTPon) (*empty.Empty, error) {
+func (oo *OpenOLT) DisableOnuSerialNumber(ctx context.Context, device *voltha.OnuSerialNumberOnOLTPon) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "disable_onu_serial_number", log.Fields{"olt_device_id": device.OltDeviceId, "onu_serial_number": device.SerialNumber})
 	if err := oo.enableDisableOnuSerialNumber(log.WithSpanFromContext(context.Background(), ctx), device, false); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // enableDisableOnuSerialNumber to Disable onu or Enable onu
@@ -389,21 +390,21 @@ func (oo *OpenOLT) enableDisableOnuSerialNumber(ctx context.Context, device *vol
 }
 
 // EnableOnuDevice to Enable onu
-func (oo *OpenOLT) EnableOnuDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) EnableOnuDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "enable_onu", log.Fields{"onu_device_id": device.Id, "onu_serial_number": device.SerialNumber})
 	if err := oo.enableDisableOnuDevice(log.WithSpanFromContext(context.Background(), ctx), device, true); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // DisableOnuDevice to Disable onu
-func (oo *OpenOLT) DisableOnuDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) DisableOnuDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "disable_onu", log.Fields{"onu_device_id": device.Id, "onu_serial_number": device.SerialNumber})
 	if err := oo.enableDisableOnuDevice(log.WithSpanFromContext(context.Background(), ctx), device, false); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // enableDisableOnuDevice to Disable onu or Enable onu
@@ -434,21 +435,21 @@ func (oo *OpenOLT) enableDisableOnuDevice(ctx context.Context, device *voltha.De
 }
 
 // EnablePort to Enable PON/NNI interface
-func (oo *OpenOLT) EnablePort(ctx context.Context, port *voltha.Port) (*empty.Empty, error) {
+func (oo *OpenOLT) EnablePort(ctx context.Context, port *voltha.Port) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "enable_port", log.Fields{"device-id": port.DeviceId, "port": port})
 	if err := oo.enableDisablePort(log.WithSpanFromContext(context.Background(), ctx), port.DeviceId, port, true); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // DisablePort to Disable pon/nni interface
-func (oo *OpenOLT) DisablePort(ctx context.Context, port *voltha.Port) (*empty.Empty, error) {
+func (oo *OpenOLT) DisablePort(ctx context.Context, port *voltha.Port) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "disable_port", log.Fields{"device-id": port.DeviceId, "port": port})
 	if err := oo.enableDisablePort(log.WithSpanFromContext(context.Background(), ctx), port.DeviceId, port, false); err != nil {
 		return nil, err
 	}
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // enableDisablePort to Disable pon or Enable PON interface
@@ -476,13 +477,13 @@ func (oo *OpenOLT) enableDisablePort(ctx context.Context, deviceID string, port 
 }
 
 // ChildDeviceLost deletes the ONU and its references from PONResources
-func (oo *OpenOLT) ChildDeviceLost(ctx context.Context, childDevice *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) ChildDeviceLost(ctx context.Context, childDevice *voltha.Device) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "Child-device-lost", log.Fields{"parent-device-id": childDevice.ParentId, "child-device-id": childDevice.Id})
 	if handler := oo.getDeviceHandler(childDevice.ParentId); handler != nil {
 		if err := handler.ChildDeviceLost(log.WithSpanFromContext(context.Background(), ctx), childDevice.ParentPortNo, childDevice.ProxyAddress.OnuId, childDevice.SerialNumber); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"parent-device-id": childDevice.ParentId}, nil).Log()
 }
@@ -602,25 +603,25 @@ func (oo *OpenOLT) GetDeviceHandlerFromChild(ctx context.Context, deviceId strin
  */
 
 // ProxyOmciRequests proxies an onu sw download OMCI request from the child adapter
-func (oo *OpenOLT) ProxyOmciRequests(ctx context.Context, request *ia.OmciMessages) (*empty.Empty, error) {
+func (oo *OpenOLT) ProxyOmciRequests(ctx context.Context, request *ia.OmciMessages) (*emptypb.Empty, error) {
 	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
 		if err := handler.ProxyOmciRequests(ctx, request); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.ChildDeviceId}, nil).Log()
 }
 
 // ProxyOmciRequest proxies an OMCI request from the child adapter
-func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*empty.Empty, error) {
+func (oo *OpenOLT) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*emptypb.Empty, error) {
 	logger.Debugw(ctx, "proxy-omci-request", log.Fields{"request": request})
 
 	if handler := oo.getDeviceHandler(request.ParentDeviceId); handler != nil {
 		if err := handler.ProxyOmciMessage(ctx, request); err != nil {
 			return nil, err
 		}
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 	return nil, olterrors.NewErrNotFound("no-device-handler", log.Fields{"parent-device-id": request.ParentDeviceId, "child-device-id": request.ChildDeviceId}, nil).Log()
 }
@@ -684,7 +685,7 @@ loop:
 }
 
 // UpdateDevice updates the address of the OLT for now
-func (oo *OpenOLT) UpdateDevice(ctx context.Context, updateDeviceReq *voltha.UpdateDevice) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdateDevice(ctx context.Context, updateDeviceReq *voltha.UpdateDevice) (*emptypb.Empty, error) {
 	logger.Infow(ctx, "update-device", log.Fields{"device": updateDeviceReq})
 	if updateDeviceReq == nil {
 		return nil, fmt.Errorf("nil-device-config")
@@ -694,7 +695,7 @@ func (oo *OpenOLT) UpdateDevice(ctx context.Context, updateDeviceReq *voltha.Upd
 	}
 	if handler := oo.getDeviceHandler(updateDeviceReq.Id); handler != nil {
 		go handler.UpdateDevice(context.Background(), updateDeviceReq)
-		return &empty.Empty{}, nil
+		return &emptypb.Empty{}, nil
 	}
 
 	return nil, olterrors.NewErrNotFound("device-handler", log.Fields{"device-id": updateDeviceReq.Id}, nil).Log()
@@ -712,7 +713,7 @@ func (oo *OpenOLT) SimulateAlarm(context.Context, *ca.SimulateAlarmMessage) (*vo
 }
 
 // SetExtValue is unimplemented
-func (oo *OpenOLT) SetExtValue(context.Context, *ca.SetExtValueMessage) (*empty.Empty, error) {
+func (oo *OpenOLT) SetExtValue(context.Context, *ca.SetExtValueMessage) (*emptypb.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
@@ -722,12 +723,12 @@ func (oo *OpenOLT) StartOmciTest(ctx context.Context, test *ca.OMCITest) (*omci.
 }
 
 // SuppressEvent unimplemented
-func (oo *OpenOLT) SuppressEvent(ctx context.Context, filter *voltha.EventFilter) (*empty.Empty, error) {
+func (oo *OpenOLT) SuppressEvent(ctx context.Context, filter *voltha.EventFilter) (*emptypb.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 // UnSuppressEvent  unimplemented
-func (oo *OpenOLT) UnSuppressEvent(ctx context.Context, filter *voltha.EventFilter) (*empty.Empty, error) {
+func (oo *OpenOLT) UnSuppressEvent(ctx context.Context, filter *voltha.EventFilter) (*emptypb.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
@@ -787,11 +788,11 @@ func (oo *OpenOLT) CommitOnuImage(ctx context.Context, in *voltha.DeviceImageReq
 }
 
 // UpdateFlowsBulk is unimplemented
-func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ca.BulkFlows) (*empty.Empty, error) {
+func (oo *OpenOLT) UpdateFlowsBulk(ctx context.Context, flows *ca.BulkFlows) (*emptypb.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
 
 // SelfTestDevice unimplemented
-func (oo *OpenOLT) SelfTestDevice(ctx context.Context, device *voltha.Device) (*empty.Empty, error) {
+func (oo *OpenOLT) SelfTestDevice(ctx context.Context, device *voltha.Device) (*emptypb.Empty, error) {
 	return nil, olterrors.ErrNotImplemented
 }
