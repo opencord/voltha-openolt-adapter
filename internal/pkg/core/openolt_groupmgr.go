@@ -70,18 +70,18 @@ func (g *OpenOltGroupMgr) AddGroup(ctx context.Context, group *ofp.OfpGroupEntry
 		Command: openoltpb2.Group_SET_MEMBERS,
 		Action:  g.buildGroupAction(),
 	}
-	logger.Debugw(ctx, "sending-group-to-device", log.Fields{"groupToOlt": groupToOlt})
+	logger.Debugw(ctx, "sending-group-to-device", log.Fields{"group-id": groupToOlt.GroupId})
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), g.deviceHandler.cfg.RPCTimeout)
 	_, err := g.deviceHandler.Client.PerformGroupOperation(subCtx, &groupToOlt)
 	cancel()
 	if err != nil {
-		return olterrors.NewErrAdapter("add-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
+		return olterrors.NewErrAdapter("add-group-operation-failed", log.Fields{"group-id": groupToOlt.GroupId}, err)
 	}
 	// group members not created yet. So let's store the group
 	if err := g.resourceMgr.AddFlowGroupToKVStore(ctx, group, true); err != nil {
 		return olterrors.NewErrPersistence("add", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 	}
-	logger.Infow(ctx, "add-group-operation-performed-on-the-device-successfully ", log.Fields{"groupToOlt": groupToOlt})
+	logger.Infow(ctx, "add-group-operation-performed-on-the-device-successfully ", log.Fields{"group-id": groupToOlt.GroupId})
 	return nil
 }
 
@@ -95,19 +95,19 @@ func (g *OpenOltGroupMgr) DeleteGroup(ctx context.Context, group *ofp.OfpGroupEn
 	groupToOlt := openoltpb2.Group{
 		GroupId: group.Desc.GroupId,
 	}
-	logger.Debugw(ctx, "deleting-group-from-device", log.Fields{"groupToOlt": groupToOlt})
+	logger.Debugw(ctx, "deleting-group-from-device", log.Fields{"group-id": groupToOlt.GroupId})
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), g.deviceHandler.cfg.RPCTimeout)
 	_, err := g.deviceHandler.Client.DeleteGroup(subCtx, &groupToOlt)
 	cancel()
 	if err != nil {
-		logger.Errorw(ctx, "delete-group-failed-on-dev", log.Fields{"groupToOlt": groupToOlt, "err": err})
-		return olterrors.NewErrAdapter("delete-group-operation-failed", log.Fields{"groupToOlt": groupToOlt}, err)
+		logger.Errorw(ctx, "delete-group-failed-on-dev", log.Fields{"group-id": groupToOlt.GroupId, "err": err})
+		return olterrors.NewErrAdapter("delete-group-operation-failed", log.Fields{"group-id": groupToOlt.GroupId}, err)
 	}
 	// remove group from the store
 	if err := g.resourceMgr.RemoveFlowGroupFromKVStore(ctx, group.Desc.GroupId, false); err != nil {
 		return olterrors.NewErrPersistence("delete", "flow-group", uint64(group.Desc.GroupId), log.Fields{"group": group}, err)
 	}
-	logger.Debugw(ctx, "delete-group-operation-performed-on-the-device-successfully ", log.Fields{"groupToOlt": groupToOlt})
+	logger.Debugw(ctx, "delete-group-operation-performed-on-the-device-successfully ", log.Fields{"group-id": groupToOlt.GroupId})
 	return nil
 }
 

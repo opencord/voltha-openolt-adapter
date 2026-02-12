@@ -22,16 +22,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	"github.com/opencord/voltha-protos/v5/go/health"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	oltia "github.com/opencord/voltha-protos/v5/go/olt_inter_adapter_service"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // OpenOLTInterAdapter structure holds a reference to the oltAdapter
 type OpenOLTInterAdapter struct {
+	oltia.UnimplementedOltInterAdapterServiceServer
 	oltAdapter  *OpenOLT
 	exitChannel chan struct{}
 }
@@ -53,12 +54,12 @@ func (oo *OpenOLTInterAdapter) Stop(ctx context.Context) error {
 }
 
 // ProxyOmciRequest proxies an OMCI request from the child adapter
-func (oo *OpenOLTInterAdapter) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*empty.Empty, error) {
+func (oo *OpenOLTInterAdapter) ProxyOmciRequest(ctx context.Context, request *ia.OmciMessage) (*emptypb.Empty, error) {
 	return oo.oltAdapter.ProxyOmciRequest(ctx, request)
 }
 
 // ProxyOmciRequests proxies an OMCI request from the child adapter
-func (oo *OpenOLTInterAdapter) ProxyOmciRequests(ctx context.Context, request *ia.OmciMessages) (*empty.Empty, error) {
+func (oo *OpenOLTInterAdapter) ProxyOmciRequests(ctx context.Context, request *ia.OmciMessages) (*emptypb.Empty, error) {
 	return oo.oltAdapter.ProxyOmciRequests(ctx, request)
 }
 

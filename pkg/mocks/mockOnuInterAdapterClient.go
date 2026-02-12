@@ -20,11 +20,11 @@ package mocks
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	ia "github.com/opencord/voltha-protos/v5/go/inter_adapter"
 	"github.com/opencord/voltha-protos/v5/go/onu_inter_adapter_service"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // NewMockChildAdapterClient create a mock child adapter client
@@ -39,28 +39,28 @@ type MockOnuInterAdapterService struct {
 }
 
 // OnuIndication implements mock OnuIndication
-func (mos *MockOnuInterAdapterService) OnuIndication(ctx context.Context, in *ia.OnuIndicationMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (mos *MockOnuInterAdapterService) OnuIndication(ctx context.Context, in *ia.OnuIndicationMessage, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 // OmciResponse implements mock OmciResponse
-func (mos *MockOnuInterAdapterService) OmciResponse(ctx context.Context, in *ia.OmciMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (mos *MockOnuInterAdapterService) OmciResponse(ctx context.Context, in *ia.OmciMessage, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 // DownloadTechProfile implements mock DownloadTechProfile
-func (mos *MockOnuInterAdapterService) DownloadTechProfile(ctx context.Context, in *ia.TechProfileDownloadMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (mos *MockOnuInterAdapterService) DownloadTechProfile(ctx context.Context, in *ia.TechProfileDownloadMessage, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 // DeleteGemPort implements mock DeleteGemPort
-func (mos *MockOnuInterAdapterService) DeleteGemPort(ctx context.Context, in *ia.DeleteGemPortMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (mos *MockOnuInterAdapterService) DeleteGemPort(ctx context.Context, in *ia.DeleteGemPortMessage, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 // DeleteTCont implements mock DeleteTCont
-func (mos *MockOnuInterAdapterService) DeleteTCont(ctx context.Context, in *ia.DeleteTcontMessage, opts ...grpc.CallOption) (*empty.Empty, error) {
-	return &empty.Empty{}, nil
+func (mos *MockOnuInterAdapterService) DeleteTCont(ctx context.Context, in *ia.DeleteTcontMessage, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, nil
 }
 
 // GetHealthStatus implements mock GetHealthStatus
