@@ -94,7 +94,7 @@ func (kvclient *MockKVClient) Get(ctx context.Context, key string) (*kvstore.KVP
 				Flags:   0,
 				MeterId: 1,
 			}
-			str, _ := json.Marshal(meterConfig)
+			str, _ := json.Marshal(&meterConfig)
 			return kvstore.NewKVPair(key, string(str), "mock", 3000, 1), nil
 		}
 		if strings.Contains(key, MeterConfig) {
