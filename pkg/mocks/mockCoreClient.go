@@ -165,13 +165,20 @@ func (mcs MockCoreService) GetDevice(ctx context.Context, in *common.ID, opts ..
 }
 
 // GetChildDevice implements mock GetChildDevice
-func (mcs MockCoreService) GetChildDevice(ctx context.Context, in *ca.ChildDeviceFilter, opts ...grpc.CallOption) (*voltha.Device, error) {
+func (mcs MockCoreService) GetChildDevice(
+	ctx context.Context,
+	in *ca.ChildDeviceFilter,
+	opts ...grpc.CallOption,
+) (*voltha.Device, error) {
 	if in.ParentId == "" {
+		return nil, errors.New("device detection failed")
+	}
+	if in.OnuId == nil {
 		return nil, errors.New("device detection failed")
 	}
 	var onuDevice *voltha.Device
 	for _, val := range mcs.Devices {
-		if val.GetId() == fmt.Sprintf("%d", in.OnuId) {
+		if val.GetId() == fmt.Sprintf("%d", *in.OnuId) {
 			onuDevice = val
 			break
 		}
@@ -179,7 +186,6 @@ func (mcs MockCoreService) GetChildDevice(ctx context.Context, in *ca.ChildDevic
 	if onuDevice != nil {
 		return onuDevice, nil
 	}
-	// return &voltha.Device{}, nil
 	return nil, errors.New("device detection failed")
 }
 

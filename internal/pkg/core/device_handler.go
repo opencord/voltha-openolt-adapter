@@ -1579,7 +1579,7 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 
 		onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
-			OnuId:        omciInd.OnuId,
+			OnuId:        &omciInd.OnuId,
 			ParentPortNo: ponPort,
 		})
 		if err != nil {
@@ -2146,7 +2146,7 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 		onuDevice, err = dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 			ParentId:     dh.device.Id,
 			SerialNumber: serialNumber,
-			OnuId:        onuInd.OnuId,
+			OnuId:        &onuInd.OnuId,
 			ParentPortNo: ponPort,
 		})
 	}
@@ -2263,7 +2263,7 @@ func (dh *DeviceHandler) GetChildDevice(ctx context.Context, parentPort, onuID u
 
 	onuDevice, err := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 		ParentId:     dh.device.Id,
-		OnuId:        onuID,
+		OnuId:        &onuID,
 		ParentPortNo: parentPort,
 	})
 
