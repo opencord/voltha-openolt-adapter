@@ -80,3 +80,12 @@ func (me *MockEventProxy) SendDeviceEventWithKey(ctx context.Context, deviceEven
 	subCategory eventif.EventSubCategory, raisedTs int64, key string) error {
 	return nil
 }
+
+// SendKpiEvent3 mocks the SendKpiEvent3 function
+func (me *MockEventProxy) SendKpiEvent3(ctx context.Context, id string, deviceEvent *voltha.KpiEvent3, category eventif.EventCategory,
+	subCategory eventif.EventSubCategory, raisedTs int64) error {
+	if raisedTs == 0 {
+		return errors.New("raisedTS cannot be zero")
+	}
+	return nil
+}
