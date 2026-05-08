@@ -218,16 +218,14 @@ type OpenOltFlowMgr struct {
 	ponPortIdx uint32 // Pon Port this FlowManager is responsible for
 }
 
-// CloseKVClient closes open KV clients
+// CloseKVClient is a no-op: tech profile KV backends are shared across all
+// devices and managed by OpenOLT.Stop(), so they must not be closed here.
 func (f *OpenOltFlowMgr) CloseKVClient(ctx context.Context) {
-	if f.techprofile != nil {
-		f.techprofile.CloseKVClient(ctx)
-	}
 }
 
 // NewFlowManager creates OpenOltFlowMgr object and initializes the parameters
 func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOltResourceMgr, grpMgr *OpenOltGroupMgr, ponPortIdx uint32) *OpenOltFlowMgr {
-	logger.Infow(ctx, "initializing-flow-manager", log.Fields{"device-id": dh.device.Id})
+	logger.Infow(ctx, "initializing-flow-manager", log.Fields{"device-id": dh.device.Id, "pon-port-idx": ponPortIdx})
 	var flowMgr OpenOltFlowMgr
 	var err error
 
@@ -261,7 +259,7 @@ func NewFlowManager(ctx context.Context, dh *DeviceHandler, rMgr *rsrcMgr.OpenOl
 
 	// load interface to multicast queue map from kv store
 	flowMgr.grpMgr.LoadInterfaceToMulticastQueueMap(ctx)
-	logger.Debugw(ctx, "initialization-of-flow-manager-success", log.Fields{"device-id": dh.device.Id})
+	logger.Debugw(ctx, "initialization-of-flow-manager-success", log.Fields{"device-id": dh.device.Id, "pon-port-idx": ponPortIdx})
 	return &flowMgr
 }
 
@@ -996,7 +994,8 @@ func (f *OpenOltFlowMgr) populateTechProfileForCurrentPonPort(ctx context.Contex
 			if intfID == f.ponPortIdx { // initialize only for the pon port that this flow manager is managing
 				var err error
 				f.techprofile, err = tp.NewTechProfile(ctx, intfID, f.resourceMgr.DeviceID, f.resourceMgr.PonRsrMgr, f.resourceMgr.PonRsrMgr.Backend,
-					f.resourceMgr.PonRsrMgr.Address, f.deviceHandler.cm.Backend.PathPrefix)
+					f.resourceMgr.PonRsrMgr.Address, f.deviceHandler.cm.Backend.PathPrefix, f.deviceHandler.openOLT.TpDefault, f.deviceHandler.openOLT.Tprofiles,
+					f.deviceHandler.openOLT.TpInstances)
 				if err != nil || f.techprofile == nil {
 					logger.Errorw(ctx, "failed-to-allocate-to-techprofile-for-pon-port", log.Fields{"intfID": intfID, "err": err})
 					return fmt.Errorf("failed-to-allocate-tech-profile-for-pon-port--pon-%v-err-%v", intfID, err)

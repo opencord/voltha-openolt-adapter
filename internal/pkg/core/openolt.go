@@ -24,11 +24,13 @@ import (
 	"time"
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
+	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v5/go/adapter_service"
 	"github.com/opencord/voltha-protos/v5/go/common"
 	ca "github.com/opencord/voltha-protos/v5/go/core_adapter"
@@ -63,6 +65,11 @@ type OpenOLT struct {
 	enableGemStats                     bool
 	CheckOnuDevExistenceAtOnuDiscovery bool
 	ForceOnuDiscIndProcessing          bool
+	PonRsrcMgr                         *db.Backend
+	PonRsrcMgrTech                     *db.Backend
+	TpDefault                          *db.Backend
+	Tprofiles                          *db.Backend
+	TpInstances                        *db.Backend
 }
 
 // NewOpenOLT returns a new instance of OpenOLT
@@ -88,6 +95,15 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.rpcTimeout = cfg.RPCTimeout
 	openOLT.CheckOnuDevExistenceAtOnuDiscovery = cfg.CheckOnuDevExistenceAtOnuDiscovery
 	openOLT.ForceOnuDiscIndProcessing = cfg.ForceOnuDiscIndProcessing
+	logger.Infow(ctx, "cm-backend-prefix", log.Fields{"prefix": cm.Backend.PathPrefix})
+	// kvStore backends for resource manager and technology profiles. These are used by the device handlers to store the allocated resources and other relevant information.
+	openOLT.PonRsrcMgr = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_manager")
+	openOLT.PonRsrcMgrTech = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_manager/config")
+	openOLT.TpDefault = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/technology_profiles")
+	// Tprofiles uses a fixed global path because tech-profile definitions are shared across all VOLTHA stacks.
+	openOLT.Tprofiles = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, "service/voltha/technology_profiles")
+	openOLT.TpInstances = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_instances")
+
 	return &openOLT
 }
 
@@ -104,6 +120,14 @@ func (oo *OpenOLT) Stop(ctx context.Context) error {
 	close(oo.exitChannel)
 	// Stop the device handlers
 	oo.stopAllDeviceHandlers(ctx)
+
+	// Close shared KV store backends and nil out clients to prevent double-close from downstream CloseKVClient calls.
+	for _, backend := range []*db.Backend{oo.PonRsrcMgr, oo.PonRsrcMgrTech, oo.TpDefault, oo.Tprofiles, oo.TpInstances} {
+		if backend != nil && backend.Client != nil {
+			backend.Client.Close(ctx)
+			backend.Client = nil
+		}
+	}
 
 	// Stop the core grpc client connection
 	if oo.coreClient != nil {
