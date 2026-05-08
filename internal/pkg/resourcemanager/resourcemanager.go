@@ -209,21 +209,20 @@ func SetKVClient(ctx context.Context, backend string, addr string, DeviceID stri
 	return kvbackend
 }
 
-// CloseKVClient closes open KV clients
+// CloseKVClient closes the per-device KV client.
+// Note: PonRsrMgr backends (KVStore, KVStoreForConfig) are shared across all
+// devices and managed by OpenOLT.Stop(), so they must not be closed here.
 func (rsrcMgr *OpenOltResourceMgr) CloseKVClient(ctx context.Context) {
 	if rsrcMgr.KVStore != nil {
 		rsrcMgr.KVStore.Client.Close(ctx)
 		rsrcMgr.KVStore = nil
-	}
-	if rsrcMgr.PonRsrMgr != nil {
-		rsrcMgr.PonRsrMgr.CloseKVClient(ctx)
 	}
 }
 
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
-func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string) *OpenOltResourceMgr {
+func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string, kvStore *db.Backend, ponrsrcmgr *db.Backend, ponmgrTech *db.Backend) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
 	logger.Debugf(ctx, "Init new resource manager , ponIf: %v, address: %s, device-id: %s", PonIntfID, KVStoreAddress, deviceID)
 	ResourceMgr.PonIntfID = PonIntfID
@@ -232,8 +231,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	ResourceMgr.DeviceType = deviceType
 	ResourceMgr.DevInfo = devInfo
 
-	Backend := kvStoreType
-	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID, basePathKvStore)
+	ResourceMgr.KVStore = kvStore
 	if ResourceMgr.KVStore == nil {
 		logger.Error(ctx, "Failed to setup KV store")
 	}
@@ -249,7 +247,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 				logger.Debugf(ctx, "Device info technology %s, intf-id %v", technology, PonIntfID)
 
 				rsrMgr, err := ponrmgr.NewPONResourceManager(ctx, technology, deviceType, deviceID,
-					Backend, ResourceMgr.Address, basePathKvStore)
+					kvStoreType, ResourceMgr.Address, basePathKvStore, ponrsrcmgr, ponmgrTech)
 				if err != nil {
 					logger.Errorf(ctx, "Failed to create pon resource manager instance for technology %s", technology)
 					return nil
