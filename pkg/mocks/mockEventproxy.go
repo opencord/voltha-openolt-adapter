@@ -47,6 +47,15 @@ func (me *MockEventProxy) SendKpiEvent(ctx context.Context, id string, deviceEve
 	return nil
 }
 
+// SendKpiEvent3 mocks the SendKpiEvent3 function
+func (me *MockEventProxy) SendKpiEvent3(ctx context.Context, id string, deviceEvent *voltha.KpiEvent3, category voltha.EventCategory_Types,
+	subCategory voltha.EventSubCategory_Types, raisedTs int64) error {
+	if raisedTs == 0 {
+		return errors.New("raisedTS cannot be zero")
+	}
+	return nil
+}
+
 // SendRPCEvent mocks the SendRPCEvent function
 func (me *MockEventProxy) SendRPCEvent(ctx context.Context, id string, deviceEvent *voltha.RPCEvent, category voltha.EventCategory_Types,
 	subCategory *voltha.EventSubCategory_Types, raisedTs int64) error {

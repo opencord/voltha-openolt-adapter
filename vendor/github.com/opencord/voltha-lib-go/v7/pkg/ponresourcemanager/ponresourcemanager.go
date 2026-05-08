@@ -204,20 +204,20 @@ func (PONRMgr *PONResourceManager) CloseKVClient(ctx context.Context) {
 }
 
 // NewPONResourceManager creates a new PON resource manager.
-func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string) (*PONResourceManager, error) {
+func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string, ponrsrcmgr *db.Backend, ponmgrTech *db.Backend) (*PONResourceManager, error) {
 	var PONMgr PONResourceManager
 	PONMgr.Technology = Technology
 	PONMgr.DeviceType = DeviceType
 	PONMgr.DeviceID = DeviceID
 	PONMgr.Backend = Backend
 	PONMgr.Address = Address
-	PONMgr.KVStore = SetKVClient(ctx, Technology, Backend, Address, false, basePathKvStore)
+	PONMgr.KVStore = ponrsrcmgr
 	if PONMgr.KVStore == nil {
 		logger.Error(ctx, "KV Client initilization failed")
 		return nil, errors.New("failed to init KV client")
 	}
 	// init kv client to read from the config path
-	PONMgr.KVStoreForConfig = SetKVClient(ctx, Technology, Backend, Address, true, basePathKvStore)
+	PONMgr.KVStoreForConfig = ponmgrTech
 	if PONMgr.KVStoreForConfig == nil {
 		logger.Error(ctx, "KV Config Client initilization failed")
 		return nil, errors.New("failed to init KV Config client")
@@ -251,7 +251,7 @@ func (PONRMgr *PONResourceManager) InitResourceRangesFromKVStore(ctx context.Con
 		logger.Error(ctx, "Failed to get OLT model")
 		return false
 	}
-	Path := fmt.Sprintf(PON_RESOURCE_RANGE_CONFIG_PATH, PONRMgr.OLTModel)
+	Path := fmt.Sprintf("{%s}/"+PON_RESOURCE_RANGE_CONFIG_PATH, PONRMgr.Technology, PONRMgr.OLTModel)
 	//get resource from kv store
 	Result, err := PONRMgr.KVStore.Get(ctx, Path)
 	if err != nil {
@@ -751,13 +751,13 @@ func (PONRMgr *PONResourceManager) GetPath(ctx context.Context, IntfID uint32, R
 	var Path string
 	switch ResourceType {
 	case ONU_ID:
-		Path = fmt.Sprintf(ONU_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
+		Path = fmt.Sprintf("{%s}/"+ONU_ID_POOL_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfID)
 	case ALLOC_ID:
-		Path = fmt.Sprintf(ALLOC_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
+		Path = fmt.Sprintf("{%s}/"+ALLOC_ID_POOL_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfID)
 	case GEMPORT_ID:
-		Path = fmt.Sprintf(GEMPORT_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
+		Path = fmt.Sprintf("{%s}/"+GEMPORT_ID_POOL_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfID)
 	case FLOW_ID:
-		Path = fmt.Sprintf(FLOW_ID_POOL_PATH, PONRMgr.DeviceID, IntfID)
+		Path = fmt.Sprintf("{%s}/"+FLOW_ID_POOL_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfID)
 	default:
 		logger.Error(ctx, "Invalid resource pool identifier")
 	}
@@ -952,7 +952,7 @@ func (PONRMgr PONResourceManager) InitResourceMap(ctx context.Context, PONIntfON
 	   :param pon_intf_onu_id: reference of PON interface id and onu id
 	*/
 	// initialize pon_intf_onu_id tuple to alloc_ids map
-	AllocIDPath := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
+	AllocIDPath := fmt.Sprintf("{%s}/"+ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID)
 	var AllocIDs []byte
 	Result := PONRMgr.KVStore.Put(ctx, AllocIDPath, AllocIDs)
 	if Result != nil {
@@ -960,7 +960,7 @@ func (PONRMgr PONResourceManager) InitResourceMap(ctx context.Context, PONIntfON
 		return
 	}
 	// initialize pon_intf_onu_id tuple to gemport_ids map
-	GEMPortIDPath := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
+	GEMPortIDPath := fmt.Sprintf("{%s}/"+GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID)
 	var GEMPortIDs []byte
 	Result = PONRMgr.KVStore.Put(ctx, GEMPortIDPath, GEMPortIDs)
 	if Result != nil {
@@ -976,23 +976,23 @@ func (PONRMgr PONResourceManager) RemoveResourceMap(ctx context.Context, PONIntf
 	*/
 	// remove pon_intf_onu_id tuple to alloc_ids map
 	var err error
-	AllocIDPath := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
+	AllocIDPath := fmt.Sprintf("{%s}/"+ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID)
 	if err = PONRMgr.KVStore.Delete(ctx, AllocIDPath); err != nil {
 		logger.Errorf(ctx, "Failed to remove resource %s", AllocIDPath)
 		return false
 	}
 	// remove pon_intf_onu_id tuple to gemport_ids map
-	GEMPortIDPath := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
+	GEMPortIDPath := fmt.Sprintf("{%s}/"+GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID)
 	err = PONRMgr.KVStore.Delete(ctx, GEMPortIDPath)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to remove resource %s", GEMPortIDPath)
 		return false
 	}
 
-	FlowIDPath := fmt.Sprintf(FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
-	if FlowIDs, err := PONRMgr.KVStore.List(ctx, FlowIDPath); err != nil {
+	FlowIDPath := fmt.Sprintf("{%s}/"+FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID)
+	if FlowIDs, err := PONRMgr.KVStore.List(ctx, FlowIDPath); err == nil {
 		for _, Flow := range FlowIDs {
-			FlowIDInfoPath := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, PONIntfONUID, Flow.Value)
+			FlowIDInfoPath := fmt.Sprintf("{%s}/"+FLOW_ID_INFO_PATH, PONRMgr.Technology, PONRMgr.DeviceID, PONIntfONUID, Flow.Value)
 			if err = PONRMgr.KVStore.Delete(ctx, FlowIDInfoPath); err != nil {
 				logger.Errorf(ctx, "Failed to remove resource %s", FlowIDInfoPath)
 				return false
@@ -1014,7 +1014,7 @@ func (PONRMgr *PONResourceManager) GetCurrentAllocIDForOnu(ctx context.Context, 
 	   :param pon_intf_onu_id: reference of PON interface id and onu id
 	   :return list: List of alloc_ids if available, else None
 	*/
-	Path := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 
 	var Data []uint32
 	Value, err := PONRMgr.KVStore.Get(ctx, Path)
@@ -1041,7 +1041,7 @@ func (PONRMgr *PONResourceManager) GetCurrentGEMPortIDsForOnu(ctx context.Contex
 	   :return list: List of gemport IDs if available, else None
 	*/
 
-	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 	logger.Debugf(ctx, "Getting current gemports for %s", Path)
 	var Data []uint32
 	Value, err := PONRMgr.KVStore.Get(ctx, Path)
@@ -1066,7 +1066,7 @@ func (PONRMgr *PONResourceManager) GetCurrentFlowIDsForOnu(ctx context.Context, 
 	   :return list: List of Flow IDs if available, else None
 	*/
 
-	Path := fmt.Sprintf(FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 
 	var Data []uint32
 	Value, err := PONRMgr.KVStore.Get(ctx, Path)
@@ -1091,7 +1091,7 @@ func (PONRMgr *PONResourceManager) GetFlowIDInfo(ctx context.Context, IntfONUID 
 	   :return error: nil if no error in getting from KV store
 	*/
 
-	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_INFO_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID, FlowID)
 
 	Value, err := PONRMgr.KVStore.Get(ctx, Path)
 	if err == nil {
@@ -1116,7 +1116,7 @@ func (PONRMgr *PONResourceManager) RemoveFlowIDInfo(ctx context.Context, IntfONU
 	   :param pon_intf_onu_id: reference of PON interface id and onu id
 	   :param flow_id: Flow Id reference
 	*/
-	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_INFO_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID, FlowID)
 
 	if err := PONRMgr.KVStore.Delete(ctx, Path); err != nil {
 		logger.Errorf(ctx, "Falied to remove resource %s", Path)
@@ -1130,7 +1130,7 @@ func (PONRMgr *PONResourceManager) RemoveAllFlowIDInfo(ctx context.Context, Intf
 	    Remove flow_id_info details configured for the ONU.
 	   :param pon_intf_onu_id: reference of PON interface id and onu id
 	*/
-	Path := fmt.Sprintf(FLOW_ID_INFO_PATH_INTF_ONU_PREFIX, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_INFO_PATH_INTF_ONU_PREFIX, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 
 	if err := PONRMgr.KVStore.DeleteWithPrefix(ctx, Path); err != nil {
 		logger.Errorf(ctx, "Falied to remove resource %s", Path)
@@ -1147,7 +1147,7 @@ func (PONRMgr *PONResourceManager) UpdateAllocIdsForOnu(ctx context.Context, Int
 	*/
 	var Value []byte
 	var err error
-	Path := fmt.Sprintf(ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+ALLOC_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 	if AllocIDs == nil {
 		// No more alloc ids associated with the key. Delete the key entirely
 		if err = PONRMgr.KVStore.Delete(ctx, Path); err != nil {
@@ -1178,7 +1178,7 @@ func (PONRMgr *PONResourceManager) UpdateGEMPortIDsForOnu(ctx context.Context, I
 
 	var Value []byte
 	var err error
-	Path := fmt.Sprintf(GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+GEMPORT_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 	logger.Debugf(ctx, "Updating gemport ids for %s", Path)
 	if GEMPortIDs == nil {
 		// No more gemport ids associated with the key. Delete the key entirely
@@ -1229,7 +1229,7 @@ func (PONRMgr *PONResourceManager) UpdateFlowIDForOnu(ctx context.Context, IntfO
 	var err error
 	var RetVal bool
 	var IDx uint32
-	Path := fmt.Sprintf(FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, IntfONUID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID)
 	FlowIDs := PONRMgr.GetCurrentFlowIDsForOnu(ctx, IntfONUID)
 
 	if Add {
@@ -1267,7 +1267,7 @@ func (PONRMgr *PONResourceManager) UpdateFlowIDInfoForOnu(ctx context.Context, I
 	*/
 	var Value []byte
 	var err error
-	Path := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, IntfONUID, FlowID)
+	Path := fmt.Sprintf("{%s}/"+FLOW_ID_INFO_PATH, PONRMgr.Technology, PONRMgr.DeviceID, IntfONUID, FlowID)
 	Value, err = json.Marshal(FlowData)
 	if err != nil {
 		logger.Error(ctx, "failed to Marshal")
