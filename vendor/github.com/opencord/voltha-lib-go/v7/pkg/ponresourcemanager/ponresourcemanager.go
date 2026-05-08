@@ -192,6 +192,10 @@ func SetKVClient(ctx context.Context, Technology string, Backend string, Addr st
 	return kvbackend
 }
 
+// CloseKVClient closes the KV store connections held by this manager.
+// Note: The KV backends may be shared with other managers (e.g., TechProfileMgr).
+// The nil check and nil assignment ensure that duplicate close calls are safe —
+// once closed by one manager, the other will see nil and skip closing.
 func (PONRMgr *PONResourceManager) CloseKVClient(ctx context.Context) {
 	if PONRMgr.KVStore != nil {
 		PONRMgr.KVStore.Client.Close(ctx)
@@ -204,20 +208,20 @@ func (PONRMgr *PONResourceManager) CloseKVClient(ctx context.Context) {
 }
 
 // NewPONResourceManager creates a new PON resource manager.
-func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string) (*PONResourceManager, error) {
+func NewPONResourceManager(ctx context.Context, Technology string, DeviceType string, DeviceID string, Backend string, Address string, basePathKvStore string, ponrsrcmgr *db.Backend, ponmgrTech *db.Backend) (*PONResourceManager, error) {
 	var PONMgr PONResourceManager
 	PONMgr.Technology = Technology
 	PONMgr.DeviceType = DeviceType
 	PONMgr.DeviceID = DeviceID
 	PONMgr.Backend = Backend
 	PONMgr.Address = Address
-	PONMgr.KVStore = SetKVClient(ctx, Technology, Backend, Address, false, basePathKvStore)
+	PONMgr.KVStore = ponrsrcmgr
 	if PONMgr.KVStore == nil {
 		logger.Error(ctx, "KV Client initilization failed")
 		return nil, errors.New("failed to init KV client")
 	}
 	// init kv client to read from the config path
-	PONMgr.KVStoreForConfig = SetKVClient(ctx, Technology, Backend, Address, true, basePathKvStore)
+	PONMgr.KVStoreForConfig = ponmgrTech
 	if PONMgr.KVStoreForConfig == nil {
 		logger.Error(ctx, "KV Config Client initilization failed")
 		return nil, errors.New("failed to init KV Config client")
@@ -990,7 +994,7 @@ func (PONRMgr PONResourceManager) RemoveResourceMap(ctx context.Context, PONIntf
 	}
 
 	FlowIDPath := fmt.Sprintf(FLOW_ID_RESOURCE_MAP_PATH, PONRMgr.DeviceID, PONIntfONUID)
-	if FlowIDs, err := PONRMgr.KVStore.List(ctx, FlowIDPath); err != nil {
+	if FlowIDs, err := PONRMgr.KVStore.List(ctx, FlowIDPath); err == nil {
 		for _, Flow := range FlowIDs {
 			FlowIDInfoPath := fmt.Sprintf(FLOW_ID_INFO_PATH, PONRMgr.DeviceID, PONIntfONUID, Flow.Value)
 			if err = PONRMgr.KVStore.Delete(ctx, FlowIDInfoPath); err != nil {

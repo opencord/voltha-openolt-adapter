@@ -160,7 +160,8 @@ func newMockDeviceHandler() *DeviceHandler {
 			ChannelId:      1,
 			ChannelGroupId: 1,
 		},
-		ConnectStatus: 2,
+		ConnectStatus: cmn.ConnectStatus_REACHABLE,
+		OperStatus:    cmn.OperStatus_ACTIVE,
 	}
 	mcs := newMockCoreService()
 	cc := mocks.NewMockCoreClient(mcs)
