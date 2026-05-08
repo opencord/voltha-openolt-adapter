@@ -335,7 +335,8 @@ func TestNewResourceMgr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if got := NewResourceMgr(ctx, tt.args.intfID, tt.args.deviceID, tt.args.KVStoreAddress, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo, tt.args.kvStorePrefix); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
+			mockBackend := &db.Backend{Client: &MockResKVClient{}}
+			if got := NewResourceMgr(ctx, tt.args.intfID, tt.args.deviceID, tt.args.KVStoreAddress, tt.args.kvStoreType, tt.args.deviceType, tt.args.devInfo, tt.args.kvStorePrefix, mockBackend, &db.Backend{Client: &MockResKVClient{}}, &db.Backend{Client: &MockResKVClient{}}); reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
 				t.Errorf("NewResourceMgr() = %v, want %v", got, tt.want)
 			}
 		})

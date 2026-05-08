@@ -228,7 +228,9 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	dh.perPonOnuIndicationChannel = make(map[uint32]onuIndicationChannels)
 	dh.childAdapterClients = make(map[string]*vgrpc.Client)
 	dh.cfg = cfg
-	dh.kvStore = SetKVClient(ctx, dh.openOLT.KVStoreType, dh.openOLT.KVStoreAddress, dh.device.Id, dh.cm.Backend.PathPrefix)
+	// kvStore backend is shared across the flows, groups and resource manager to store the allocated resources and other relevant information.
+	// The kvstore is initialized with a unique path prefix for each device to avoid any conflict with other devices.
+	dh.kvStore = db.NewBackend(ctx, dh.openOLT.KVStoreType, dh.openOLT.KVStoreAddress, rsrcMgr.KvstoreTimeout, fmt.Sprintf(rsrcMgr.BasePathKvStore, dh.cm.Backend.PathPrefix, dh.device.Id))
 	if dh.kvStore == nil {
 		logger.Error(ctx, "Failed to setup KV store")
 		return nil
@@ -252,55 +254,23 @@ func NewDeviceHandler(cc *vgrpc.Client, ep eventif.EventProxy, device *voltha.De
 	return &dh
 }
 
-func newKVClient(ctx context.Context, storeType string, address string, timeout time.Duration) (kvstore.Client, error) {
-	logger.Infow(ctx, "kv-store-type", log.Fields{"store": storeType})
-	switch storeType {
-	case "etcd":
-		return kvstore.NewEtcdClient(ctx, address, timeout, log.FatalLevel)
-	case "redis":
-		return kvstore.NewRedisClient(address, timeout, false)
-	case "redis-sentinel":
-		return kvstore.NewRedisClient(address, timeout, true)
-	}
-	return nil, errors.New("unsupported-kv-store")
-}
-
-// SetKVClient sets the KV client and return a kv backend
-func SetKVClient(ctx context.Context, backend string, addr string, DeviceID string, basePathKvStore string) *db.Backend {
-	kvClient, err := newKVClient(ctx, backend, addr, rsrcMgr.KvstoreTimeout)
-	if err != nil {
-		logger.Fatalw(ctx, "Failed to init KV client\n", log.Fields{"err": err})
-		return nil
-	}
-	kvbackend := &db.Backend{
-		Client:     kvClient,
-		StoreType:  backend,
-		Address:    addr,
-		Timeout:    rsrcMgr.KvstoreTimeout,
-		PathPrefix: fmt.Sprintf(rsrcMgr.BasePathKvStore, basePathKvStore, DeviceID)}
-
-	return kvbackend
-}
-
-// CloseKVClient closes open KV clients
-// This method is thread-safe and can be called concurrently
+// CloseKVClient closes the KV client used by this device handler.
+// The kvStore backend is created once in NewDeviceHandler and shared across all
+// per-PON-interface resource managers (dh.resourceMgr) and flow managers
+// (dh.flowMgr). Since they all point to the same underlying KV client, it must
+// be closed exactly once here. Iterating over each resource/flow manager and
+// closing the client per PON interface would double-close the shared client.
 func (dh *DeviceHandler) CloseKVClient(ctx context.Context) {
-	// Acquire read lock to safely iterate over resourceMgr and flowMgr slices
-	// Use RLock since we're only reading the slices, not modifying them
-	dh.lockDevice.RLock()
-	defer dh.lockDevice.RUnlock()
-
+	if dh.kvStore != nil && dh.kvStore.Client != nil {
+		dh.kvStore.Client.Close(ctx)
+		dh.kvStore.Client = nil
+	}
+	// Drop the resource managers' references to the now-closed shared backend so
+	// any later access does not operate on a closed client.
 	if dh.resourceMgr != nil {
 		for _, rscMgr := range dh.resourceMgr {
 			if rscMgr != nil {
-				rscMgr.CloseKVClient(ctx)
-			}
-		}
-	}
-	if dh.flowMgr != nil {
-		for _, flMgr := range dh.flowMgr {
-			if flMgr != nil {
-				flMgr.CloseKVClient(ctx)
+				rscMgr.KVStore = nil
 			}
 		}
 	}
@@ -604,13 +574,14 @@ Loop:
 					if err = indications.CloseSend(); err != nil {
 						// Ok to ignore here, because we landed here due to a problem on the stream
 						// In all probability, the closeSend call may fail
-						logger.Debugw(ctx, "error-closing-send stream--error-ignored",
+						logger.Warnw(ctx, "error-closing-send stream--error-ignored",
 							log.Fields{"err": err,
 								"device-id": dh.device.Id})
 					}
 					if indications, err = dh.startOpenOltIndicationStream(ctx); err != nil {
 						return err
 					}
+					logger.Debugw(ctx, "successfully-restarted-indication-stream", log.Fields{"device-id": dh.device.Id})
 					// once we re-initialized the indication stream, continue to read indications
 					continue
 				}
@@ -1353,7 +1324,8 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 		dh.StopAllFlowRoutines(ctx)
 	}
 
-	dh.CloseKVClient(ctx)
+	// Do NOT close the shared KV client on OLT reboot/re-init
+	// dh.CloseKVClient(ctx)
 
 	if err != nil {
 		return olterrors.NewErrAdapter("populate-device-info-failed", log.Fields{"device-id": dh.device.Id}, err)
@@ -1377,7 +1349,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	// There is only one NNI manager since multiple NNI is not supported for now
 	for i = 0; i < dh.totalPonPorts+1; i++ {
 		// Instantiate resource manager
-		if dh.resourceMgr[i] = rsrcMgr.NewResourceMgr(ctx, i, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, dh.deviceInfo, dh.cm.Backend.PathPrefix); dh.resourceMgr[i] == nil {
+		if dh.resourceMgr[i] = rsrcMgr.NewResourceMgr(ctx, i, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, dh.deviceInfo, dh.cm.Backend.PathPrefix, dh.kvStore, dh.openOLT.PonRsrcMgr, dh.openOLT.PonRsrcMgrTech); dh.resourceMgr[i] == nil {
 			return olterrors.ErrResourceManagerInstantiating
 		}
 	}
@@ -1630,7 +1602,8 @@ func (dh *DeviceHandler) omciIndication(ctx context.Context, omciInd *oop.OmciIn
 
 // ProxyOmciRequests sends the proxied OMCI message to the target device
 func (dh *DeviceHandler) ProxyOmciRequests(ctx context.Context, omciMsgs *ia.OmciMessages) error {
-	if DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE) {
+	if (DeviceState(dh.device.ConnectStatus) != DeviceState(voltha.ConnectStatus_REACHABLE)) ||
+		(DeviceState(dh.device.OperStatus) != DeviceState(voltha.OperStatus_ACTIVE)) {
 		return status.Error(codes.Unavailable, "OLT unreachable")
 	}
 	if omciMsgs.GetProxyAddress() == nil {
@@ -2669,6 +2642,8 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 	} else {
 		logger.Debugw(ctx, "successfully-removed-device-from-Resource-manager-KV-store", log.Fields{"device-id": dh.device.Id})
 	}
+	// Only close the KV client connection in case of 'DeleteDevice', the connection is still being used for 'doStateUp' & 'updateStateRebooted'.
+	dh.CloseKVClient(ctx)
 
 	dh.removeOnuIndicationChannels(ctx)
 	// Reset the state
@@ -2716,6 +2691,7 @@ func (dh *DeviceHandler) StopAllFlowRoutines(ctx context.Context) {
 func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	var errs []error
 	if dh.resourceMgr != nil && dh.totalPonPorts > 0 {
+		logger.Debugw(ctx, "resource cleanup", log.Fields{"device-id": dh.device.Id})
 		var ponPort uint32
 		for ponPort = 0; ponPort < dh.totalPonPorts; ponPort++ {
 			if dh.resourceMgr[ponPort] == nil {
@@ -2751,13 +2727,12 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 	}
 
 	if len(errs) == 0 {
+		logger.Debugw(ctx, "resource cleanup completed successfully", log.Fields{"device-id": dh.device.Id})
 		// Take one final sweep at cleaning up KV store for the OLT device
 		// Clean everything at <base-path-prefix>/openolt/<device-id>
 		if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
 			errs = append(errs, err)
 		}
-		logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
-		dh.CloseKVClient(ctx)
 	}
 
 	/*Delete ONU map for the device*/
@@ -3108,6 +3083,8 @@ func (dh *DeviceHandler) updateStateUnreachable(ctx context.Context) {
 		if dh.isReadIndicationRoutineActive {
 			dh.stopIndications <- true
 		}
+		// Stop the routines that are processing indications as the OLT is unreachable and any further processing of indications will lead to inconsistencies/panics
+		dh.removeOnuIndicationChannels(ctx)
 		dh.lockDevice.RUnlock()
 		dh.transitionMap.Handle(ctx, DeviceInit)
 	}
@@ -3145,7 +3122,8 @@ func (dh *DeviceHandler) updateStateRebooted(ctx context.Context) {
 	if dh.isHeartbeatCheckActive {
 		dh.stopHeartbeatCheck <- true
 	}
-
+	// Stop the routines that are processing indications as the OLT is unreachable and any further processing of indications will lead to inconsistencies/panics
+	dh.removeOnuIndicationChannels(ctx)
 	dh.lockDevice.RUnlock()
 
 	if err = dh.updateDeviceStateInCore(ctx, &ca.DeviceStateFilter{
