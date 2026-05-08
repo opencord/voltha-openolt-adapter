@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	conf "github.com/opencord/voltha-lib-go/v7/pkg/config"
+	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 	"github.com/opencord/voltha-protos/v5/go/openolt"
 	"github.com/stretchr/testify/assert"
@@ -93,6 +94,7 @@ func mockDevice() *voltha.Device {
 }
 
 func TestNewOpenOLT(t *testing.T) {
+	mockCm := &conf.ConfigManager{Backend: &db.Backend{PathPrefix: "service/voltha"}}
 	tests := []struct {
 		name        string
 		fields      *fields
@@ -100,9 +102,9 @@ func TestNewOpenOLT(t *testing.T) {
 		cm          *conf.ConfigManager
 		want        *OpenOLT
 	}{
-		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "etcd"}, &conf.ConfigManager{},
+		{"newopenolt-1", &fields{}, &config.AdapterFlags{OnuNumber: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "etcd"}, mockCm,
 			&OpenOLT{numOnus: 1, KVStoreAddress: "1.1.1.1:1", KVStoreType: "etcd"}},
-		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}, &conf.ConfigManager{},
+		{"newopenolt-2", &fields{}, &config.AdapterFlags{OnuNumber: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}, mockCm,
 			&OpenOLT{numOnus: 2, KVStoreAddress: "2.2.2.2:2", KVStoreType: "etcd"}},
 	}
 	for _, tt := range tests {
