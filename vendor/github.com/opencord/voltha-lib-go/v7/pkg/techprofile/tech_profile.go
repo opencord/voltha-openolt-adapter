@@ -193,17 +193,17 @@ func (t *TechProfileMgr) CloseKVClient(ctx context.Context) {
 	}
 }
 
-func NewTechProfile(ctx context.Context, IntfId uint32, deviceId string, resourceMgr iPonResourceMgr, kvStoreType string, kvStoreAddress string, basePathKvStore string) (*TechProfileMgr, error) {
+func NewTechProfile(ctx context.Context, IntfId uint32, deviceId string, resourceMgr iPonResourceMgr, kvStoreType string, kvStoreAddress string, basePathKvStore string, TpDefault *db.Backend, Tprofiles *db.Backend, TpInstances *db.Backend) (*TechProfileMgr, error) {
 	var techprofileObj TechProfileMgr
 	logger.Debug(ctx, "initializing-techprofile-mananger ", log.Fields{"IntId": IntfId, "device-id": deviceId})
 	techprofileObj.config = NewTechProfileFlags(kvStoreType, kvStoreAddress, basePathKvStore)
-	techprofileObj.config.KVBackend = techprofileObj.SetKVClient(ctx, techprofileObj.config.TPKVPathPrefix)
-	techprofileObj.config.DefaultTpKVBackend = techprofileObj.SetKVClient(ctx, techprofileObj.config.defaultTpKvPathPrefix)
+	techprofileObj.config.KVBackend = TpDefault
+	techprofileObj.config.DefaultTpKVBackend = Tprofiles
 	if techprofileObj.config.KVBackend == nil {
 		logger.Error(ctx, "failed-to-initialize-backend")
 		return nil, errors.New("kv-backend-init-failed")
 	}
-	techprofileObj.config.ResourceInstanceKVBacked = techprofileObj.SetKVClient(ctx, techprofileObj.config.ResourceInstanceKVPathPrefix)
+	techprofileObj.config.ResourceInstanceKVBacked = TpInstances
 	if techprofileObj.config.ResourceInstanceKVBacked == nil {
 		logger.Error(ctx, "failed-to-initialize-resource-instance-kv-backend")
 		return nil, errors.New("resource-instance-kv-backend-init-failed")
@@ -213,12 +213,12 @@ func NewTechProfile(ctx context.Context, IntfId uint32, deviceId string, resourc
 	techprofileObj.eponTpInstanceMap = make(map[string]*tp_pb.EponTechProfileInstance)
 	techprofileObj.tpMap = make(map[uint32]*tp_pb.TechProfile)
 	techprofileObj.eponTpMap = make(map[uint32]*tp_pb.EponTechProfile)
-	logger.Debug(ctx, "reconcile-tp-instance-cache-start")
+	logger.Debugw(ctx, "reconcile-tp-instance-cache-start", log.Fields{"IntId": IntfId, "device-id": deviceId})
 	if err := techprofileObj.reconcileTpInstancesToCache(ctx, IntfId, deviceId); err != nil {
 		logger.Errorw(ctx, "failed-to-reconcile-tp-instances", log.Fields{"err": err})
 		return nil, err
 	}
-	logger.Debug(ctx, "reconcile-tp-instance-cache-end")
+	logger.Debugw(ctx, "reconcile-tp-instance-cache-end", log.Fields{"IntId": IntfId, "device-id": deviceId})
 	logger.Debug(ctx, "initializing-tech-profile-manager-object-success")
 	return &techprofileObj, nil
 }
@@ -1388,6 +1388,7 @@ func (t *TechProfileMgr) reconcileTpInstancesToCache(ctx context.Context, IntfId
 
 	//Fetching the techprofile Keys  from the KV Store.
 	tpkeys, _ := t.config.DefaultTpKVBackend.GetWithPrefixKeysOnly(ctx, tech)
+	logger.Debugw(ctx, "get-all-tech-profile-keys", log.Fields{"len(tpkeys)": len(tpkeys), "tech": tech, "deviceId": deviceId, "IntfId": IntfId})
 
 	// Extract the techprofile Ids from the keys
 	// The tpkeys will be of the format "service/voltha/technology_profiles/GPON/65"
@@ -1414,6 +1415,7 @@ func (t *TechProfileMgr) reconcileTpInstancesToCache(ctx context.Context, IntfId
 	for _, tpId := range tpIds {
 		prefix := fmt.Sprintf("%s/%d/olt-{%s}/pon-{%d}", tech, tpId, deviceId, IntfId)
 		kvPairs, _ := t.config.ResourceInstanceKVBacked.GetWithPrefix(newCtx, prefix)
+		logger.Debugw(ctx, "get-resource-instances-with-prefix", log.Fields{"prefix": prefix, "len(kvPairs)": len(kvPairs), "tech": tech, "deviceId": deviceId, "IntfId": IntfId})
 		//check if KvPairs is empty and if not then reconcile the techprofile instance
 		if len(kvPairs) > 0 {
 			for keyPath, kvPair := range kvPairs {
