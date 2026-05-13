@@ -49,6 +49,7 @@ import (
 
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	conf "github.com/opencord/voltha-openolt-adapter/internal/pkg/config"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/events"
 	"github.com/opencord/voltha-openolt-adapter/internal/pkg/olterrors"
 	rsrcMgr "github.com/opencord/voltha-openolt-adapter/internal/pkg/resourcemanager"
 	"github.com/opencord/voltha-protos/v5/go/common"
@@ -1377,7 +1378,7 @@ func (dh *DeviceHandler) initializeDeviceHandlerModules(ctx context.Context) err
 	// There is only one NNI manager since multiple NNI is not supported for now
 	for i = 0; i < dh.totalPonPorts+1; i++ {
 		// Instantiate resource manager
-		if dh.resourceMgr[i] = rsrcMgr.NewResourceMgr(ctx, i, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, dh.deviceInfo, dh.cm.Backend.PathPrefix); dh.resourceMgr[i] == nil {
+		if dh.resourceMgr[i] = rsrcMgr.NewResourceMgr(ctx, i, dh.device.Id, dh.openOLT.KVStoreAddress, dh.openOLT.KVStoreType, dh.device.Type, dh.deviceInfo, dh.cm.Backend.PathPrefix, dh.EventProxy); dh.resourceMgr[i] == nil {
 			return olterrors.ErrResourceManagerInstantiating
 		}
 	}
@@ -1787,7 +1788,7 @@ func (dh *DeviceHandler) sendProxiedMessage(ctx context.Context, onuDevice *volt
 	return nil
 }
 
-func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string) error {
+func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID int64, serialNum *oop.SerialNumber, serialNumber string, onuDeviceID string) error {
 	logger.Debugw(ctx, "activate-onu", log.Fields{"intf-id": intfID, "onu-id": onuID, "serialNum": serialNum, "serialNumber": serialNumber, "device-id": dh.device.Id, "OmccEncryption": dh.openOLT.config.OmccEncryption})
 	if err := dh.resourceMgr[intfID].AddNewOnuGemInfoToCacheAndKvStore(ctx, uint32(onuID), serialNumber); err != nil {
 		return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu": onuID, "intf-id": intfID}, err)
@@ -1801,7 +1802,14 @@ func (dh *DeviceHandler) activateONU(ctx context.Context, intfID uint32, onuID i
 		if st.Code() == codes.AlreadyExists {
 			logger.Debugw(ctx, "onu-activation-in-progress", log.Fields{"SerialNumber": serialNumber, "onu-id": onuID, "device-id": dh.device.Id})
 		} else {
-			return olterrors.NewErrAdapter("onu-activate-failed", log.Fields{"onu-serial": serialNumber, "onu-id": onuID, "device-id": dh.device.Id}, err)
+			error := olterrors.NewErrAdapter("onu-activation-failed", log.Fields{
+				"onu-id":        onuID,
+				"device-id":     onuDeviceID,
+				"serial-number": serialNumber}, err)
+			dh.sendFailureEvent(events.OnuUpdateCommunicationFailEvent, dh.device.Id, onuDeviceID, intfID, uint32(onuID), time.Now().Unix(), events.ErrCodeActivateOnu,
+				fmt.Sprintf("Onu Activate failed at OLT error: %v",
+					error))
+			return error
 		}
 	} else {
 		logger.Infow(ctx, "activated-onu", log.Fields{"SerialNumber": serialNumber, "device-id": dh.device.Id})
@@ -2053,6 +2061,11 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 			error = olterrors.NewErrAdapter("core-proxy-child-device-detected-failed", log.Fields{
 				"pon-intf-id":   ponintfid,
 				"serial-number": sn}, error)
+			if onuDevice != nil {
+				logger.Errorw(ctx, "cleaning-up-onu-device-after-failed-detection", log.Fields{"device-id": onuDevice.Id})
+				dh.sendFailureEvent(events.OnuUpdateCommunicationFailEvent, dh.device.Id, onuDevice.Id, onuDiscInd.GetIntfId(), 0, time.Now().Unix(), events.ErrCodeCoreUnavailable,
+					fmt.Sprintf("Device detection at rwcore failed  error: %v", error))
+			}
 			return error
 		}
 		if error = dh.eventMgr.OnuDiscoveryIndication(ctx, onuDiscInd, dh.device.Id, onuDevice.Id, onuID, sn, time.Now().Unix()); error != nil {
@@ -2104,14 +2117,16 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		error = olterrors.NewErrAdapter("failed-to-update-device-state", log.Fields{
 			"device-id":     onuDevice.Id,
 			"serial-number": sn}, error)
+		logger.Errorw(ctx, "cleaning-up-onu-device-after-failed-core-update", log.Fields{"device-id": onuDevice.Id})
+		dh.sendFailureEvent(events.OnuUpdateCommunicationFailEvent, dh.device.Id, onuDevice.Id, onuDiscInd.GetIntfId(), onuID, time.Now().Unix(), events.ErrCodeDeviceStateUpdateAtCore,
+			fmt.Sprintf("Device state update failed at rwcore: ConnStatus=%s, OperStatus=%s, error: %v",
+				common.OperStatus_DISCOVERED, common.ConnectStatus_REACHABLE, error))
 		return error
 	}
 
 	logger.Infow(ctx, "onu-discovered-reachable", log.Fields{"device-id": onuDevice.Id, "sn": sn})
-	if error = dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn); error != nil {
-		error = olterrors.NewErrAdapter("onu-activation-failed", log.Fields{
-			"device-id":     onuDevice.Id,
-			"serial-number": sn}, error)
+	if error = dh.activateONU(ctx, onuDiscInd.IntfId, int64(onuID), onuDiscInd.SerialNumber, sn, onuDevice.Id); error != nil {
+		logger.Errorw(ctx, "activateONU to client failed", log.Fields{"device-id": onuDevice.Id})
 		return error
 	}
 	return nil
@@ -2152,6 +2167,17 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 	}
 
 	if err != nil || onuDevice == nil {
+		// Send an event when onu activation fails. NB can take appropriate action to recover
+		logger.Warnw(ctx, "sending-onu-activation-failed-event", log.Fields{"err": err, "device-id": dh.device.Id, "onu-id": onuInd.OnuId})
+		st, ok := status.FromError(err)
+		if err != nil && ok && st.Code() == codes.NotFound {
+			return olterrors.NewErrNotFound("onu-device", errFields, err)
+		}
+		var devID string
+		if onuDevice != nil {
+			devID = onuDevice.Id
+		}
+		dh.sendFailureEvent(events.OnuUpdateCommunicationFailEvent, dh.device.Id, devID, onuInd.GetIntfId(), onuInd.OnuId, time.Now().Unix(), events.ErrCodeCoreUnavailable, fmt.Sprintf("core not available  error: %v", err))
 		return olterrors.NewErrNotFound("onu-device", errFields, err)
 	}
 
@@ -2176,7 +2202,11 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 			logger.Warnw(ctx, "onu-activation-indication-reporting-failed", log.Fields{"err": err})
 		}
 	}
+	//Check for communication error and send failure event
 	if err := dh.updateOnuStates(ctx, onuDevice, onuInd); err != nil {
+		// Send an event when onu activation fails. NB can take appropriate action to recover
+		logger.Warnw(ctx, "sending-onu-activation-failed-event", log.Fields{"err": err, "device-id": dh.device.Id, "onu-id": onuDevice.Id})
+		dh.sendFailureEvent(events.OnuUpdateCommunicationFailEvent, dh.device.Id, onuDevice.Id, onuInd.GetIntfId(), onuInd.OnuId, time.Now().Unix(), events.ErrCodeOnuStateUpdateAtAdapter, fmt.Sprintf("Onu state update at adapter failed  error: %v", err))
 		return olterrors.NewErrCommunication("state-update-failed", errFields, err)
 	}
 	return nil
@@ -2755,6 +2785,9 @@ func (dh *DeviceHandler) cleanupDeviceResources(ctx context.Context) error {
 		// Clean everything at <base-path-prefix>/openolt/<device-id>
 		if err := dh.kvStore.DeleteWithPrefix(ctx, ""); err != nil {
 			errs = append(errs, err)
+		}
+		if len(errs) > 0 {
+			go dh.sendFailureEvent(events.DeviceDBUpdateFailureEvent, dh.device.Id, "", 0, 0, time.Now().Unix(), events.ErrCodeDeviceDbKvStoreUpdate, fmt.Sprintf("Failed to clean kv store for OLT device: %v", errs))
 		}
 		logger.Debugw(ctx, "lockDevice for KVStore close client", log.Fields{"deviceID": dh.device.Id})
 		dh.CloseKVClient(ctx)
@@ -3479,6 +3512,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 			"device-id": dh.device.Id,
 			"intf-id":   intfID,
 			"onuID":     onuID,
+			"onuSn":     onuSn,
 			"err":       err})
 	} else {
 		logger.Debugw(ctx, "onu-data", log.Fields{"onu": onu})
@@ -3529,6 +3563,7 @@ func (dh *DeviceHandler) ChildDeviceLost(ctx context.Context, pPortNo uint32, on
 		cancel()
 		return olterrors.NewErrAdapter("failed-to-delete-onu", log.Fields{
 			"device-id": dh.device.Id,
+			"sn":        onuSn,
 			"onu-id":    onuID}, err).Log()
 	}
 	cancel()
@@ -4449,6 +4484,12 @@ func (dh *DeviceHandler) updateDeviceStateInCore(ctx context.Context, deviceStat
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.cfg.RPCTimeout)
 	defer cancel()
 	_, err = cClient.DeviceStateUpdate(subCtx, deviceStateFilter)
+	// If update failed, send DEVICE_STATE_UPDATE_FAILED event
+	if err != nil && deviceStateFilter.ParentDeviceId == "" { //ParentDeviceId checked to differentiate OLT or ONU event
+		go dh.sendFailureEvent(events.DeviceStateUpdateFailedEvent, deviceStateFilter.DeviceId, "", 0, 0, time.Now().Unix(), events.ErrCodeDeviceStateUpdateAtCore,
+			fmt.Sprintf("Device state update failed at rwcore: ConnStatus=%s, OperStatus=%s, error: %v",
+				deviceStateFilter.ConnStatus, deviceStateFilter.OperStatus, err))
+	}
 	return err
 }
 
@@ -4480,6 +4521,11 @@ func (dh *DeviceHandler) updateDeviceInCore(ctx context.Context, device *voltha.
 	subCtx, cancel := context.WithTimeout(log.WithSpanFromContext(context.Background(), ctx), dh.cfg.RPCTimeout)
 	defer cancel()
 	_, err = cClient.DeviceUpdate(subCtx, device)
+	if err != nil {
+		go dh.sendFailureEvent(events.DeviceStateUpdateFailedEvent, device.Id, "", 0, 0, time.Now().Unix(), events.ErrCodeDeviceStateUpdateAtCore,
+			fmt.Sprintf("Device  update failed at rwcore:  error: %v",
+				err))
+	}
 	return err
 }
 
@@ -4761,6 +4807,7 @@ func (dh *DeviceHandler) updateHeartbeatSignature(ctx context.Context, signature
 	}
 	if err = dh.kvStore.Put(ctx, heartbeatPath, val); err != nil {
 		logger.Error(ctx, "failed-to-store-hearbeat-signature")
+		go dh.sendFailureEvent(events.DeviceDBUpdateFailureEvent, dh.device.Id, "", 0, 0, time.Now().Unix(), events.ErrCodeDeviceDbKvStoreUpdate, fmt.Sprintf("Failed to update heartbeat signature in KV store: %v", err))
 	}
 }
 
@@ -4835,4 +4882,39 @@ func updateDeviceAddress(device *voltha.Device, deviceConfig *voltha.UpdateDevic
 		return fmt.Errorf("invalid-device-config-address-type")
 	}
 	return nil
+}
+
+// sendFailureEvent sends a failure event on the system KAFKA bus.
+// This is the single centralized implementation for all failure event types
+// ( OLT_DEVICE_STATE_UPDATE_FAILED, OLT_DEVICE_DB_UPDATE_FAILURE).
+func (dh *DeviceHandler) sendFailureEvent(eventName string, deviceID, childDeviceID string, intfId, onuId uint32, raisedTs int64, errorCode events.FailureErrorCode, reason string) {
+	context := make(map[string]string)
+	/* Populating event context */
+	context[events.ContextOltSerialNumber] = dh.device.SerialNumber
+
+	context[events.ContextDeviceID] = deviceID
+	context[events.ContextFailureReason] = reason
+	context[events.ContextOltParentID] = dh.device.ParentId
+	context[events.ContextErrorCode] = string(errorCode)
+	context[events.ContextOnuPonIntfID] = strconv.FormatUint(uint64(intfId), base10)
+	context[events.ContextOnuOnuID] = strconv.FormatUint(uint64(onuId), base10)
+
+	var serialNumber = ""
+	var onuDeviceID = ""
+	onu := dh.eventMgr.handler.formOnuKey(intfId, onuId)
+	if onu, ok := dh.eventMgr.handler.onus.Load(onu); ok {
+		serialNumber = onu.(*OnuDevice).serialNumber
+		onuDeviceID = onu.(*OnuDevice).deviceID
+	}
+
+	context[events.ContextOltPortLabel], _ = GetportLabel(intfId, voltha.Port_PON_OLT)
+	context[events.ContextOnuSerialNumber2] = serialNumber
+	context[events.ContextOnuDeviceID] = onuDeviceID
+	context[events.ContextOltDeviceID] = deviceID
+	if childDeviceID != "" {
+		context[events.ContextOnuDeviceID] = childDeviceID
+	}
+
+	/* Send event to KAFKA */
+	events.FailureEvent(dh.eventMgr.eventProxy, eventName, context, deviceID, raisedTs)
 }
