@@ -22,16 +22,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	tp "github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
-
 	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
+	"github.com/opencord/voltha-lib-go/v7/pkg/events/eventif"
 	"github.com/opencord/voltha-lib-go/v7/pkg/log"
 	ponrmgr "github.com/opencord/voltha-lib-go/v7/pkg/ponresourcemanager"
+	tp "github.com/opencord/voltha-lib-go/v7/pkg/techprofile"
+	"github.com/opencord/voltha-openolt-adapter/internal/pkg/events"
 	ofp "github.com/opencord/voltha-protos/v5/go/openflow_13"
 	"github.com/opencord/voltha-protos/v5/go/openolt"
 )
@@ -131,6 +133,7 @@ type OpenOltResourceMgr struct {
 	// array of pon resource managers per interface technology
 	PonRsrMgr *ponrmgr.PONResourceManager
 
+	EventProxy eventif.EventProxy
 	// Local maps used for write-through-cache - start
 	allocIDsForOnu map[string][]uint32
 
@@ -223,7 +226,7 @@ func (rsrcMgr *OpenOltResourceMgr) CloseKVClient(ctx context.Context) {
 // NewResourceMgr init a New resource manager instance which in turn instantiates pon resource manager
 // instances according to technology. Initializes the default resource ranges for all
 // the resources.
-func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string) *OpenOltResourceMgr {
+func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVStoreAddress string, kvStoreType string, deviceType string, devInfo *openolt.DeviceInfo, basePathKvStore string, event eventif.EventProxy) *OpenOltResourceMgr {
 	var ResourceMgr OpenOltResourceMgr
 	logger.Debugf(ctx, "Init new resource manager , ponIf: %v, address: %s, device-id: %s", PonIntfID, KVStoreAddress, deviceID)
 	ResourceMgr.PonIntfID = PonIntfID
@@ -231,7 +234,7 @@ func NewResourceMgr(ctx context.Context, PonIntfID uint32, deviceID string, KVSt
 	ResourceMgr.Address = KVStoreAddress
 	ResourceMgr.DeviceType = deviceType
 	ResourceMgr.DevInfo = devInfo
-
+	ResourceMgr.EventProxy = event
 	Backend := kvStoreType
 	ResourceMgr.KVStore = SetKVClient(ctx, Backend, ResourceMgr.Address, deviceID, basePathKvStore)
 	if ResourceMgr.KVStore == nil {
@@ -701,7 +704,7 @@ func (rsrcMgr *OpenOltResourceMgr) GetTechProfileIDForOnu(ctx context.Context, o
 func (rsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDsForOnu(ctx context.Context, onuID uint32, uniID uint32) error {
 	intfOnuUniID := fmt.Sprintf(tpIDPathSuffix, rsrcMgr.PonIntfID, onuID, uniID)
 
-	if err := rsrcMgr.KVStore.Delete(ctx, intfOnuUniID); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, intfOnuUniID, onuID, fmt.Sprintf("Failed to delete techprofile id resource in KV store path : %s error :", intfOnuUniID), false); err != nil {
 		logger.Errorw(ctx, "Failed to delete techprofile id resource in KV store", log.Fields{"path": intfOnuUniID})
 		return err
 	}
@@ -729,7 +732,7 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveTechProfileIDForOnu(ctx context.Context
 		logger.Error(ctx, "failed to Marshal")
 		return err
 	}
-	if err = rsrcMgr.KVStore.Put(ctx, intfOnuUniID, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, intfOnuUniID, Value, onuID, fmt.Sprintf("Failed to delete techprofile id resource %s in KV store error :", intfOnuUniID)); err != nil {
 		logger.Errorf(ctx, "Failed to update resource %s", intfOnuUniID)
 		return err
 	}
@@ -765,7 +768,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateTechProfileIDForOnu(ctx context.Context
 		logger.Error(ctx, "failed to Marshal")
 		return err
 	}
-	if err = rsrcMgr.KVStore.Put(ctx, intfOnuUniID, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, intfOnuUniID, Value, onuID, fmt.Sprintf("Failed to update techprofile id path %s resource in KV store error ", intfOnuUniID)); err != nil {
 		logger.Errorf(ctx, "Failed to update resource %s", intfOnuUniID)
 		return err
 	}
@@ -790,7 +793,7 @@ func (rsrcMgr *OpenOltResourceMgr) StoreMeterInfoForOnu(ctx context.Context, Dir
 		logger.Error(ctx, "failed to Marshal meter config")
 		return err
 	}
-	if err = rsrcMgr.KVStore.Put(ctx, intfOnuUniID, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, intfOnuUniID, Value, onuID, fmt.Sprintf("Failed to store meter info in KV store %s error ", intfOnuUniID)); err != nil {
 		logger.Errorf(ctx, "Failed to store meter into KV store %s", intfOnuUniID)
 		return err
 	}
@@ -885,7 +888,7 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveMeterInfoForOnu(ctx context.Context, Di
 	uniID uint32, tpID uint32) error {
 	Path := fmt.Sprintf(MeterIDPathSuffix, rsrcMgr.PonIntfID, onuID, uniID, tpID, Direction)
 
-	if err := rsrcMgr.KVStore.Delete(ctx, Path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, Path, onuID, fmt.Sprintf("Failed to delete meter id %s from kvstore error: ", Path), false); err != nil {
 		logger.Errorf(ctx, "Failed to delete meter id %s from kvstore ", Path)
 		return err
 	}
@@ -1043,7 +1046,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, onuID uint
 		return err
 	}
 
-	if err = rsrcMgr.KVStore.Put(ctx, Path, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, Path, Value, onuID, fmt.Sprintf("Failed to update onugem to kv store path : %v error ", Path)); err != nil {
 		logger.Errorf(ctx, "Failed to update resource %s", Path)
 		return err
 	}
@@ -1060,7 +1063,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddOnuGemInfo(ctx context.Context, onuID uint
 func (rsrcMgr *OpenOltResourceMgr) DelOnuGemInfo(ctx context.Context, onuID uint32) error {
 	path := fmt.Sprintf(OnuGemInfoPath, rsrcMgr.PonIntfID, onuID)
 
-	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, onuID, fmt.Sprintf("Failed to delete onu gem info for path %s, error: ", path), false); err != nil {
 		logger.Errorf(ctx, "failed to remove resource %s", path)
 		return err
 	}
@@ -1078,7 +1081,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteAllOnuGemInfoForIntf(ctx context.Contex
 	path := fmt.Sprintf(OnuGemInfoPathPathPrefix, rsrcMgr.PonIntfID)
 
 	logger.Debugw(ctx, "delete-all-onu-gem-info-for-pon-intf", log.Fields{"intfID": rsrcMgr.PonIntfID})
-	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete all onu gem info for path %s, error: ", path), true); err != nil {
 		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
 		return err
 	}
@@ -1126,7 +1129,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateGemPortForPktIn(ctx context.Context, pk
 		logger.Error(ctx, "Failed to marshal data")
 		return
 	}
-	if err = rsrcMgr.KVStore.Put(ctx, path, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, path, Value, pktIn.OnuID, fmt.Sprintf("Failed to update pktin gemport to kv store path : %v error ", path)); err != nil {
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"path": path, "value": gemPort})
 		return
 	}
@@ -1189,7 +1192,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeletePacketInGemPortForOnu(ctx context.Conte
 	}
 
 	logger.Debugw(ctx, "delete-packetin-gem-port", log.Fields{"realPath": path})
-	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete all onu gem info for path %s, error: ", path), true); err != nil {
 		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
 		return err
 	}
@@ -1283,7 +1286,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, gem 
 	path := fmt.Sprintf(FlowIDsForGem, rsrcMgr.PonIntfID, gem)
 
 	if flowIDs == nil {
-		if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+		if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete flow IDs for gem %d, error: ", gem), false); err != nil {
 			logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
 		}
 		return nil
@@ -1294,7 +1297,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, gem 
 		return err
 	}
 
-	if err = rsrcMgr.KVStore.Put(ctx, path, val); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, path, val, 0, fmt.Sprintf("Failed to update flow IDs for gem %d, error: ", gem)); err != nil {
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"err": err, "path": path, "value": val})
 		return err
 	}
@@ -1310,7 +1313,7 @@ func (rsrcMgr *OpenOltResourceMgr) UpdateFlowIDsForGem(ctx context.Context, gem 
 // DeleteFlowIDsForGem deletes the flowID list entry per gem from kvstore.
 func (rsrcMgr *OpenOltResourceMgr) DeleteFlowIDsForGem(ctx context.Context, gem uint32) error {
 	path := fmt.Sprintf(FlowIDsForGem, rsrcMgr.PonIntfID, gem)
-	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete flow IDs for gem %d, error: ", gem), false); err != nil {
 		logger.Errorw(ctx, "Failed to delete from kvstore", log.Fields{"err": err, "path": path})
 		return err
 	}
@@ -1326,7 +1329,7 @@ func (rsrcMgr *OpenOltResourceMgr) DeleteAllFlowIDsForGemForIntf(ctx context.Con
 	path := fmt.Sprintf(FlowIDsForGemPathPrefix, rsrcMgr.PonIntfID)
 
 	logger.Debugw(ctx, "delete-flow-ids-for-gem-for-pon-intf", log.Fields{"intfID": rsrcMgr.PonIntfID})
-	if err := rsrcMgr.KVStore.DeleteWithPrefix(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete all flow IDs for gems on pon interface %d, error: ", rsrcMgr.PonIntfID), true); err != nil {
 		logger.Errorf(ctx, "failed-to-remove-resource-%s", path)
 		return err
 	}
@@ -1400,7 +1403,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, gem
 	}
 	rsrcMgr.mcastQueueForIntfLock.Unlock()
 
-	if err = rsrcMgr.KVStore.Put(ctx, path, val); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, path, val, 0, fmt.Sprintf("Failed to update multicast queue info for interface %v to kv store path : %v error :", rsrcMgr.PonIntfID, path)); err != nil {
 		logger.Errorw(ctx, "Failed to put to kvstore", log.Fields{"err": err, "path": path, "value": val})
 		return err
 	}
@@ -1412,7 +1415,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddMcastQueueForIntf(ctx context.Context, gem
 func (rsrcMgr *OpenOltResourceMgr) DeleteMcastQueueForIntf(ctx context.Context) error {
 	path := McastQueuesForIntf
 
-	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to delete multicast queue info for interface %v, error: ", rsrcMgr.PonIntfID), false); err != nil {
 		logger.Errorw(ctx, "Failed to delete multicast queue info from kvstore", log.Fields{"err": err, "interfaceId": rsrcMgr.PonIntfID})
 		return err
 	}
@@ -1451,7 +1454,7 @@ func (rsrcMgr *OpenOltResourceMgr) AddFlowGroupToKVStore(ctx context.Context, gr
 		return err
 	}
 
-	if err = rsrcMgr.KVStore.Put(ctx, path, Value); err != nil {
+	if err = rsrcMgr.UpdateKvstoreEntry(ctx, path, Value, 0, fmt.Sprintf("Failed to update flow group to kv store path : %v error", path)); err != nil {
 		logger.Errorf(ctx, "Failed to update resource %s", path)
 		return err
 	}
@@ -1472,7 +1475,7 @@ func (rsrcMgr *OpenOltResourceMgr) RemoveFlowGroupFromKVStore(ctx context.Contex
 		path = fmt.Sprintf(FlowGroup, groupID)
 	}
 
-	if err := rsrcMgr.KVStore.Delete(ctx, path); err != nil {
+	if err := rsrcMgr.DeleteKvstoreEntry(ctx, path, 0, fmt.Sprintf("Failed to remove flow group for path %s, error: ", path), false); err != nil {
 		logger.Errorf(ctx, "Failed to remove resource %s due to %s", path, err)
 		return err
 	}
@@ -1546,4 +1549,40 @@ func appendUnique64bit(slice []uint64, item uint64) []uint64 {
 		}
 	}
 	return append(slice, item)
+}
+
+func (rsrcMgr *OpenOltResourceMgr) DeleteKvstoreEntry(ctx context.Context, path string, onuID uint32, reason string, prefix bool) error {
+	var err error
+	if prefix {
+		err = rsrcMgr.KVStore.DeleteWithPrefix(ctx, path)
+	} else {
+		err = rsrcMgr.KVStore.Delete(ctx, path)
+	}
+	if err != nil {
+		go rsrcMgr.DbUpdateFailureEvent(events.DeviceDBUpdateFailureEvent, rsrcMgr.DevInfo, rsrcMgr.PonIntfID, onuID, time.Now().Unix(), events.ErrCodeDeviceDbKvStoreUpdate, reason+" "+err.Error())
+		return err
+	}
+	return nil
+}
+
+func (rsrcMgr *OpenOltResourceMgr) UpdateKvstoreEntry(ctx context.Context, key string, value []byte, onuID uint32, reason string) error {
+	err := rsrcMgr.KVStore.Put(ctx, key, value)
+	if err != nil {
+		go rsrcMgr.DbUpdateFailureEvent(events.DeviceDBUpdateFailureEvent, rsrcMgr.DevInfo, rsrcMgr.PonIntfID, onuID, time.Now().Unix(), events.ErrCodeDeviceDbKvStoreUpdate, reason+" "+err.Error())
+		return err
+	}
+	return nil
+}
+
+func (rsrcMgr *OpenOltResourceMgr) DbUpdateFailureEvent(eventName string, devInfo *openolt.DeviceInfo, intfId uint32, onuId uint32, raisedTs int64, errorCode events.FailureErrorCode, reason string) {
+	context := make(map[string]string)
+	/* Populating event context */
+	context[events.ContextOnuPonIntfID] = strconv.FormatUint(uint64(intfId), 10)
+	context[events.ContextOnuOnuID] = strconv.FormatUint(uint64(onuId), 10)
+	context[events.ContextDeviceID] = devInfo.DeviceId
+	context[events.ContextOltSerialNumber] = devInfo.DeviceSerialNumber
+	context[events.ContextErrorCode] = string(errorCode)
+	context[events.ContextFailureReason] = reason
+	/* Send event to KAFKA */
+	events.FailureEvent(rsrcMgr.EventProxy, eventName, context, devInfo.DeviceId, raisedTs)
 }
