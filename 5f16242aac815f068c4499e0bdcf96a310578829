@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "675b1edc_599ef80c",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2789,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 1,
+      "message": "since this is called in another goroutine, we have to make sure that the ctx is still alive. I have not check all the function calls, but there is a chance that the ctx is cancelled while the sendFailureEvent sends a Kafka event. If this is the case then a new background ctx in the request scope can be used.\n\nThe same might applies to all the go dh.sendFailureEvent calls.",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ee2c8868_a1d6c13f",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 4525,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 1,
+      "message": "why fmt.Sprintf needed here?",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d00c48a3_19f43f56",
+        "filename": "internal/pkg/events/common.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 1,
+      "message": "Nil panic if EventProxy is nil. Putting a guard at the top of the function would be nice.",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8443414_6be77bb3",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1562,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 1,
+      "message": "since the internal function logs an error here, the callers of this function should not the same error log second time.",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13f860a3_4b94fbac",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1572,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 1,
+      "message": "same applies here.",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}

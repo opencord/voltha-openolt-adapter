@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d6f5c85_756defde",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-05-22T22:39:14Z",
+      "side": 0,
+      "message": "The new ContextFailureReason \u003d \"failure-reason\" and the old one does not match.",
+      "revId": "f094df08ba834bb377becba8bdba7222b5d05666",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
