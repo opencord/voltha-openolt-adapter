@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "031a1d1a_b60e11e5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2061,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2026-05-26T20:20:20Z",
+      "side": 1,
+      "message": "There are a lot of places where error is returned in this function, why do we send a failure event in these three cases only?\nWhy don\u0027t we prefer to send an event from where this function is called instead?",
+      "range": {
+        "startLine": 2057,
+        "startChar": 1,
+        "endLine": 2061,
+        "endChar": 4
+      },
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4279db30_97efead7",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2179,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2026-05-26T20:20:20Z",
+      "side": 1,
+      "message": "what does this mean? It is same in all errors",
+      "range": {
+        "startLine": 2179,
+        "startChar": 29,
+        "endLine": 2179,
+        "endChar": 60
+      },
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
