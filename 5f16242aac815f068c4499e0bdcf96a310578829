@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "01f81ed6_bafd6bc4",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2789,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "675b1edc_599ef80c",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "ee2c8868_a1d6c13f",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 3
@@ -31,6 +49,24 @@
       "writtenOn": "2026-05-22T22:39:14Z",
       "side": 1,
       "message": "why fmt.Sprintf needed here?",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b16bfaf_aff8766e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 4525,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "fmt.Sprintf(\"Device  update failed at rwcore:  error: %v\",\n\t\t\t\terr) --\u003ethat is the failure reason sent in the event payload",
+      "parentUuid": "ee2c8868_a1d6c13f",
       "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     },
@@ -54,6 +90,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0d00f32b_566242cf",
+        "filename": "internal/pkg/events/common.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "d00c48a3_19f43f56",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b8443414_6be77bb3",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 3
@@ -71,6 +125,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dcf62e6b_75ef240d",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1562,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "b8443414_6be77bb3",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "13f860a3_4b94fbac",
         "filename": "internal/pkg/resourcemanager/resourcemanager.go",
         "patchSetId": 3
@@ -82,6 +154,24 @@
       "writtenOn": "2026-05-22T22:39:14Z",
       "side": 1,
       "message": "same applies here.",
+      "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "46ff99ed_1e10d062",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1572,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "13f860a3_4b94fbac",
       "revId": "5f16242aac815f068c4499e0bdcf96a310578829",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }

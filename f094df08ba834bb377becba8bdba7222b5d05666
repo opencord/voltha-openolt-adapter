@@ -16,6 +16,24 @@
       "message": "The new ContextFailureReason \u003d \"failure-reason\" and the old one does not match.",
       "revId": "f094df08ba834bb377becba8bdba7222b5d05666",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "054b7a4e_aec64da4",
+        "filename": "internal/pkg/core/openolt_eventmgr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 0,
+      "message": "ContextOnuFailureReaseon\u003d \"fail-reason\"\nContextOltFailureReason \u003d \"failure-reason\"\n\nTo use common enum created  ContextFailureReason \u003d \"failure-reason\" and used everywhere, same change done in onu adapter. Maintaining 2 variables causes confusion",
+      "parentUuid": "1d6f5c85_756defde",
+      "revId": "f094df08ba834bb377becba8bdba7222b5d05666",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }

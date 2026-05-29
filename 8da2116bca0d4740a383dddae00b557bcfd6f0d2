@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8506ba94_bc093d53",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2061,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "Only in this three cases it is called because before to this the onu device will not be created at core so publishing this error event there is no use. Only after sendChildDeviceDetectedToCore is processed we would need device cleanup so after this function we send failure events.\n\nWe cant prefer doing at caller of the function as we need to send failure-reason also in event payload why it failed in which function. To know the unique failure reason where failure occurred implemented this way",
+      "parentUuid": "031a1d1a_b60e11e5",
+      "range": {
+        "startLine": 2057,
+        "startChar": 1,
+        "endLine": 2061,
+        "endChar": 4
+      },
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4279db30_97efead7",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
@@ -37,6 +61,30 @@
       "writtenOn": "2026-05-26T20:20:20Z",
       "side": 1,
       "message": "what does this mean? It is same in all errors",
+      "range": {
+        "startLine": 2179,
+        "startChar": 29,
+        "endLine": 2179,
+        "endChar": 60
+      },
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ee098e1a_1658778e",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2179,
+      "author": {
+        "id": 1001023
+      },
+      "writtenOn": "2026-05-29T03:35:43Z",
+      "side": 1,
+      "message": "event name OnuUpdateCommunicationFailEvent will be same , but error codes and failure reason will be different for each place",
+      "parentUuid": "4279db30_97efead7",
       "range": {
         "startLine": 2179,
         "startChar": 29,
