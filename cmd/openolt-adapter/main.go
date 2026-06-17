@@ -246,7 +246,6 @@ func (a *adapter) checkKvStoreReadiness(ctx context.Context) {
 
 		case <-timeoutTimer.C:
 			// Check the status of the kv-store. Use timeout of 2 seconds to avoid forever blocking
-			logger.Info(ctx, "kv-store liveliness-recheck")
 			timeoutCtx, cancelFunc := context.WithTimeout(ctx, 2*time.Second)
 
 			kvStoreChannel <- a.kvClient.IsConnectionUp(timeoutCtx)
