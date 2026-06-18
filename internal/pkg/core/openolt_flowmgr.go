@@ -1699,6 +1699,18 @@ func (f *OpenOltFlowMgr) removeFlowFromDevice(ctx context.Context, deviceFlow *o
 			// Assume the flow is removed
 			return nil
 		}
+		if e, ok := status.FromError(err); ok {
+			if e.Code() == codes.NotFound {
+				logger.Infow(ctx, "flow-not-found-on-device-while-removing",
+					log.Fields{
+						"err":       err,
+						"flow-id":   deviceFlow.FlowId,
+						"device-id": f.deviceHandler.device.Id,
+						"cookie":    deviceFlow.Cookie})
+				return nil
+			}
+		}
+		logger.Warnw(ctx, "failed-to-remove-flow-from-device", log.Fields{"err": err, "flow-id": deviceFlow.FlowId, "device-id": f.deviceHandler.device.Id, "cookie": deviceFlow.Cookie})
 		return olterrors.NewErrFlowOp("remove", deviceFlow.FlowId, log.Fields{"deviceFlow": deviceFlow}, err)
 	}
 	logger.Infow(ctx, "flow-removed-from-device-successfully", log.Fields{
