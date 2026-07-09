@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5394a8d_d7420aae",
+        "filename": ".github/workflows/release.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000218
+      },
+      "writtenOn": "2026-07-09T16:41:47Z",
+      "side": 1,
+      "message": "could you please double check this. Was this intentionally set voltha-go?",
+      "range": {
+        "startLine": 5,
+        "startChar": 6,
+        "endLine": 5,
+        "endChar": 16
+      },
+      "revId": "bf78b6d656ddec2a33ddc46f7ac698e6ec9ec85a",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
