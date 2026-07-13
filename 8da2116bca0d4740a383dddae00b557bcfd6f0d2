@@ -50,6 +50,40 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "81422f99_477387a5",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2113,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-07-13T06:17:34Z",
+      "side": 1,
+      "message": "why are we sending here, the event is already sent in func updateDeviceStateInCore",
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c913058_ad7b64c6",
+        "filename": "internal/pkg/core/device_handler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2126,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-07-13T06:17:34Z",
+      "side": 1,
+      "message": "same as above comment",
+      "revId": "8da2116bca0d4740a383dddae00b557bcfd6f0d2",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "4279db30_97efead7",
         "filename": "internal/pkg/core/device_handler.go",
         "patchSetId": 4
