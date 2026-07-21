@@ -30,9 +30,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db"
 	"github.com/opencord/voltha-lib-go/v7/pkg/db/kvstore"
+	"google.golang.org/protobuf/proto"
 
 	vgrpc "github.com/opencord/voltha-lib-go/v7/pkg/grpc"
 
