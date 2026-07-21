@@ -111,7 +111,7 @@ jobs:
     steps:
       - name: Get workflow conclusion
         # yamllint disable-line rule:line-length
-        uses: im-open/workflow-conclusion@fce18569e28a9f2ed1feca1e6d4251e6a7365fdc # v2.2.4
+        uses: im-open/workflow-conclusion@8eac7f17381a6917bc04fec3e2c92e70ebc37526 # v3.0.0
       - name: Report workflow conclusion
         # yamllint disable-line rule:line-length
         uses: lfreleng-actions/gerrit-review-action@c9df844dc6efe28b85b297c1c6d40390bfa4a378 # v1.0.0
