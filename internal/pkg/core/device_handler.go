@@ -1996,6 +1996,7 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 	onuDevice, error := dh.getChildDeviceFromCore(ctx, &ca.ChildDeviceFilter{
 		ParentId:     dh.device.Id,
 		SerialNumber: sn,
+		ParentPortNo: parentPortNo,
 	})
 
 	if error != nil {
