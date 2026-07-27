@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"sync"
 	"time"
 
@@ -45,7 +46,10 @@ const (
 	ONUStats = "ONUStats"
 	// GEMStats statType constant
 	GEMStats = "GEMStats"
-
+	// ONURXPowerStats statType constant
+	ONURXPowerStats = "OnuRxPowerStats"
+	//RxPowerMeanDbm statType constant
+	RxPowerMeanDbm = "RxPowerMeanDbm"
 	// RxBytes constant
 	RxBytes = "RxBytes"
 	// RxPackets constant
@@ -97,9 +101,6 @@ const (
 )
 
 var mutex = &sync.Mutex{}
-
-var onuStats = make(chan *openolt.OnuStatistics, 100)
-var gemStats = make(chan *openolt.GemPortStatistics, 100)
 
 // statRegInfo is used to register for notifications
 // on receiving port stats and flow stats indication
@@ -277,7 +278,12 @@ type OpenOltStatisticsMgr struct {
 	statIndListners map[StatType]*list.List
 	// TODO  PMMetrics Metrics
 	// statIndListners is the list of requests to be notified when port and flow stats indication is received
-	statIndListnerMu sync.Mutex
+	statIndListnerMu     sync.Mutex
+	onuStats             chan *openolt.OnuStatistics
+	gemStats             chan *openolt.GemPortStatistics
+	onuRxPowerStats      chan *openolt.PonRxPowerData
+	statsCollectorCtx    context.Context
+	statsCollectorCancel context.CancelFunc
 }
 
 // NewOpenOltStatsMgr returns a new instance of the OpenOltStatisticsMgr
@@ -295,16 +301,21 @@ func NewOpenOltStatsMgr(ctx context.Context, Dev *DeviceHandler) *OpenOltStatist
 	NumPonPorts := Dev.resourceMgr[0].DevInfo.GetPonPorts()
 	Ports, _ = InitPorts(ctx, "pon", Dev.device.Id, NumPonPorts)
 	StatMgr.SouthBoundPort, _ = Ports.(map[uint32]*PonPort)
-	if StatMgr.Device.openOLT.enableONUStats {
-		go StatMgr.publishOnuStats()
-	}
-	if StatMgr.Device.openOLT.enableGemStats {
-		go StatMgr.publishGemStats()
-	}
 	StatMgr.statIndListners = make(map[StatType]*list.List)
 	StatMgr.statIndListners[portStatsType] = list.New()
 	StatMgr.statIndListners[flowStatsType] = list.New()
+	StatMgr.onuStats = make(chan *openolt.OnuStatistics, 100)
+	StatMgr.gemStats = make(chan *openolt.GemPortStatistics, 100)
+	StatMgr.onuRxPowerStats = make(chan *openolt.PonRxPowerData, 100)
+	StatMgr.statsCollectorCtx, StatMgr.statsCollectorCancel = context.WithCancel(context.Background())
 	return &StatMgr
+}
+
+// StopStatsCollection cancels the stats collection context
+func (StatMgr *OpenOltStatisticsMgr) StopStatsCollection() {
+	if StatMgr.statsCollectorCancel != nil {
+		StatMgr.statsCollectorCancel()
+	}
 }
 
 // InitPorts collects the port objects:  nni and pon that are updated with the current data from the OLT
@@ -482,11 +493,21 @@ func (StatMgr *OpenOltStatisticsMgr) collectPONMetrics(pID uint32) map[string]fl
 	return ponval
 }
 
+// convertOnuRxPowerStats will convert onu rx power stats response to kpi context
+func (StatMgr *OpenOltStatisticsMgr) convertOnuRxPowerStats(ponRxStats *openolt.PonRxPowerData) map[string]float32 {
+	ponRxStatsVal := make(map[string]float32)
+	ponRxStatsVal[IntfID] = float32(ponRxStats.IntfId)
+	ponRxStatsVal[OnuID] = float32(ponRxStats.OnuId)
+	ponRxStatsVal[RxPowerMeanDbm] = float32(ponRxStats.RxPowerMeanDbm)
+	return ponRxStatsVal
+}
+
 // converGemStats will convert gem stats response to kpi context
 func (StatMgr *OpenOltStatisticsMgr) convertGemStats(gemStats *openolt.GemPortStatistics) map[string]float32 {
 	gemStatsVal := make(map[string]float32)
 	gemStatsVal[IntfID] = float32(gemStats.IntfId)
 	gemStatsVal[GemID] = float32(gemStats.GemportId)
+	gemStatsVal[OnuID] = float32(gemStats.OnuId)
 	gemStatsVal[RxPackets] = float32(gemStats.RxPackets)
 	gemStatsVal[RxBytes] = float32(gemStats.RxBytes)
 	gemStatsVal[TxPackets] = float32(gemStats.TxPackets)
@@ -528,13 +549,27 @@ func (StatMgr *OpenOltStatisticsMgr) convertONUStats(onuStats *openolt.OnuStatis
 
 // collectOnuStats will collect the onu metrics
 func (StatMgr *OpenOltStatisticsMgr) collectOnuStats(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
+	// Check if stats collection is cancelled
+	select {
+	case <-StatMgr.statsCollectorCtx.Done():
+		logger.Warnw(ctx, "stats-collection-cancelled-skipping-onu-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
+		return
+	default:
+	}
 	onu := &openolt.Onu{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID}
 	logger.Debugw(ctx, "pulling-onu-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
-	subCtx, cancel := context.WithTimeout(context.Background(), StatMgr.Device.openOLT.rpcTimeout)
+	subCtx, cancel := context.WithTimeout(StatMgr.statsCollectorCtx, StatMgr.Device.openOLT.rpcTimeout)
 	defer cancel()
 	if stats, err := StatMgr.Device.Client.GetOnuStatistics(subCtx, onu); err == nil {
-		onuStats <- stats
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			return
+		case StatMgr.onuStats <- stats:
+		}
 	} else {
+		if StatMgr.statsCollectorCtx.Err() != nil {
+			return
+		}
 		logger.Errorw(ctx, "error-while-getting-onu-stats-for-onu", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "err": err})
 	}
 }
@@ -556,9 +591,38 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnDemandOnuStats(ctx context.Context
 	return nil
 }
 
+// collectOnuRxPower will collect the onu metrics
+func (StatMgr *OpenOltStatisticsMgr) collectOnuRxPower(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
+	// Check if stats collection is cancelled
+	select {
+	case <-StatMgr.statsCollectorCtx.Done():
+		logger.Warnw(ctx, "stats-collection-cancelled-skipping-onu-rx-power", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
+		return
+	default:
+	}
+
+	onu := &openolt.Onu{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID}
+	logger.Debugw(ctx, "pulling-onu-rx-power", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "serial-number": onuGemInfo.SerialNumber})
+	subCtx, cancel := context.WithTimeout(StatMgr.statsCollectorCtx, StatMgr.Device.openOLT.rpcTimeout)
+	defer cancel()
+	if stats, err := StatMgr.Device.Client.GetPonRxPower(subCtx, onu); err == nil {
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			return
+		case StatMgr.onuRxPowerStats <- stats:
+		}
+	} else {
+		if StatMgr.statsCollectorCtx.Err() != nil {
+			return
+		}
+		logger.Errorw(ctx, "error-while-getting-onu-rx-power-stats-for-onu", log.Fields{"serial-number": onuGemInfo.SerialNumber, "err": err})
+	}
+}
+
 // collectOnuAndGemStats will collect both onu and gem metrics
 func (StatMgr *OpenOltStatisticsMgr) collectOnuAndGemStats(ctx context.Context, onuGemInfo []rsrcMgr.OnuGemInfo) {
-	if !StatMgr.Device.openOLT.enableONUStats && !StatMgr.Device.openOLT.enableGemStats {
+	if !StatMgr.Device.openOLT.enableONUStats && !StatMgr.Device.openOLT.enableGemStats &&
+		!StatMgr.Device.openOLT.enablePonRxPowerStats {
 		return
 	}
 
@@ -569,18 +633,38 @@ func (StatMgr *OpenOltStatisticsMgr) collectOnuAndGemStats(ctx context.Context, 
 		if StatMgr.Device.openOLT.enableGemStats {
 			go StatMgr.collectGemStats(ctx, onuInfo)
 		}
+		if StatMgr.Device.openOLT.enablePonRxPowerStats {
+			go StatMgr.collectOnuRxPower(ctx, onuInfo) //nolint:gosec
+		}
 	}
 }
 
 // collectGemStats will collect gem metrics
 func (StatMgr *OpenOltStatisticsMgr) collectGemStats(ctx context.Context, onuGemInfo rsrcMgr.OnuGemInfo) {
 	for _, gem := range onuGemInfo.GemPorts {
+		// Check if stats collection is cancelled
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			logger.Warnw(ctx, "stats-collection-cancelled-skipping-gem-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID})
+			return
+		default:
+		}
 		logger.Debugw(ctx, "pulling-gem-stats", log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem})
 		onuPacket := &openolt.OnuPacket{IntfId: onuGemInfo.IntfID, OnuId: onuGemInfo.OnuID, GemportId: gem}
-		subCtx, cancel := context.WithTimeout(context.Background(), StatMgr.Device.openOLT.rpcTimeout)
+		subCtx, cancel := context.WithTimeout(StatMgr.statsCollectorCtx, StatMgr.Device.openOLT.rpcTimeout)
 		if stats, err := StatMgr.Device.Client.GetGemPortStatistics(subCtx, onuPacket); err == nil {
-			gemStats <- stats
+			stats.OnuId = onuGemInfo.OnuID
+			select {
+			case <-StatMgr.statsCollectorCtx.Done():
+				cancel()
+				return
+			case StatMgr.gemStats <- stats:
+			}
 		} else {
+			if StatMgr.statsCollectorCtx.Err() != nil {
+				cancel()
+				return
+			}
 			logger.Errorw(ctx, "error-while-getting-gem-stats-for-onu",
 				log.Fields{"IntfID": onuGemInfo.IntfID, "OnuID": onuGemInfo.OnuID, "GemID": gem, "err": err})
 		}
@@ -591,25 +675,79 @@ func (StatMgr *OpenOltStatisticsMgr) collectGemStats(ctx context.Context, onuGem
 // publishGemStats will publish the gem metrics
 func (StatMgr *OpenOltStatisticsMgr) publishGemStats() {
 	for {
-		statValue := StatMgr.convertGemStats(<-gemStats)
-		StatMgr.publishMetrics(context.Background(), GEMStats, statValue, &voltha.Port{Label: "GEM"}, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			logger.Warnw(context.Background(), "stopping-gem-stats-collector", log.Fields{"deviceID": StatMgr.Device.device.Id})
+			return
+		case sts := <-StatMgr.gemStats:
+			onuKey := StatMgr.Device.formOnuKey(sts.IntfId, sts.OnuId)
+			var onuInCache any
+			if tmp, ok := StatMgr.Device.onus.Load(onuKey); !ok {
+				logger.Warnw(context.Background(), "onu-not-found-in-cache", log.Fields{"onuKey": onuKey})
+				continue
+			} else {
+				onuInCache = tmp
+			}
+			statValue := StatMgr.convertGemStats(sts)
+			StatMgr.publishMetrics(context.Background(), GEMStats, statValue, onuInCache.(*OnuDevice).serialNumber, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+		}
 	}
 }
 
 // publishOnuStats will publish the onu metrics
 func (StatMgr *OpenOltStatisticsMgr) publishOnuStats() {
 	for {
-		statValue := StatMgr.convertONUStats(<-onuStats)
-		StatMgr.publishMetrics(context.Background(), ONUStats, statValue, &voltha.Port{Label: "ONU"}, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			logger.Warnw(context.Background(), "stopping-onu-stats-collector", log.Fields{"deviceID": StatMgr.Device.device.Id})
+			return
+		case sts := <-StatMgr.onuStats:
+			onuKey := StatMgr.Device.formOnuKey(sts.IntfId, sts.OnuId)
+			var onuInCache any
+			if tmp, ok := StatMgr.Device.onus.Load(onuKey); !ok {
+				logger.Warnw(context.Background(), "onu-not-found-in-cache", log.Fields{"onuKey": onuKey})
+				continue
+			} else {
+				onuInCache = tmp
+			}
+			statValue := StatMgr.convertONUStats(sts)
+			StatMgr.publishMetrics(context.Background(), ONUStats, statValue, onuInCache.(*OnuDevice).serialNumber, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+		}
+	}
+}
+
+// publishOnuRxPowerStats will publish the onu RX power metrics
+func (StatMgr *OpenOltStatisticsMgr) publishOnuRxPowerStats() {
+	for {
+		select {
+		case <-StatMgr.statsCollectorCtx.Done():
+			logger.Warnw(context.Background(), "stopping-onu-rx-power-stats-collector", log.Fields{"deviceID": StatMgr.Device.device.Id})
+			return
+		case sts := <-StatMgr.onuRxPowerStats:
+			onuKey := StatMgr.Device.formOnuKey(sts.IntfId, sts.OnuId)
+			var onuInCache any
+			if tmp, ok := StatMgr.Device.onus.Load(onuKey); !ok {
+				logger.Warnw(context.Background(), "onu-not-found-in-cache", log.Fields{"onuKey": onuKey})
+				continue
+			} else {
+				onuInCache = tmp
+			}
+			if sts.GetFailReason() != openolt.PonRxPowerData_FAIL_REASON_NONE {
+				logger.Warnw(context.Background(), "onu-rx-power-fail-reason", log.Fields{"onuKey": onuKey, "failReason": sts.GetFailReason()})
+				continue
+			}
+			statValue := StatMgr.convertOnuRxPowerStats(sts)
+			StatMgr.publishMetrics(context.Background(), ONURXPowerStats, statValue, onuInCache.(*OnuDevice).serialNumber, StatMgr.Device.device.Id, StatMgr.Device.device.Type)
+		}
 	}
 }
 
 // publishMetrics will publish the pon port metrics
 func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statType string, val map[string]float32,
-	port *voltha.Port, devID string, devType string) {
+	label interface{}, devID string, devType string) {
 	logger.Debugw(ctx, "publish-metrics",
 		log.Fields{
-			"port":    port.Label,
+			"label":   label,
 			"metrics": val})
 
 	var metricInfo voltha.MetricInformation
@@ -618,15 +756,25 @@ func (StatMgr *OpenOltStatisticsMgr) publishMetrics(ctx context.Context, statTyp
 	metricsContext := make(map[string]string)
 	metricsContext["oltid"] = devID
 	metricsContext["devicetype"] = devType
-	metricsContext["portlabel"] = port.Label
 
 	switch statType {
 	case NNIStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_NNI
+		p := label.(*voltha.Port)
+		metricsContext["portlabel"] = p.Label
 	case PONStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_PON
-	case GEMStats, ONUStats:
+		p := label.(*voltha.Port)
+		metricsContext["portlabel"] = p.Label
+	case GEMStats:
 		volthaEventSubCatgry = voltha.EventSubCategory_ONT
+		p := label.(string)
+		metricsContext["onu-serial-number"] = p
+		metricsContext[GemID] = strconv.FormatFloat(float64(val[GemID]), 'f', -1, 32)
+	case ONUStats, ONURXPowerStats:
+		volthaEventSubCatgry = voltha.EventSubCategory_ONT
+		p := label.(string)
+		metricsContext["onu-serial-number"] = p
 	}
 
 	raisedTs := time.Now().Unix()

@@ -58,6 +58,7 @@ const (
 	defaultOmccEncryption                     = false
 	defaultEnableONUStats                     = false
 	defaultEnableGEMStats                     = false
+	defaultEnablePonRxPowerStats              = false
 	defaultMinBackoffRetryDelay               = 500 * time.Millisecond
 	defaultMaxBackoffRetryDelay               = 10 * time.Second
 	defaultAdapterEndpoint                    = "adapter-open-olt"
@@ -105,6 +106,7 @@ type AdapterFlags struct {
 	OmccEncryption                     bool
 	EnableONUStats                     bool
 	EnableGEMStats                     bool
+	EnablePonRxPowerStats              bool
 	CheckOnuDevExistenceAtOnuDiscovery bool
 	ForceOnuDiscIndProcessing          bool
 	ProducerRetryMax                   int
@@ -139,6 +141,7 @@ func NewAdapterFlags() *AdapterFlags {
 		OmccEncryption:                     defaultOmccEncryption,
 		EnableONUStats:                     defaultEnableONUStats,
 		EnableGEMStats:                     defaultEnableGEMStats,
+		EnablePonRxPowerStats:              defaultEnablePonRxPowerStats,
 		RPCTimeout:                         defaultRPCTimeout,
 		PerRPCRetryTimeout:                 defaultPerRPCRetryTimeout,
 		MinBackoffRetryDelay:               defaultMinBackoffRetryDelay,
@@ -273,6 +276,11 @@ func (so *AdapterFlags) ParseCommandArguments() {
 		"enable_gem_stats",
 		defaultEnableGEMStats,
 		"Enable GEM Statistics")
+
+	flag.BoolVar(&(so.EnablePonRxPowerStats),
+		"enable_pon_rx_power_stats",
+		defaultEnablePonRxPowerStats,
+		"Enable PON RX Power Statistics")
 
 	flag.StringVar(&(so.GrpcAddress),
 		"grpc_address",

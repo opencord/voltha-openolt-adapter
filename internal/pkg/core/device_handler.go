@@ -1436,10 +1436,24 @@ func startCollector(ctx context.Context, dh *DeviceHandler) {
 	dh.isCollectorActive = true
 	dh.lockDevice.Unlock()
 
+	if dh.openOLT.enableONUStats {
+		go dh.portStats.publishOnuStats() //nolint:gosec
+	}
+	if dh.openOLT.enableGemStats {
+		go dh.portStats.publishGemStats() //nolint:gosec
+	}
+	if dh.openOLT.enablePonRxPowerStats {
+		go dh.portStats.publishOnuRxPowerStats() //nolint:gosec
+	}
+
 	for {
 		select {
 		case <-dh.stopCollector:
 			logger.Infow(ctx, "stopping-collector-for-olt", log.Fields{"device-id": dh.device.Id})
+			// Cancel stats collection context to stop ongoing stats collection goroutines
+			if dh.portStats != nil {
+				dh.portStats.StopStatsCollection()
+			}
 			return
 		case <-time.After(time.Duration(dh.metrics.ToPmConfigs().DefaultFreq) * time.Second):
 
