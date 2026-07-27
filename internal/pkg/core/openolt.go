@@ -61,6 +61,7 @@ type OpenOLT struct {
 	lockDeviceHandlersMap              sync.RWMutex
 	enableONUStats                     bool
 	enableGemStats                     bool
+	enablePonRxPowerStats              bool
 	CheckOnuDevExistenceAtOnuDiscovery bool
 	ForceOnuDiscIndProcessing          bool
 }
@@ -85,6 +86,7 @@ func NewOpenOLT(ctx context.Context,
 	openOLT.configManager = cm
 	openOLT.enableONUStats = cfg.EnableONUStats
 	openOLT.enableGemStats = cfg.EnableGEMStats
+	openOLT.enablePonRxPowerStats = cfg.EnablePonRxPowerStats
 	openOLT.rpcTimeout = cfg.RPCTimeout
 	openOLT.CheckOnuDevExistenceAtOnuDiscovery = cfg.CheckOnuDevExistenceAtOnuDiscovery
 	openOLT.ForceOnuDiscIndProcessing = cfg.ForceOnuDiscIndProcessing

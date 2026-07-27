@@ -7,7 +7,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/opencord/voltha-lib-go/v7 v7.8.4
-	github.com/opencord/voltha-protos/v5 v5.7.3
+	github.com/opencord/voltha-protos/v5 v5.7.6
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	go.etcd.io/etcd/tests/v3 v3.6.5
