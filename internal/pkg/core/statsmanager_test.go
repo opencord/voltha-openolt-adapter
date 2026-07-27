@@ -70,7 +70,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 	}
 	type args struct {
 		val      map[string]float32
-		port     *voltha.Port
+		label    interface{}
 		statType string
 	}
 	ponmap := map[uint32]*PonPort{}
@@ -144,7 +144,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 			},
 			args: args{
 				val:      nval,
-				port:     &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
+				label:    &voltha.Port{PortNo: 0, Label: fmt.Sprintf("%s%d", "nni-", 0), Type: voltha.Port_ETHERNET_NNI},
 				statType: NNIStats,
 			},
 		},
@@ -157,7 +157,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 			},
 			args: args{
 				val:      pval,
-				port:     &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
+				label:    &voltha.Port{PortNo: 1, Label: fmt.Sprintf("%s%d", "pon-", 1), Type: voltha.Port_PON_OLT},
 				statType: PONStats,
 			},
 		},
@@ -169,7 +169,7 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: nil,
 			},
 			args: args{
-				port:     &voltha.Port{Label: "ONU"},
+				label:    "test-serial-number",
 				statType: ONUStats,
 			},
 		},
@@ -181,8 +181,18 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				SouthBoundPort: nil,
 			},
 			args: args{
-				port:     &voltha.Port{Label: "GEM"},
+				label:    "test-serial-number",
 				statType: GEMStats,
+			},
+		},
+		{
+			name: "PublishPonRxpowerMetrics-1",
+			fields: fields{
+				Device: dhandlerGEM,
+			},
+			args: args{
+				label:    "test-serial-number",
+				statType: ONURXPowerStats,
 			},
 		},
 		// TODO: Add test cases.
@@ -198,8 +208,10 @@ func TestOpenOltStatisticsMgr_publishMetrics(t *testing.T) {
 				tt.args.val = StatMgr.convertONUStats(&openolt.OnuStatistics{IntfId: 1, OnuId: 1, PositiveDrift: 123, BipErrors: 22})
 			} else if tt.args.statType == GEMStats {
 				tt.args.val = StatMgr.convertGemStats(&openolt.GemPortStatistics{IntfId: 1, GemportId: 1024, RxPackets: 12, TxBytes: 12})
+			} else if tt.args.statType == ONURXPowerStats {
+				tt.args.val = StatMgr.convertOnuRxPowerStats(&openolt.PonRxPowerData{IntfId: 1, OnuId: 1, RxPowerMeanDbm: -12})
 			}
-			StatMgr.publishMetrics(context.Background(), tt.args.statType, tt.args.val, tt.args.port, "onu1", "openolt")
+			StatMgr.publishMetrics(context.Background(), tt.args.statType, tt.args.val, tt.args.label, "onu1", "openolt")
 		})
 	}
 }
