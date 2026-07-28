@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "55beb827_8de00a88",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-07-28T21:17:22Z",
+      "side": 1,
+      "message": "Not a major problem but this function ignores the Status and FailReason fields. So even if the measurement fails, it could push 0 dBm readings into the KPI data.",
+      "revId": "c2df6e92966a1ec613ad6be7ad212a8c9eb91bb6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f80faef1_1fb9abbd",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-07-28T21:17:22Z",
+      "side": 1,
+      "message": "I think this should be a continue rather than a return.",
+      "revId": "c2df6e92966a1ec613ad6be7ad212a8c9eb91bb6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
