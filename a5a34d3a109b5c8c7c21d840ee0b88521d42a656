@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b34655d_98b9463c",
+        "filename": "internal/pkg/core/openolt_flowmgr.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-07-28T21:28:40Z",
+      "side": 1,
+      "message": "I propose deleting this dead function.",
+      "range": {
+        "startLine": 223,
+        "startChar": 25,
+        "endLine": 223,
+        "endChar": 38
+      },
+      "revId": "a5a34d3a109b5c8c7c21d840ee0b88521d42a656",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6009ea2a_ea4a18aa",
+        "filename": "internal/pkg/resourcemanager/resourcemanager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1000404
+      },
+      "writtenOn": "2026-07-28T21:28:40Z",
+      "side": 1,
+      "message": "I propose deleting the dead function.",
+      "range": {
+        "startLine": 215,
+        "startChar": 35,
+        "endLine": 215,
+        "endChar": 48
+      },
+      "revId": "a5a34d3a109b5c8c7c21d840ee0b88521d42a656",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
