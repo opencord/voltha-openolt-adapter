@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "36b1de6b_8706f7f4",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-07-30T13:55:00Z",
+      "side": 1,
+      "message": "At what point of time we are stopping these routines ? like disable of OLT or when OLT is unreachbel or when OLT is deleted",
+      "revId": "ae531953cd3eda2fad13339cccfeac6532f5bb68",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    }
+  ]
+}
