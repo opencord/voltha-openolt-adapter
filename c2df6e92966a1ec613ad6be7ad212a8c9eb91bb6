@@ -69,6 +69,24 @@
       "parentUuid": "f80faef1_1fb9abbd",
       "revId": "c2df6e92966a1ec613ad6be7ad212a8c9eb91bb6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "604c9906_fb9796ba",
+        "filename": "internal/pkg/core/statsmanager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1000537
+      },
+      "writtenOn": "2026-08-05T09:22:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "65ca315c_6d002575",
+      "revId": "c2df6e92966a1ec613ad6be7ad212a8c9eb91bb6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388"
     }
   ]
 }
