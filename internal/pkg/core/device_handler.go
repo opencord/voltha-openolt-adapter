@@ -1999,6 +1999,13 @@ func (dh *DeviceHandler) onuDiscIndication(ctx context.Context, onuDiscInd *oop.
 		logger.Debugw(ctx, "creating-new-onu", log.Fields{"sn": sn})
 		// we need to create a new ChildDevice
 		ponintfid := onuDiscInd.GetIntfId()
+		if ponintfid >= uint32(len(dh.resourceMgr)) || dh.resourceMgr[ponintfid] == nil {
+			dh.discOnus.Delete(sn)
+			error = olterrors.NewErrNotFound("resource-manager", log.Fields{
+				"pon-intf-id":   ponintfid,
+				"serial-number": sn}, nil)
+			return error
+		}
 		onuID, error = dh.resourceMgr[ponintfid].GetONUID(ctx)
 		logger.Infow(ctx, "creating-new-onu-got-onu-id", log.Fields{"sn": sn, "onuId": onuID})
 
