@@ -1095,7 +1095,7 @@ func TestDeviceHandler_activateONU(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			_ = tt.devicehandler.activateONU(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum, tt.args.serialNumber)
+			_ = tt.devicehandler.activateONU(ctx, tt.args.intfID, tt.args.onuID, tt.args.serialNum, tt.args.serialNumber, "")
 			//TODO: actually verify test cases
 		})
 	}
