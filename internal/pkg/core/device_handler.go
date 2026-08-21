@@ -4965,3 +4965,21 @@ func (dh *DeviceHandler) sendFailureEvent(eventName string, deviceID, childDevic
 	/* Send event to KAFKA */
 	events.FailureEvent(dh.eventMgr.eventProxy, eventName, context, deviceID, raisedTs)
 }
+
+//nolint:unparam
+func (dh *DeviceHandler) getSubAppsStats(ctx context.Context, subAppsStatsRequest *extension.GetSubscriberAppsStatisticsRequest) *extension.SingleGetValueResponse {
+	resp := extension.SingleGetValueResponse{
+		Response: &extension.GetValueResponse{
+			Status: extension.GetValueResponse_OK,
+			Response: &extension.GetValueResponse_SubAppsStatsResponse{
+				SubAppsStatsResponse: &extension.GetSubscriberAppsStatisticsResponse{
+					Stats: &extension.GetSubscriberAppsStatisticsResponse_PppoeIaStats{
+						PppoeIaStats: &extension.GetSubscriberAppsStatisticsResponse_SubPPPoeIAStats{},
+					},
+				},
+			},
+		},
+	}
+
+	return &resp
+}

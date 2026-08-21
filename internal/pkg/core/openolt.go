@@ -546,7 +546,7 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 	}
 
 	switch request.GetRequest().GetRequest().(type) {
-	case *extension.GetValueRequest_OnuStatsFromOlt:
+	case *extension.GetValueRequest_OnuStatsFromOlt, *extension.GetValueRequest_SubAppsStats:
 		handler, onuDevice = oo.GetDeviceHandlerFromChild(ctx, request.TargetId)
 	default:
 		handler = oo.getDeviceHandler(request.TargetId)
@@ -570,6 +570,8 @@ func (oo *OpenOLT) GetSingleValue(ctx context.Context, request *extension.Single
 			return handler.getPonPortStats(ctx, reqType.OltPonStats), nil
 		case *extension.GetValueRequest_OltNniStats:
 			return handler.getNniPortStats(ctx, reqType.OltNniStats), nil
+		case *extension.GetValueRequest_SubAppsStats:
+			return handler.getSubAppsStats(ctx, reqType.SubAppsStats), nil
 		default:
 			return errResp(extension.GetValueResponse_ERROR, extension.GetValueResponse_UNSUPPORTED), nil
 		}
