@@ -73,6 +73,9 @@ type OpenOLT struct {
 	TpInstances                        *db.Backend
 }
 
+// Tech-profile definitions are shared across all VOLTHA stacks, so use a fixed global path.
+const techProfilesPath = "service/voltha/technology_profiles"
+
 // NewOpenOLT returns a new instance of OpenOLT
 func NewOpenOLT(ctx context.Context,
 	coreClient *vgrpc.Client,
@@ -101,9 +104,8 @@ func NewOpenOLT(ctx context.Context,
 	// kvStore backends for resource manager and technology profiles. These are used by the device handlers to store the allocated resources and other relevant information.
 	openOLT.PonRsrcMgr = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_manager")
 	openOLT.PonRsrcMgrTech = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_manager/config")
-	openOLT.TpDefault = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/technology_profiles")
-	// Tprofiles uses a fixed global path because tech-profile definitions are shared across all VOLTHA stacks.
-	openOLT.Tprofiles = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, "service/voltha/technology_profiles")
+	openOLT.TpDefault = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, techProfilesPath)
+	openOLT.Tprofiles = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, techProfilesPath)
 	openOLT.TpInstances = db.NewBackend(ctx, cfg.KVStoreType, cfg.KVStoreAddress, rsrcMgr.KvstoreTimeout, cm.Backend.PathPrefix+"/resource_instances")
 
 	return &openOLT
