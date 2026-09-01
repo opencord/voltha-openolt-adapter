@@ -2166,6 +2166,15 @@ func (dh *DeviceHandler) onuIndication(ctx context.Context, onuInd *oop.OnuIndic
 		return olterrors.NewErrNotFound("onu-device", errFields, err)
 	}
 
+	//If onu indication down and onu disc indication of another onu happens parallelly, then onuid with incorrect serial number is fetched
+	if onuInd.OperState == "down" && onuDevice.SerialNumber != "" && serialNumber != "" && onuDevice.SerialNumber != serialNumber {
+		logger.Warnw(ctx, "onu-serial-number-mismatch-possible", log.Fields{
+			"expected-serial-number-from-indication": serialNumber,
+			"received-serial-number-from-core":       onuDevice.SerialNumber,
+			"device-id":                              dh.device.Id})
+		return nil
+	}
+
 	if onuDevice.ParentPortNo != ponPort {
 		logger.Warnw(ctx, "onu-is-on-a-different-intf-id-now", log.Fields{
 			"previousIntfId": onuDevice.ParentPortNo,
