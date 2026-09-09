@@ -31,7 +31,7 @@ on:
 
 jobs:
   sanity-test:
-    uses: opencord/shared-workflows/.github/workflows/sanity-test.yaml@main
+    uses: opencord/shared-workflows/.github/workflows/sanity-test.yaml@test/voltctl-fix-ci-pin
     secrets: inherit
     with:
       # Release train for the test suite and charts, NOT the code under test.
