@@ -289,13 +289,29 @@ func (dh *DeviceHandler) start(ctx context.Context) {
 // Stop stops the device handler
 func (dh *DeviceHandler) Stop(ctx context.Context) {
 	dh.lockDevice.Lock()
-	defer dh.lockDevice.Unlock()
 	logger.Debug(ctx, "stopping-device-agent")
 	close(dh.exitChannel)
 
 	// Delete (which will stop also) all grpc connections to the child adapters
 	dh.deleteAdapterClients(ctx)
+	dh.lockDevice.Unlock()
+
+	dh.closeOLTConnection(ctx)
 	logger.Debug(ctx, "device-agent-stopped")
+}
+
+// closeOLTConnection closes the southbound gRPC connection to the OLT.
+func (dh *DeviceHandler) closeOLTConnection(ctx context.Context) {
+	conn := dh.clientCon
+	if conn == nil {
+		return
+	}
+	dh.clientCon = nil
+	if err := conn.Close(); err != nil {
+		logger.Errorw(ctx, "failed-to-close-olt-grpc-connection", log.Fields{"device-id": dh.device.Id, "err": err})
+	} else {
+		logger.Debugw(ctx, "olt-grpc-connection-closed", log.Fields{"device-id": dh.device.Id})
+	}
 }
 
 func (dh *DeviceHandler) getPonTechnology(intfID uint32) string {
@@ -2713,6 +2729,9 @@ func (dh *DeviceHandler) DeleteDevice(ctx context.Context, device *voltha.Device
 
 	// Stop the adapter grpc clients for that parent device
 	dh.deleteAdapterClients(ctx)
+	// Drop the southbound OLT connection. The handler is about to be removed,
+	// so nothing will dial again and close this ClientConn.
+	dh.closeOLTConnection(ctx)
 	return err
 }
 
